@@ -1,34 +1,27 @@
 import { atom } from 'jotai'
-import { Employee, LeaveRequest, Attendance } from '@/types'
+import type { Employee, LeaveRequest, Attendance } from '@/types'
 
-// Employee management state
+// Simple atoms without dependencies
 export const employeesAtom = atom<Employee[]>([])
 export const selectedEmployeeAtom = atom<Employee | null>(null)
-export const employeesLoadingAtom = atom<boolean>(false)
+export const employeesLoadingAtom = atom(false)
 export const employeesErrorAtom = atom<string | null>(null)
 
-// Leave management state
 export const leaveRequestsAtom = atom<LeaveRequest[]>([])
-export const leaveRequestsLoadingAtom = atom<boolean>(false)
+export const leaveRequestsLoadingAtom = atom(false)
 export const leaveRequestsErrorAtom = atom<string | null>(null)
 
-// Attendance state
 export const attendanceRecordsAtom = atom<Attendance[]>([])
-export const attendanceLoadingAtom = atom<boolean>(false)
+export const attendanceLoadingAtom = atom(false)
 export const attendanceErrorAtom = atom<string | null>(null)
 
-// Filters and search
-export const employeeFiltersAtom = atom<{
-  department: string
-  status: string
-  search: string
-}>({
+export const employeeFiltersAtom = atom({
   department: 'all',
   status: 'all',
   search: '',
 })
 
-// Derived atoms
+// Derived atom
 export const filteredEmployeesAtom = atom((get) => {
   const employees = get(employeesAtom)
   const filters = get(employeeFiltersAtom)
@@ -44,20 +37,4 @@ export const filteredEmployeesAtom = atom((get) => {
     
     return matchesDepartment && matchesStatus && matchesSearch
   })
-})
-
-export const activeEmployeesCountAtom = atom((get) => {
-  const employees = get(employeesAtom)
-  return employees.filter(emp => emp.status === 'active').length
-})
-
-export const departmentsAtom = atom((get) => {
-  const employees = get(employeesAtom)
-  const departments = Array.from(new Set(employees.map(emp => emp.department)))
-  return departments.sort()
-})
-
-export const pendingLeaveCountAtom = atom((get) => {
-  const leaveRequests = get(leaveRequestsAtom)
-  return leaveRequests.filter(request => request.status === 'pending').length
 })

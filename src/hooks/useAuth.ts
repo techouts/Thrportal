@@ -1,21 +1,17 @@
-import { useAtom } from 'jotai'
-import { useCallback } from 'react'
-import { 
-  isAuthenticatedAtom, 
-  currentUserAtom, 
-  authTokenAtom,
-  sessionAtom,
-  userPreferencesAtom
-} from '@/atoms/userAtoms'
-import { User } from '@/types'
+import { useState, useCallback } from 'react'
+import type { User } from '@/types'
 import { toast } from 'sonner'
 
+// Simple hook without Jotai for testing
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useAtom(isAuthenticatedAtom)
-  const [currentUser, setCurrentUser] = useAtom(currentUserAtom)
-  const [authToken, setAuthToken] = useAtom(authTokenAtom)
-  const [session, setSession] = useAtom(sessionAtom)
-  const [preferences, setPreferences] = useAtom(userPreferencesAtom)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [authToken, setAuthToken] = useState<string | null>(null)
+  const [session, setSession] = useState({
+    isLoading: false,
+    error: null as string | null,
+    lastActivity: null as Date | null,
+  })
 
   const mockUser: User = {
     id: 'demo-user',
@@ -34,7 +30,7 @@ export const useAuth = () => {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      setSession(prev => ({ ...prev, isLoading: true, error: null }))
+      setSession((prev) => ({ ...prev, isLoading: true, error: null }))
       
       if (email === 'demo@company.com' && password === 'demo123') {
         const token = 'mock-jwt-token'
@@ -44,7 +40,7 @@ export const useAuth = () => {
         setAuthToken(token)
         setCurrentUser(mockUser)
         setIsAuthenticated(true)
-        setSession(prev => ({ ...prev, isLoading: false, lastActivity: new Date() }))
+        setSession((prev) => ({ ...prev, isLoading: false, lastActivity: new Date() }))
         
         toast.success(`Welcome back, ${mockUser.firstName}!`)
         return { success: true, user: mockUser }
@@ -53,11 +49,11 @@ export const useAuth = () => {
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Login failed'
-      setSession(prev => ({ ...prev, isLoading: false, error: errorMessage }))
+      setSession((prev) => ({ ...prev, isLoading: false, error: errorMessage }))
       toast.error(errorMessage)
       return { success: false, error: errorMessage }
     }
-  }, [setSession, setAuthToken, setCurrentUser, setIsAuthenticated])
+  }, [mockUser])
 
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token')
@@ -67,13 +63,12 @@ export const useAuth = () => {
     setIsAuthenticated(false)
     setSession({ isLoading: false, error: null, lastActivity: null })
     toast.success('Logged out successfully')
-  }, [setAuthToken, setCurrentUser, setIsAuthenticated, setSession])
+  }, [])
 
   return {
     isAuthenticated,
     currentUser,
     session,
-    preferences,
     actions: { login, logout }
   }
 }

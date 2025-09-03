@@ -1,24 +1,33 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { useCallback, useEffect } from 'react'
-import { 
-  employeesAtom, 
-  employeesLoadingAtom, 
-  employeesErrorAtom,
-  filteredEmployeesAtom,
-  employeeFiltersAtom,
-  selectedEmployeeAtom
-} from '@/atoms/employeeAtoms'
-import { JsonApiService } from '@/services'
-import { Employee } from '@/types'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { JsonApiService } from '@/services/jsonApiService'
+import type { Employee } from '@/types'
 import { toast } from 'sonner'
 
+// Simple hook without Jotai for testing
 export const useEmployees = () => {
-  const [employees, setEmployees] = useAtom(employeesAtom)
-  const [loading, setLoading] = useAtom(employeesLoadingAtom)
-  const [error, setError] = useAtom(employeesErrorAtom)
-  const filteredEmployees = useAtomValue(filteredEmployeesAtom)
-  const [filters, setFilters] = useAtom(employeeFiltersAtom)
-  const [selectedEmployee, setSelectedEmployee] = useAtom(selectedEmployeeAtom)
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+  const [filters, setFilters] = useState({
+    department: 'all',
+    status: 'all',
+    search: '',
+  })
+
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((employee) => {
+      const matchesDepartment = filters.department === 'all' || employee.department === filters.department
+      const matchesStatus = filters.status === 'all' || employee.status === filters.status
+      const matchesSearch = !filters.search || 
+        employee.firstName.toLowerCase().includes(filters.search.toLowerCase()) ||
+        employee.lastName.toLowerCase().includes(filters.search.toLowerCase()) ||
+        employee.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+        employee.employeeId.toLowerCase().includes(filters.search.toLowerCase())
+      
+      return matchesDepartment && matchesStatus && matchesSearch
+    })
+  }, [employees, filters])
 
   const loadEmployees = useCallback(async () => {
     try {
@@ -33,15 +42,15 @@ export const useEmployees = () => {
     } finally {
       setLoading(false)
     }
-  }, [setEmployees, setLoading, setError])
+  }, [])
 
   const updateFilters = useCallback((newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }))
-  }, [setFilters])
+    setFilters((prev) => ({ ...prev, ...newFilters }))
+  }, [])
 
   const clearFilters = useCallback(() => {
     setFilters({ department: 'all', status: 'all', search: '' })
-  }, [setFilters])
+  }, [])
 
   useEffect(() => {
     if (employees.length === 0) {
