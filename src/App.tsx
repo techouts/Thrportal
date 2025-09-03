@@ -6,15 +6,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
+import { Provider as JotaiProvider } from 'jotai';
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <JotaiProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={
             <MainLayout>
@@ -112,6 +114,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </JotaiProvider>
   </QueryClientProvider>
 );
 
