@@ -1,0 +1,118 @@
+[
+  {
+    "id": "pr-001",
+    "employeeId": "emp-001",
+    "reviewerId": "emp-003",
+    "period": "Q2 2024",
+    "status": "completed",
+    "overallRating": 4.2,
+    "goals": [
+      {
+        "id": "goal-001",
+        "title": "Complete React Migration",
+        "description": "Migrate legacy components to React 18",
+        "targetDate": "2024-06-30",
+        "status": "completed",
+        "progress": 100
+      },
+      {
+        "id": "goal-002",
+        "title": "Improve Code Coverage",
+        "description": "Increase unit test coverage to 85%",
+        "targetDate": "2024-06-30",
+        "status": "completed",
+        "progress": 90
+      }
+    ],
+    "feedback": "John has shown excellent technical leadership and consistently delivered high-quality work. His React migration project was completed ahead of schedule.",
+    "createdAt": "2024-04-01T00:00:00.000Z",
+    "updatedAt": "2024-07-01T00:00:00.000Z"
+  },
+  {
+    "id": "pr-002",
+    "employeeId": "emp-002",
+    "reviewerId": "emp-004",
+    "period": "Q2 2024",
+    "status": "completed",
+    "overallRating": 4.5,
+    "goals": [
+      {
+        "id": "goal-003",
+        "title": "Launch Social Media Campaign",
+        "description": "Execute Q2 social media marketing campaign",
+        "targetDate": "2024-06-30",
+        "status": "completed",
+        "progress": 100
+      },
+      {
+        "id": "goal-004",
+        "title": "Brand Awareness Metrics",
+        "description": "Increase brand awareness by 25%",
+        "targetDate": "2024-06-30",
+        "status": "completed",
+        "progress": 85
+      }
+    ],
+    "feedback": "Sarah exceeded expectations with the social media campaign, achieving 30% increase in brand awareness. Outstanding creativity and execution.",
+    "createdAt": "2024-04-01T00:00:00.000Z",
+    "updatedAt": "2024-07-01T00:00:00.000Z"
+  },
+  {
+    "id": "pr-003",
+    "employeeId": "emp-008",
+    "reviewerId": "emp-003",
+    "period": "Q3 2024",
+    "status": "in-progress",
+    "overallRating": null,
+    "goals": [
+      {
+        "id": "goal-005",
+        "title": "UI Component Library",
+        "description": "Build reusable UI component library",
+        "targetDate": "2024-09-30",
+        "status": "in-progress",
+        "progress": 65
+      },
+      {
+        "id": "goal-006",
+        "title": "Accessibility Compliance",
+        "description": "Ensure WCAG 2.1 AA compliance",
+        "targetDate": "2024-09-30",
+        "status": "in-progress",
+        "progress": 40
+      }
+    ],
+    "feedback": "Progress is on track. Strong attention to detail in component design.",
+    "createdAt": "2024-07-01T00:00:00.000Z",
+    "updatedAt": "2024-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "pr-004",
+    "employeeId": "emp-009",
+    "reviewerId": "emp-003",
+    "period": "Q3 2024",
+    "status": "draft",
+    "overallRating": null,
+    "goals": [
+      {
+        "id": "goal-007",
+        "title": "API Performance Optimization",
+        "description": "Optimize backend API response times",
+        "targetDate": "2024-09-30",
+        "status": "in-progress",
+        "progress": 30
+      },
+      {
+        "id": "goal-008",
+        "title": "Database Migration",
+        "description": "Migrate to PostgreSQL 15",
+        "targetDate": "2024-09-30",
+        "status": "not-started",
+        "progress": 0
+      }
+    ],
+    "feedback": "",
+    "createdAt": "2024-07-01T00:00:00.000Z",
+    "updatedAt": "2024-07-01T00:00:00.000Z"
+  }
+]

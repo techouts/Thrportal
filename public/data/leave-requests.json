@@ -1,0 +1,59 @@
+[
+  {
+    "id": "leave-001",
+    "employeeId": "emp-001",
+    "type": "vacation",
+    "startDate": "2024-09-15",
+    "endDate": "2024-09-19",
+    "days": 5,
+    "reason": "Family vacation to Europe",
+    "status": "approved",
+    "approvedBy": "emp-003",
+    "createdAt": "2024-08-20T10:00:00.000Z"
+  },
+  {
+    "id": "leave-002",
+    "employeeId": "emp-002",
+    "type": "sick",
+    "startDate": "2024-09-05",
+    "endDate": "2024-09-06",
+    "days": 2,
+    "reason": "Flu symptoms",
+    "status": "approved",
+    "approvedBy": "emp-004",
+    "createdAt": "2024-09-04T08:30:00.000Z"
+  },
+  {
+    "id": "leave-003",
+    "employeeId": "emp-008",
+    "type": "personal",
+    "startDate": "2024-09-20",
+    "endDate": "2024-09-20",
+    "days": 1,
+    "reason": "Medical appointment",
+    "status": "pending",
+    "createdAt": "2024-09-03T14:15:00.000Z"
+  },
+  {
+    "id": "leave-004",
+    "employeeId": "emp-006",
+    "type": "vacation",
+    "startDate": "2024-10-01",
+    "endDate": "2024-10-10",
+    "days": 8,
+    "reason": "Wedding anniversary celebration",
+    "status": "pending",
+    "createdAt": "2024-09-01T09:45:00.000Z"
+  },
+  {
+    "id": "leave-005",
+    "employeeId": "emp-009",
+    "type": "vacation",
+    "startDate": "2024-11-15",
+    "endDate": "2024-11-22",
+    "days": 6,
+    "reason": "Thanksgiving week off",
+    "status": "pending",
+    "createdAt": "2024-08-30T11:20:00.000Z"
+  }
+]

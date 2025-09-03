@@ -1,0 +1,52 @@
+[
+  {
+    "id": "dept-001",
+    "name": "Engineering",
+    "description": "Software development and technical operations",
+    "manager": "emp-003",
+    "location": "San Francisco, CA",
+    "budget": 2500000,
+    "employeeCount": 4,
+    "code": "ENG"
+  },
+  {
+    "id": "dept-002",
+    "name": "Marketing",
+    "description": "Brand management and customer acquisition",
+    "manager": "emp-004",
+    "location": "Los Angeles, CA",
+    "budget": 1200000,
+    "employeeCount": 2,
+    "code": "MKT"
+  },
+  {
+    "id": "dept-003",
+    "name": "HR",
+    "description": "Human resources and employee relations",
+    "manager": "emp-005",
+    "location": "New York, NY",
+    "budget": 800000,
+    "employeeCount": 1,
+    "code": "HR"
+  },
+  {
+    "id": "dept-004",
+    "name": "Finance",
+    "description": "Financial planning and accounting",
+    "manager": "emp-007",
+    "location": "Miami, FL",
+    "budget": 900000,
+    "employeeCount": 2,
+    "code": "FIN"
+  },
+  {
+    "id": "dept-005",
+    "name": "Executive",
+    "description": "Executive leadership and strategic planning",
+    "manager": "emp-010",
+    "location": "New York, NY",
+    "budget": 500000,
+    "employeeCount": 1,
+    "code": "EXEC"
+  }
+]

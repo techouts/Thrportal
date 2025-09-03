@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ApiResponse, ApiError, PaginatedResponse } from '@/types'
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/data'
 const API_TIMEOUT = 30000
 
 // Create axios instance

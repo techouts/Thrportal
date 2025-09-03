@@ -1,0 +1,79 @@
+[
+  {
+    "id": "att-001",
+    "employeeId": "emp-001",
+    "date": "2024-09-03",
+    "checkIn": "09:15:00",
+    "checkOut": "17:30:00",
+    "breakTime": 60,
+    "totalHours": 7.25,
+    "status": "present",
+    "location": "Office"
+  },
+  {
+    "id": "att-002",
+    "employeeId": "emp-002",
+    "date": "2024-09-03",
+    "checkIn": "08:45:00",
+    "checkOut": "17:00:00",
+    "breakTime": 45,
+    "totalHours": 7.5,
+    "status": "present",
+    "location": "Remote"
+  },
+  {
+    "id": "att-003",
+    "employeeId": "emp-003",
+    "date": "2024-09-03",
+    "checkIn": "09:00:00",
+    "checkOut": "18:15:00",
+    "breakTime": 60,
+    "totalHours": 8.25,
+    "status": "present",
+    "location": "Office"
+  },
+  {
+    "id": "att-004",
+    "employeeId": "emp-004",
+    "date": "2024-09-03",
+    "checkIn": "09:30:00",
+    "checkOut": "17:45:00",
+    "breakTime": 30,
+    "totalHours": 7.75,
+    "status": "late",
+    "location": "Office"
+  },
+  {
+    "id": "att-005",
+    "employeeId": "emp-005",
+    "date": "2024-09-03",
+    "checkIn": "08:30:00",
+    "checkOut": "16:30:00",
+    "breakTime": 60,
+    "totalHours": 7,
+    "status": "present",
+    "location": "Office"
+  },
+  {
+    "id": "att-006",
+    "employeeId": "emp-001",
+    "date": "2024-09-02",
+    "checkIn": "09:00:00",
+    "checkOut": "17:15:00",
+    "breakTime": 60,
+    "totalHours": 7.25,
+    "status": "present",
+    "location": "Office"
+  },
+  {
+    "id": "att-007",
+    "employeeId": "emp-002",
+    "date": "2024-09-02",
+    "checkIn": "09:10:00",
+    "checkOut": "17:20:00",
+    "breakTime": 50,
+    "totalHours": 7.33,
+    "status": "present",
+    "location": "Remote"
+  }
+]

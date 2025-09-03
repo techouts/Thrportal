@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ann-001",
+    "title": "Q3 Company All-Hands Meeting",
+    "content": "Join us for our quarterly all-hands meeting where we'll review Q3 achievements, discuss Q4 goals, and celebrate team successes. Light refreshments will be provided.",
+    "author": "emp-010",
+    "department": null,
+    "priority": "high",
+    "publishDate": "2024-09-01T09:00:00.000Z",
+    "expiryDate": "2024-09-15T17:00:00.000Z",
+    "isActive": true,
+    "attachments": ["meeting-agenda.pdf"]
+  },
+  {
+    "id": "ann-002",
+    "title": "New Health Insurance Benefits",
+    "content": "We're excited to announce enhanced health insurance benefits starting October 1st. The new plan includes dental and vision coverage with reduced employee contributions.",
+    "author": "emp-005",
+    "department": null,
+    "priority": "medium",
+    "publishDate": "2024-08-28T10:00:00.000Z",
+    "expiryDate": "2024-10-01T23:59:59.000Z",
+    "isActive": true,
+    "attachments": ["benefits-summary.pdf", "enrollment-form.pdf"]
+  },
+  {
+    "id": "ann-003",
+    "title": "Engineering Team - Code Review Guidelines",
+    "content": "Please review the updated code review guidelines. All pull requests must now include unit tests and documentation updates where applicable.",
+    "author": "emp-003",
+    "department": "Engineering",
+    "priority": "medium",
+    "publishDate": "2024-09-02T14:30:00.000Z",
+    "expiryDate": null,
+    "isActive": true,
+    "attachments": ["code-review-checklist.md"]
+  },
+  {
+    "id": "ann-004",
+    "title": "Office Maintenance - Parking Lot Closure",
+    "content": "The main parking lot will be closed for resurfacing from September 10-12. Please use the auxiliary parking areas during this time.",
+    "author": "emp-005",
+    "department": null,
+    "priority": "urgent",
+    "publishDate": "2024-09-03T08:00:00.000Z",
+    "expiryDate": "2024-09-13T00:00:00.000Z",
+    "isActive": true,
+    "attachments": []
+  },
+  {
+    "id": "ann-005",
+    "title": "Employee Appreciation Week",
+    "content": "Join us for Employee Appreciation Week from September 16-20! Daily surprises, team lunches, and recognition ceremonies planned.",
+    "author": "emp-005",
+    "department": null,
+    "priority": "low",
+    "publishDate": "2024-08-30T12:00:00.000Z",
+    "expiryDate": "2024-09-21T00:00:00.000Z",
+    "isActive": true,
+    "attachments": ["appreciation-week-schedule.pdf"]
+  }
+]

@@ -1,0 +1,67 @@
+{
+  "totalEmployees": 10,
+  "activeEmployees": 10,
+  "pendingLeaves": 3,
+  "avgCheckInTime": "09:15",
+  "payrollStatus": "completed",
+  "monthlyStats": {
+    "newHires": 2,
+    "departures": 0,
+    "promotions": 1,
+    "attendanceRate": 98.5
+  },
+  "departmentBreakdown": {
+    "Engineering": 4,
+    "Marketing": 2,
+    "HR": 1,
+    "Finance": 2,
+    "Executive": 1
+  },
+  "recentActivity": {
+    "leaveRequests": 3,
+    "performanceReviews": 2,
+    "newEmployees": 2
+  },
+  "metrics": [
+    {
+      "title": "Total Employees",
+      "value": "10",
+      "change": {
+        "value": "+2",
+        "type": "increase"
+      },
+      "icon": "Users",
+      "description": "Active employees"
+    },
+    {
+      "title": "Leave Requests",
+      "value": "3",
+      "change": {
+        "value": "+1",
+        "type": "increase"
+      },
+      "icon": "Calendar",
+      "description": "Pending approvals"
+    },
+    {
+      "title": "Avg. Check-in Time",
+      "value": "09:15",
+      "change": {
+        "value": "-5 min",
+        "type": "decrease"
+      },
+      "icon": "Clock",
+      "description": "This month"
+    },
+    {
+      "title": "Payroll Processing",
+      "value": "Completed",
+      "change": {
+        "value": "On time",
+        "type": "neutral"
+      },
+      "icon": "DollarSign",
+      "description": "September 2024"
+    }
+  ]
+}

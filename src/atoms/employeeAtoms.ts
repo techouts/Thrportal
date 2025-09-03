@@ -9,13 +9,11 @@ export const employeesErrorAtom = atom<string | null>(null)
 
 // Leave management state
 export const leaveRequestsAtom = atom<LeaveRequest[]>([])
-export const pendingLeaveRequestsAtom = atom<LeaveRequest[]>([])
-export const leaveLoadingAtom = atom<boolean>(false)
-export const leaveErrorAtom = atom<string | null>(null)
+export const leaveRequestsLoadingAtom = atom<boolean>(false)
+export const leaveRequestsErrorAtom = atom<string | null>(null)
 
 // Attendance state
 export const attendanceRecordsAtom = atom<Attendance[]>([])
-export const todayAttendanceAtom = atom<Attendance | null>(null)
 export const attendanceLoadingAtom = atom<boolean>(false)
 export const attendanceErrorAtom = atom<string | null>(null)
 

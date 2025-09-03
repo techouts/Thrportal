@@ -1,0 +1,212 @@
+[
+  {
+    "id": "emp-001",
+    "employeeId": "TH001",
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@thr.com",
+    "phone": "+1-555-0123",
+    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    "department": "Engineering",
+    "position": "Senior Software Engineer",
+    "manager": "emp-003",
+    "location": "New York, NY",
+    "startDate": "2022-03-15",
+    "status": "active",
+    "salary": 95000,
+    "emergencyContact": {
+      "name": "Jane Smith",
+      "phone": "+1-555-0124",
+      "relationship": "Spouse"
+    }
+  },
+  {
+    "id": "emp-002",
+    "employeeId": "TH002",
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "email": "sarah.johnson@thr.com",
+    "phone": "+1-555-0125",
+    "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b3e3?w=100&h=100&fit=crop&crop=face",
+    "department": "Marketing",
+    "position": "Marketing Manager",
+    "manager": "emp-004",
+    "location": "Los Angeles, CA",
+    "startDate": "2021-08-20",
+    "status": "active",
+    "salary": 85000,
+    "emergencyContact": {
+      "name": "Michael Johnson",
+      "phone": "+1-555-0126",
+      "relationship": "Father"
+    }
+  },
+  {
+    "id": "emp-003",
+    "employeeId": "TH003",
+    "firstName": "Michael",
+    "lastName": "Chen",
+    "email": "michael.chen@thr.com",
+    "phone": "+1-555-0127",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    "department": "Engineering",
+    "position": "Engineering Manager",
+    "manager": "emp-010",
+    "location": "San Francisco, CA",
+    "startDate": "2020-01-10",
+    "status": "active",
+    "salary": 120000,
+    "emergencyContact": {
+      "name": "Lisa Chen",
+      "phone": "+1-555-0128",
+      "relationship": "Wife"
+    }
+  },
+  {
+    "id": "emp-004",
+    "employeeId": "TH004",
+    "firstName": "Emily",
+    "lastName": "Davis",
+    "email": "emily.davis@thr.com",
+    "phone": "+1-555-0129",
+    "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+    "department": "Marketing",
+    "position": "VP Marketing",
+    "manager": "emp-010",
+    "location": "Chicago, IL",
+    "startDate": "2019-06-01",
+    "status": "active",
+    "salary": 135000,
+    "emergencyContact": {
+      "name": "Robert Davis",
+      "phone": "+1-555-0130",
+      "relationship": "Husband"
+    }
+  },
+  {
+    "id": "emp-005",
+    "employeeId": "TH005",
+    "firstName": "David",
+    "lastName": "Wilson",
+    "email": "david.wilson@thr.com",
+    "phone": "+1-555-0131",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+    "department": "HR",
+    "position": "HR Manager",
+    "manager": "emp-010",
+    "location": "New York, NY",
+    "startDate": "2020-09-15",
+    "status": "active",
+    "salary": 90000,
+    "emergencyContact": {
+      "name": "Maria Wilson",
+      "phone": "+1-555-0132",
+      "relationship": "Wife"
+    }
+  },
+  {
+    "id": "emp-006",
+    "employeeId": "TH006",
+    "firstName": "Lisa",
+    "lastName": "Anderson",
+    "email": "lisa.anderson@thr.com",
+    "phone": "+1-555-0133",
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+    "department": "Finance",
+    "position": "Financial Analyst",
+    "manager": "emp-007",
+    "location": "Boston, MA",
+    "startDate": "2022-01-12",
+    "status": "active",
+    "salary": 75000,
+    "emergencyContact": {
+      "name": "John Anderson",
+      "phone": "+1-555-0134",
+      "relationship": "Brother"
+    }
+  },
+  {
+    "id": "emp-007",
+    "employeeId": "TH007",
+    "firstName": "Robert",
+    "lastName": "Taylor",
+    "email": "robert.taylor@thr.com",
+    "phone": "+1-555-0135",
+    "avatar": "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=100&h=100&fit=crop&crop=face",
+    "department": "Finance",
+    "position": "Finance Manager",
+    "manager": "emp-010",
+    "location": "Miami, FL",
+    "startDate": "2019-11-08",
+    "status": "active",
+    "salary": 110000,
+    "emergencyContact": {
+      "name": "Jennifer Taylor",
+      "phone": "+1-555-0136",
+      "relationship": "Wife"
+    }
+  },
+  {
+    "id": "emp-008",
+    "employeeId": "TH008",
+    "firstName": "Jennifer",
+    "lastName": "Martinez",
+    "email": "jennifer.martinez@thr.com",
+    "phone": "+1-555-0137",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+    "department": "Engineering",
+    "position": "Frontend Developer",
+    "manager": "emp-003",
+    "location": "Austin, TX",
+    "startDate": "2022-07-01",
+    "status": "active",
+    "salary": 85000,
+    "emergencyContact": {
+      "name": "Carlos Martinez",
+      "phone": "+1-555-0138",
+      "relationship": "Husband"
+    }
+  },
+  {
+    "id": "emp-009",
+    "employeeId": "TH009",
+    "firstName": "James",
+    "lastName": "Brown",
+    "email": "james.brown@thr.com",
+    "phone": "+1-555-0139",
+    "avatar": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
+    "department": "Engineering",
+    "position": "Backend Developer",
+    "manager": "emp-003",
+    "location": "Seattle, WA",
+    "startDate": "2021-04-10",
+    "status": "active",
+    "salary": 88000,
+    "emergencyContact": {
+      "name": "Susan Brown",
+      "phone": "+1-555-0140",
+      "relationship": "Mother"
+    }
+  },
+  {
+    "id": "emp-010",
+    "employeeId": "TH010",
+    "firstName": "Amanda",
+    "lastName": "Rodriguez",
+    "email": "amanda.rodriguez@thr.com",
+    "phone": "+1-555-0141",
+    "avatar": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face",
+    "department": "Executive",
+    "position": "CEO",
+    "manager": null,
+    "location": "New York, NY",
+    "startDate": "2018-01-01",
+    "status": "active",
+    "salary": 250000,
+    "emergencyContact": {
+      "name": "Ricardo Rodriguez",
+      "phone": "+1-555-0142",
+      "relationship": "Husband"
+    }
+  }
+]
