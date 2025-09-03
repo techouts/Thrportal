@@ -2,71 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* T-HR Design System - Professional HR Management Interface */
 
 @layer base {
   :root {
+    /* Base colors - Professional HR theme */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 223 84% 4.9%;
 
+    /* Card and surface colors */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 223 84% 4.9%;
+    --card-elevated: 210 40% 99%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 223 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* Primary brand - Professional blue */
+    --primary: 213 94% 15%;
     --primary-foreground: 210 40% 98%;
+    --primary-light: 213 94% 25%;
+    --primary-lighter: 213 84% 35%;
 
+    /* Secondary colors */
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary-foreground: 223 47.4% 11.2%;
 
+    /* Muted colors for less prominent content */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
+    /* Accent colors */
     --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent-foreground: 223 47.4% 11.2%;
 
+    /* Status colors for HR operations */
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+    --info: 213 94% 68%;
+    --info-foreground: 210 40% 98%;
 
+    /* Border and input styling */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 213 94% 15%;
 
+    /* Border radius */
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar styling - Professional navigation */
+    --sidebar-background: 213 40% 8%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 213 94% 15%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 213 30% 12%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 213 20% 15%;
+    --sidebar-ring: 213 94% 68%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* HR specific colors */
+    --hr-approved: 142 71% 45%;
+    --hr-pending: 38 92% 50%;
+    --hr-rejected: 0 84.2% 60.2%;
+    --hr-draft: 215.4 16.3% 46.9%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Dashboard metrics colors */
+    --metric-positive: 142 71% 45%;
+    --metric-negative: 0 84.2% 60.2%;
+    --metric-neutral: 213 94% 68%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Gradients for modern look */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card-elevated)));
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Shadows for depth */
+    --shadow-card: 0 2px 8px -2px hsl(var(--primary) / 0.1);
+    --shadow-elevated: 0 8px 32px -8px hsl(var(--primary) / 0.15);
+    --shadow-sidebar: 2px 0 8px -2px hsl(var(--primary) / 0.1);
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 223 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 223 84% 4.9%;
     --card-foreground: 210 40% 98%;
+    --card-elevated: 223 84% 6%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 223 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 213 94% 68%;
+    --primary-foreground: 223 47.4% 11.2%;
+    --primary-light: 213 94% 78%;
+    --primary-lighter: 213 84% 88%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -77,20 +115,74 @@ All colors MUST be HSL.
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --ring: 213 94% 68%;
+
+    --sidebar-background: 223 84% 3%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 213 94% 68%;
+    --sidebar-primary-foreground: 223 84% 4.9%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 213 94% 68%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card-elevated)));
+
+    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-elevated: 0 8px 32px -8px hsl(0 0% 0% / 0.4);
+    --shadow-sidebar: 2px 0 8px -2px hsl(0 0% 0% / 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography enhancements */
+  .text-gradient {
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* HR specific component styles */
+@layer components {
+  .status-approved {
+    @apply bg-green-100 text-green-800 border-green-200;
+  }
+  
+  .status-pending {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+  }
+  
+  .status-rejected {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  
+  .status-draft {
+    @apply bg-gray-100 text-gray-800 border-gray-200;
+  }
+
+  .metric-card {
+    @apply bg-gradient-to-br from-card to-card-elevated;
+    box-shadow: var(--shadow-card);
+  }
+
+  .sidebar-nav {
+    @apply bg-sidebar text-sidebar-foreground;
+    box-shadow: var(--shadow-sidebar);
   }
 }
 
