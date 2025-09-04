@@ -1,6 +1,8 @@
 import { PageHeader } from '@/components/shared/PageHeader'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moduleRegistry } from '@/lib/moduleRegistry'
+import { EmployeeDirectory } from '@/components/org/EmployeeDirectory'
+import { OrgStructure } from '@/components/org/OrgStructure'
+import { PolicyHub } from '@/components/org/PolicyHub'
 
 interface OrgPageProps {
   defaultTab: string
@@ -9,10 +11,23 @@ interface OrgPageProps {
 export default function OrgPage({ defaultTab }: OrgPageProps) {
   const moduleSpec = moduleRegistry.getModuleSpec(`/Org/${defaultTab}`) || 
     moduleRegistry.registerModuleSpec(`/Org/${defaultTab}`, {
-      brdStatus: 'draft',
-      promptStatus: 'pending',
+      brdStatus: 'implemented',
+      promptStatus: 'completed',
       description: `Organization - ${defaultTab}`
     })
+
+  const renderContent = () => {
+    switch (defaultTab) {
+      case 'EmployeeDirectory':
+        return <EmployeeDirectory />
+      case 'OrgStructure':
+        return <OrgStructure />
+      case 'PolicyHub':
+        return <PolicyHub />
+      default:
+        return <EmployeeDirectory />
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -25,16 +40,7 @@ export default function OrgPage({ defaultTab }: OrgPageProps) {
         moduleSpec={moduleSpec}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{defaultTab}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            {defaultTab} functionality will be implemented here.
-          </p>
-        </CardContent>
-      </Card>
+      {renderContent()}
     </div>
   )
 }
