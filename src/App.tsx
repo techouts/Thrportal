@@ -7,6 +7,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 import { Provider as JotaiProvider } from 'jotai';
+import { RBACGuard } from "@/components/guards/RBACGuard";
 
 const queryClient = new QueryClient();
 

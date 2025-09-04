@@ -1,0 +1,106 @@
+{
+  "roles": {
+    "Employee": {
+      "id": "employee",
+      "permissions": [
+        "me:read",
+        "me:update_profile",
+        "me:view_attendance",
+        "me:submit_leave",
+        "me:view_timesheet",
+        "me:submit_expenses",
+        "me:view_performance",
+        "me:apply_ijp",
+        "me:submit_referrals",
+        "me:access_learning",
+        "me:create_helpdesk_ticket",
+        "portal:view_announcements",
+        "portal:view_celebrations",
+        "portal:view_holidays",
+        "org:view_directory",
+        "org:view_policies"
+      ]
+    },
+    "Manager": {
+      "id": "manager",
+      "inherits": ["employee"],
+      "permissions": [
+        "myteam:view_dashboard",
+        "myteam:approve_leave",
+        "myteam:view_attendance",
+        "myteam:view_timesheet",
+        "myteam:approve_expenses",
+        "myteam:manage_performance",
+        "myteam:approve_profile_changes",
+        "project:view_assignments",
+        "project:manage_tasks"
+      ]
+    },
+    "Recruiter": {
+      "id": "recruiter",
+      "inherits": ["employee"],
+      "permissions": [
+        "hiring:view_dashboard",
+        "hiring:manage_requisitions",
+        "hiring:manage_assignments",
+        "hiring:review_applications",
+        "hiring:manage_pipeline",
+        "hiring:schedule_followup",
+        "hiring:manage_bgv",
+        "hiring:configure_settings"
+      ]
+    },
+    "HR": {
+      "id": "hr",
+      "inherits": ["manager"],
+      "permissions": [
+        "hr:view_all_performance",
+        "hr:manage_leave_policies",
+        "hr:view_all_attendance",
+        "hr:manage_expenses",
+        "hr:view_all_timesheet",
+        "hr:manage_hiring",
+        "hr:manage_succession",
+        "hr:manage_onoffboarding",
+        "hr:generate_reports",
+        "org:manage_structure",
+        "org:manage_policies"
+      ]
+    },
+    "Management": {
+      "id": "management",
+      "inherits": ["hr"],
+      "permissions": [
+        "management:view_dashboard",
+        "management:view_scorecards",
+        "management:view_forecasts",
+        "reports:view_all",
+        "reports:create_shared"
+      ]
+    },
+    "Admin": {
+      "id": "admin",
+      "inherits": ["management"],
+      "permissions": [
+        "admin:manage_tenant",
+        "admin:manage_access",
+        "admin:manage_integrations",
+        "admin:view_audit",
+        "admin:manage_security",
+        "*:*"
+      ]
+    }
+  },
+  "routeGuards": {
+    "/Portal/*": ["*"],
+    "/Me/*": ["employee", "manager", "hr", "management", "admin"],
+    "/MyTeam/*": ["manager", "hr", "management", "admin"],
+    "/Hiring/*": ["recruiter", "hr", "management", "admin"],
+    "/Project/*": ["manager", "hr", "management", "admin"],
+    "/Org/*": ["hr", "management", "admin"],
+    "/HR/*": ["hr", "management", "admin"],
+    "/Management/*": ["management", "admin"],
+    "/Reports/*": ["hr", "management", "admin"],
+    "/Admin/*": ["admin"]
+  }
+}
