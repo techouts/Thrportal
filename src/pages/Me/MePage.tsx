@@ -12,7 +12,14 @@ import { FormKit } from '@/components/shared/FormKit'
 import Dashboard from './Dashboard'
 import Profile from './Profile'
 import { TimesheetModule } from '@/components/timesheet/TimesheetModule'
-import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star } from 'lucide-react'
+// Import Performance Components
+import { CycleTimeline } from '@/features/performance/components/shared/CycleTimeline'
+import { MyGoalsTab } from '@/features/performance/components/employee/MyGoalsTab'
+import { OneOnOnesTab } from '@/features/performance/components/employee/OneOnOnesTab'
+import { ReviewsTab } from '@/features/performance/components/employee/ReviewsTab'
+import { FeedbackTab } from '@/features/performance/components/employee/FeedbackTab'
+import { PIPTab } from '@/features/performance/components/employee/PIPTab'
+import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star, FileText, AlertTriangle } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
 
@@ -243,6 +250,125 @@ export default function MePage({ defaultTab }: MePageProps) {
     </Tabs>
   )
 
+  
+  const renderPerformance = () => {
+    const [activePerformanceTab, setActivePerformanceTab] = useState("goals");
+
+    // Mock data for cycle timeline
+    const mockWindows = [
+      {
+        stage: "goal_setting" as const,
+        openAt: "2024-01-01T00:00:00Z",
+        dueAt: "2024-01-31T23:59:59Z",
+        closeAt: "2024-02-05T23:59:59Z",
+        isLocked: false,
+      },
+      {
+        stage: "mid_year" as const,
+        openAt: "2024-06-01T00:00:00Z",
+        dueAt: "2024-06-30T23:59:59Z",
+        closeAt: "2024-07-05T23:59:59Z",
+        isLocked: false,
+      },
+      {
+        stage: "year_end" as const,
+        openAt: "2024-11-01T00:00:00Z",
+        dueAt: "2024-11-30T23:59:59Z",
+        closeAt: "2024-12-05T23:59:59Z",
+        isLocked: false,
+      },
+      {
+        stage: "rating_discussion" as const,
+        openAt: "2024-12-15T00:00:00Z",
+        dueAt: "2024-12-31T23:59:59Z",
+        closeAt: "2025-01-05T23:59:59Z",
+        isLocked: false,
+      },
+    ];
+
+    const performanceTabs = [
+      {
+        id: "goals",
+        label: "My Goals",
+        icon: Target,
+        component: MyGoalsTab,
+      },
+      {
+        id: "oneOnOnes",
+        label: "1:1s",
+        icon: Users,
+        component: OneOnOnesTab,
+      },
+      {
+        id: "reviews",
+        label: "Reviews",
+        icon: FileText,
+        component: ReviewsTab,
+      },
+      {
+        id: "feedback",
+        label: "Feedback",
+        icon: MessageSquare,
+        component: FeedbackTab,
+      },
+      {
+        id: "pip",
+        label: "PIP",
+        icon: AlertTriangle,
+        component: PIPTab,
+      },
+    ];
+
+    const handleStageClick = (stage: any) => {
+      console.log("Stage clicked:", stage);
+    };
+
+    const handlePrimaryAction = () => {
+      const activeStage = mockWindows.find(w => {
+        const now = new Date();
+        const openAt = new Date(w.openAt);
+        const dueAt = new Date(w.dueAt);
+        return now >= openAt && now <= dueAt;
+      });
+      
+      if (activeStage?.stage === "mid_year") {
+        setActivePerformanceTab("reviews");
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <CycleTimeline
+          cycleName="FY 2024 Performance Cycle"
+          windows={mockWindows}
+          onStageClick={handleStageClick}
+          primaryAction={{
+            label: "Complete Mid-Year Review",
+            onClick: handlePrimaryAction,
+            variant: "default",
+          }}
+        />
+
+        <Tabs value={activePerformanceTab} onValueChange={setActivePerformanceTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            {performanceTabs.map((tab) => (
+              <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {performanceTabs.map((tab) => (
+            <TabsContent key={tab.id} value={tab.id}>
+              <tab.component />
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    );
+  }
+
   const renderContent = () => {
     switch (activeTab) {
       case 'Dashboard':
@@ -266,7 +392,7 @@ export default function MePage({ defaultTab }: MePageProps) {
       case 'Expenses':
         return renderGenericTab('Expenses', ['Submit', 'Imports', 'History'])
       case 'Performance':
-        return renderGenericTab('Performance', ['My Goals', '1:1s', 'Reviews', 'Feedback', 'PIP'])
+        return renderPerformance()
       case 'IJP':
         return renderGenericTab('IJP', ['Browse', 'My Applications'])
       case 'Referrals':
