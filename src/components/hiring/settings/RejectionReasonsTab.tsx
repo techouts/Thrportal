@@ -243,7 +243,7 @@ export function RejectionReasonsTab() {
                           variant="outline"
                           className={category.type === 'CANDIDATE_DRIVEN' ? 'border-blue-200 text-blue-700' : 'border-orange-200 text-orange-700'}
                         >
-                          {category.type.replace('_', ' ')}
+                          {category.type?.replace('_', ' ') || 'Unknown Type'}
                         </Badge>
                         <Button variant="ghost" size="sm">
                           <Edit className="h-4 w-4" />

@@ -146,7 +146,7 @@ export function FeedbackFollowupsTab() {
       accessor: 'stage' as keyof FeedbackTemplate,
       cell: (item: FeedbackTemplate) => (
         <Badge variant="secondary" className="text-xs">
-          {item.stage.replace('_', ' ')}
+          {item.stage?.replace('_', ' ') || 'Unknown'}
         </Badge>
       )
     },
@@ -157,14 +157,14 @@ export function FeedbackFollowupsTab() {
       cell: (item: FeedbackTemplate) => (
         <div className="text-sm">
           <div>
-            {item.linkedClients.length > 0 ? (
-              <span>Clients: {item.linkedClients.slice(0, 2).join(', ')}{item.linkedClients.length > 2 ? ` +${item.linkedClients.length - 2}` : ''}</span>
+            {item.linkedClients && item.linkedClients.length > 0 ? (
+              <span>Clients: {item.linkedClients?.slice(0, 2)?.join(', ') || 'None'}{item.linkedClients.length > 2 ? ` +${item.linkedClients.length - 2}` : ''}</span>
             ) : (
               <span className="text-muted-foreground">All Clients</span>
             )}
           </div>
           <div className="text-muted-foreground">
-            {item.linkedJDs.length > 0 ? `JDs: ${item.linkedJDs.length}` : 'All JDs'}
+            {item.linkedJDs && item.linkedJDs.length > 0 ? `JDs: ${item.linkedJDs.length}` : 'All JDs'}
           </div>
         </div>
       )
@@ -219,11 +219,11 @@ export function FeedbackFollowupsTab() {
       accessor: 'reminderDays' as keyof AgingThreshold,
       cell: (item: AgingThreshold) => (
         <div className="flex flex-wrap gap-1">
-          {item.reminderDays.map(day => (
+          {item.reminderDays?.map(day => (
             <Badge key={day} variant="secondary" className="text-xs">
               {day}d
             </Badge>
-          ))}
+          )) || <span className="text-muted-foreground text-sm">No reminders</span>}
         </div>
       )
     },

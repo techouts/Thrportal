@@ -124,7 +124,7 @@ export function SLATab() {
       accessor: 'stage' as keyof SLARule,
       cell: (item: SLARule) => (
         <Badge variant="outline" className="text-xs">
-          {item.stage.replace('_', ' → ')}
+          {item.stage?.replace('_', ' → ') || 'Unknown'}
         </Badge>
       )
     },
@@ -147,11 +147,11 @@ export function SLATab() {
       accessor: 'reminderDays' as keyof SLARule,
       cell: (item: SLARule) => (
         <div className="flex flex-wrap gap-1">
-          {item.reminderDays.map(day => (
+          {item.reminderDays?.map(day => (
             <Badge key={day} variant="secondary" className="text-xs">
               {day}d
             </Badge>
-          ))}
+          )) || <span className="text-muted-foreground text-sm">No reminders</span>}
         </div>
       )
     },

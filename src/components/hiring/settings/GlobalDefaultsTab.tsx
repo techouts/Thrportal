@@ -506,7 +506,7 @@ export function GlobalDefaultsTab() {
               <div key={integration} className="flex items-center justify-between p-3 border rounded">
                 <div>
                   <Label className="font-normal capitalize">
-                    {integration.replace(/([A-Z])/g, ' $1').trim()}
+                    {integration?.replace(/([A-Z])/g, ' $1')?.trim() || 'Unknown Integration'}
                   </Label>
                   <p className="text-xs text-muted-foreground">
                     {integration === 'atsIntegration' && 'Connect with external ATS systems'}

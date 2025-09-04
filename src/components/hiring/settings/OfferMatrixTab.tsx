@@ -119,14 +119,14 @@ export function OfferMatrixTab() {
       accessor: 'steps' as keyof ApprovalWorkflow,
       cell: (item: ApprovalWorkflow) => (
         <div className="flex items-center gap-1 text-xs">
-          {item.steps.map((step, index) => (
+          {item.steps?.map((step, index) => (
             <div key={step.order} className="flex items-center">
               <Badge variant="secondary" className="text-xs">
                 {step.role}
               </Badge>
               {index < item.steps.length - 1 && <ArrowRight className="h-3 w-3 mx-1 text-muted-foreground" />}
             </div>
-          ))}
+          )) || <span className="text-muted-foreground text-sm">No steps</span>}
         </div>
       )
     },

@@ -139,12 +139,12 @@ export function ComplianceVendorsTab() {
       accessor: 'services' as keyof BGVVendor,
       cell: (item: BGVVendor) => (
         <div className="flex flex-wrap gap-1">
-          {item.services.slice(0, 2).map(service => (
+          {item.services?.slice(0, 2)?.map(service => (
             <Badge key={service} variant="secondary" className="text-xs">
               {service}
             </Badge>
-          ))}
-          {item.services.length > 2 && (
+          )) || <span className="text-muted-foreground text-sm">No services</span>}
+          {item.services && item.services.length > 2 && (
             <Badge variant="secondary" className="text-xs">
               +{item.services.length - 2}
             </Badge>
