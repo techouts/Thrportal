@@ -81,9 +81,12 @@ export function ExpenseHistoryTab() {
       id: 'id',
       header: 'Claim ID',
       accessor: 'id' as keyof ExpenseClaim,
-      cell: (item: ExpenseClaim) => (
-        <div className="font-mono text-sm">{item.id.slice(-8)}</div>
-      )
+      cell: (item: ExpenseClaim) => {
+        console.log('ExpenseClaim item:', item); // Debug log
+        return (
+          <div className="font-mono text-sm">{item.id?.slice(-8) || 'N/A'}</div>
+        )
+      }
     },
     {
       id: 'createdAt',
