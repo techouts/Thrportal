@@ -67,12 +67,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const actions: CommandAction[] = [
     // Navigation
     {
-      id: 'portal-dashboard',
-      title: 'Portal Dashboard',
+      id: 'home-dashboard',
+      title: 'Home Dashboard',
       description: 'View company announcements and updates',
       icon: Home,
       section: 'Navigation',
-      action: () => navigate('/Portal/Dashboard'),
+      action: () => navigate('/Home'),
       keywords: ['home', 'announcements', 'news']
     },
     {

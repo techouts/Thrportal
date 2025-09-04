@@ -78,7 +78,7 @@ class ModuleRegistry {
     this.loadFromStorage()
     
     const defaultRoutes = [
-      '/Portal/Dashboard',
+      '/Home',
       '/Me/Dashboard',
       '/Me/Profile',
       '/Me/Attendance',
