@@ -95,7 +95,7 @@
     "/Portal/*": ["*"],
     "/Me/*": ["Employee", "Manager", "Recruiter", "HR", "Management", "Admin"],
     "/MyTeam/*": ["Manager", "HR", "Management", "Admin"],
-    "/Hiring/*": ["Recruiter", "HR", "Management", "Admin"],
+    "/Hiring/*": ["Manager", "Recruiter", "HR", "Management", "Admin"],
     "/Project/*": ["Manager", "HR", "Management", "Admin"],
     "/Org/*": ["Employee", "Manager", "Recruiter", "HR", "Management", "Admin"],
     "/HR/*": ["HR", "Management", "Admin"],
