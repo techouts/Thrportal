@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { PostingCard } from '@/features/ijp/components/shared/PostingCard';
@@ -9,14 +9,22 @@ import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function IJPPage() {
+  console.log('🎯 IJP Page rendering');
+  
   const [filters, setFilters] = useState<PostingFilters>({});
   const [activeTab, setActiveTab] = useState<"POSTINGS" | "RECOMMENDED" | "SAVED" | "MY_APPLICATIONS">("POSTINGS");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const { data: postingsData, isLoading } = usePostings({
+  const { data: postingsData, isLoading, error } = usePostings({
     ...filters,
     tab: activeTab === "MY_APPLICATIONS" ? undefined : activeTab,
   });
+
+  useEffect(() => {
+    console.log('🎯 IJP postingsData:', postingsData);
+    console.log('🎯 IJP isLoading:', isLoading);
+    console.log('🎯 IJP error:', error);
+  }, [postingsData, isLoading, error]);
 
   const handleApply = (posting: IjpPosting) => {
     // Open application wizard

@@ -26,6 +26,11 @@ import ExpensesPage from "./pages/Me/ExpensesPage";
 import TeamExpensesPage from "./pages/MyTeam/ExpensesPage";
 import HRExpensesPage from "./pages/HR/ExpensesPage";
 
+// Import IJP pages
+import IJPPage from "./pages/Me/IJPPage";
+import MyTeamIJPPage from "./pages/MyTeam/IJPPage";
+import HRIJPPage from "./pages/HR/IJPPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -106,7 +111,7 @@ const App = () => (
             <Route path="/Me/IJP" element={
               <RBACGuard route="/Me/IJP">
                 <MainLayout>
-                  <MePage defaultTab="IJP" />
+                  <IJPPage />
                 </MainLayout>
               </RBACGuard>
             } />
@@ -179,6 +184,14 @@ const App = () => (
               <RBACGuard route="/MyTeam/ProfileChanges">
                 <MainLayout>
                   <MyTeamPage defaultTab="ProfileChanges" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            <Route path="/MyTeam/IJP" element={
+              <RBACGuard route="/MyTeam/IJP">
+                <MainLayout>
+                  <MyTeamIJPPage />
                 </MainLayout>
               </RBACGuard>
             } />
@@ -369,6 +382,14 @@ const App = () => (
               <RBACGuard route="/HR/Reports">
                 <MainLayout>
                   <HRPage defaultTab="Reports" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            <Route path="/HR/IJP" element={
+              <RBACGuard route="/HR/IJP">
+                <MainLayout>
+                  <HRIJPPage />
                 </MainLayout>
               </RBACGuard>
             } />
