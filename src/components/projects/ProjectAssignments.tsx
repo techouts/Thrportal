@@ -76,13 +76,13 @@ export function ProjectAssignments() {
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
-    project: '',
-    client: '',
-    pm: '',
-    status: '',
-    role: '',
-    dept: '',
-    location: ''
+    project: 'all',
+    client: 'all',
+    pm: 'all',
+    status: 'all',
+    role: 'all',
+    dept: 'all',
+    location: 'all'
   })
 
   const projects = mockProjects.filter(p => p.id !== 'bench')
@@ -215,7 +215,7 @@ export function ProjectAssignments() {
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Status</SelectItem>
+                        <SelectItem value="all">All Status</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="completed">Completed</SelectItem>
                         <SelectItem value="on_hold">On Hold</SelectItem>
@@ -485,7 +485,7 @@ export function ProjectAssignments() {
                         <SelectValue placeholder="Role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Roles</SelectItem>
+                        <SelectItem value="all">All Roles</SelectItem>
                         {roles.map(role => (
                           <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
                         ))}
@@ -496,7 +496,7 @@ export function ProjectAssignments() {
                         <SelectValue placeholder="Department" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Depts</SelectItem>
+                        <SelectItem value="all">All Depts</SelectItem>
                         <SelectItem value="Engineering">Engineering</SelectItem>
                         <SelectItem value="Design">Design</SelectItem>
                         <SelectItem value="Business">Business</SelectItem>
