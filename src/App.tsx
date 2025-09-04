@@ -147,6 +147,13 @@ const App = () => (
                 </MainLayout>
               </RBACGuard>
             } />
+            <Route path="/Me/Finance" element={
+              <RBACGuard route="/Me/Finance">
+                <MainLayout>
+                  <FinancePage />
+                </MainLayout>
+              </RBACGuard>
+            } />
 
             {/* MyTeam Routes */}
             <Route path="/MyTeam/Dashboard" element={
