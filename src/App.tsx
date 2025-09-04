@@ -133,13 +133,6 @@ const App = () => (
                 </MainLayout>
               </RBACGuard>
             } />
-            <Route path="/Me/Learning" element={
-              <RBACGuard route="/Me/Learning">
-                <MainLayout>
-                  <MePage defaultTab="Learning" />
-                </MainLayout>
-              </RBACGuard>
-            } />
             <Route path="/Me/Helpdesk" element={
               <RBACGuard route="/Me/Helpdesk">
                 <MainLayout>
@@ -151,6 +144,27 @@ const App = () => (
               <RBACGuard route="/Me/Finance">
                 <MainLayout>
                   <FinancePage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Learning" element={
+              <RBACGuard route="/Me/Learning">
+                <MainLayout>
+                  <LearningPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/Learning" element={
+              <RBACGuard route="/MyTeam/Learning">
+                <MainLayout>
+                  <MyTeamLearningPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Learning" element={
+              <RBACGuard route="/HR/Learning">
+                <MainLayout>
+                  <HRLearningPage />
                 </MainLayout>
               </RBACGuard>
             } />

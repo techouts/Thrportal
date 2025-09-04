@@ -2,6 +2,7 @@ import { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import {
   BarChart3,
+  BookOpen,
   Building2,
   Calendar,
   CheckSquare,
@@ -65,6 +66,7 @@ const navigationSections = {
       { name: "Timesheet", path: "/Me/Timesheet", icon: Clock },
       { name: "Expenses", path: "/Me/Expenses", icon: DollarSign },
       { name: "Finance", path: "/Me/Finance", icon: DollarSign },
+      { name: "Learning", path: "/Me/Learning", icon: BookOpen },
       { name: "Performance", path: "/Me/Performance", icon: Target },
       { name: "IJP", path: "/Me/IJP", icon: TrendingUp },
       { name: "Referrals", path: "/Me/Referrals", icon: Users },
