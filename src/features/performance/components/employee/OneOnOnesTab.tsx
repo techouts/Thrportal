@@ -107,9 +107,9 @@ export function OneOnOnesTab() {
       id: "type",
       header: "Meeting Type",
       accessor: "type" as keyof MeetingDTO,
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
-        <Badge variant="outline" className={getMeetingTypeColor(row.original.type)}>
-          {getMeetingTypeLabel(row.original.type)}
+      cell: (value: any, row: MeetingDTO) => (
+        <Badge variant="outline" className={getMeetingTypeColor(row.type)}>
+          {getMeetingTypeLabel(row.type)}
         </Badge>
       ),
     },
@@ -117,17 +117,17 @@ export function OneOnOnesTab() {
       id: "scheduledAt",
       header: "Date & Time",
       accessor: "scheduledAt" as keyof MeetingDTO,
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      cell: (value: any, row: MeetingDTO) => (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <span className="font-medium">
-              {format(new Date(row.original.scheduledAt), "MMM d, yyyy")}
+              {format(new Date(row.scheduledAt), "MMM d, yyyy")}
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span>{format(new Date(row.original.scheduledAt), "h:mm a")}</span>
+            <span>{format(new Date(row.scheduledAt), "h:mm a")}</span>
           </div>
         </div>
       ),
@@ -136,10 +136,10 @@ export function OneOnOnesTab() {
       id: "location",
       header: "Location",
       accessor: "location" as keyof MeetingDTO,
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      cell: (value: any, row: MeetingDTO) => (
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm">{row.original.location || "TBD"}</span>
+          <span className="text-sm">{row.location || "TBD"}</span>
         </div>
       ),
     },
@@ -147,11 +147,11 @@ export function OneOnOnesTab() {
       id: "status", 
       header: "Status",
       accessor: "status" as keyof MeetingDTO,
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      cell: (value: any, row: MeetingDTO) => (
         <div className="flex items-center gap-2">
-          {getStatusIcon(row.original.status)}
-          <Badge variant={getStatusVariant(row.original.status)}>
-            {row.original.status.charAt(0).toUpperCase() + row.original.status.slice(1)}
+          {getStatusIcon(row.status)}
+          <Badge variant={getStatusVariant(row.status)}>
+            {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
           </Badge>
         </div>
       ),
@@ -160,24 +160,24 @@ export function OneOnOnesTab() {
       id: "notes",
       header: "Notes & Sign-offs",
       accessor: "notes" as keyof MeetingDTO,
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      cell: (value: any, row: MeetingDTO) => (
         <div className="space-y-1">
-          {row.original.notes?.publicNotes && (
+          {row.notes?.publicNotes && (
             <div className="flex items-center gap-2 text-sm">
               <FileText className="w-3 h-3 text-muted-foreground" />
               <span className="truncate max-w-[200px]">
-                {row.original.notes.publicNotes}
+                {row.notes.publicNotes}
               </span>
             </div>
           )}
           <div className="flex items-center gap-2">
-            {row.original.notes?.empSigned && (
+            {row.notes?.empSigned && (
               <Badge variant="secondary" className="text-xs">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Employee Signed
               </Badge>
             )}
-            {row.original.notes?.mgrSigned && (
+            {row.notes?.mgrSigned && (
               <Badge variant="secondary" className="text-xs">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Manager Signed
@@ -191,9 +191,9 @@ export function OneOnOnesTab() {
       id: "actions",
       header: "Actions",
       accessor: "id" as keyof MeetingDTO,
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      cell: (value: any, row: MeetingDTO) => (
         <div className="flex items-center gap-2">
-          {row.original.status === "scheduled" ? (
+          {row.status === "scheduled" ? (
             <Button size="sm" variant="outline">
               <PenTool className="w-3 h-3 mr-1" />
               Prepare
