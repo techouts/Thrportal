@@ -20,7 +20,7 @@ import {
   Bell, Calendar, Gift, Heart, MessageSquare, Star, Users, ExternalLink,
   Clock, MapPin, Coffee, Briefcase, AlertTriangle, CheckCircle,
   UserPlus, Award, TrendingUp, FileText, ChevronDown, ChevronUp,
-  Download, Search, Filter, Plus, Zap
+  Download, Search, Filter, Plus, Zap, DollarSign, UserCheck
 } from 'lucide-react'
 
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -487,9 +487,328 @@ export default function HomePage() {
           </Card>
         </section>
 
-        {/* Continue with other sections... */}
-        {/* This would include Recognitions, Celebrations, Team (for managers), and Approvals sections */}
-        {/* Each following the same responsive grid pattern and compact design */}
+        {/* Recognitions Section */}
+        <section id="recognitions" className="lg:col-span-2 xl:col-span-3 space-y-6">
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5" />
+            <h2 className="text-xl font-semibold">Recognitions</h2>
+            <Badge variant="secondary">2</Badge>
+          </div>
+
+          <Card className="border-0 shadow-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Recent Recognitions</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Input placeholder="Search..." className="w-40" />
+                  <Select>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="customer">Customer Delight</SelectItem>
+                      <SelectItem value="innovation">Innovation</SelectItem>
+                      <SelectItem value="teamwork">Teamwork</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  {
+                    id: 1,
+                    giver: 'Sarah Johnson',
+                    receiver: 'Mike Chen',
+                    category: 'Customer Delight',
+                    badges: ['Customer Champion', 'Excellence'],
+                    message: 'Outstanding support to client requirements and going above and beyond to ensure customer satisfaction.',
+                    applauds: 12,
+                    date: 'Dec 1'
+                  },
+                  {
+                    id: 2,
+                    giver: 'Alex Rodriguez',
+                    receiver: 'Lisa Park',
+                    category: 'Innovation Impact',
+                    badges: ['Tech Innovator'],
+                    message: 'Brilliant solution to optimize our deployment pipeline, saving hours of manual work.',
+                    applauds: 8,
+                    date: 'Nov 30'
+                  }
+                ].map((recognition) => (
+                  <div key={recognition.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>{recognition.receiver.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{recognition.receiver}</span>
+                            <Badge variant="outline">{recognition.category}</Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground">by {recognition.giver} • {recognition.date}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm">
+                          <Heart className="h-4 w-4" />
+                          {recognition.applauds}
+                        </Button>
+                        <Button variant="outline" size="sm">Nominate</Button>
+                      </div>
+                    </div>
+                    
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-2">
+                          <ChevronDown className="h-4 w-4" />
+                          View Message
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2">
+                        <p className="text-sm text-muted-foreground">"{recognition.message}"</p>
+                        <div className="flex items-center gap-1 mt-2">
+                          {recognition.badges.map((badge, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">{badge}</Badge>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Celebrations Section */}
+        <section id="celebrations" className="lg:col-span-2 xl:col-span-3 space-y-6">
+          <div className="flex items-center gap-2">
+            <Gift className="h-5 w-5" />
+            <h2 className="text-xl font-semibold">Celebrations</h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Birthdays */}
+            <Card className="border-0 shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Gift className="h-5 w-5 text-primary" />
+                  Birthdays
+                </CardTitle>
+                <CardDescription>This week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    { name: 'John Doe', team: 'Marketing', date: 'Dec 3', today: true },
+                    { name: 'Alice Smith', team: 'HR', date: 'Dec 5', today: false }
+                  ].map((person, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>{person.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-sm">{person.name}</div>
+                          <div className="text-xs text-muted-foreground">{person.team} • {person.date}</div>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        Wish
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Anniversaries */}
+            <Card className="border-0 shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Award className="h-5 w-5 text-primary" />
+                  Anniversaries
+                </CardTitle>
+                <CardDescription>This week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>MB</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-sm">Mike Brown</div>
+                        <div className="text-xs text-muted-foreground">Engineering • 5 years • Dec 1</div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Congrats
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* New Joiners */}
+            <Card className="border-0 shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <UserPlus className="h-5 w-5 text-primary" />
+                  New Joiners
+                </CardTitle>
+                <CardDescription>Recent & upcoming</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>EW</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-sm">Emma Wilson</div>
+                        <div className="text-xs text-muted-foreground">Designer • Dec 2</div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Assign Buddy
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Team Section - Only for Managers */}
+        {isManager && (
+          <section id="team" className="lg:col-span-2 xl:col-span-3 space-y-6">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              <h2 className="text-xl font-semibold">Team</h2>
+            </div>
+
+            <Card className="border-0 shadow-card">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Team Availability Today</CardTitle>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span>In Office: 5</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span>Remote: 3</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <span>On Leave: 1</span>
+                    </div>
+                  </div>
+                </div>
+                <CardDescription>Coverage: 89% (Above threshold)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {[
+                    { name: 'Sarah Johnson', status: 'in_office', location: 'New York', shift: '9:00 AM - 6:00 PM' },
+                    { name: 'Mike Chen', status: 'remote', location: 'San Francisco', shift: '10:00 AM - 7:00 PM', note: 'Client calls' },
+                    { name: 'Alex Rodriguez', status: 'leave', location: 'Boston', note: 'Sick leave' }
+                  ].map((member, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-sm">{member.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {member.location} • {member.shift || member.note}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant={member.status === 'in_office' ? 'default' : 
+                                member.status === 'remote' ? 'secondary' : 'destructive'}
+                      >
+                        {member.status === 'in_office' ? 'In Office' :
+                         member.status === 'remote' ? 'Remote' : 'On Leave'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {/* Manager Approvals Section - Only for Managers */}
+        {userRole === 'Manager' && (
+          <section id="approvals" className="lg:col-span-2 xl:col-span-3 space-y-6">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              <h2 className="text-xl font-semibold">My Approvals</h2>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="border-0 shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Clock className="h-5 w-5" />
+                    Timesheets
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary">5</div>
+                    <div className="text-sm text-muted-foreground">Pending approval</div>
+                    <Button size="sm" className="w-full mt-3">Review</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="h-5 w-5" />
+                    Leave Requests
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-500">3</div>
+                    <div className="text-sm text-muted-foreground">Pending approval</div>
+                    <Button size="sm" className="w-full mt-3">Review</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <DollarSign className="h-5 w-5" />
+                    Expenses
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-red-500">7</div>
+                    <div className="text-sm text-muted-foreground">Pending approval</div>
+                    <Button size="sm" className="w-full mt-3">Review</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )
