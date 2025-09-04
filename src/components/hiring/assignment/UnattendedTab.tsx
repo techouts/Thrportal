@@ -93,7 +93,7 @@ export function UnattendedTab() {
       accessor: 'assignedRecruiters' as keyof UnattendedJD,
       cell: (item: UnattendedJD) => (
         <div className="space-y-1">
-          {item.assignedRecruiters.length > 0 ? (
+          {item.assignedRecruiters && item.assignedRecruiters.length > 0 ? (
             item.assignedRecruiters.map(recruiter => (
               <Badge key={recruiter} variant="outline" className="text-xs">
                 {recruiter}

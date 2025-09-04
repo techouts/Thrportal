@@ -122,11 +122,15 @@ export function ReportsTab() {
       accessor: 'recruiters' as keyof JDBurnReport,
       cell: (item: JDBurnReport) => (
         <div className="space-y-1">
-          {item.recruiters.map(recruiter => (
-            <Badge key={recruiter} variant="outline" className="text-xs">
-              {recruiter}
-            </Badge>
-          ))}
+          {item.recruiters && item.recruiters.length > 0 ? (
+            item.recruiters.map(recruiter => (
+              <Badge key={recruiter} variant="outline" className="text-xs">
+                {recruiter}
+              </Badge>
+            ))
+          ) : (
+            <Badge variant="secondary" className="text-xs">None</Badge>
+          )}
         </div>
       )
     },

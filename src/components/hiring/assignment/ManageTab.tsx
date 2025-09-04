@@ -109,7 +109,7 @@ export function ManageTab({ filters, onFiltersChange }: ManageTabProps) {
       accessor: 'assignedRecruiters' as keyof JDAssignment,
       cell: (item: JDAssignment) => (
         <div className="space-y-1">
-          {item.assignedRecruiters.length > 0 ? (
+          {item.assignedRecruiters && item.assignedRecruiters.length > 0 ? (
             item.assignedRecruiters.map(recruiter => (
               <Badge key={recruiter} variant="outline" className="text-xs">
                 {recruiter}
@@ -140,11 +140,15 @@ export function ManageTab({ filters, onFiltersChange }: ManageTabProps) {
       accessor: 'sourcingChannels' as keyof JDAssignment,
       cell: (item: JDAssignment) => (
         <div className="flex flex-wrap gap-1">
-          {item.sourcingChannels.map(channel => (
-            <Badge key={channel} variant="outline" className="text-xs">
-              {channel}
-            </Badge>
-          ))}
+          {item.sourcingChannels && item.sourcingChannels.length > 0 ? (
+            item.sourcingChannels.map(channel => (
+              <Badge key={channel} variant="outline" className="text-xs">
+                {channel}
+              </Badge>
+            ))
+          ) : (
+            <Badge variant="outline" className="text-xs">No channels</Badge>
+          )}
         </div>
       )
     },
