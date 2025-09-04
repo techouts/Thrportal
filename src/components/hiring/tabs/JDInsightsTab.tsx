@@ -56,7 +56,7 @@ export function JDInsightsTab({ filters }: JDInsightsTabProps) {
     return {
       id: jd.id,
       title: jd.title,
-      client: jd.client,
+      client: jd.client || 'N/A',
       daysSinceSubmission,
       feedbackReceived: !!jd.feedbackDate,
       delayCategory: daysSinceSubmission > 7 ? 'high' : daysSinceSubmission > 5 ? 'medium' : daysSinceSubmission > 3 ? 'low' : 'none'
@@ -106,7 +106,7 @@ export function JDInsightsTab({ filters }: JDInsightsTabProps) {
                 <TableRow key={jd.id}>
                   <TableCell className="font-medium">{jd.id}</TableCell>
                   <TableCell>{jd.title}</TableCell>
-                  <TableCell>{jd.client}</TableCell>
+                  <TableCell>{jd.client || '-'}</TableCell>
                   <TableCell>
                     <Badge variant={
                       jd.status === 'joined' ? 'default' : 
@@ -180,7 +180,7 @@ export function JDInsightsTab({ filters }: JDInsightsTabProps) {
                     </div>
                     <div>
                       <p className="text-sm font-medium">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.client}</p>
+                      <p className="text-xs text-muted-foreground">{item.client || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="text-right">

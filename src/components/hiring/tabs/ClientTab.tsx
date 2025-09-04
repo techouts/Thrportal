@@ -230,7 +230,7 @@ export function ClientTab({ filters }: ClientTabProps) {
                   <TableRow key={jd.id}>
                     <TableCell className="font-medium">{jd.id}</TableCell>
                     <TableCell>{jd.title}</TableCell>
-                    <TableCell>{jd.client}</TableCell>
+                    <TableCell>{jd.client || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={daysSinceSubmission > 7 ? 'destructive' : daysSinceSubmission > 5 ? 'secondary' : 'default'}>
                         <Clock className="h-3 w-3 mr-1" />

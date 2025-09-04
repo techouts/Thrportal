@@ -230,7 +230,7 @@ export function RecruiterTab({ filters }: RecruiterTabProps) {
                   <TableRow key={jd.id}>
                     <TableCell className="font-medium">{jd.id}</TableCell>
                     <TableCell>{jd.title}</TableCell>
-                    <TableCell>{jd.client}</TableCell>
+                    <TableCell>{jd.client || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={
                         jd.priority === 'urgent' ? 'destructive' : 

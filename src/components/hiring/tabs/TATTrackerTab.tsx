@@ -187,7 +187,7 @@ export function TATTrackerTab({ filters }: TATTrackerTabProps) {
                   <TableRow key={jd.id}>
                     <TableCell className="font-medium">{jd.id}</TableCell>
                     <TableCell>{jd.title}</TableCell>
-                    <TableCell>{jd.client}</TableCell>
+                    <TableCell>{jd.client || '-'}</TableCell>
                     <TableCell>{jd.assignedRecruiter}</TableCell>
                     <TableCell>
                       <Badge variant={

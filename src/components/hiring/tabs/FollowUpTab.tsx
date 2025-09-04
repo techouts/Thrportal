@@ -324,7 +324,7 @@ export function FollowUpTab({ filters }: FollowUpTabProps) {
                   <TableRow key={jd.id}>
                     <TableCell className="font-medium">{jd.id}</TableCell>
                     <TableCell>{jd.title}</TableCell>
-                    <TableCell>{jd.client}</TableCell>
+                    <TableCell>{jd.client || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={getAlertColor(alertLevel)}>
                         <Clock className="h-3 w-3 mr-1" />

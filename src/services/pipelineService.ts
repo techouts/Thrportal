@@ -175,6 +175,7 @@ export class PipelineService {
         title: 'Data Scientist',
         client: 'DataTech',
         postedDate: '2024-01-12T15:30:00Z',
+        assignedRecruiter: 'Mike Talent',
         daysSinceCreated: 5,
         hasSubmissions: false
       },

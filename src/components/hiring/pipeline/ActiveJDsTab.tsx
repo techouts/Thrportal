@@ -102,8 +102,8 @@ export function ActiveJDsTab() {
       header: 'Client Name',
       accessor: 'client' as keyof ActiveJD,
       cell: (item: ActiveJD) => {
-        if (!item) return <div>-</div>
-        return item.client
+        if (!item || !item.client) return <div>-</div>
+        return <div>{item.client}</div>
       }
     },
     {
