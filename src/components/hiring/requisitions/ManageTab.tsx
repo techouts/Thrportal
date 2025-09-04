@@ -103,12 +103,12 @@ export function ManageTab({ filters, onFiltersChange }: ManageTabProps) {
               />
             </div>
             
-            <Select value={filters.status || ''} onValueChange={(value) => onFiltersChange({ ...filters, status: value || undefined })}>
+            <Select value={filters.status || 'all'} onValueChange={(value) => onFiltersChange({ ...filters, status: value === 'all' ? undefined : value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
                 <SelectItem value="In Review">In Review</SelectItem>
                 <SelectItem value="Approved">Approved</SelectItem>
@@ -117,12 +117,12 @@ export function ManageTab({ filters, onFiltersChange }: ManageTabProps) {
               </SelectContent>
             </Select>
 
-            <Select value={filters.department || ''} onValueChange={(value) => onFiltersChange({ ...filters, department: value || undefined })}>
+            <Select value={filters.department || 'all'} onValueChange={(value) => onFiltersChange({ ...filters, department: value === 'all' ? undefined : value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                 <SelectItem value="Engineering">Engineering</SelectItem>
                 <SelectItem value="Product">Product</SelectItem>
                 <SelectItem value="Sales">Sales</SelectItem>
@@ -131,12 +131,12 @@ export function ManageTab({ filters, onFiltersChange }: ManageTabProps) {
               </SelectContent>
             </Select>
 
-            <Select value={filters.priority || ''} onValueChange={(value) => onFiltersChange({ ...filters, priority: value || undefined })}>
+            <Select value={filters.priority || 'all'} onValueChange={(value) => onFiltersChange({ ...filters, priority: value === 'all' ? undefined : value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Priorities</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="Critical">Critical</SelectItem>
                 <SelectItem value="High">High</SelectItem>
                 <SelectItem value="Normal">Normal</SelectItem>
