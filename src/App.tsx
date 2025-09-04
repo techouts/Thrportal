@@ -10,7 +10,7 @@ import { Provider as JotaiProvider } from 'jotai';
 import { RBACGuard } from "@/components/guards/RBACGuard";
 
 // Import all page components
-import PortalPage from "./pages/Portal/PortalPage";
+import HomePage from "./pages/Home/HomePage";
 import MePage from "./pages/Me/MePage";
 import FinancePage from "./pages/Me/FinancePage";
 import HiringPage from "./pages/Hiring/HiringPage";
@@ -68,21 +68,22 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={
-              <RBACGuard route="/Portal/Dashboard">
+              <RBACGuard route="/Home">
                 <MainLayout>
-                  <PortalPage />
+                  <HomePage />
                 </MainLayout>
               </RBACGuard>
             } />
             
-            {/* Portal Routes */}
-            <Route path="/Portal/Dashboard" element={
-              <RBACGuard route="/Portal/Dashboard">
+            {/* Home Routes */}
+            <Route path="/Home" element={
+              <RBACGuard route="/Home">
                 <MainLayout>
-                  <PortalPage />
+                  <HomePage />
                 </MainLayout>
               </RBACGuard>
             } />
+            <Route path="/Portal/Dashboard" element={<Navigate to="/Home" replace />} />
             
             {/* Me Routes */}
             <Route path="/Me/Dashboard" element={

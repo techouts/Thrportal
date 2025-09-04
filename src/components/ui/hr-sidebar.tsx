@@ -47,15 +47,10 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 const navigationSections = {
-  "Portal": {
+  "Home": {
     icon: Home,
     routes: [
-      { name: "Dashboard", path: "/Portal/Dashboard", icon: BarChart3 },
-      { name: "Announcements", path: "/Portal/Announcements", icon: MessageSquare },
-      { name: "Polls", path: "/Portal/Polls", icon: CheckSquare },
-      { name: "Recognitions", path: "/Portal/Recognitions", icon: Star },
-      { name: "Celebrations", path: "/Portal/Celebrations", icon: Gift },
-      { name: "Holidays", path: "/Portal/Holidays", icon: Calendar }
+      { name: "Dashboard", path: "/Home", icon: BarChart3 }
     ]
   },
   "Me": {

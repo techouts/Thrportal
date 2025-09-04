@@ -76,3 +76,19 @@ export const useAuth = () => {
     actions: { login, logout }
   }
 }
+
+// Helper hooks for Home page
+export const useCurrentUser = () => {
+  const { currentUser } = useAuth()
+  return currentUser
+}
+
+export const useUserRole = () => {
+  const { currentUser } = useAuth()
+  return currentUser?.role || 'Employee'
+}
+
+export const useIsManager = () => {
+  const userRole = useUserRole()
+  return userRole === 'Manager' || userRole === 'HR'
+}
