@@ -11,6 +11,7 @@ import { DataTable } from '@/components/shared/DataTable'
 import { FormKit } from '@/components/shared/FormKit'
 import Dashboard from './Dashboard'
 import Profile from './Profile'
+import { TimesheetModule } from '@/components/timesheet/TimesheetModule'
 import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
@@ -257,7 +258,11 @@ export default function MePage({ defaultTab }: MePageProps) {
       case 'Leave':
         return renderGenericTab('Leave', ['Apply', 'Balance', 'History'])
       case 'Timesheet':
-        return renderGenericTab('Timesheet', ['Fill', 'History', 'Client Exports'])
+        return (
+          <div className="min-h-screen">
+            <TimesheetModule employeeId="demo-user" />
+          </div>
+        )
       case 'Expenses':
         return renderGenericTab('Expenses', ['Submit', 'Imports', 'History'])
       case 'Performance':
