@@ -107,7 +107,7 @@ export function ExpenseHistoryTab() {
       accessor: 'totalInINR' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
         <div className="text-right font-medium">
-          ₹{item.totalInINR.toLocaleString()}
+          ₹{(item.totalInINR || 0).toLocaleString()}
         </div>
       )
     },
