@@ -114,12 +114,12 @@ export function MyGoalsTab() {
       id: "title",
       header: "Goal",
       accessor: "title" as keyof GoalDTO,
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      cell: (value: any, row: GoalDTO) => (
         <div className="space-y-1">
-          <div className="font-medium">{row.original.title}</div>
-          {row.original.description && (
+          <div className="font-medium">{row.title}</div>
+          {row.description && (
             <div className="text-sm text-muted-foreground line-clamp-1">
-              {row.original.description}
+              {row.description}
             </div>
           )}
         </div>
@@ -129,14 +129,14 @@ export function MyGoalsTab() {
       id: "kpi",
       header: "KPI & Target",
       accessor: "kpi" as keyof GoalDTO,
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      cell: (value: any, row: GoalDTO) => (
         <div className="text-sm">
-          {row.original.kpi && (
-            <div className="font-medium">{row.original.kpi}</div>
+          {row.kpi && (
+            <div className="font-medium">{row.kpi}</div>
           )}
-          {row.original.target && (
+          {row.target && (
             <div className="text-muted-foreground">
-              Target: {row.original.target} {row.original.unit}
+              Target: {row.target} {row.unit}
             </div>
           )}
         </div>
@@ -146,12 +146,12 @@ export function MyGoalsTab() {
       id: "progress",
       header: "Progress",
       accessor: "progressPct" as keyof GoalDTO,
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      cell: (value: any, row: GoalDTO) => (
         <div className="w-24">
           <div className="flex items-center justify-between text-sm mb-1">
-            <span>{row.original.progressPct}%</span>
+            <span>{row.progressPct}%</span>
           </div>
-          <Progress value={row.original.progressPct} className="h-2" />
+          <Progress value={row.progressPct} className="h-2" />
         </div>
       ),
     },
@@ -159,11 +159,11 @@ export function MyGoalsTab() {
       id: "status",
       header: "Status",
       accessor: "status" as keyof GoalDTO,
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      cell: (value: any, row: GoalDTO) => (
         <div className="flex items-center gap-2">
-          {getStatusIcon(row.original.status)}
-          <Badge variant={getStatusVariant(row.original.status)}>
-            {row.original.status.charAt(0).toUpperCase() + row.original.status.slice(1)}
+          {getStatusIcon(row.status)}
+          <Badge variant={getStatusVariant(row.status)}>
+            {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
           </Badge>
         </div>
       ),
@@ -172,11 +172,11 @@ export function MyGoalsTab() {
       id: "dueDate",
       header: "Due Date",
       accessor: "dueDate" as keyof GoalDTO,
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      cell: (value: any, row: GoalDTO) => (
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="w-4 h-4 text-muted-foreground" />
-          {row.original.dueDate ? 
-            new Date(row.original.dueDate).toLocaleDateString() : 
+          {row.dueDate ? 
+            new Date(row.dueDate).toLocaleDateString() : 
             "No due date"
           }
         </div>
@@ -186,15 +186,15 @@ export function MyGoalsTab() {
       id: "actions",
       header: "Actions",
       accessor: "id" as keyof GoalDTO,
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      cell: (value: any, row: GoalDTO) => (
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
             Edit
           </Button>
-          {row.original.attachments && row.original.attachments.length > 0 && (
+          {row.attachments && row.attachments.length > 0 && (
             <Badge variant="secondary" className="text-xs">
               <Paperclip className="w-3 h-3 mr-1" />
-              {row.original.attachments.length}
+              {row.attachments.length}
             </Badge>
           )}
         </div>
