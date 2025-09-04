@@ -144,11 +144,11 @@ export function ChecksTab() {
       accessor: 'vendorIds' as keyof BgvCase,
       cell: (item: BgvCase) => (
         <div className="text-sm">
-          {item.vendorIds.map(vendorId => (
+          {item.vendorIds?.map(vendorId => (
             <Badge key={vendorId} variant="secondary" className="text-xs mr-1">
               {vendorId}
             </Badge>
-          ))}
+          )) || <span className="text-muted-foreground">No vendors</span>}
         </div>
       )
     },
