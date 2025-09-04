@@ -9,6 +9,7 @@ import { KPICard } from '@/components/shared/KPICard'
 import { ChartKit } from '@/components/shared/ChartKit'
 import { DataTable } from '@/components/shared/DataTable'
 import { FormKit } from '@/components/shared/FormKit'
+import Dashboard from './Dashboard'
 import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
@@ -323,7 +324,11 @@ export default function MePage({ defaultTab }: MePageProps) {
   const renderContent = () => {
     switch (activeTab) {
       case 'Dashboard':
-        return renderDashboard()
+        return (
+          <div className="min-h-screen bg-background">
+            <Dashboard />
+          </div>
+        )
       case 'Profile':
         return renderProfile()
       case 'Attendance':
