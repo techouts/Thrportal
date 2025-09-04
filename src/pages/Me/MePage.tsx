@@ -50,24 +50,26 @@ export default function MePage({ defaultTab }: MePageProps) {
           value="42.5"
           trend={{ direction: "up", value: "+2.5", label: "vs last week" }}
           description="vs last week"
+          icon={<Clock className="h-4 w-4" />}
         />
         <KPICard
           title="Leave Balance"
           value="18"
           description="days remaining"
-          icon={Calendar}
+          icon={<Calendar className="h-4 w-4" />}
         />
         <KPICard
           title="Pending Expenses"
           value="$234"
           description="awaiting approval"
-          icon={DollarSign}
+          icon={<DollarSign className="h-4 w-4" />}
         />
         <KPICard
           title="Goal Progress"
           value="75%"
           trend={{ direction: "up", value: "+15%", label: "quarterly goals" }}
           description="quarterly goals"
+          icon={<Target className="h-4 w-4" />}
         />
       </div>
 
@@ -86,7 +88,8 @@ export default function MePage({ defaultTab }: MePageProps) {
         />
         <ChartKit
           title="Goal Progress"
-          type="donut"
+          type="pie"
+          dataKey="value"
           data={[
             { name: 'Completed', value: 75 },
             { name: 'Remaining', value: 25 }
@@ -219,25 +222,26 @@ export default function MePage({ defaultTab }: MePageProps) {
             title="Today's Hours"
             value="7.5"
             description="out of 8.0"
-            icon={Clock}
+            icon={<Clock className="h-4 w-4" />}
           />
           <KPICard
             title="This Week"
             value="37.5"
             description="hours logged"
-            icon={Calendar}
+            icon={<Calendar className="h-4 w-4" />}
           />
           <KPICard
             title="This Month"
             value="162"
             description="hours logged"
-            icon={TrendingUp}
+            icon={<TrendingUp className="h-4 w-4" />}
           />
         </div>
         
         <ChartKit
           title="Daily Hours This Week"
           type="bar"
+          dataKey="value"
           data={[
             { name: 'Mon', value: 8.0 },
             { name: 'Tue', value: 7.5 },
@@ -266,18 +270,24 @@ export default function MePage({ defaultTab }: MePageProps) {
       </TabsContent>
       
       <TabsContent value="logs">
-        <DataTable
-          title="Attendance Logs"
-          description="Your attendance history"
-          data={[]}
-          columns={[
-            { key: 'date', label: 'Date' },
-            { key: 'clockIn', label: 'Clock In' },
-            { key: 'clockOut', label: 'Clock Out' },
-            { key: 'hours', label: 'Hours' },
-            { key: 'status', label: 'Status' }
-          ]}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Attendance Logs</CardTitle>
+            <CardDescription>Your attendance history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              data={[]}
+              columns={[
+                { id: 'date', header: 'Date', accessor: 'date' },
+                { id: 'clockIn', header: 'Clock In', accessor: 'clockIn' },
+                { id: 'clockOut', header: 'Clock Out', accessor: 'clockOut' },
+                { id: 'hours', header: 'Hours', accessor: 'hours' },
+                { id: 'status', header: 'Status', accessor: 'status' }
+              ]}
+            />
+          </CardContent>
+        </Card>
       </TabsContent>
     </Tabs>
   )
