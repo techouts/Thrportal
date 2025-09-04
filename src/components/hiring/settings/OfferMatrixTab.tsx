@@ -102,7 +102,7 @@ export function OfferMatrixTab() {
       header: 'Client',
       accessor: 'client' as keyof ApprovalWorkflow,
       cell: (item: ApprovalWorkflow) => (
-        <div className="text-sm">{item.client || 'All Clients'}</div>
+        <div className="text-sm">{item?.client || 'All Clients'}</div>
       )
     },
     {
