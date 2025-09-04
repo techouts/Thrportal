@@ -247,9 +247,6 @@ export function ReportsTab() {
             columns={recruiterColumns}
             loading={loading}
             searchable={false}
-            pagination={{
-              enabled: false
-            }}
           />
         </CardContent>
       </Card>
@@ -268,10 +265,6 @@ export function ReportsTab() {
             columns={burnColumns}
             loading={loading}
             searchable={true}
-            pagination={{
-              enabled: true,
-              pageSize: 10
-            }}
           />
         </CardContent>
       </Card>

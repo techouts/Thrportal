@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { AlertTriangle, Clock, MessageSquare, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Clock, MessageSquare, RotateCcw, MoreHorizontal } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/shared/DataTable'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { assignmentService } from '@/services/assignmentService'
 import type { UnattendedJD } from '@/types/assignment'
 
@@ -251,12 +252,23 @@ export function UnattendedTab() {
             data={filteredData}
             columns={columns}
             loading={loading}
-            actions={actions}
+            actions={(row) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {actions.map((action, index) => (
+                    <DropdownMenuItem key={index} onClick={() => action.onClick(row)}>
+                      {action.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             searchable={false}
-            pagination={{
-              enabled: true,
-              pageSize: 15
-            }}
           />
         </CardContent>
       </Card>

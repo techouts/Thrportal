@@ -354,12 +354,23 @@ export function ManageTab({ filters, onFiltersChange }: ManageTabProps) {
             data={assignments}
             columns={columns}
             loading={loading}
-            actions={actions}
+            actions={(row) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {actions.map((action, index) => (
+                    <DropdownMenuItem key={index} onClick={() => action.onClick(row)}>
+                      {action.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             searchable={false}
-            pagination={{
-              enabled: true,
-              pageSize: 20
-            }}
           />
         </CardContent>
       </Card>

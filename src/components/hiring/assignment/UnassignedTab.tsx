@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Users, Clock, AlertTriangle, UserCheck } from 'lucide-react'
+import { Users, Clock, AlertTriangle, UserCheck, MoreHorizontal } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/shared/DataTable'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { assignmentService } from '@/services/assignmentService'
 import type { JDAssignment, AssignmentFilters } from '@/types/assignment'
 
@@ -185,7 +186,7 @@ export function UnassignedTab({ filters }: UnassignedTabProps) {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-yellow-600">{agingJDs.length}</div>
-            <p className="text-xs text-muted-foreground">Aging (>7 days)</p>
+            <p className="text-xs text-muted-foreground">Aging (&gt;7 days)</p>
           </CardContent>
         </Card>
         <Card>
@@ -254,12 +255,23 @@ export function UnassignedTab({ filters }: UnassignedTabProps) {
             data={unassignedJDs}
             columns={columns}
             loading={loading}
-            actions={actions}
+            actions={(row) => (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {actions.map((action, index) => (
+                    <DropdownMenuItem key={index} onClick={() => action.onClick(row)}>
+                      {action.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             searchable={false}
-            pagination={{
-              enabled: true,
-              pageSize: 15
-            }}
           />
         </CardContent>
       </Card>
