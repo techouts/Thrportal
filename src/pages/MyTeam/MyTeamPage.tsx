@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,8 +8,17 @@ import { TeamGoalsTab } from '@/features/performance/components/manager/TeamGoal
 import { TeamReviewsTab } from '@/features/performance/components/manager/TeamReviewsTab'
 import { PeerFeedbackTab } from '@/features/performance/components/manager/PeerFeedbackTab'
 import { TeamPIPTab } from '@/features/performance/components/manager/TeamPIPTab'
-import { Target, FileText, MessageSquare, AlertTriangle } from "lucide-react"
+// Import My Team Components
+import { DashboardMetrics } from '@/components/myteam/DashboardMetrics'
+import { ExpensesDashboard } from '@/components/myteam/ExpensesDashboard'
+import { TimesheetDashboard } from '@/components/myteam/TimesheetDashboard'
+import { ProfileChangesDashboard } from '@/components/myteam/ProfileChangesDashboard'
+import { ApprovalQueues } from '@/components/myteam/ApprovalQueues'
+import { Target, FileText, MessageSquare, AlertTriangle, DollarSign, Clock, User } from "lucide-react"
 import { moduleRegistry } from '@/lib/moduleRegistry'
+import { myTeamService } from '@/services/myTeamService'
+import { useAuth } from '@/hooks/useAuth'
+import { toast } from 'sonner'
 
 interface MyTeamPageProps {
   defaultTab: string
@@ -17,12 +26,96 @@ interface MyTeamPageProps {
 
 export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
+  const [metrics, setMetrics] = useState<any>(null)
+  const [approvals, setApprovals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { currentUser } = useAuth()
+  
   const moduleSpec = moduleRegistry.getModuleSpec(`/MyTeam/${defaultTab}`) || 
     moduleRegistry.registerModuleSpec(`/MyTeam/${defaultTab}`, {
       brdStatus: 'draft',
       promptStatus: 'pending',
       description: `Team management - ${defaultTab}`
     })
+
+  useEffect(() => {
+    loadData()
+  }, [defaultTab, currentUser])
+
+  const loadData = async () => {
+    if (!currentUser) return
+    
+    setLoading(true)
+    try {
+      let data
+      switch (defaultTab) {
+        case 'Dashboard':
+          data = await myTeamService.getDashboardMetrics(currentUser.employeeId)
+          break
+        case 'Expenses':
+          data = await myTeamService.getExpenseMetrics(currentUser.employeeId)
+          break
+        case 'Timesheet':
+          data = await myTeamService.getTimesheetMetrics(currentUser.employeeId)
+          break
+        case 'ProfileChanges':
+          data = await myTeamService.getProfileChangeMetrics(currentUser.employeeId)
+          break
+        default:
+          data = await myTeamService.getDashboardMetrics(currentUser.employeeId)
+      }
+      
+      setMetrics(data.data)
+      
+      // Load approvals for all tabs
+      const approvalsData = await myTeamService.getApprovalQueues(currentUser.employeeId)
+      setApprovals(approvalsData.data)
+    } catch (error) {
+      toast.error('Failed to load team data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleApprove = async (id: string, comments?: string) => {
+    try {
+      await myTeamService.approveRequest(id, comments)
+      toast.success('Request approved successfully')
+      loadData()
+    } catch (error) {
+      toast.error('Failed to approve request')
+    }
+  }
+
+  const handleReject = async (id: string, reason: string) => {
+    try {
+      await myTeamService.rejectRequest(id, reason)
+      toast.success('Request rejected successfully')
+      loadData()
+    } catch (error) {
+      toast.error('Failed to reject request')
+    }
+  }
+
+  const handleBulkApprove = async (ids: string[]) => {
+    try {
+      await myTeamService.bulkApprove(ids)
+      toast.success(`${ids.length} requests approved successfully`)
+      loadData()
+    } catch (error) {
+      toast.error('Failed to bulk approve requests')
+    }
+  }
+
+  const handleBulkReject = async (ids: string[], reason: string) => {
+    try {
+      await myTeamService.bulkReject(ids, reason)
+      toast.success(`${ids.length} requests rejected successfully`)
+      loadData()
+    } catch (error) {
+      toast.error('Failed to bulk reject requests')
+    }
+  }
 
   const renderPerformance = () => {
     const [activePerformanceTab, setActivePerformanceTab] = useState("goals");
@@ -139,6 +232,102 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
   const renderContent = () => {
     if (defaultTab === 'Performance') {
       return renderPerformance();
+    }
+
+    if (defaultTab === 'Dashboard') {
+      return (
+        <Tabs defaultValue="metrics" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="metrics">Dashboard</TabsTrigger>
+            <TabsTrigger value="approvals">Approvals ({approvals.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="metrics">
+            <DashboardMetrics metrics={metrics} loading={loading} />
+          </TabsContent>
+          <TabsContent value="approvals">
+            <ApprovalQueues 
+              approvals={approvals}
+              loading={loading}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onBulkApprove={handleBulkApprove}
+              onBulkReject={handleBulkReject}
+            />
+          </TabsContent>
+        </Tabs>
+      );
+    }
+
+    if (defaultTab === 'Expenses') {
+      return (
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="approvals">Approvals</TabsTrigger>
+          </TabsList>
+          <TabsContent value="dashboard">
+            <ExpensesDashboard metrics={metrics} loading={loading} />
+          </TabsContent>
+          <TabsContent value="approvals">
+            <ApprovalQueues 
+              approvals={approvals.filter(a => a.type === 'expense')}
+              loading={loading}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onBulkApprove={handleBulkApprove}
+              onBulkReject={handleBulkReject}
+            />
+          </TabsContent>
+        </Tabs>
+      );
+    }
+
+    if (defaultTab === 'Timesheet') {
+      return (
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="approvals">Approvals</TabsTrigger>
+          </TabsList>
+          <TabsContent value="dashboard">
+            <TimesheetDashboard metrics={metrics} loading={loading} />
+          </TabsContent>
+          <TabsContent value="approvals">
+            <ApprovalQueues 
+              approvals={approvals.filter(a => a.type === 'timesheet')}
+              loading={loading}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onBulkApprove={handleBulkApprove}
+              onBulkReject={handleBulkReject}
+            />
+          </TabsContent>
+        </Tabs>
+      );
+    }
+
+    if (defaultTab === 'ProfileChanges') {
+      return (
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="approvals">Approvals</TabsTrigger>
+          </TabsList>
+          <TabsContent value="dashboard">
+            <ProfileChangesDashboard metrics={metrics} loading={loading} />
+          </TabsContent>
+          <TabsContent value="approvals">
+            <ApprovalQueues 
+              approvals={approvals.filter(a => a.type === 'profile')}
+              loading={loading}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onBulkApprove={handleBulkApprove}
+              onBulkReject={handleBulkReject}
+            />
+          </TabsContent>
+        </Tabs>
+      );
     }
     
     return (
