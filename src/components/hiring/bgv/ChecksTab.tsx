@@ -187,7 +187,7 @@ export function ChecksTab() {
         return (
           <div className="space-y-1">
             <Badge className={`text-xs ${statusBadge.color}`}>
-              {item.status.replace('_', ' ')}
+              {item.status?.replace('_', ' ') || 'Unknown'}
             </Badge>
             {outcomeBadge && (
               <Badge className={`text-xs ${outcomeBadge.color}`}>
