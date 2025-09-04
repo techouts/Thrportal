@@ -64,6 +64,7 @@ const navigationSections = {
       { name: "Expenses", path: "/Me/Expenses", icon: DollarSign },
       { name: "Finance", path: "/Me/Finance", icon: DollarSign },
       { name: "Learning", path: "/Me/Learning", icon: BookOpen },
+      { name: "Recognition", path: "/Me/Recognition", icon: Star },
       { name: "Performance", path: "/Me/Performance", icon: Target },
       { name: "IJP", path: "/Me/IJP", icon: TrendingUp },
       { name: "Referrals", path: "/Me/Referrals", icon: Users },
@@ -79,6 +80,7 @@ const navigationSections = {
       { name: "Timesheet", path: "/MyTeam/Timesheet", icon: Clock },
       { name: "Expenses", path: "/MyTeam/Expenses", icon: DollarSign },
       { name: "Learning", path: "/MyTeam/Learning", icon: BookOpen },
+      { name: "Recognition", path: "/MyTeam/Recognition", icon: Star },
       { name: "Performance", path: "/MyTeam/Performance", icon: Target },
       { name: "IJP", path: "/MyTeam/IJP", icon: TrendingUp },
       { name: "ProfileChanges", path: "/MyTeam/ProfileChanges", icon: UserCheck }
@@ -124,6 +126,7 @@ const navigationSections = {
       { name: "Attendance", path: "/HR/Attendance", icon: Clock },
       { name: "Expenses", path: "/HR/Expenses", icon: DollarSign },
       { name: "Learning", path: "/HR/Learning", icon: BookOpen },
+      { name: "Recognition", path: "/HR/Recognition", icon: Star },
       { name: "Helpdesk", path: "/HR/Helpdesk", icon: Headphones },
       { name: "Timesheet", path: "/HR/Timesheet", icon: Clock },
       { name: "IJP", path: "/HR/IJP", icon: TrendingUp },
