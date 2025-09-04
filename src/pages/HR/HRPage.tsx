@@ -17,6 +17,7 @@ interface HRPageProps {
 
 export default function HRPage({ defaultTab }: HRPageProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
+  const [activePerformanceTab, setActivePerformanceTab] = useState("periods")
   const moduleSpec = moduleRegistry.getModuleSpec(`/HR/${defaultTab}`) || 
     moduleRegistry.registerModuleSpec(`/HR/${defaultTab}`, {
       brdStatus: 'draft',
@@ -25,7 +26,6 @@ export default function HRPage({ defaultTab }: HRPageProps) {
     })
 
   const renderPerformance = () => {
-    const [activePerformanceTab, setActivePerformanceTab] = useState("periods");
 
     // Mock data for cycle timeline
     const mockWindows = [
