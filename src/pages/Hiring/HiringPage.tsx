@@ -40,7 +40,7 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
     return <PipelineModule />
   }
 
-  if (defaultTab === 'Followup') {
+  if (defaultTab === 'FollowUp') {
     return <FollowupModule />
   }
 
