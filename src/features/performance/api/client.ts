@@ -11,7 +11,7 @@ import {
   PaginatedResponse,
   AppError,
   PerformanceFilters
-} from '@/types/performance';
+} from './dtos';
 
 // Environment configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -63,7 +63,6 @@ class PerformanceApiClient {
       clearTimeout(timeoutId);
 
       if (response.status === 401) {
-        // Handle unauthorized - could trigger logout
         localStorage.removeItem(AUTH_TOKEN_KEY);
         throw new AppError('Authentication required', 'UNAUTHORIZED');
       }
@@ -235,8 +234,8 @@ class PerformanceApiClient {
     return this.get<ApiResponse<CalibrationPoolDTO[]>>(`/performance/cycles/${cycleId}/calibration/pools`);
   }
 
-  async moveEmployeeRating(poolId: string, empId: string, toRating: number, reason?: string): Promise<ApiResponse<CalibrationMoveDTO>> {
-    return this.post<{ empId: string; toRating: number; reason?: string }, ApiResponse<CalibrationMoveDTO>>(
+  async moveEmployeeRating(poolId: string, empId: string, toRating: string, reason?: string): Promise<ApiResponse<CalibrationMoveDTO>> {
+    return this.post<{ empId: string; toRating: string; reason?: string }, ApiResponse<CalibrationMoveDTO>>(
       `/performance/calibration/pools/${poolId}/moves`,
       { empId, toRating, reason }
     );
@@ -249,8 +248,12 @@ class PerformanceApiClient {
   async publishRatings(cycleId: string): Promise<ApiResponse<void>> {
     return this.post<{}, ApiResponse<void>>(`/performance/cycles/${cycleId}/publish`, {});
   }
+
+  // Notifications
+  async sendNudge(empId: string, type: string): Promise<ApiResponse<void>> {
+    return this.post<{ type: string }, ApiResponse<void>>(`/performance/nudge/${empId}`, { type });
+  }
 }
 
-// Export singleton instance
 export const performanceApi = new PerformanceApiClient();
 export { PerformanceApiClient };

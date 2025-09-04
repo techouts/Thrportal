@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { performanceApi } from '@/services/performanceApiClient';
+import { performanceApi } from '../api/client';
 import { 
   PerformanceCycleDTO, 
   GoalDTO, 
@@ -9,7 +9,7 @@ import {
   PIPDTO,
   CalibrationPoolDTO,
   PerformanceFilters 
-} from '@/types/performance';
+} from '../api/dtos';
 import { toast } from 'sonner';
 
 // Query Keys
@@ -51,7 +51,7 @@ export const useCreateCycle = () => {
   return useMutation({
     mutationFn: (cycle: Partial<PerformanceCycleDTO>) => 
       performanceApi.createCycle(cycle),
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: performanceKeys.cycles() });
       toast.success('Performance cycle created successfully');
     },
@@ -354,7 +354,7 @@ export const useMoveEmployeeRating = () => {
     mutationFn: ({ poolId, empId, toRating, reason }: { 
       poolId: string; 
       empId: string; 
-      toRating: number; 
+      toRating: string; 
       reason?: string; 
     }) => performanceApi.moveEmployeeRating(poolId, empId, toRating, reason),
     onSuccess: () => {
@@ -394,6 +394,20 @@ export const usePublishRatings = () => {
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to publish ratings');
+    },
+  });
+};
+
+// Nudge
+export const useSendNudge = () => {
+  return useMutation({
+    mutationFn: ({ empId, type }: { empId: string; type: string }) => 
+      performanceApi.sendNudge(empId, type),
+    onSuccess: () => {
+      toast.success('Nudge sent successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to send nudge');
     },
   });
 };
