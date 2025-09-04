@@ -33,6 +33,8 @@ import HRIJPPage from "./pages/HR/IJPPage";
 
 // Import Leave pages
 import LeavePage from "./pages/Me/LeavePage";
+import MyTeamLeavePage from "./pages/MyTeam/LeavePage";
+import HRLeavePage from "./pages/HR/LeavePage";
 
 const queryClient = new QueryClient();
 
@@ -151,7 +153,7 @@ const App = () => (
             <Route path="/MyTeam/Leave" element={
               <RBACGuard route="/MyTeam/Leave">
                 <MainLayout>
-                  <MyTeamPage defaultTab="Leave" />
+                  <MyTeamLeavePage />
                 </MainLayout>
               </RBACGuard>
             } />
@@ -335,7 +337,7 @@ const App = () => (
             <Route path="/HR/Leave" element={
               <RBACGuard route="/HR/Leave">
                 <MainLayout>
-                  <HRPage defaultTab="Leave" />
+                  <HRLeavePage />
                 </MainLayout>
               </RBACGuard>
             } />

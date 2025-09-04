@@ -125,7 +125,7 @@ const mockLeaveRequests = [
     endDate: '2024-01-17',
     totalDays: 3,
     reason: 'Personal vacation',
-    status: 'approved',
+    status: 'pending_L1',
     isWfh: false,
     outlookHold: true,
     backdatedDays: 0,
@@ -135,7 +135,32 @@ const mockLeaveRequests = [
     warningsJson: [],
     conflictsWith: [],
     coverageScore: 'High',
-    projectedBalance: 18
+    projectedBalance: 18,
+    halfDay: null
+  },
+  {
+    id: 'req-2',
+    employeeId: 'emp-002',
+    employeeName: 'Jane Smith',
+    type: 'CL',
+    startDate: '2024-01-20',
+    endDate: '2024-01-20',
+    totalDays: 0.5,
+    reason: 'Medical appointment',
+    status: 'pending_L2',
+    isWfh: false,
+    outlookHold: true,
+    backdatedDays: 2,
+    appliesSandwich: false,
+    attachments: [],
+    submittedAt: '2024-01-18T14:30:00Z',
+    warningsJson: [],
+    conflictsWith: [],
+    coverageScore: 'Medium',
+    projectedBalance: 7.5,
+    halfDay: 'AM',
+    l1ApprovedAt: '2024-01-19T09:00:00Z',
+    l1ApprovedBy: 'mgr-001'
   }
 ];
 
@@ -173,11 +198,62 @@ const handleMockRequests = (config: any) => {
     });
   }
   
-  // Mock Leave requests endpoint
-  if (url.includes('/api/leave/my-requests') && config.method === 'get') {
+  // Mock Leave L1 pending approvals
+  if (url.includes('/api/leave/approvals/pending-l1') && config.method === 'get') {
     return Promise.resolve({
       data: {
-        data: mockLeaveRequests,
+        data: mockLeaveRequests.filter(r => r.status === 'pending_L1'),
+        success: true,
+        timestamp: new Date().toISOString()
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+  }
+  
+  // Mock Leave L2 pending approvals
+  if (url.includes('/api/leave/approvals/pending-l2') && config.method === 'get') {
+    return Promise.resolve({
+      data: {
+        data: mockLeaveRequests.filter(r => r.status === 'pending_L2'),
+        success: true,
+        timestamp: new Date().toISOString()
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+  }
+  
+  // Mock Leave team calendar
+  if (url.includes('/api/leave/team/calendar') && config.method === 'get') {
+    return Promise.resolve({
+      data: {
+        data: [
+          {
+            employeeId: 'emp-001',
+            employeeName: 'John Doe',
+            leaves: [
+              {
+                id: 'leave-1',
+                startDate: '2024-01-15',
+                endDate: '2024-01-17',
+                type: 'PL',
+                status: 'approved'
+              }
+            ],
+            wfhDays: ['2024-01-10', '2024-01-12']
+          },
+          {
+            employeeId: 'emp-002',
+            employeeName: 'Jane Smith',
+            leaves: [],
+            wfhDays: ['2024-01-11']
+          }
+        ],
         success: true,
         timestamp: new Date().toISOString()
       },
