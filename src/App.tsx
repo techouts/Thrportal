@@ -2,12 +2,24 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 import { Provider as JotaiProvider } from 'jotai';
 import { RBACGuard } from "@/components/guards/RBACGuard";
+
+// Import all page components
+import PortalPage from "./pages/Portal/PortalPage";
+import MePage from "./pages/Me/MePage";
+import MyTeamPage from "./pages/MyTeam/MyTeamPage";
+import HiringPage from "./pages/Hiring/HiringPage";
+import ProjectPage from "./pages/Project/ProjectPage";
+import OrgPage from "./pages/Org/OrgPage";
+import HRPage from "./pages/HR/HRPage";
+import ManagementPage from "./pages/Management/ManagementPage";
+import ReportsPage from "./pages/Reports/ReportsPage";
+import AdminPage from "./pages/Admin/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -18,103 +30,426 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            <MainLayout>
-              <DashboardPage />
-            </MainLayout>
-          } />
-          <Route path="/Portal/Dashboard" element={
-            <MainLayout>
-              <DashboardPage />
-            </MainLayout>
-          } />
-          {/* Placeholder routes for all HR sections */}
-          <Route path="/Portal/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Portal Module</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Me/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">My Profile</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/MyTeam/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">My Team</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Hiring/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Hiring</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Project/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Projects</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Org/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Organization</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/HR/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">HR Management</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Management/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Management</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Reports/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Reports</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          <Route path="/Admin/*" element={
-            <MainLayout>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Administration</h1>
-                <p className="text-muted-foreground">This section is under development</p>
-              </div>
-            </MainLayout>
-          } />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+          <Routes>
+            <Route path="/" element={<Navigate to="/Portal/Dashboard" replace />} />
+            
+            {/* Portal Routes */}
+            <Route path="/Portal/Dashboard" element={
+              <RBACGuard route="/Portal/Dashboard">
+                <MainLayout>
+                  <PortalPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            
+            {/* Me Routes */}
+            <Route path="/Me/Dashboard" element={
+              <RBACGuard route="/Me/Dashboard">
+                <MainLayout>
+                  <MePage defaultTab="Dashboard" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Profile" element={
+              <RBACGuard route="/Me/Profile">
+                <MainLayout>
+                  <MePage defaultTab="Profile" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Attendance" element={
+              <RBACGuard route="/Me/Attendance">
+                <MainLayout>
+                  <MePage defaultTab="Attendance" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Leave" element={
+              <RBACGuard route="/Me/Leave">
+                <MainLayout>
+                  <MePage defaultTab="Leave" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Timesheet" element={
+              <RBACGuard route="/Me/Timesheet">
+                <MainLayout>
+                  <MePage defaultTab="Timesheet" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Expenses" element={
+              <RBACGuard route="/Me/Expenses">
+                <MainLayout>
+                  <MePage defaultTab="Expenses" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Performance" element={
+              <RBACGuard route="/Me/Performance">
+                <MainLayout>
+                  <MePage defaultTab="Performance" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/IJP" element={
+              <RBACGuard route="/Me/IJP">
+                <MainLayout>
+                  <MePage defaultTab="IJP" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Referrals" element={
+              <RBACGuard route="/Me/Referrals">
+                <MainLayout>
+                  <MePage defaultTab="Referrals" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Learning" element={
+              <RBACGuard route="/Me/Learning">
+                <MainLayout>
+                  <MePage defaultTab="Learning" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Me/Helpdesk" element={
+              <RBACGuard route="/Me/Helpdesk">
+                <MainLayout>
+                  <MePage defaultTab="Helpdesk" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* MyTeam Routes */}
+            <Route path="/MyTeam/Dashboard" element={
+              <RBACGuard route="/MyTeam/Dashboard">
+                <MainLayout>
+                  <MyTeamPage defaultTab="Dashboard" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/Leave" element={
+              <RBACGuard route="/MyTeam/Leave">
+                <MainLayout>
+                  <MyTeamPage defaultTab="Leave" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/Attendance" element={
+              <RBACGuard route="/MyTeam/Attendance">
+                <MainLayout>
+                  <MyTeamPage defaultTab="Attendance" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/Timesheet" element={
+              <RBACGuard route="/MyTeam/Timesheet">
+                <MainLayout>
+                  <MyTeamPage defaultTab="Timesheet" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/Expenses" element={
+              <RBACGuard route="/MyTeam/Expenses">
+                <MainLayout>
+                  <MyTeamPage defaultTab="Expenses" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/Performance" element={
+              <RBACGuard route="/MyTeam/Performance">
+                <MainLayout>
+                  <MyTeamPage defaultTab="Performance" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/MyTeam/ProfileChanges" element={
+              <RBACGuard route="/MyTeam/ProfileChanges">
+                <MainLayout>
+                  <MyTeamPage defaultTab="ProfileChanges" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Hiring Routes */}
+            <Route path="/Hiring/Dashboard" element={
+              <RBACGuard route="/Hiring/Dashboard">
+                <MainLayout>
+                  <HiringPage defaultTab="Dashboard" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/JobRequisitions" element={
+              <RBACGuard route="/Hiring/JobRequisitions">
+                <MainLayout>
+                  <HiringPage defaultTab="JobRequisitions" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/Assignment" element={
+              <RBACGuard route="/Hiring/Assignment">
+                <MainLayout>
+                  <HiringPage defaultTab="Assignment" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/Applications" element={
+              <RBACGuard route="/Hiring/Applications">
+                <MainLayout>
+                  <HiringPage defaultTab="Applications" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/Pipeline" element={
+              <RBACGuard route="/Hiring/Pipeline">
+                <MainLayout>
+                  <HiringPage defaultTab="Pipeline" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/FollowUp" element={
+              <RBACGuard route="/Hiring/FollowUp">
+                <MainLayout>
+                  <HiringPage defaultTab="FollowUp" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/BGV" element={
+              <RBACGuard route="/Hiring/BGV">
+                <MainLayout>
+                  <HiringPage defaultTab="BGV" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Hiring/Settings" element={
+              <RBACGuard route="/Hiring/Settings">
+                <MainLayout>
+                  <HiringPage defaultTab="Settings" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Project Routes */}
+            <Route path="/Project/Dashboard" element={
+              <RBACGuard route="/Project/Dashboard">
+                <MainLayout>
+                  <ProjectPage defaultTab="Dashboard" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Project/Clients" element={
+              <RBACGuard route="/Project/Clients">
+                <MainLayout>
+                  <ProjectPage defaultTab="Clients" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Project/Projects" element={
+              <RBACGuard route="/Project/Projects">
+                <MainLayout>
+                  <ProjectPage defaultTab="Projects" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Project/Assignments" element={
+              <RBACGuard route="/Project/Assignments">
+                <MainLayout>
+                  <ProjectPage defaultTab="Assignments" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Project/Tasks" element={
+              <RBACGuard route="/Project/Tasks">
+                <MainLayout>
+                  <ProjectPage defaultTab="Tasks" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Project/Bench" element={
+              <RBACGuard route="/Project/Bench">
+                <MainLayout>
+                  <ProjectPage defaultTab="Bench" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Org Routes */}
+            <Route path="/Org/EmployeeDirectory" element={
+              <RBACGuard route="/Org/EmployeeDirectory">
+                <MainLayout>
+                  <OrgPage defaultTab="EmployeeDirectory" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Org/OrgStructure" element={
+              <RBACGuard route="/Org/OrgStructure">
+                <MainLayout>
+                  <OrgPage defaultTab="OrgStructure" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Org/PolicyHub" element={
+              <RBACGuard route="/Org/PolicyHub">
+                <MainLayout>
+                  <OrgPage defaultTab="PolicyHub" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* HR Routes */}
+            <Route path="/HR/Performance" element={
+              <RBACGuard route="/HR/Performance">
+                <MainLayout>
+                  <HRPage defaultTab="Performance" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Leave" element={
+              <RBACGuard route="/HR/Leave">
+                <MainLayout>
+                  <HRPage defaultTab="Leave" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Attendance" element={
+              <RBACGuard route="/HR/Attendance">
+                <MainLayout>
+                  <HRPage defaultTab="Attendance" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Expenses" element={
+              <RBACGuard route="/HR/Expenses">
+                <MainLayout>
+                  <HRPage defaultTab="Expenses" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Timesheet" element={
+              <RBACGuard route="/HR/Timesheet">
+                <MainLayout>
+                  <HRPage defaultTab="Timesheet" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Hiring" element={
+              <RBACGuard route="/HR/Hiring">
+                <MainLayout>
+                  <HRPage defaultTab="Hiring" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Succession" element={
+              <RBACGuard route="/HR/Succession">
+                <MainLayout>
+                  <HRPage defaultTab="Succession" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/OnOffboarding" element={
+              <RBACGuard route="/HR/OnOffboarding">
+                <MainLayout>
+                  <HRPage defaultTab="OnOffboarding" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Reports" element={
+              <RBACGuard route="/HR/Reports">
+                <MainLayout>
+                  <HRPage defaultTab="Reports" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Management Routes */}
+            <Route path="/Management/Dashboard" element={
+              <RBACGuard route="/Management/Dashboard">
+                <MainLayout>
+                  <ManagementPage defaultTab="Dashboard" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Management/Scorecards" element={
+              <RBACGuard route="/Management/Scorecards">
+                <MainLayout>
+                  <ManagementPage defaultTab="Scorecards" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Management/Forecasts" element={
+              <RBACGuard route="/Management/Forecasts">
+                <MainLayout>
+                  <ManagementPage defaultTab="Forecasts" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Reports Routes */}
+            <Route path="/Reports/Mine" element={
+              <RBACGuard route="/Reports/Mine">
+                <MainLayout>
+                  <ReportsPage defaultTab="Mine" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Reports/Shared" element={
+              <RBACGuard route="/Reports/Shared">
+                <MainLayout>
+                  <ReportsPage defaultTab="Shared" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Reports/Builder" element={
+              <RBACGuard route="/Reports/Builder">
+                <MainLayout>
+                  <ReportsPage defaultTab="Builder" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Admin Routes */}
+            <Route path="/Admin/Tenant" element={
+              <RBACGuard route="/Admin/Tenant">
+                <MainLayout>
+                  <AdminPage defaultTab="Tenant" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Admin/Access" element={
+              <RBACGuard route="/Admin/Access">
+                <MainLayout>
+                  <AdminPage defaultTab="Access" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Admin/Integrations" element={
+              <RBACGuard route="/Admin/Integrations">
+                <MainLayout>
+                  <AdminPage defaultTab="Integrations" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Admin/Audit" element={
+              <RBACGuard route="/Admin/Audit">
+                <MainLayout>
+                  <AdminPage defaultTab="Audit" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Admin/Security" element={
+              <RBACGuard route="/Admin/Security">
+                <MainLayout>
+                  <AdminPage defaultTab="Security" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </JotaiProvider>
   </QueryClientProvider>
 );

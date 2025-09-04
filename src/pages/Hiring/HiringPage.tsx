@@ -1,0 +1,40 @@
+import { PageHeader } from '@/components/shared/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { moduleRegistry } from '@/lib/moduleRegistry'
+
+interface HiringPageProps {
+  defaultTab: string
+}
+
+export default function HiringPage({ defaultTab }: HiringPageProps) {
+  const moduleSpec = moduleRegistry.getModuleSpec(`/Hiring/${defaultTab}`) || 
+    moduleRegistry.registerModuleSpec(`/Hiring/${defaultTab}`, {
+      brdStatus: 'draft',
+      promptStatus: 'pending',
+      description: `Hiring management - ${defaultTab}`
+    })
+
+  return (
+    <div className="space-y-6">
+      <PageHeader 
+        title={`Hiring - ${defaultTab}`}
+        breadcrumbs={[
+          { label: 'Hiring', href: '/Hiring/Dashboard' },
+          { label: defaultTab, href: `/Hiring/${defaultTab}` }
+        ]}
+        moduleSpec={moduleSpec}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{defaultTab}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            {defaultTab} functionality will be implemented here.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

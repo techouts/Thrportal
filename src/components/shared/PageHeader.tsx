@@ -10,12 +10,15 @@ interface Breadcrumb {
 
 interface PageHeaderProps {
   title: string
+  description?: string
   breadcrumbs?: Breadcrumb[]
   onFilterClick?: () => void
   helpUrl?: string
   owner?: string
   brdStatus?: 'draft' | 'review' | 'approved' | 'implemented'
   promptStatus?: 'pending' | 'processing' | 'completed' | 'failed'
+  moduleSpec?: any
+  icon?: any
   actions?: React.ReactNode
 }
 
