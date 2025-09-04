@@ -36,6 +36,8 @@ import {
 } from '@/mocks/projectData'
 
 export function ProjectDashboard() {
+  console.log('📊 ProjectDashboard component rendering')
+  
   const [includeShadow, setIncludeShadow] = useState(false)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
 

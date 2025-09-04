@@ -12,6 +12,8 @@ interface ProjectPageProps {
 }
 
 export default function ProjectPage({ defaultTab }: ProjectPageProps) {
+  console.log('🚀 ProjectPage rendering with defaultTab:', defaultTab)
+  
   const moduleSpec = moduleRegistry.getModuleSpec(`/Project/${defaultTab}`) || 
     moduleRegistry.registerModuleSpec(`/Project/${defaultTab}`, {
       brdStatus: 'draft',
@@ -20,21 +22,35 @@ export default function ProjectPage({ defaultTab }: ProjectPageProps) {
     })
 
   const renderContent = () => {
-    switch (defaultTab) {
-      case 'Dashboard':
-        return <ProjectDashboard />
-      case 'Clients':
-        return <ProjectClients />
-      case 'Projects':
-        return <ProjectProjects />
-      case 'Assignments':
-        return <ProjectAssignments />
-      case 'Tasks':
-        return <ProjectTasks />
-      case 'Bench':
-        return <ProjectBench />
-      default:
-        return <ProjectDashboard />
+    console.log('🎯 Rendering content for tab:', defaultTab)
+    
+    try {
+      switch (defaultTab) {
+        case 'Dashboard':
+          console.log('📊 Loading ProjectDashboard')
+          return <ProjectDashboard />
+        case 'Clients':
+          console.log('🏢 Loading ProjectClients')
+          return <ProjectClients />
+        case 'Projects':
+          console.log('📁 Loading ProjectProjects')
+          return <ProjectProjects />
+        case 'Assignments':
+          console.log('👥 Loading ProjectAssignments')
+          return <ProjectAssignments />
+        case 'Tasks':
+          console.log('✅ Loading ProjectTasks')
+          return <ProjectTasks />
+        case 'Bench':
+          console.log('🪑 Loading ProjectBench')
+          return <ProjectBench />
+        default:
+          console.log('📊 Loading default ProjectDashboard')
+          return <ProjectDashboard />
+      }
+    } catch (error) {
+      console.error('❌ Error rendering project content:', error)
+      return <div className="p-4 text-destructive">Error loading project content: {error instanceof Error ? error.message : 'Unknown error'}</div>
     }
   }
 
