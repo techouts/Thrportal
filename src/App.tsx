@@ -12,7 +12,7 @@ import { RBACGuard } from "@/components/guards/RBACGuard";
 // Import all page components
 import PortalPage from "./pages/Portal/PortalPage";
 import MePage from "./pages/Me/MePage";
-import MyTeamPage from "./pages/MyTeam/MyTeamPage";
+import FinancePage from "./pages/Me/FinancePage";
 import HiringPage from "./pages/Hiring/HiringPage";
 import ProjectPage from "./pages/Project/ProjectPage";
 import OrgPage from "./pages/Org/OrgPage";
