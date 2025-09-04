@@ -503,6 +503,46 @@ class HelpdeskService {
       timestamp: new Date().toISOString()
     }
   }
+
+  // Get tickets by department
+  async getDepartmentTickets(department: TicketCategory): Promise<ApiResponse<Ticket[]>> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const mockTickets: Ticket[] = [
+      {
+        id: '3',
+        ticket_number: 'HD240003',
+        category: department,
+        sub_category: department === 'IT' ? 'System Access' : department === 'Facilities' ? 'Workstation' : 'Reimbursements',
+        priority: 'Critical',
+        status: 'New',
+        title: 'System access required urgently',
+        description: 'New employee needs immediate system access for project work.',
+        preferred_resolution_mode: 'Call',
+        created_by: 'emp-123',
+        created_by_name: 'Jane Smith',
+        created_at: '2024-02-02T08:00:00Z',
+        updated_at: '2024-02-02T08:00:00Z',
+        due_date: '2024-02-02T10:00:00Z',
+        sla_first_response_due: '2024-02-02T10:00:00Z',
+        sla_resolution_due: '2024-02-03T08:00:00Z',
+        is_sla_breached: false,
+        escalation_level: 0,
+        attachments: [],
+        comments: [],
+        department_owner: department
+      }
+    ]
+    
+    const departmentTickets = mockTickets.filter(ticket => ticket.category === department)
+    
+    return {
+      success: true,
+      data: departmentTickets,
+      message: `${department} tickets retrieved successfully`,
+      timestamp: Date.now().toString()
+    }
+  }
 }
 
 export const helpdeskService = HelpdeskService.getInstance()

@@ -7,7 +7,7 @@ interface KPICardProps {
   title: string
   value: string | number
   description?: string
-  icon?: ReactNode
+  icon?: LucideIcon | ReactNode
   trend?: {
     direction: 'up' | 'down' | 'neutral'
     value: string
