@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/shared/PageHeader'
 import { HiringDashboard } from '@/components/hiring/HiringDashboard'
+import { JobRequisitionsModule } from '@/components/hiring/requisitions/JobRequisitionsModule'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
@@ -17,6 +18,10 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
 
   if (defaultTab === 'Dashboard') {
     return <HiringDashboard />
+  }
+
+  if (defaultTab === 'JobRequisitions') {
+    return <JobRequisitionsModule />
   }
 
   return (
