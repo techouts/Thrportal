@@ -18,11 +18,11 @@ export function ExpenseHistoryTab() {
   const [loading, setLoading] = useState(false)
   const [selectedClaim, setSelectedClaim] = useState<ExpenseClaim | null>(null)
   const [filters, setFilters] = useState({
-    status: '',
+    status: 'ALL',
     dateFrom: '',
     dateTo: '',
     category: '',
-    reimbursable: ''
+    reimbursable: 'ALL'
   })
   const { toast } = useToast()
 
@@ -229,7 +229,7 @@ export function ExpenseHistoryTab() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="ALL">All statuses</SelectItem>
                   <SelectItem value="DRAFT">Draft</SelectItem>
                   <SelectItem value="SUBMITTED">Submitted</SelectItem>
                   <SelectItem value="APPROVED">Approved</SelectItem>
@@ -265,7 +265,7 @@ export function ExpenseHistoryTab() {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="ALL">All types</SelectItem>
                   <SelectItem value="reimbursable">Reimbursable</SelectItem>
                   <SelectItem value="corporate">Corporate Card</SelectItem>
                 </SelectContent>
