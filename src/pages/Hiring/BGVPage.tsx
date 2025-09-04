@@ -16,7 +16,6 @@ export default function BGVPage() {
       <PageHeader
         title="Background Verification (BGV)"
         description={pageDescription}
-        lastUpdated="2 minutes ago"
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
