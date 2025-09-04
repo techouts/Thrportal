@@ -92,7 +92,7 @@
     }
   },
   "routeGuards": {
-    "/Portal/*": ["*"],
+    "/Home/*": ["*"],
     "/Me/*": ["Employee", "Manager", "Recruiter", "HR", "Management", "Admin"],
     "/MyTeam/*": ["Manager", "HR", "Management", "Admin"],
     "/Hiring/*": ["Manager", "Recruiter", "HR", "Management", "Admin"],
