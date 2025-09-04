@@ -735,4 +735,4 @@ const HelpdeskPage = () => {
   )
 }
 
-export default HelpdeskPage
+export default HelpdeskPage;
