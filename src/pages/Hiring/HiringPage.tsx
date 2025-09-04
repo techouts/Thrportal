@@ -5,6 +5,7 @@ import { AssignmentModule } from '@/components/hiring/assignment/AssignmentModul
 import { ApplicationsModule } from '@/components/hiring/applications/ApplicationsModule'
 import { PipelineModule } from '@/components/hiring/pipeline/PipelineModule'
 import { FollowupModule } from '@/components/hiring/followup/FollowupModule'
+import BGVPage from './BGVPage'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 

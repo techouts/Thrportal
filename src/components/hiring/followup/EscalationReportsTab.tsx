@@ -163,7 +163,7 @@ export function EscalationReportsTab() {
         const badge = getStatusBadge(item.status)
         return (
           <Badge className={`text-xs ${badge.color}`}>
-            {item.status.replace('_', ' ')}
+            {item.status?.replace('_', ' ') || 'Unknown'}
           </Badge>
         )
       }
