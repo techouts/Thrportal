@@ -6,66 +6,41 @@ import { ApplicationsModule } from '@/components/hiring/applications/Application
 import { PipelineModule } from '@/components/hiring/pipeline/PipelineModule'
 import { FollowupModule } from '@/components/hiring/followup/FollowupModule'
 import BGVPage from './BGVPage'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { moduleRegistry } from '@/lib/moduleRegistry'
+import HiringSettingsPage from './HiringSettingsPage'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface HiringPageProps {
   defaultTab: string
 }
 
 export default function HiringPage({ defaultTab }: HiringPageProps) {
-  const moduleSpec = moduleRegistry.getModuleSpec(`/Hiring/${defaultTab}`) || 
-    moduleRegistry.registerModuleSpec(`/Hiring/${defaultTab}`, {
-      brdStatus: 'draft',
-      promptStatus: 'pending',
-      description: `Hiring management - ${defaultTab}`
-    })
-
-  if (defaultTab === 'Dashboard') {
-    return <HiringDashboard />
+  switch (defaultTab) {
+    case 'Dashboard':
+      return <HiringDashboard />
+    case 'JobRequisitions':
+      return <JobRequisitionsModule />
+    case 'Assignment':
+      return <AssignmentModule />
+    case 'Applications':
+      return <ApplicationsModule />
+    case 'Pipeline':
+      return <PipelineModule />
+    case 'FollowUp':
+      return <FollowupModule defaultTab="dashboard" />
+    case 'BGV':
+      return <BGVPage />
+    case 'Settings':
+      return <HiringSettingsPage />
+    default:
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <PageHeader
+              title={`${defaultTab} Module`}
+              description="Module content will be implemented here"
+            />
+          </CardContent>
+        </Card>
+      )
   }
-
-  if (defaultTab === 'JobRequisitions') {
-    return <JobRequisitionsModule />
-  }
-
-  if (defaultTab === 'Assignment') {
-    return <AssignmentModule />
-  }
-
-  if (defaultTab === 'Applications') {
-    return <ApplicationsModule />
-  }
-
-  if (defaultTab === 'Pipeline') {
-    return <PipelineModule />
-  }
-
-  if (defaultTab === 'FollowUp') {
-    return <FollowupModule />
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader 
-        title={`Hiring - ${defaultTab}`}
-        breadcrumbs={[
-          { label: 'Hiring', href: '/Hiring/Dashboard' },
-          { label: defaultTab, href: `/Hiring/${defaultTab}` }
-        ]}
-        moduleSpec={moduleSpec}
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{defaultTab}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            {defaultTab} functionality will be implemented here.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  )
 }
