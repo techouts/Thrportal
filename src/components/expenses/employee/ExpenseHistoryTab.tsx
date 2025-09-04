@@ -83,9 +83,9 @@ export function ExpenseHistoryTab() {
       header: 'Claim ID',
       accessor: 'id' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => {
-        console.log('ExpenseClaim item:', item); // Debug log
+        console.log('Full ExpenseClaim object:', item); // Debug log
         return (
-          <div className="font-mono text-sm">{item.id?.slice(-8) || 'N/A'}</div>
+          <div className="font-mono text-sm">{item?.id?.slice(-8) || 'N/A'}</div>
         )
       }
     },
@@ -93,13 +93,18 @@ export function ExpenseHistoryTab() {
       id: 'createdAt',
       header: 'Created',
       accessor: 'createdAt' as keyof ExpenseClaim,
-      cell: (item: ExpenseClaim) => new Date(item.createdAt).toLocaleDateString()
+      cell: (item: ExpenseClaim) => {
+        return item?.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'
+      }
     },
     {
       id: 'status',
       header: 'Status',
       accessor: 'status' as keyof ExpenseClaim,
-      cell: (item: ExpenseClaim) => getStatusBadge(item.status)
+      cell: (item: ExpenseClaim) => {
+        console.log('Status from item:', item?.status); // Debug log
+        return getStatusBadge(item?.status)
+      }
     },
     {
       id: 'totalInINR',
@@ -107,7 +112,7 @@ export function ExpenseHistoryTab() {
       accessor: 'totalInINR' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
         <div className="text-right font-medium">
-          ₹{(item.totalInINR || 0).toLocaleString()}
+          ₹{(item?.totalInINR || 0).toLocaleString()}
         </div>
       )
     },
@@ -116,7 +121,7 @@ export function ExpenseHistoryTab() {
       header: 'Lines',
       accessor: 'lines' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
-        <div className="text-center">{item.lines?.length || 0}</div>
+        <div className="text-center">{item?.lines?.length || 0}</div>
       )
     },
     {
@@ -125,7 +130,7 @@ export function ExpenseHistoryTab() {
       accessor: 'submittedAt' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
         <div>
-          {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : '-'}
+          {item?.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : '-'}
         </div>
       )
     },
@@ -135,7 +140,7 @@ export function ExpenseHistoryTab() {
       accessor: 'approvedAt' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
         <div>
-          {item.approvedAt ? new Date(item.approvedAt).toLocaleDateString() : '-'}
+          {item?.approvedAt ? new Date(item.approvedAt).toLocaleDateString() : '-'}
         </div>
       )
     },
@@ -155,7 +160,7 @@ export function ExpenseHistoryTab() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => exportClaim(item.id)}
+            onClick={() => exportClaim(item?.id || '')}
           >
             <Download className="h-4 w-4" />
           </Button>
@@ -174,7 +179,9 @@ export function ExpenseHistoryTab() {
       id: 'date',
       header: 'Date',
       accessor: 'date' as keyof ExpenseLine,
-      cell: (item: ExpenseLine) => new Date(item.date).toLocaleDateString()
+      cell: (item: ExpenseLine) => {
+        return item?.date ? new Date(item.date).toLocaleDateString() : '-'
+      }
     },
     {
       id: 'vendorName',
@@ -192,10 +199,10 @@ export function ExpenseHistoryTab() {
       accessor: 'amountInINR' as keyof ExpenseLine,
       cell: (item: ExpenseLine) => (
         <div className="text-right">
-          ₹{(item.amountInINR || 0).toLocaleString()}
-          {item.currency !== 'INR' && (
+          ₹{(item?.amountInINR || 0).toLocaleString()}
+          {item?.currency !== 'INR' && (
             <div className="text-xs text-muted-foreground">
-              {item.currency} {item.amount || 0}
+              {item?.currency} {item?.amount || 0}
             </div>
           )}
         </div>
@@ -208,7 +215,7 @@ export function ExpenseHistoryTab() {
       cell: (item: ExpenseLine) => (
         <div className="flex items-center gap-1">
           <Receipt className="h-4 w-4" />
-          <span>{item.receiptIds?.length || 0}</span>
+          <span>{item?.receiptIds?.length || 0}</span>
         </div>
       )
     }
@@ -321,24 +328,24 @@ export function ExpenseHistoryTab() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedClaim.status)}</div>
+                  <div className="mt-1">{getStatusBadge(selectedClaim?.status)}</div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Total Amount</Label>
-                  <div className="mt-1 font-medium">₹{selectedClaim.totalInINR.toLocaleString()}</div>
+                  <div className="mt-1 font-medium">₹{(selectedClaim?.totalInINR || 0).toLocaleString()}</div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Created</Label>
-                  <div className="mt-1">{new Date(selectedClaim.createdAt).toLocaleDateString()}</div>
+                  <div className="mt-1">{selectedClaim?.createdAt ? new Date(selectedClaim.createdAt).toLocaleDateString() : '-'}</div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Lines</Label>
-                  <div className="mt-1">{selectedClaim.lines?.length || 0}</div>
+                  <div className="mt-1">{selectedClaim?.lines?.length || 0}</div>
                 </div>
               </div>
 
               {/* Approver Comments */}
-              {selectedClaim.approverComments && (
+              {selectedClaim?.approverComments && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Approver Comments</Label>
                   <div className="p-3 bg-muted rounded-md text-sm">
@@ -353,7 +360,7 @@ export function ExpenseHistoryTab() {
               <div>
                 <h4 className="font-medium mb-4">Expense Lines</h4>
                 <DataTable
-                  data={selectedClaim.lines || []}
+                  data={selectedClaim?.lines || []}
                   columns={lineColumns}
                   loading={false}
                   emptyMessage="No expense lines in this claim."
@@ -369,12 +376,12 @@ export function ExpenseHistoryTab() {
                     <div className="text-sm">
                       <span className="font-medium">Created</span>
                       <span className="text-muted-foreground ml-2">
-                        {new Date(selectedClaim.createdAt).toLocaleString()}
+                        {selectedClaim?.createdAt ? new Date(selectedClaim.createdAt).toLocaleString() : '-'}
                       </span>
                     </div>
                   </div>
                   
-                  {selectedClaim.submittedAt && (
+                  {selectedClaim?.submittedAt && (
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <div className="text-sm">
@@ -386,7 +393,7 @@ export function ExpenseHistoryTab() {
                     </div>
                   )}
                   
-                  {selectedClaim.approvedAt && (
+                  {selectedClaim?.approvedAt && (
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <div className="text-sm">
@@ -398,7 +405,7 @@ export function ExpenseHistoryTab() {
                     </div>
                   )}
                   
-                  {selectedClaim.paidAt && (
+                  {selectedClaim?.paidAt && (
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                       <div className="text-sm">
