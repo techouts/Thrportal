@@ -192,10 +192,10 @@ export function ExpenseHistoryTab() {
       accessor: 'amountInINR' as keyof ExpenseLine,
       cell: (item: ExpenseLine) => (
         <div className="text-right">
-          ₹{item.amountInINR.toLocaleString()}
+          ₹{(item.amountInINR || 0).toLocaleString()}
           {item.currency !== 'INR' && (
             <div className="text-xs text-muted-foreground">
-              {item.currency} {item.amount}
+              {item.currency} {item.amount || 0}
             </div>
           )}
         </div>
