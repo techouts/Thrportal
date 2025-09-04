@@ -4,22 +4,13 @@ import { toast } from 'sonner'
 
 // Simple hook without Jotai for testing
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [authToken, setAuthToken] = useState<string | null>(null)
-  const [session, setSession] = useState({
-    isLoading: false,
-    error: null as string | null,
-    lastActivity: null as Date | null,
-  })
-
   const mockUser: User = {
     id: 'demo-user',
     email: 'demo@company.com',
     firstName: 'Demo',
     lastName: 'User',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face',
-    role: 'manager',
+    role: 'Manager',
     department: 'Engineering',
     position: 'Demo Manager',
     employeeId: 'DEMO001',
@@ -27,6 +18,19 @@ export const useAuth = () => {
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-09-03T00:00:00.000Z',
   }
+
+  // Auto-login for demo purposes
+  const [isAuthenticated, setIsAuthenticated] = useState(true)
+  const [currentUser, setCurrentUser] = useState<User | null>(mockUser)
+  const [authToken, setAuthToken] = useState<string | null>('mock-jwt-token')
+  const [session, setSession] = useState({
+    isLoading: false,
+    error: null as string | null,
+    lastActivity: new Date(),
+  })
+
+  console.log('🔐 useAuth - currentUser:', currentUser)
+  console.log('🔐 useAuth - isAuthenticated:', isAuthenticated)
 
   const login = useCallback(async (email: string, password: string) => {
     try {

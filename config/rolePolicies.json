@@ -93,14 +93,14 @@
   },
   "routeGuards": {
     "/Portal/*": ["*"],
-    "/Me/*": ["employee", "manager", "hr", "management", "admin"],
-    "/MyTeam/*": ["manager", "hr", "management", "admin"],
-    "/Hiring/*": ["recruiter", "hr", "management", "admin"],
-    "/Project/*": ["manager", "hr", "management", "admin"],
-    "/Org/*": ["hr", "management", "admin"],
-    "/HR/*": ["hr", "management", "admin"],
-    "/Management/*": ["management", "admin"],
-    "/Reports/*": ["hr", "management", "admin"],
-    "/Admin/*": ["admin"]
+    "/Me/*": ["Employee", "Manager", "Recruiter", "HR", "Management", "Admin"],
+    "/MyTeam/*": ["Manager", "HR", "Management", "Admin"],
+    "/Hiring/*": ["Recruiter", "HR", "Management", "Admin"],
+    "/Project/*": ["Manager", "HR", "Management", "Admin"],
+    "/Org/*": ["HR", "Management", "Admin"],
+    "/HR/*": ["HR", "Management", "Admin"],
+    "/Management/*": ["Management", "Admin"],
+    "/Reports/*": ["HR", "Management", "Admin"],
+    "/Admin/*": ["Admin"]
   }
 }

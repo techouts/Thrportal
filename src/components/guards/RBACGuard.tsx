@@ -12,12 +12,17 @@ interface RBACGuardProps {
 export function RBACGuard({ children, permission, route, fallback = null }: RBACGuardProps) {
   const { currentUser } = useAuth()
   
+  console.log('🛡️ RBACGuard - route:', route, 'currentUser:', currentUser)
+  
   if (!currentUser) {
+    console.log('🛡️ RBACGuard - No current user, returning fallback')
     return <>{fallback}</>
   }
 
   const userRole = currentUser.role
   const hasAccess = checkAccess(userRole, permission, route)
+  
+  console.log('🛡️ RBACGuard - userRole:', userRole, 'hasAccess:', hasAccess)
   
   return hasAccess ? <>{children}</> : <>{fallback}</>
 }

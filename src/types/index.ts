@@ -6,7 +6,7 @@ export interface User {
   firstName: string
   lastName: string
   avatar?: string
-  role: 'employee' | 'manager' | 'hr' | 'admin'
+  role: 'Employee' | 'Manager' | 'Recruiter' | 'HR' | 'Management' | 'Admin'
   department: string
   position: string
   employeeId: string
