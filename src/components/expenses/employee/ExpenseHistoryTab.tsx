@@ -56,7 +56,8 @@ export function ExpenseHistoryTab() {
       'REJECTED': { variant: 'destructive' as const, label: 'Rejected' }
     }
 
-    const config = variants[status]
+    console.log('Status received:', status); // Debug log
+    const config = variants[status] || { variant: 'secondary' as const, label: 'Unknown' }
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
