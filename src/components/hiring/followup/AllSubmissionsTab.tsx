@@ -192,7 +192,7 @@ export function AllSubmissionsTab() {
             <SelectTrigger className="w-48">
               <SelectValue>
                 <Badge className={getStatusBadge(item.status).color}>
-                  {item.status.replace('_', ' ')}
+                  {item.status?.replace('_', ' ') || 'Unknown'}
                 </Badge>
               </SelectValue>
             </SelectTrigger>
