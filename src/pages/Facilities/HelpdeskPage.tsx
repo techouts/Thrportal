@@ -192,28 +192,28 @@ const FacilitiesHelpdeskPage = () => {
       value: tickets.length.toString(),
       description: 'New and assigned tickets',
       icon: Building2,
-      trend: { value: 3, isPositive: false }
+      trend: { direction: 'down' as const, value: '3%', label: 'vs last month' }
     },
     {
       title: 'In Progress',
       value: wipTickets.length.toString(),
       description: 'Tickets being worked on',
       icon: UserCheck,
-      trend: { value: 7, isPositive: true }
+      trend: { direction: 'up' as const, value: '7%', label: 'vs last month' }
     },
     {
       title: 'SLA Compliance',
       value: '91%',
       description: 'This month',
       icon: CheckCircle,
-      trend: { value: 4, isPositive: true }
+      trend: { direction: 'up' as const, value: '4%', label: 'vs last month' }
     },
     {
       title: 'Avg Resolution Time',
       value: '1.8d',
       description: 'Facilities average',
       icon: Clock,
-      trend: { value: 15, isPositive: true }
+      trend: { direction: 'up' as const, value: '15%', label: 'improvement' }
     }
   ]
 

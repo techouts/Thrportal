@@ -192,28 +192,28 @@ const FinanceHelpdeskPage = () => {
       value: tickets.length.toString(),
       description: 'New and assigned tickets',
       icon: DollarSign,
-      trend: { value: 8, isPositive: false }
+      trend: { direction: 'down' as const, value: '8%', label: 'vs last month' }
     },
     {
       title: 'In Progress',
       value: wipTickets.length.toString(),
       description: 'Tickets being worked on',
       icon: UserCheck,
-      trend: { value: 6, isPositive: true }
+      trend: { direction: 'up' as const, value: '6%', label: 'vs last month' }
     },
     {
       title: 'SLA Compliance',
       value: '96%',
       description: 'This month',
       icon: CheckCircle,
-      trend: { value: 3, isPositive: true }
+      trend: { direction: 'up' as const, value: '3%', label: 'vs last month' }
     },
     {
       title: 'Avg Resolution Time',
       value: '2.1d',
       description: 'Finance average',
       icon: Clock,
-      trend: { value: 12, isPositive: true }
+      trend: { direction: 'up' as const, value: '12%', label: 'improvement' }
     }
   ]
 

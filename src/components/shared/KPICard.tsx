@@ -1,13 +1,14 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, LucideProps } from 'lucide-react'
+import { ForwardRefExoticComponent, RefAttributes } from 'react'
 
 interface KPICardProps {
   title: string
   value: string | number
   description?: string
-  icon?: LucideIcon | ReactNode
+  icon?: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>> | ReactNode
   trend?: {
     direction: 'up' | 'down' | 'neutral'
     value: string
@@ -73,7 +74,11 @@ export function KPICard({
               {badge.text}
             </Badge>
           )}
-          {icon && <div className="text-muted-foreground">{icon}</div>}
+          {icon && (
+            <div className="text-muted-foreground">
+              {React.isValidElement(icon) ? icon : React.createElement(icon as any, { className: "h-4 w-4" })}
+            </div>
+          )}
         </div>
       </CardHeader>
       

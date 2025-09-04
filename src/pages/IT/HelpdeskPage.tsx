@@ -192,28 +192,28 @@ const ITHelpdeskPage = () => {
       value: tickets.length.toString(),
       description: 'New and assigned tickets',
       icon: Monitor,
-      trend: { value: 5, isPositive: false }
+      trend: { direction: 'down' as const, value: '5%', label: 'vs last month' }
     },
     {
       title: 'In Progress',
       value: wipTickets.length.toString(),
       description: 'Tickets being worked on',
       icon: Wrench,
-      trend: { value: 12, isPositive: true }
+      trend: { direction: 'up' as const, value: '12%', label: 'vs last month' }
     },
     {
       title: 'SLA Compliance',
       value: '94%',
       description: 'This month',
       icon: CheckCircle,
-      trend: { value: 2, isPositive: true }
+      trend: { direction: 'up' as const, value: '2%', label: 'vs last month' }
     },
     {
       title: 'Avg Resolution Time',
       value: '4.2h',
       description: 'IT department average',
       icon: Clock,
-      trend: { value: 8, isPositive: true }
+      trend: { direction: 'up' as const, value: '8%', label: 'improvement' }
     }
   ]
 
