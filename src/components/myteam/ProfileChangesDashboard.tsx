@@ -40,11 +40,12 @@ interface ProfileChangesDashboardProps {
 }
 
 export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDashboardProps) {
-  const statusData = [
+  // Safely define data with null checks
+  const statusData = metrics ? [
     { name: 'Approved', value: metrics.approvedChanges, color: '#22c55e' },
     { name: 'Pending', value: metrics.pendingChanges, color: '#f59e0b' },
     { name: 'Rejected', value: metrics.rejectedChanges, color: '#ef4444' }
-  ];
+  ] : [];
 
   const categoryData = [
     { category: 'Personal Info', changes: 15, sensitive: 3 },
@@ -103,7 +104,7 @@ export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDash
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalChanges}</div>
+            <div className="text-2xl font-bold">{metrics?.totalChanges || 0}</div>
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
@@ -117,8 +118,8 @@ export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDash
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold">{metrics.pendingChanges}</div>
-              {metrics.pendingChanges > 10 && (
+              <div className="text-2xl font-bold">{metrics?.pendingChanges || 0}</div>
+              {metrics && metrics.pendingChanges > 10 && (
                 <Badge variant="destructive" className="text-xs">High</Badge>
               )}
             </div>
@@ -134,7 +135,7 @@ export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDash
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.sensitiveChanges}</div>
+            <div className="text-2xl font-bold">{metrics?.sensitiveChanges || 0}</div>
             <p className="text-xs text-muted-foreground">Dual approval required</p>
           </CardContent>
         </Card>
@@ -148,7 +149,9 @@ export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDash
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round((metrics.approvedChanges / (metrics.approvedChanges + metrics.rejectedChanges)) * 100)}%
+              {metrics && (metrics.approvedChanges + metrics.rejectedChanges) > 0 
+                ? Math.round((metrics.approvedChanges / (metrics.approvedChanges + metrics.rejectedChanges)) * 100)
+                : 0}%
             </div>
             <p className="text-xs text-muted-foreground">Last 30 days</p>
           </CardContent>
@@ -213,7 +216,7 @@ export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDash
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {metrics.recentChanges.slice(0, 10).map((change) => (
+            {(metrics?.recentChanges || []).slice(0, 10).map((change) => (
               <div key={change.id} className={`border rounded-xl p-4 ${change.sensitive ? 'border-red-200 bg-red-50' : ''}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -287,7 +290,7 @@ export function ProfileChangesDashboard({ metrics, loading }: ProfileChangesDash
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {metrics.changesByCategory.map((category, index) => (
+            {(metrics?.changesByCategory || []).map((category, index) => (
               <div key={index} className="border rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium">{category.category}</h4>
