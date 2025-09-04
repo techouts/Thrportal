@@ -52,6 +52,11 @@ import LearningPage from "./pages/Me/LearningPage";
 import MyTeamLearningPage from "./pages/MyTeam/LearningPage";
 import HRLearningPage from "./pages/HR/LearningPage";
 
+// Import Recognition pages
+import RecognitionPage from "./pages/Me/RecognitionPage";
+import MyTeamRecognitionPage from "./pages/MyTeam/RecognitionPage";
+import HRRecognitionPage from "./pages/HR/RecognitionPage";
+
 // Import Helpdesk pages
 import HelpdeskPage from "./pages/Me/HelpdeskPage";
 import HRHelpdeskPage from "./pages/HR/HelpdeskPage";
@@ -191,10 +196,24 @@ const App = () => (
                 </MainLayout>
               </RBACGuard>
             } />
+            <Route path="/MyTeam/Recognition" element={
+              <RBACGuard route="/MyTeam/Recognition">
+                <MainLayout>
+                  <MyTeamRecognitionPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
             <Route path="/HR/Learning" element={
               <RBACGuard route="/HR/Learning">
                 <MainLayout>
                   <HRLearningPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Recognition" element={
+              <RBACGuard route="/HR/Recognition">
+                <MainLayout>
+                  <HRRecognitionPage />
                 </MainLayout>
               </RBACGuard>
             } />
