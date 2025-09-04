@@ -13,9 +13,8 @@ interface RBACGuardProps {
 
 // Mock user role - in real app this would come from auth context
 const getCurrentUserRole = (): UserRole => {
-  // This would typically come from your auth context/state
-  const role = localStorage.getItem('user_role') as UserRole;
-  return role || "EMPLOYEE";
+  // Set to HR role to allow access to all HR functions
+  return "HR";
 };
 
 export function RBACGuard({ 
