@@ -114,7 +114,7 @@ export function JDParserTab() {
       header: 'Type',
       accessor: 'type' as keyof JDTemplate,
       cell: (item: JDTemplate) => (
-        <Badge variant="outline">{item.type.replace('_', ' ')}</Badge>
+        <Badge variant="outline">{item.type?.replace('_', ' ') || 'Unknown'}</Badge>
       )
     },
     {
@@ -128,11 +128,11 @@ export function JDParserTab() {
       accessor: 'fields' as keyof JDTemplate,
       cell: (item: JDTemplate) => (
         <div className="flex flex-wrap gap-1">
-          {item.fields.map(field => (
+          {item.fields?.map(field => (
             <Badge key={field} variant="secondary" className="text-xs">
               {field}
             </Badge>
-          ))}
+          )) || <span className="text-muted-foreground text-sm">No fields</span>}
         </div>
       )
     },
@@ -175,8 +175,8 @@ export function JDParserTab() {
       accessor: 'keywords' as keyof ParsingRule,
       cell: (item: ParsingRule) => (
         <div className="text-sm">
-          {item.keywords.slice(0, 3).join(', ')}
-          {item.keywords.length > 3 && ` +${item.keywords.length - 3} more`}
+          {item.keywords?.slice(0, 3)?.join(', ') || 'No keywords'}
+          {item.keywords && item.keywords.length > 3 && ` +${item.keywords.length - 3} more`}
         </div>
       )
     },
