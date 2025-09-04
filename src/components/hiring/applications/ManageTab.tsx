@@ -112,6 +112,9 @@ export function ManageTab() {
       header: 'Match %',
       accessor: 'match' as keyof Submission,
       cell: (item: Submission) => {
+        if (!item.match || typeof item.match.score !== 'number') {
+          return <Badge variant="secondary" className="text-xs">-</Badge>
+        }
         const { variant, color } = getMatchScoreBadge(item.match.score)
         return (
           <Badge variant={variant} className={`text-xs ${color}`}>
@@ -134,13 +137,13 @@ export function ManageTab() {
       id: 'tatJdToSub',
       header: 'TAT: JD→1st Sub (hrs)',
       accessor: 'tat' as keyof Submission,
-      cell: (item: Submission) => item.tat.jdToFirstSubmissionHrs || '-'
+      cell: (item: Submission) => item.tat?.jdToFirstSubmissionHrs || '-'
     },
     {
       id: 'tatSubToFb',
       header: 'TAT: Sub→Feedback (hrs)',
       accessor: 'tat' as keyof Submission,
-      cell: (item: Submission) => item.tat.submissionToFeedbackHrs || '-'
+      cell: (item: Submission) => item.tat?.submissionToFeedbackHrs || '-'
     },
     {
       id: 'actions',
