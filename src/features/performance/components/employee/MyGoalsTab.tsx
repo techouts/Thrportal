@@ -307,7 +307,6 @@ export function MyGoalsTab() {
           <DataTable
             data={filteredGoals}
             columns={columns}
-            onRowClick={(goal) => setSelectedGoal(goal)}
           />
         </CardContent>
       </Card>

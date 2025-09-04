@@ -295,7 +295,6 @@ export function OneOnOnesTab() {
           <DataTable
             data={filteredMeetings}
             columns={columns}
-            onRowClick={(meeting) => setSelectedMeeting(meeting)}
           />
         </CardContent>
       </Card>
