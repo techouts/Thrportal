@@ -90,7 +90,7 @@ export default function HRLeavePage() {
   };
 
   return (
-    <RBACGuard requiredRoles={["HR", "ADMIN"]}>
+    <RBACGuard requiredRoles={["MANAGER", "HR", "ADMIN"]}>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
