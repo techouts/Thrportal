@@ -266,13 +266,13 @@ export function EscalationReportsTab() {
     Math.floor((Date.now() - new Date(e.raisedAt).getTime()) / (1000 * 60 * 60 * 24)) > 3
   ).length
 
-  const avgResolutionTime = resolvedEscalations.length > 0 ? 
+  const avgResolutionTime = resolvedEscalations > 0 ? 
     escalations
       .filter(e => e.status === 'RESOLVED' && e.resolvedAt)
       .reduce((sum, e) => {
         const days = Math.floor((new Date(e.resolvedAt!).getTime() - new Date(e.raisedAt).getTime()) / (1000 * 60 * 60 * 24))
         return sum + days
-      }, 0) / resolvedEscalations.length : 0
+      }, 0) / resolvedEscalations : 0
 
   return (
     <div className="space-y-6">
