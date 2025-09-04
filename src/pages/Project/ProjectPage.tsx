@@ -1,6 +1,11 @@
 import { PageHeader } from '@/components/shared/PageHeader'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moduleRegistry } from '@/lib/moduleRegistry'
+import { ProjectDashboard } from '@/components/projects/ProjectDashboard'
+import { ProjectClients } from '@/components/projects/ProjectClients'
+import { ProjectProjects } from '@/components/projects/ProjectProjects'
+import { ProjectAssignments } from '@/components/projects/ProjectAssignments'
+import { ProjectTasks } from '@/components/projects/ProjectTasks'
+import { ProjectBench } from '@/components/projects/ProjectBench'
 
 interface ProjectPageProps {
   defaultTab: string
@@ -14,6 +19,25 @@ export default function ProjectPage({ defaultTab }: ProjectPageProps) {
       description: `Project management - ${defaultTab}`
     })
 
+  const renderContent = () => {
+    switch (defaultTab) {
+      case 'Dashboard':
+        return <ProjectDashboard />
+      case 'Clients':
+        return <ProjectClients />
+      case 'Projects':
+        return <ProjectProjects />
+      case 'Assignments':
+        return <ProjectAssignments />
+      case 'Tasks':
+        return <ProjectTasks />
+      case 'Bench':
+        return <ProjectBench />
+      default:
+        return <ProjectDashboard />
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -25,16 +49,7 @@ export default function ProjectPage({ defaultTab }: ProjectPageProps) {
         moduleSpec={moduleSpec}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{defaultTab}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            {defaultTab} functionality will be implemented here.
-          </p>
-        </CardContent>
-      </Card>
+      {renderContent()}
     </div>
   )
 }
