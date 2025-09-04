@@ -36,6 +36,11 @@ import LeavePage from "./pages/Me/LeavePage";
 import MyTeamLeavePage from "./pages/MyTeam/LeavePage";
 import HRLeavePage from "./pages/HR/LeavePage";
 
+// Import Attendance pages
+import AttendancePage from "./pages/Me/AttendancePage";
+import MyTeamAttendancePage from "./pages/MyTeam/AttendancePage";
+import HRAttendancePage from "./pages/HR/AttendancePage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -81,7 +86,7 @@ const App = () => (
             <Route path="/Me/Attendance" element={
               <RBACGuard route="/Me/Attendance">
                 <MainLayout>
-                  <MePage defaultTab="Attendance" />
+                  <AttendancePage />
                 </MainLayout>
               </RBACGuard>
             } />
@@ -160,7 +165,7 @@ const App = () => (
             <Route path="/MyTeam/Attendance" element={
               <RBACGuard route="/MyTeam/Attendance">
                 <MainLayout>
-                  <MyTeamPage defaultTab="Attendance" />
+                  <MyTeamAttendancePage />
                 </MainLayout>
               </RBACGuard>
             } />
@@ -344,7 +349,7 @@ const App = () => (
             <Route path="/HR/Attendance" element={
               <RBACGuard route="/HR/Attendance">
                 <MainLayout>
-                  <HRPage defaultTab="Attendance" />
+                  <HRAttendancePage />
                 </MainLayout>
               </RBACGuard>
             } />
