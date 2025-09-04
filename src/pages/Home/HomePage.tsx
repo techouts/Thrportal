@@ -50,10 +50,15 @@ const sections = [
 ]
 
 export default function HomePage() {
+  console.log('🏠 HomePage - Component rendering...')
   const { toast } = useToast()
   const currentUser = useCurrentUser()
   const userRole = useUserRole()
   const isManager = useIsManager()
+  
+  console.log('🏠 HomePage - currentUser:', currentUser)
+  console.log('🏠 HomePage - userRole:', userRole)
+  console.log('🏠 HomePage - isManager:', isManager)
   
   // State management
   const [activeSection, setActiveSection] = useState('org')
@@ -182,7 +187,7 @@ export default function HomePage() {
   const filteredSections = useMemo(() => {
     return sections.filter(section => {
       if (section.id === 'team' && !isManager) return false
-      if (section.id === 'approvals' && userRole !== 'Manager') return false
+      if (section.id === 'approvals' && userRole !== 'Manager' && userRole !== 'HR') return false
       return true
     })
   }, [isManager, userRole])
@@ -751,7 +756,7 @@ export default function HomePage() {
         )}
 
         {/* Manager Approvals Section - Only for Managers */}
-        {userRole === 'Manager' && (
+        {(userRole === 'Manager' || userRole === 'HR') && (
           <section id="approvals" className="lg:col-span-2 xl:col-span-3 space-y-6">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
