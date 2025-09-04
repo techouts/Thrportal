@@ -21,7 +21,8 @@ import ManagementPage from "./pages/Management/ManagementPage";
 import ReportsPage from "./pages/Reports/ReportsPage";
 import AdminPage from "./pages/Admin/AdminPage";
 
-// Import expense pages
+// Import MyTeam and expense pages
+import MyTeamPage from "./pages/MyTeam/MyTeamPage";
 import ExpensesPage from "./pages/Me/ExpensesPage";
 import TeamExpensesPage from "./pages/MyTeam/ExpensesPage";
 import HRExpensesPage from "./pages/HR/ExpensesPage";
