@@ -18,7 +18,7 @@ import ProjectPage from "./pages/Project/ProjectPage";
 import OrgPage from "./pages/Org/OrgPage";
 import HRPage from "./pages/HR/HRPage";
 import ManagementPage from "./pages/Management/ManagementPage";
-import ReportsPage from "./pages/Reports/ReportsPage";
+
 import AdminPage from "./pages/Admin/AdminPage";
 
 // Import MyTeam and expense pages
@@ -56,8 +56,6 @@ import HRLearningPage from "./pages/HR/LearningPage";
 import HelpdeskPage from "./pages/Me/HelpdeskPage";
 import HRHelpdeskPage from "./pages/HR/HelpdeskPage";
 import ITHelpdeskPage from "./pages/IT/HelpdeskPage";
-import FacilitiesHelpdeskPage from "./pages/Facilities/HelpdeskPage";
-import FinanceHelpdeskPage from "./pages/Finance/HelpdeskPage";
 
 const queryClient = new QueryClient();
 
@@ -203,20 +201,6 @@ const App = () => (
               <RBACGuard route="/IT/Helpdesk">
                 <MainLayout>
                   <ITHelpdeskPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Facilities/Helpdesk" element={
-              <RBACGuard route="/Facilities/Helpdesk">
-                <MainLayout>
-                  <FacilitiesHelpdeskPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Finance/Helpdesk" element={
-              <RBACGuard route="/Finance/Helpdesk">
-                <MainLayout>
-                  <FinanceHelpdeskPage />
                 </MainLayout>
               </RBACGuard>
             } />
@@ -501,28 +485,6 @@ const App = () => (
               </RBACGuard>
             } />
 
-            {/* Reports Routes */}
-            <Route path="/Reports/Mine" element={
-              <RBACGuard route="/Reports/Mine">
-                <MainLayout>
-                  <ReportsPage defaultTab="Mine" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Reports/Shared" element={
-              <RBACGuard route="/Reports/Shared">
-                <MainLayout>
-                  <ReportsPage defaultTab="Shared" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Reports/Builder" element={
-              <RBACGuard route="/Reports/Builder">
-                <MainLayout>
-                  <ReportsPage defaultTab="Builder" />
-                </MainLayout>
-              </RBACGuard>
-            } />
 
             {/* Admin Routes */}
             <Route path="/Admin/Tenant" element={

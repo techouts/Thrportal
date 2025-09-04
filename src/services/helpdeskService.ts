@@ -45,15 +45,6 @@ class HelpdeskService {
       'IT-Hardware/Software': { firstResponse: 4, resolution: 48 },
       'IT-Login/Password': { firstResponse: 1, resolution: 4 },
       'IT-Network': { firstResponse: 2, resolution: 24 },
-      'Facilities-Workstation': { firstResponse: 4, resolution: 24 },
-      'Facilities-Seating': { firstResponse: 4, resolution: 48 },
-      'Facilities-Transport': { firstResponse: 6, resolution: 48 },
-      'Facilities-Pantry': { firstResponse: 8, resolution: 72 },
-      'Facilities-Security': { firstResponse: 8, resolution: 72 },
-      'Finance-Reimbursements': { firstResponse: 6, resolution: 72 },
-      'Finance-Salary Disbursement': { firstResponse: 4, resolution: 24 },
-      'Finance-Tax Queries': { firstResponse: 8, resolution: 72 },
-      'Finance-Invoices': { firstResponse: 8, resolution: 120 }
     }
 
     const key = `${category}-${subCategory}`
@@ -224,19 +215,6 @@ class HelpdeskService {
         helpful_count: 156,
         is_featured: true
       },
-      {
-        id: '3',
-        category: 'Finance',
-        sub_category: 'Reimbursements',
-        question: 'What documents are required for expense reimbursement?',
-        answer: 'You need to provide original receipts, expense form duly filled, and manager approval for reimbursement claims.',
-        tags: ['reimbursement', 'expenses', 'documents'],
-        created_at: '2024-01-15T10:00:00Z',
-        updated_at: '2024-01-15T10:00:00Z',
-        view_count: 134,
-        helpful_count: 112,
-        is_featured: false
-      }
     ]
 
     const filteredFAQs = category ? mockFAQs.filter(faq => faq.category === category) : mockFAQs
@@ -249,7 +227,7 @@ class HelpdeskService {
     }
   }
 
-  // Department Methods (HR, IT, Facilities, Finance)
+  // Department Methods (HR, IT)
   async getTicketQueue(department: TicketCategory, filters?: TicketFilters): Promise<ApiResponse<Ticket[]>> {
     await new Promise(resolve => setTimeout(resolve, 800))
 
@@ -409,9 +387,7 @@ class HelpdeskService {
       ],
       department_performance: [
         { department: 'IT', sla_compliance: 87.5, avg_resolution_time: 18.2, ticket_volume: 45 },
-        { department: 'HR', sla_compliance: 92.1, avg_resolution_time: 24.5, ticket_volume: 38 },
-        { department: 'Finance', sla_compliance: 89.3, avg_resolution_time: 32.8, ticket_volume: 22 },
-        { department: 'Facilities', sla_compliance: 84.7, avg_resolution_time: 28.9, ticket_volume: 19 }
+        { department: 'HR', sla_compliance: 92.1, avg_resolution_time: 24.5, ticket_volume: 38 }
       ]
     }
 
@@ -513,7 +489,7 @@ class HelpdeskService {
         id: '3',
         ticket_number: 'HD240003',
         category: department,
-        sub_category: department === 'IT' ? 'System Access' : department === 'Facilities' ? 'Workstation' : 'Reimbursements',
+        sub_category: department === 'IT' ? 'System Access' : 'Leave/Timesheet',
         priority: 'Critical',
         status: 'New',
         title: 'System access required urgently',

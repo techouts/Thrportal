@@ -144,34 +144,6 @@ const navigationSections = {
       { name: "Helpdesk", path: "/IT/Helpdesk", icon: Headphones }
     ]
   },
-  "Facilities": {
-    icon: Building2,
-    routes: [
-      { name: "Helpdesk", path: "/Facilities/Helpdesk", icon: Headphones }
-    ]
-  },
-  "Finance": {
-    icon: DollarSign,
-    routes: [
-      { name: "Helpdesk", path: "/Finance/Helpdesk", icon: Headphones }
-    ]
-  },
-  "Management": {
-    icon: TrendingUp,
-    routes: [
-      { name: "Dashboard", path: "/Management/Dashboard", icon: BarChart3 },
-      { name: "Scorecards", path: "/Management/Scorecards", icon: Target },
-      { name: "Forecasts", path: "/Management/Forecasts", icon: TrendingUp }
-    ]
-  },
-  "Reports": {
-    icon: BarChart3,
-    routes: [
-      { name: "Mine", path: "/Reports/Mine", icon: FileText },
-      { name: "Shared", path: "/Reports/Shared", icon: Users },
-      { name: "Builder", path: "/Reports/Builder", icon: PlusCircle }
-    ]
-  },
   "Admin": {
     icon: Settings,
     routes: [
