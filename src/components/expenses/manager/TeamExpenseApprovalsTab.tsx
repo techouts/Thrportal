@@ -153,7 +153,7 @@ export function TeamExpenseApprovalsTab() {
   }
 
   const getUrgencyBadge = (claim: ExpenseClaim) => {
-    const daysSinceSubmission = claim.submittedAt 
+    const daysSinceSubmission = claim?.submittedAt 
       ? Math.floor((new Date().getTime() - new Date(claim.submittedAt).getTime()) / (1000 * 60 * 60 * 24))
       : 0
 
@@ -161,7 +161,7 @@ export function TeamExpenseApprovalsTab() {
       return <Badge variant="destructive">Overdue</Badge>
     } else if (daysSinceSubmission > 3) {
       return <Badge className="bg-yellow-100 text-yellow-800">Due Soon</Badge>
-    } else if (claim.hasExceptions) {
+    } else if (claim?.hasExceptions) {
       return <Badge className="bg-orange-100 text-orange-800">Exceptions</Badge>
     }
     return null
@@ -175,11 +175,11 @@ export function TeamExpenseApprovalsTab() {
       cell: (item: ExpenseClaim) => (
         <input
           type="checkbox"
-          checked={selectedClaims.includes(item.id)}
+          checked={selectedClaims.includes(item?.id || '')}
           onChange={(e) => {
-            if (e.target.checked) {
+            if (e.target.checked && item?.id) {
               setSelectedClaims(prev => [...prev, item.id])
-            } else {
+            } else if (item?.id) {
               setSelectedClaims(prev => prev.filter(id => id !== item.id))
             }
           }}
@@ -196,7 +196,7 @@ export function TeamExpenseApprovalsTab() {
       header: 'Claim ID',
       accessor: 'id' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
-        <div className="font-mono text-sm">{item.id.slice(-8)}</div>
+        <div className="font-mono text-sm">{item?.id?.slice(-8) || 'N/A'}</div>
       )
     },
     {
@@ -205,7 +205,7 @@ export function TeamExpenseApprovalsTab() {
       accessor: 'submittedAt' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
         <div>
-          {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : '-'}
+          {item?.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : '-'}
         </div>
       )
     },
@@ -215,7 +215,7 @@ export function TeamExpenseApprovalsTab() {
       accessor: 'totalInINR' as keyof ExpenseClaim,
       cell: (item: ExpenseClaim) => (
         <div className="text-right font-medium">
-          ₹{item.totalInINR.toLocaleString()}
+          ₹{(item?.totalInINR || 0).toLocaleString()}
         </div>
       )
     },
@@ -223,7 +223,7 @@ export function TeamExpenseApprovalsTab() {
       id: 'status',
       header: 'Status',
       accessor: 'status' as keyof ExpenseClaim,
-      cell: (item: ExpenseClaim) => getStatusBadge(item.status)
+      cell: (item: ExpenseClaim) => getStatusBadge(item?.status)
     },
     {
       id: 'urgency',
@@ -247,8 +247,8 @@ export function TeamExpenseApprovalsTab() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleApprove(item.id)}
-            disabled={actionLoading}
+            onClick={() => handleApprove(item?.id || '')}
+            disabled={actionLoading || !item?.id}
           >
             <CheckCircle className="h-4 w-4" />
           </Button>
@@ -262,7 +262,7 @@ export function TeamExpenseApprovalsTab() {
       id: 'date',
       header: 'Date',
       accessor: 'date' as keyof ExpenseLine,
-      cell: (item: ExpenseLine) => new Date(item.date).toLocaleDateString()
+      cell: (item: ExpenseLine) => item?.date ? new Date(item.date).toLocaleDateString() : '-'
     },
     {
       id: 'category',
@@ -285,10 +285,10 @@ export function TeamExpenseApprovalsTab() {
       accessor: 'amountInINR' as keyof ExpenseLine,
       cell: (item: ExpenseLine) => (
         <div className="text-right">
-          ₹{item.amountInINR.toLocaleString()}
-          {item.currency !== 'INR' && (
+          ₹{(item?.amountInINR || 0).toLocaleString()}
+          {item?.currency !== 'INR' && (
             <div className="text-xs text-muted-foreground">
-              {item.currency} {item.amount}
+              {item?.currency} {item?.amount || 0}
             </div>
           )}
         </div>
@@ -301,7 +301,7 @@ export function TeamExpenseApprovalsTab() {
       cell: (item: ExpenseLine) => (
         <div className="flex items-center gap-1">
           <Receipt className="h-4 w-4" />
-          <span>{item.receiptIds?.length || 0}</span>
+          <span>{item?.receiptIds?.length || 0}</span>
         </div>
       )
     },
@@ -311,7 +311,7 @@ export function TeamExpenseApprovalsTab() {
       accessor: 'flags' as keyof ExpenseLine,
       cell: (item: ExpenseLine) => (
         <div className="flex flex-wrap gap-1">
-          {item.flags?.map(flag => (
+          {item?.flags?.map(flag => (
             <Badge key={flag} variant="outline" className="text-xs">
               {flag}
             </Badge>
@@ -335,7 +335,7 @@ export function TeamExpenseApprovalsTab() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    selectedClaims.forEach(claimId => handleApprove(claimId))
+                    selectedClaims.forEach(claimId => claimId && handleApprove(claimId))
                     setSelectedClaims([])
                   }}
                   disabled={actionLoading}
@@ -388,26 +388,26 @@ export function TeamExpenseApprovalsTab() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <div className="text-sm font-medium">Employee</div>
-                  <div className="mt-1">{selectedClaim.employeeName}</div>
+                  <div className="mt-1">{selectedClaim?.employeeName || 'N/A'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium">Total Amount</div>
-                  <div className="mt-1 font-medium">₹{selectedClaim.totalInINR.toLocaleString()}</div>
+                  <div className="mt-1 font-medium">₹{(selectedClaim?.totalInINR || 0).toLocaleString()}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium">Submitted</div>
                   <div className="mt-1">
-                    {selectedClaim.submittedAt ? new Date(selectedClaim.submittedAt).toLocaleDateString() : '-'}
+                    {selectedClaim?.submittedAt ? new Date(selectedClaim.submittedAt).toLocaleDateString() : '-'}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm font-medium">Status</div>
-                  <div className="mt-1">{getStatusBadge(selectedClaim.status)}</div>
+                  <div className="mt-1">{getStatusBadge(selectedClaim?.status)}</div>
                 </div>
               </div>
 
               {/* Policy Violations */}
-              {selectedClaim.hasExceptions && (
+              {selectedClaim?.hasExceptions && (
                 <Card className="border-orange-200 bg-orange-50">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-orange-800">
@@ -431,7 +431,7 @@ export function TeamExpenseApprovalsTab() {
               <div>
                 <h4 className="font-medium mb-4">Expense Lines</h4>
                 <DataTable
-                  data={selectedClaim.lines || []}
+                  data={selectedClaim?.lines || []}
                   columns={lineColumns}
                   loading={false}
                   emptyMessage="No expense lines in this claim."
@@ -452,8 +452,8 @@ export function TeamExpenseApprovalsTab() {
 
                 <div className="flex items-center gap-2">
                   <Button
-                    onClick={() => handleApprove(selectedClaim.id, comment)}
-                    disabled={actionLoading}
+                    onClick={() => handleApprove(selectedClaim?.id || '', comment)}
+                    disabled={actionLoading || !selectedClaim?.id}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
@@ -462,8 +462,8 @@ export function TeamExpenseApprovalsTab() {
                   
                   <Button
                     variant="outline"
-                    onClick={() => handleReturn(selectedClaim.id, comment)}
-                    disabled={actionLoading || !comment.trim()}
+                    onClick={() => handleReturn(selectedClaim?.id || '', comment)}
+                    disabled={actionLoading || !comment.trim() || !selectedClaim?.id}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Return for Changes
@@ -471,8 +471,8 @@ export function TeamExpenseApprovalsTab() {
                   
                   <Button
                     variant="destructive"
-                    onClick={() => handleReject(selectedClaim.id, comment)}
-                    disabled={actionLoading || !comment.trim()}
+                    onClick={() => handleReject(selectedClaim?.id || '', comment)}
+                    disabled={actionLoading || !comment.trim() || !selectedClaim?.id}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
                     Reject
