@@ -64,6 +64,7 @@ const navigationSections = {
       { name: "Leave", path: "/Me/Leave", icon: Calendar },
       { name: "Timesheet", path: "/Me/Timesheet", icon: Clock },
       { name: "Expenses", path: "/Me/Expenses", icon: DollarSign },
+      { name: "Finance", path: "/Me/Finance", icon: DollarSign },
       { name: "Performance", path: "/Me/Performance", icon: Target },
       { name: "IJP", path: "/Me/IJP", icon: TrendingUp },
       { name: "Referrals", path: "/Me/Referrals", icon: Users },
