@@ -26,7 +26,7 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
     case 'Pipeline':
       return <PipelineModule />
     case 'FollowUp':
-      return <FollowupModule defaultTab="dashboard" />
+      return <FollowupModule />
     case 'BGV':
       return <BGVPage />
     case 'Settings':
