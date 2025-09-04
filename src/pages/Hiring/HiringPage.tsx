@@ -2,6 +2,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { HiringDashboard } from '@/components/hiring/HiringDashboard'
 import { JobRequisitionsModule } from '@/components/hiring/requisitions/JobRequisitionsModule'
 import { AssignmentModule } from '@/components/hiring/assignment/AssignmentModule'
+import { ApplicationsModule } from '@/components/hiring/applications/ApplicationsModule'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
@@ -27,6 +28,10 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
 
   if (defaultTab === 'Assignment') {
     return <AssignmentModule />
+  }
+
+  if (defaultTab === 'Applications') {
+    return <ApplicationsModule />
   }
 
   return (
