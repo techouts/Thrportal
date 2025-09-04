@@ -70,7 +70,6 @@ const navigationSections = {
       { name: "Performance", path: "/Me/Performance", icon: Target },
       { name: "IJP", path: "/Me/IJP", icon: TrendingUp },
       { name: "Referrals", path: "/Me/Referrals", icon: Users },
-      { name: "Learning", path: "/Me/Learning", icon: Lightbulb },
       { name: "Helpdesk", path: "/Me/Helpdesk", icon: MessageSquare }
     ]
   },
@@ -82,6 +81,7 @@ const navigationSections = {
       { name: "Attendance", path: "/MyTeam/Attendance", icon: Clock },
       { name: "Timesheet", path: "/MyTeam/Timesheet", icon: Clock },
       { name: "Expenses", path: "/MyTeam/Expenses", icon: DollarSign },
+      { name: "Learning", path: "/MyTeam/Learning", icon: BookOpen },
       { name: "Performance", path: "/MyTeam/Performance", icon: Target },
       { name: "IJP", path: "/MyTeam/IJP", icon: TrendingUp },
       { name: "ProfileChanges", path: "/MyTeam/ProfileChanges", icon: UserCheck }
@@ -126,6 +126,7 @@ const navigationSections = {
       { name: "Leave", path: "/HR/Leave", icon: Calendar },
       { name: "Attendance", path: "/HR/Attendance", icon: Clock },
       { name: "Expenses", path: "/HR/Expenses", icon: DollarSign },
+      { name: "Learning", path: "/HR/Learning", icon: BookOpen },
       { name: "Timesheet", path: "/HR/Timesheet", icon: Clock },
       { name: "IJP", path: "/HR/IJP", icon: TrendingUp },
       { name: "Hiring", path: "/HR/Hiring", icon: UserCheck },
