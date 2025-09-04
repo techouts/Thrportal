@@ -31,7 +31,13 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/Portal/Dashboard" replace />} />
+            <Route path="/" element={
+              <RBACGuard route="/Portal/Dashboard">
+                <MainLayout>
+                  <PortalPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
             
             {/* Portal Routes */}
             <Route path="/Portal/Dashboard" element={
