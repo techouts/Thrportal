@@ -35,9 +35,21 @@ function checkAccess(userRole: string, permission?: string, route?: string): boo
   // Check route-based access
   if (route) {
     const routeGuards = rolePolicies.routeGuards
-    const matchingRoute = Object.keys(routeGuards).find(pattern => 
-      route.match(pattern.replace('*', '.*'))
-    )
+    const matchingRoute = Object.keys(routeGuards).find(pattern => {
+      // Handle exact match
+      if (pattern === route) return true
+      
+      // Handle wildcard patterns
+      if (pattern.includes('*')) {
+        const basePattern = pattern.replace('/*', '')
+        const regexPattern = pattern.replace('*', '.*')
+        
+        // Match both "/Home" against "/Home/*" and "/Home/something" against "/Home/*"
+        return route === basePattern || route.match(new RegExp(`^${regexPattern}$`))
+      }
+      
+      return false
+    })
     
     if (matchingRoute) {
       const allowedRoles = routeGuards[matchingRoute as keyof typeof routeGuards]
