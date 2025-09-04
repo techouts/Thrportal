@@ -1,0 +1,74 @@
+[
+  {
+    "id": "excellence",
+    "name": "Excellence",
+    "description": "Recognizing exceptional quality, dedication, and outstanding performance",
+    "points": 50,
+    "icon": "star",
+    "color": "#FFD700",
+    "isActive": true
+  },
+  {
+    "id": "innovation",
+    "name": "Innovation",
+    "description": "Creative solutions, new ideas, and breakthrough thinking",
+    "points": 75,
+    "icon": "lightbulb",
+    "color": "#FF6B35",
+    "isActive": true
+  },
+  {
+    "id": "teamwork",
+    "name": "Teamwork",
+    "description": "Collaboration, support, and fostering team spirit",
+    "points": 40,
+    "icon": "users",
+    "color": "#4ECDC4",
+    "isActive": true
+  },
+  {
+    "id": "leadership",
+    "name": "Leadership",
+    "description": "Inspiring others, taking initiative, and driving positive change",
+    "points": 60,
+    "icon": "crown",
+    "color": "#9B59B6",
+    "isActive": true
+  },
+  {
+    "id": "customer_focus",
+    "name": "Customer Focus",
+    "description": "Exceptional customer service and client satisfaction",
+    "points": 55,
+    "icon": "heart",
+    "color": "#E74C3C",
+    "isActive": true
+  },
+  {
+    "id": "learning",
+    "name": "Learning & Growth",
+    "description": "Continuous improvement, skill development, and knowledge sharing",
+    "points": 35,
+    "icon": "book",
+    "color": "#3498DB",
+    "isActive": true
+  },
+  {
+    "id": "integrity",
+    "name": "Integrity",
+    "description": "Ethical behavior, honesty, and doing the right thing",
+    "points": 45,
+    "icon": "shield",
+    "color": "#2ECC71",
+    "isActive": true
+  },
+  {
+    "id": "adaptability",
+    "name": "Adaptability",
+    "description": "Flexibility, resilience, and embracing change",
+    "points": 40,
+    "icon": "refresh",
+    "color": "#F39C12",
+    "isActive": true
+  }
+]
