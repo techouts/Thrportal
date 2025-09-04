@@ -81,8 +81,66 @@ const apiClient: AxiosInstance = axios.create({
   },
 })
 
-// Mock IJP API responses
-const handleIjpMockRequests = (config: any) => {
+// Mock data for leave module
+const mockLeaveBalances = [
+  {
+    id: 'bal-1',
+    employeeId: 'emp-001',
+    type: 'CL',
+    allocated: 12,
+    consumed: 4,
+    available: 8,
+    carryForward: 2,
+    financialYear: '2024'
+  },
+  {
+    id: 'bal-2',
+    employeeId: 'emp-001',
+    type: 'SL',
+    allocated: 6,
+    consumed: 1,
+    available: 5,
+    carryForward: 0,
+    financialYear: '2024'
+  },
+  {
+    id: 'bal-3',
+    employeeId: 'emp-001',
+    type: 'PL',
+    allocated: 21,
+    consumed: 8,
+    available: 13,
+    carryForward: 0,
+    financialYear: '2024'
+  }
+];
+
+const mockLeaveRequests = [
+  {
+    id: 'req-1',
+    employeeId: 'emp-001',
+    employeeName: 'John Doe',
+    type: 'PL',
+    startDate: '2024-01-15',
+    endDate: '2024-01-17',
+    totalDays: 3,
+    reason: 'Personal vacation',
+    status: 'approved',
+    isWfh: false,
+    outlookHold: true,
+    backdatedDays: 0,
+    appliesSandwich: false,
+    attachments: [],
+    submittedAt: '2024-01-10T10:00:00Z',
+    warningsJson: [],
+    conflictsWith: [],
+    coverageScore: 'High',
+    projectedBalance: 18
+  }
+];
+
+// Mock API responses for both IJP and Leave
+const handleMockRequests = (config: any) => {
   const url = config.url || '';
   
   // Mock IJP postings endpoint
@@ -100,6 +158,62 @@ const handleIjpMockRequests = (config: any) => {
     });
   }
   
+  // Mock Leave balances endpoint
+  if (url.includes('/api/leave/balances') && config.method === 'get') {
+    return Promise.resolve({
+      data: {
+        data: mockLeaveBalances,
+        success: true,
+        timestamp: new Date().toISOString()
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+  }
+  
+  // Mock Leave requests endpoint
+  if (url.includes('/api/leave/my-requests') && config.method === 'get') {
+    return Promise.resolve({
+      data: {
+        data: mockLeaveRequests,
+        success: true,
+        timestamp: new Date().toISOString()
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+  }
+  
+  // Mock Leave calendars endpoint
+  if (url.includes('/api/leave/calendars') && config.method === 'get') {
+    return Promise.resolve({
+      data: {
+        data: [{
+          id: 'cal-1',
+          name: 'India Holidays',
+          type: 'location',
+          location: 'India',
+          holidays: [
+            { id: 'h1', name: 'Republic Day', date: '2024-01-26', type: 'national', isOptional: false },
+            { id: 'h2', name: 'Holi', date: '2024-03-13', type: 'national', isOptional: false },
+            { id: 'h3', name: 'Independence Day', date: '2024-08-15', type: 'national', isOptional: false }
+          ],
+          isDefault: true
+        }],
+        success: true,
+        timestamp: new Date().toISOString()
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+  }
+  
   // Mock other IJP endpoints
   if (url.includes('/api/ijp/')) {
     return Promise.resolve({
@@ -107,7 +221,23 @@ const handleIjpMockRequests = (config: any) => {
         data: [],
         success: true,
         timestamp: new Date().toISOString(),
-        message: 'Mock endpoint'
+        message: 'Mock IJP endpoint'
+      },
+      status: 200,
+      statusText: 'OK', 
+      headers: {},
+      config
+    });
+  }
+  
+  // Mock other Leave endpoints
+  if (url.includes('/api/leave/')) {
+    return Promise.resolve({
+      data: {
+        data: [],
+        success: true,
+        timestamp: new Date().toISOString(),
+        message: 'Mock Leave endpoint'
       },
       status: 200,
       statusText: 'OK', 
@@ -122,8 +252,8 @@ const handleIjpMockRequests = (config: any) => {
 // Request interceptor
 apiClient.interceptors.request.use(
   async (config) => {
-    // Check for IJP mock requests first
-    const mockResponse = await handleIjpMockRequests(config);
+    // Check for mock requests first (both IJP and Leave)
+    const mockResponse = await handleMockRequests(config);
     if (mockResponse) {
       // For mock requests, we need to bypass the actual request
       return Promise.reject({ 

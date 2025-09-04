@@ -31,6 +31,9 @@ import IJPPage from "./pages/Me/IJPPage";
 import MyTeamIJPPage from "./pages/MyTeam/IJPPage";
 import HRIJPPage from "./pages/HR/IJPPage";
 
+// Import Leave pages
+import LeavePage from "./pages/Me/LeavePage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -83,7 +86,7 @@ const App = () => (
             <Route path="/Me/Leave" element={
               <RBACGuard route="/Me/Leave">
                 <MainLayout>
-                  <MePage defaultTab="Leave" />
+                  <LeavePage />
                 </MainLayout>
               </RBACGuard>
             } />
