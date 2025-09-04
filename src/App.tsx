@@ -170,6 +170,13 @@ const App = () => (
                 </MainLayout>
               </RBACGuard>
             } />
+            <Route path="/Me/Recognition" element={
+              <RBACGuard route="/Me/Recognition">
+                <MainLayout>
+                  <RecognitionPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
             <Route path="/Me/Helpdesk-new" element={
               <RBACGuard route="/Me/Helpdesk">
                 <MainLayout>
