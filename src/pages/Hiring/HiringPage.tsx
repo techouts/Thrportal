@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/shared/PageHeader'
+import { HiringDashboard } from '@/components/hiring/HiringDashboard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
@@ -13,6 +14,10 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
       promptStatus: 'pending',
       description: `Hiring management - ${defaultTab}`
     })
+
+  if (defaultTab === 'Dashboard') {
+    return <HiringDashboard />
+  }
 
   return (
     <div className="space-y-6">
