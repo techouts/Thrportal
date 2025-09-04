@@ -72,9 +72,10 @@ export function ActiveJDsTab() {
   }
 
   const filteredJDs = activeJDs.filter(jd => 
-    jd.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    jd.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    jd.id.toLowerCase().includes(searchTerm.toLowerCase())
+    jd && 
+    (jd.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     jd.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     jd.id?.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const columns = [
@@ -82,80 +83,98 @@ export function ActiveJDsTab() {
       id: 'jdId',
       header: 'JD ID',
       accessor: 'id' as keyof ActiveJD,
-      cell: (item: ActiveJD) => (
-        <div className="font-mono text-sm">{item.id}</div>
-      )
+      cell: (item: ActiveJD) => {
+        if (!item) return <div>-</div>
+        return <div className="font-mono text-sm">{item.id}</div>
+      }
     },
     {
       id: 'title',
       header: 'JD Title',
       accessor: 'title' as keyof ActiveJD,
-      cell: (item: ActiveJD) => (
-        <div className="font-medium">{item.title}</div>
-      )
+      cell: (item: ActiveJD) => {
+        if (!item) return <div>-</div>
+        return <div className="font-medium">{item.title}</div>
+      }
     },
     {
       id: 'client',
       header: 'Client Name',
-      accessor: 'client' as keyof ActiveJD
+      accessor: 'client' as keyof ActiveJD,
+      cell: (item: ActiveJD) => {
+        if (!item) return <div>-</div>
+        return item.client
+      }
     },
     {
       id: 'postedDate',
       header: 'Posted Date',
       accessor: 'postedDate' as keyof ActiveJD,
-      cell: (item: ActiveJD) => new Date(item.postedDate).toLocaleDateString()
+      cell: (item: ActiveJD) => {
+        if (!item || !item.postedDate) return <div>-</div>
+        return new Date(item.postedDate).toLocaleDateString()
+      }
     },
     {
       id: 'assignedRecruiter',
       header: 'Assigned Recruiter',
       accessor: 'assignedRecruiter' as keyof ActiveJD,
-      cell: (item: ActiveJD) => (
-        <div className="flex items-center gap-2">
-          {item.assignedRecruiter ? (
-            <Badge variant="outline" className="text-xs">
-              {item.assignedRecruiter}
-            </Badge>
-          ) : (
-            <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-              Unassigned
-            </Badge>
-          )}
-        </div>
-      )
+      cell: (item: ActiveJD) => {
+        if (!item) return <div>-</div>
+        return (
+          <div className="flex items-center gap-2">
+            {item.assignedRecruiter ? (
+              <Badge variant="outline" className="text-xs">
+                {item.assignedRecruiter}
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                Unassigned
+              </Badge>
+            )}
+          </div>
+        )
+      }
     },
     {
       id: 'daysSinceCreated',
       header: 'Days Since Created',
       accessor: 'daysSinceCreated' as keyof ActiveJD,
-      cell: (item: ActiveJD) => getDaysOldBadge(item.daysSinceCreated)
+      cell: (item: ActiveJD) => {
+        if (!item || typeof item.daysSinceCreated !== 'number') return <div>-</div>
+        return getDaysOldBadge(item.daysSinceCreated)
+      }
     },
     {
       id: 'actions',
       header: 'Actions',
       accessor: 'id' as keyof ActiveJD,
-      cell: (item: ActiveJD) => (
-        <div className="flex items-center gap-2">
-          <Select onValueChange={(recruiterId) => handleAssignRecruiter(item.id, recruiterId)}>
-            <SelectTrigger className="w-32 h-8 text-xs">
-              <SelectValue placeholder="Assign Recruiter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rec-001">John Recruiter</SelectItem>
-              <SelectItem value="rec-002">Sarah Staffing</SelectItem>
-              <SelectItem value="rec-003">Mike Talent</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" className="h-8">
-            <Upload className="mr-1 h-3 w-3" />
-            Upload Resume
-          </Button>
-        </div>
-      )
+      cell: (item: ActiveJD) => {
+        if (!item) return <div>-</div>
+        return (
+          <div className="flex items-center gap-2">
+            <Select onValueChange={(recruiterId) => handleAssignRecruiter(item.id, recruiterId)}>
+              <SelectTrigger className="w-32 h-8 text-xs">
+                <SelectValue placeholder="Assign Recruiter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rec-001">John Recruiter</SelectItem>
+                <SelectItem value="rec-002">Sarah Staffing</SelectItem>
+                <SelectItem value="rec-003">Mike Talent</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" className="h-8">
+              <Upload className="mr-1 h-3 w-3" />
+              Upload Resume
+            </Button>
+          </div>
+        )
+      }
     }
   ]
 
-  const urgentJDs = activeJDs.filter(jd => jd.daysSinceCreated > 7)
-  const unassignedJDs = activeJDs.filter(jd => !jd.assignedRecruiter)
+  const urgentJDs = activeJDs.filter(jd => jd && jd.daysSinceCreated > 7)
+  const unassignedJDs = activeJDs.filter(jd => jd && !jd.assignedRecruiter)
 
   return (
     <div className="space-y-6">
