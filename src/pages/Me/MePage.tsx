@@ -10,6 +10,7 @@ import { ChartKit } from '@/components/shared/ChartKit'
 import { DataTable } from '@/components/shared/DataTable'
 import { FormKit } from '@/components/shared/FormKit'
 import Dashboard from './Dashboard'
+import Profile from './Profile'
 import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
@@ -126,87 +127,7 @@ export default function MePage({ defaultTab }: MePageProps) {
   )
 
   const renderProfile = () => (
-    <Tabs defaultValue="overview" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="employment">Employment</TabsTrigger>
-        <TabsTrigger value="contacts">Contacts</TabsTrigger>
-        <TabsTrigger value="about">About & Hobbies</TabsTrigger>
-        <TabsTrigger value="team">Team</TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="overview" className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Full Name</label>
-                <p>John Doe</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Employee ID</label>
-                <p>EMP001</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Department</label>
-                <p>Engineering</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Position</label>
-                <p>Senior Software Engineer</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="employment">
-        <Card>
-          <CardHeader>
-            <CardTitle>Employment Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Employment information will be displayed here.</p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="contacts">
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Contact details will be displayed here.</p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="about">
-        <Card>
-          <CardHeader>
-            <CardTitle>About & Hobbies</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Personal interests and hobbies will be displayed here.</p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="team">
-        <Card>
-          <CardHeader>
-            <CardTitle>Team Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Team details will be displayed here.</p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+    <Profile isOwnProfile={true} />
   )
 
   const renderAttendance = () => (
