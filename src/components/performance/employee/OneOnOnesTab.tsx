@@ -93,11 +93,12 @@ export function OneOnOnesTab() {
     {
       id: "type",
       header: "Meeting Type",
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      accessor: "type" as keyof MeetingDTO,
+      cell: (value: any, row: MeetingDTO) => (
         <div className="space-y-1">
-          <div className="font-medium">{getMeetingTypeLabel(row.original.type)}</div>
+          <div className="font-medium">{getMeetingTypeLabel(row.type)}</div>
           <Badge variant="outline" className="text-xs">
-            {row.original.location}
+            {row.location}
           </Badge>
         </div>
       ),
@@ -105,13 +106,14 @@ export function OneOnOnesTab() {
     {
       id: "scheduledAt",
       header: "Date & Time",
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
+      accessor: "scheduledAt" as keyof MeetingDTO,
+      cell: (value: any, row: MeetingDTO) => (
         <div className="space-y-1">
           <div className="text-sm font-medium">
-            {new Date(row.original.scheduledAt).toLocaleDateString()}
+            {new Date(row.scheduledAt).toLocaleDateString()}
           </div>
           <div className="text-sm text-muted-foreground">
-            {new Date(row.original.scheduledAt).toLocaleTimeString([], { 
+            {new Date(row.scheduledAt).toLocaleTimeString([], { 
               hour: '2-digit', 
               minute: '2-digit' 
             })}
@@ -122,25 +124,26 @@ export function OneOnOnesTab() {
     {
       id: "status",
       header: "Status",
-      cell: ({ row }: { row: { original: MeetingDTO } }) => (
-        <Badge variant={getStatusColor(row.original.status)}>
-          {row.original.status === "done" ? "Completed" : "Scheduled"}
+      accessor: "status" as keyof MeetingDTO,
+      cell: (value: any, row: MeetingDTO) => (
+        <Badge variant={getStatusColor(row.status)}>
+          {row.status === "done" ? "Completed" : "Scheduled"}
         </Badge>
       ),
     },
     {
       id: "notes",
       header: "Notes & Actions",
-      cell: ({ row }: { row: { original: MeetingDTO } }) => {
-        const meeting = row.original;
-        const actionItems = meeting.notes?.actionItems || [];
+      accessor: "notes" as keyof MeetingDTO,
+      cell: (value: any, row: MeetingDTO) => {
+        const actionItems = row.notes?.actionItems || [];
         const completedActions = actionItems.filter(a => a.completed).length;
         
         return (
           <div className="space-y-1">
-            {meeting.notes?.publicNotes && (
+            {row.notes?.publicNotes && (
               <div className="text-sm text-muted-foreground line-clamp-2">
-                {meeting.notes.publicNotes}
+                {row.notes.publicNotes}
               </div>
             )}
             {actionItems.length > 0 && (
@@ -155,16 +158,16 @@ export function OneOnOnesTab() {
     {
       id: "signatures",
       header: "Signatures",
-      cell: ({ row }: { row: { original: MeetingDTO } }) => {
-        const meeting = row.original;
-        if (!meeting.notes) return <span className="text-muted-foreground">-</span>;
+      accessor: (row: MeetingDTO) => row.notes?.empSigned || row.notes?.mgrSigned,
+      cell: (value: any, row: MeetingDTO) => {
+        if (!row.notes) return <span className="text-muted-foreground">-</span>;
         
         return (
           <div className="flex gap-1">
-            {meeting.notes.empSigned && (
+            {row.notes.empSigned && (
               <Badge variant="outline" className="text-xs">✓ Employee</Badge>
             )}
-            {meeting.notes.mgrSigned && (
+            {row.notes.mgrSigned && (
               <Badge variant="outline" className="text-xs">✓ Manager</Badge>
             )}
           </div>
@@ -252,7 +255,6 @@ export function OneOnOnesTab() {
           columns={columns}
           data={mockMeetings}
           emptyMessage="No meetings scheduled"
-          onRowClick={(meeting) => setSelectedMeeting(meeting)}
         />
       </Card>
 

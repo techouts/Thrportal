@@ -81,14 +81,14 @@ export function MyGoalsTab() {
     {
       id: "title",
       header: "Goal",
-      accessor: "title",
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      accessor: "title" as keyof GoalDTO,
+      cell: (value: any, row: GoalDTO) => (
         <div className="space-y-1">
-          <div className="font-medium">{row.original.title}</div>
+          <div className="font-medium">{row.title}</div>
           <div className="text-sm text-muted-foreground line-clamp-2">
-            {row.original.description}
+            {row.description}
           </div>
-          {row.original.parentGoalId && (
+          {row.parentGoalId && (
             <Badge variant="outline" className="text-xs">
               Aligned to Team Goal
             </Badge>
@@ -99,12 +99,12 @@ export function MyGoalsTab() {
     {
       id: "kpi",
       header: "KPI & Target",
-      accessor: "kpi",
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      accessor: "kpi" as keyof GoalDTO,
+      cell: (value: any, row: GoalDTO) => (
         <div className="space-y-1">
-          <div className="text-sm font-medium">{row.original.kpi}</div>
+          <div className="text-sm font-medium">{row.kpi}</div>
           <div className="text-sm text-muted-foreground">
-            Target: {row.original.target} {row.original.unit}
+            Target: {row.target} {row.unit}
           </div>
         </div>
       ),
@@ -112,15 +112,16 @@ export function MyGoalsTab() {
     {
       id: "progress",
       header: "Progress",
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      accessor: "progressPct" as keyof GoalDTO,
+      cell: (value: any, row: GoalDTO) => (
         <div className="space-y-1">
-          <div className={`text-sm font-medium ${getProgressColor(row.original.progressPct)}`}>
-            {row.original.progressPct}%
+          <div className={`text-sm font-medium ${getProgressColor(row.progressPct)}`}>
+            {row.progressPct}%
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-primary h-2 rounded-full transition-all"
-              style={{ width: `${row.original.progressPct}%` }}
+              style={{ width: `${row.progressPct}%` }}
             />
           </div>
         </div>
@@ -129,26 +130,29 @@ export function MyGoalsTab() {
     {
       id: "weight",
       header: "Weight",
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
-        <Badge variant="outline">{row.original.weight}%</Badge>
+      accessor: "weight" as keyof GoalDTO,
+      cell: (value: any, row: GoalDTO) => (
+        <Badge variant="outline">{row.weight}%</Badge>
       ),
     },
     {
       id: "dueDate",
       header: "Due Date",
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
+      accessor: "dueDate" as keyof GoalDTO,
+      cell: (value: any, row: GoalDTO) => (
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="w-4 h-4" />
-          {new Date(row.original.dueDate || "").toLocaleDateString()}
+          {new Date(row.dueDate || "").toLocaleDateString()}
         </div>
       ),
     },
     {
       id: "status",
       header: "Status",
-      cell: ({ row }: { row: { original: GoalDTO } }) => (
-        <Badge variant={getStatusColor(row.original.status)}>
-          {row.original.status}
+      accessor: "status" as keyof GoalDTO,
+      cell: (value: any, row: GoalDTO) => (
+        <Badge variant={getStatusColor(row.status)}>
+          {row.status}
         </Badge>
       ),
     },
