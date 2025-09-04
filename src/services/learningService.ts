@@ -332,7 +332,8 @@ class LearningService {
     return {
       success: true,
       data: mockEnrollment,
-      message: 'Successfully enrolled in course'
+      message: 'Successfully enrolled in course',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -351,7 +352,8 @@ class LearningService {
     return {
       success: true,
       data: mockWishlistItem,
-      message: 'Course added to wishlist'
+      message: 'Course added to wishlist',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -409,7 +411,8 @@ class LearningService {
     return {
       success: true,
       data: mockData,
-      message: 'Team learning dashboard retrieved successfully'
+      message: 'Team learning dashboard retrieved successfully',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -442,7 +445,8 @@ class LearningService {
     return {
       success: true,
       data: mockRequests,
-      message: 'Pending learning requests retrieved successfully'
+      message: 'Pending learning requests retrieved successfully',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -452,7 +456,8 @@ class LearningService {
     return {
       success: true,
       data: {} as LearningRequest,
-      message: 'Learning request approved successfully'
+      message: 'Learning request approved successfully',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -462,7 +467,8 @@ class LearningService {
     return {
       success: true,
       data: {} as LearningRequest,
-      message: 'Learning request rejected'
+      message: 'Learning request rejected',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -484,7 +490,8 @@ class LearningService {
     return {
       success: true,
       data: mockMetrics,
-      message: 'HR learning analytics retrieved successfully'
+      message: 'HR learning analytics retrieved successfully',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -515,7 +522,8 @@ class LearningService {
     return {
       success: true,
       data: mockBudgets,
-      message: 'Learning budgets retrieved successfully'
+      message: 'Learning budgets retrieved successfully',
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -537,7 +545,8 @@ class LearningService {
     return {
       success: true,
       data: mockPath,
-      message: 'Learning path created successfully'
+      message: 'Learning path created successfully',
+      timestamp: new Date().toISOString()
     }
   }
 }

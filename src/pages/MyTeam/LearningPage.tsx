@@ -33,28 +33,24 @@ const MyTeamLearningPage = () => {
       title: 'Team Adoption Rate',
       value: '84%',
       description: '+5% from last month',
-      icon: Users,
       trend: { direction: 'up' as const, value: '5%', label: 'vs last month' }
     },
     {
       title: 'Completion Rate',
       value: '78%',
       description: 'Avg across all courses',
-      icon: CheckCircle,
       trend: { direction: 'up' as const, value: '3%', label: 'vs last month' }
     },
     {
       title: 'Learning Hours',
       value: '145',
       description: 'This month',
-      icon: Clock,
       trend: { direction: 'up' as const, value: '12%', label: 'vs last month' }
     },
     {
       title: 'Skill Coverage',
       value: '72%',
       description: 'Critical skills covered',
-      icon: Target,
       trend: { direction: 'up' as const, value: '8%', label: 'vs last month' }
     }
   ]
@@ -335,10 +331,50 @@ const MyTeamLearningPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={teamMembers}
-                columns={teamMemberColumns}
-              />
+              <div className="space-y-4">
+                {teamMembers.map((member) => (
+                  <Card key={member.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={member.avatar} />
+                            <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{member.name}</p>
+                            <p className="text-sm text-muted-foreground">{member.role}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-6 text-sm">
+                          <div className="text-center">
+                            <p className="font-medium">{member.activeCourses}</p>
+                            <p className="text-muted-foreground">Active</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-medium">{member.completedCourses}</p>
+                            <p className="text-muted-foreground">Completed</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-medium">{member.learningHours}h</p>
+                            <p className="text-muted-foreground">Hours</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span>{member.completionRate}%</span>
+                            <Progress value={member.completionRate} className="h-2 w-16" />
+                          </div>
+                          <Badge 
+                            variant={member.skillGaps === 0 ? 'default' : 
+                                     member.skillGaps <= 2 ? 'secondary' : 'destructive'}
+                          >
+                            {member.skillGaps} gaps
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -414,10 +450,40 @@ const MyTeamLearningPage = () => {
 
           <Card>
             <CardContent className="p-0">
-              <DataTable
-                data={pendingApprovals}
-                columns={approvalsColumns}
-              />
+              <div className="space-y-4 p-6">
+                {pendingApprovals.map((request) => (
+                  <Card key={request.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{request.employee}</h4>
+                          <p className="font-medium">{request.course}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{request.justification}</p>
+                          <div className="flex items-center space-x-4 mt-2 text-sm">
+                            <span>Cost: ${request.cost}</span>
+                            <span>Requested: {request.requestDate}</span>
+                            <Badge 
+                              variant={request.priority === 'high' ? 'destructive' : 'default'}
+                            >
+                              {request.priority} priority
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button size="sm">
+                            <ThumbsUp className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <ThumbsDown className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
 

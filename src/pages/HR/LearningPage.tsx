@@ -40,28 +40,24 @@ const HRLearningPage = () => {
       title: 'Total Learners',
       value: '1,247',
       description: 'Active in platform',
-      icon: Users,
       trend: { direction: 'up' as const, value: '12%', label: 'vs last month' }
     },
     {
       title: 'Course Completions',
       value: '2,156',
       description: 'This month',
-      icon: CheckCircle,
       trend: { direction: 'up' as const, value: '8%', label: 'vs last month' }
     },
     {
       title: 'Learning Budget Used',
       value: '68%',
       description: '$486K of $715K',
-      icon: DollarSign,
-      trend: { direction: 'stable' as const, value: '2%', label: 'vs plan' }
+      trend: { direction: 'neutral' as const, value: '2%', label: 'vs plan' }
     },
     {
       title: 'Skill Coverage',
       value: '84%',
       description: 'Critical skills',
-      icon: Target,
       trend: { direction: 'up' as const, value: '5%', label: 'vs last quarter' }
     }
   ]
@@ -338,10 +334,42 @@ const HRLearningPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={catalogData}
-                columns={catalogColumns}
-              />
+              <div className="space-y-4">
+                {catalogData.map((course) => (
+                  <Card key={course.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{course.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {course.level} • {course.duration} • {course.enrollments} enrolled
+                          </p>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <Badge variant="secondary">{course.category}</Badge>
+                            <span className="text-sm">⭐ {course.rating}</span>
+                            <span className="text-sm">${course.cost}</span>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm">{course.completion_rate}%</span>
+                              <Progress value={course.completion_rate} className="h-2 w-16" />
+                            </div>
+                            <Badge variant={course.status === 'active' ? 'default' : 'secondary'}>
+                              {course.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -463,10 +491,29 @@ const HRLearningPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={budgetData}
-                columns={budgetColumns}
-              />
+              <div className="space-y-4">
+                {budgetData.map((budget, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-semibold">{budget.department}</h4>
+                          <p className="text-sm text-muted-foreground">{budget.employees} employees</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">
+                            ${budget.spent.toLocaleString()} / ${budget.allocated.toLocaleString()}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-sm">{budget.utilization}%</span>
+                            <Progress value={budget.utilization} className="h-2 w-20" />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

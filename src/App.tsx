@@ -42,6 +42,16 @@ import AttendancePage from "./pages/Me/AttendancePage";
 import MyTeamAttendancePage from "./pages/MyTeam/AttendancePage";
 import HRAttendancePage from "./pages/HR/AttendancePage";
 
+// Import Performance pages
+import PerformancePage from "./pages/Me/PerformancePage";
+import MyTeamPerformancePage from "./pages/MyTeam/PerformancePage";
+import HRPerformancePage from "./pages/HR/PerformancePage";
+
+// Import Learning pages
+import LearningPage from "./pages/Me/LearningPage";
+import MyTeamLearningPage from "./pages/MyTeam/LearningPage";
+import HRLearningPage from "./pages/HR/LearningPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
