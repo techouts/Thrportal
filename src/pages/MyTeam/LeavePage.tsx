@@ -25,12 +25,12 @@ export default function MyTeamLeavePage() {
     search: string;
     type: LeaveType | "";
     status: string;
-    hasConflict: boolean | "";
+    hasConflict: boolean | undefined;
   }>({
     search: "",
     type: "",
     status: "",
-    hasConflict: ""
+    hasConflict: undefined
   });
   
   const currentMonth = new Date();
@@ -152,12 +152,12 @@ export default function MyTeamLeavePage() {
                     />
                   </div>
                   
-                  <Select value={filters.type} onValueChange={(value) => setFilters({ ...filters, type: value as LeaveType | "" })}>
+                  <Select value={filters.type || "all"} onValueChange={(value) => setFilters({ ...filters, type: value === "all" ? "" : value as LeaveType })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Leave Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="CL">Casual Leave</SelectItem>
                       <SelectItem value="SL">Sick Leave</SelectItem>
                       <SelectItem value="PL">Privilege Leave</SelectItem>
@@ -165,18 +165,18 @@ export default function MyTeamLeavePage() {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={String(filters.hasConflict)} onValueChange={(value) => setFilters({ ...filters, hasConflict: value === "true" ? true : value === "false" ? false : "" })}>
+                  <Select value={filters.hasConflict === undefined ? "all" : String(filters.hasConflict)} onValueChange={(value) => setFilters({ ...filters, hasConflict: value === "true" ? true : value === "false" ? false : undefined })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Conflicts" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Requests</SelectItem>
+                      <SelectItem value="all">All Requests</SelectItem>
                       <SelectItem value="true">Has Conflicts</SelectItem>
                       <SelectItem value="false">No Conflicts</SelectItem>
                     </SelectContent>
                   </Select>
                   
-                  <Button variant="outline" onClick={() => setFilters({ search: "", type: "", status: "", hasConflict: "" })}>
+                  <Button variant="outline" onClick={() => setFilters({ search: "", type: "", status: "", hasConflict: undefined })}>
                     <Filter className="h-4 w-4 mr-2" />
                     Clear Filters
                   </Button>
