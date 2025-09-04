@@ -128,10 +128,8 @@ export function TeamExpenseDashboardTab() {
               type="bar"
               data={spendByCategoryData}
               height={300}
-              config={{
-                xAxis: { dataKey: 'name' },
-                bars: [{ dataKey: 'value', fill: 'hsl(var(--primary))' }]
-              }}
+              dataKey="value"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>
@@ -149,10 +147,8 @@ export function TeamExpenseDashboardTab() {
               type="pie"
               data={reimbursableVsCorpData}
               height={300}
-              config={{
-                dataKey: 'value',
-                nameKey: 'name'
-              }}
+              dataKey="value"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>
