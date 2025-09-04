@@ -25,7 +25,8 @@ import {
   UserCheck,
   Briefcase,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Headphones
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -127,6 +128,7 @@ const navigationSections = {
       { name: "Attendance", path: "/HR/Attendance", icon: Clock },
       { name: "Expenses", path: "/HR/Expenses", icon: DollarSign },
       { name: "Learning", path: "/HR/Learning", icon: BookOpen },
+      { name: "Helpdesk", path: "/HR/Helpdesk", icon: Headphones },
       { name: "Timesheet", path: "/HR/Timesheet", icon: Clock },
       { name: "IJP", path: "/HR/IJP", icon: TrendingUp },
       { name: "Hiring", path: "/HR/Hiring", icon: UserCheck },

@@ -52,6 +52,10 @@ import LearningPage from "./pages/Me/LearningPage";
 import MyTeamLearningPage from "./pages/MyTeam/LearningPage";
 import HRLearningPage from "./pages/HR/LearningPage";
 
+// Import Helpdesk pages
+import HelpdeskPage from "./pages/Me/HelpdeskPage";
+import HRHelpdeskPage from "./pages/HR/HelpdeskPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -164,6 +168,13 @@ const App = () => (
                 </MainLayout>
               </RBACGuard>
             } />
+            <Route path="/Me/Helpdesk-new" element={
+              <RBACGuard route="/Me/Helpdesk">
+                <MainLayout>
+                  <HelpdeskPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
             <Route path="/MyTeam/Learning" element={
               <RBACGuard route="/MyTeam/Learning">
                 <MainLayout>
@@ -175,6 +186,13 @@ const App = () => (
               <RBACGuard route="/HR/Learning">
                 <MainLayout>
                   <HRLearningPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/HR/Helpdesk" element={
+              <RBACGuard route="/HR/Helpdesk">
+                <MainLayout>
+                  <HRHelpdeskPage />
                 </MainLayout>
               </RBACGuard>
             } />
