@@ -67,6 +67,9 @@ import HelpdeskPage from "./pages/Me/HelpdeskPage";
 import HRHelpdeskPage from "./pages/HR/HelpdeskPage";
 import ITHelpdeskPage from "./pages/IT/HelpdeskPage";
 
+// Import OnOffboarding page
+import OnOffboardingPage from "./pages/HR/OnOffboardingPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -474,7 +477,7 @@ const App = () => (
             <Route path="/HR/OnOffboarding" element={
               <RBACGuard route="/HR/OnOffboarding">
                 <MainLayout>
-                  <HRPage defaultTab="OnOffboarding" />
+                  <OnOffboardingPage />
                 </MainLayout>
               </RBACGuard>
             } />
