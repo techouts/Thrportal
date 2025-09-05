@@ -4,23 +4,150 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FinanceSummaryTab } from '@/components/finance/FinanceSummaryTab';
-import { TaxManagementTab } from '@/components/finance/TaxManagementTab';
-import { TaxCalculatorsTab } from '@/components/finance/TaxCalculatorsTab';
-import { StatementsTab } from '@/components/finance/StatementsTab';
 import { 
   DollarSign, 
-  Calculator, 
   FileText, 
-  Receipt,
-  TrendingUp,
-  Shield,
-  Calendar
+  Calculator, 
+  Receipt, 
+  Upload, 
+  BarChart3, 
+  CreditCard,
+  PieChart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { financeService } from '@/services/financeService';
-import { FinanceSummary, TaxDeclaration } from '@/types/finance';
 import { toast } from 'sonner';
+
+// Placeholder components - will be implemented based on requirements
+const SummaryTab = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Net Pay</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">₹85,000</div>
+          <p className="text-xs text-muted-foreground">Current month</p>
+        </CardContent>
+      </Card>
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">YTD Earnings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">₹10.2L</div>
+          <p className="text-xs text-muted-foreground">This fiscal year</p>
+        </CardContent>
+      </Card>
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Tax Paid</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">₹1.8L</div>
+          <p className="text-xs text-muted-foreground">YTD deductions</p>
+        </CardContent>
+      </Card>
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Pending Proofs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <div className="text-2xl font-bold">3</div>
+            <Badge variant="destructive" className="text-xs">Due</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">Tax documents</p>
+        </CardContent>
+      </Card>
+    </div>
+    <Card className="rounded-2xl">
+      <CardHeader>
+        <CardTitle>Financial Summary</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">Detailed financial summary will be displayed here.</p>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const TaxesTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Tax Management</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Tax regime selection, calculators, and management tools.</p>
+    </CardContent>
+  </Card>
+);
+
+const PayslipsTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Payslips</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Monthly payslips with download and detailed view options.</p>
+    </CardContent>
+  </Card>
+);
+
+const DeclarationsTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Tax Declarations</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Form 12BB and investment declaration wizard.</p>
+    </CardContent>
+  </Card>
+);
+
+const ProofsTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Investment Proofs</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Upload and manage investment proofs and documents.</p>
+    </CardContent>
+  </Card>
+);
+
+const ProjectionsTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Tax Projections</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Tax planning and projection tools.</p>
+    </CardContent>
+  </Card>
+);
+
+const ReimbursementsTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Reimbursements</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Submit and track reimbursement claims.</p>
+    </CardContent>
+  </Card>
+);
+
+const StatementsTab = () => (
+  <Card className="rounded-2xl">
+    <CardHeader>
+      <CardTitle>Statements & Reports</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">Form 16, 12BA downloads, and financial statements.</p>
+    </CardContent>
+  </Card>
+);
 
 export default function FinancePage() {
   const [searchParams] = useSearchParams();
@@ -30,12 +157,11 @@ export default function FinancePage() {
   const tab = searchParams.get('tab') || 'summary';
   const [activeTab, setActiveTab] = useState(tab);
   const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState<FinanceSummary | null>(null);
-  const [declarations, setDeclarations] = useState<TaxDeclaration[]>([]);
 
   useEffect(() => {
     if (currentUser) {
-      loadFinanceData();
+      // Load finance data
+      setLoading(false);
     }
   }, [currentUser]);
 
@@ -43,47 +169,17 @@ export default function FinancePage() {
     setActiveTab(tab);
   }, [tab]);
 
-  const loadFinanceData = async () => {
-    if (!currentUser) return;
-    
-    setLoading(true);
-    try {
-      const [summaryResponse, declarationsResponse] = await Promise.all([
-        financeService.getFinanceSummary(currentUser.employeeId, { 
-          period: 'FY', 
-          financialYear: '2023-24' 
-        }),
-        financeService.getTaxDeclarations(currentUser.employeeId, '2023-24')
-      ]);
-
-      if (summaryResponse.success) {
-        setSummary(summaryResponse.data);
-      }
-
-      if (declarationsResponse.success) {
-        setDeclarations(declarationsResponse.data);
-      }
-    } catch (error) {
-      toast.error('Failed to load finance data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     navigate(`/Me/Finance?tab=${value}`, { replace: true });
   };
 
-  const pendingDeclarations = declarations.filter(d => d.status === 'DRAFT' || d.status === 'SUBMITTED').length;
-  const verificationRequired = declarations.filter(d => d.proofSubmitted && d.status === 'SUBMITTED').length;
-
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Finance" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
+        <PageHeader title="My Finance" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
             <Card key={i} className="rounded-2xl animate-pulse">
               <CardHeader>
                 <div className="h-4 bg-muted rounded w-24" />
@@ -101,140 +197,73 @@ export default function FinancePage() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Employee Finance"
-        description="Manage your salary, taxes, and financial documents"
+        title="My Finance"
+        description="Manage your payroll, taxes, and financial information"
       />
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Net Take-Home
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{summary?.netTakeHome.toLocaleString() || '0'}</div>
-            <p className="text-xs text-muted-foreground">This year</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Receipt className="h-4 w-4" />
-              TDS Deducted
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{summary?.tdsDeducted.toLocaleString() || '0'}</div>
-            <p className="text-xs text-muted-foreground">Total deducted</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Declarations
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold">{declarations.length}</div>
-              {pendingDeclarations > 0 && (
-                <Badge variant="destructive" className="text-xs">
-                  {pendingDeclarations} pending
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">Tax declarations</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Tax Regime
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary?.regime || 'OLD'}</div>
-            <p className="text-xs text-muted-foreground">Current regime</p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="summary" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
+            <PieChart className="w-4 h-4" />
             <span className="hidden sm:inline">Summary</span>
           </TabsTrigger>
           <TabsTrigger value="taxes" className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Taxes</span>
-            {pendingDeclarations > 0 && (
-              <Badge variant="destructive" className="ml-1 text-xs h-5 w-5 p-0 flex items-center justify-center">
-                {pendingDeclarations}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="calculators" className="flex items-center gap-2">
             <Calculator className="w-4 h-4" />
-            <span className="hidden sm:inline">Calculators</span>
+            <span className="hidden sm:inline">Taxes</span>
+          </TabsTrigger>
+          <TabsTrigger value="payslips" className="flex items-center gap-2">
+            <Receipt className="w-4 h-4" />
+            <span className="hidden sm:inline">Payslips</span>
+          </TabsTrigger>
+          <TabsTrigger value="declarations" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Declarations</span>
+          </TabsTrigger>
+          <TabsTrigger value="proofs" className="flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Proofs</span>
+          </TabsTrigger>
+          <TabsTrigger value="projections" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Projections</span>
+          </TabsTrigger>
+          <TabsTrigger value="reimbursements" className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4" />
+            <span className="hidden sm:inline">Reimburse</span>
           </TabsTrigger>
           <TabsTrigger value="statements" className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
             <span className="hidden sm:inline">Statements</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary">
-          <FinanceSummaryTab 
-            summary={summary} 
-            loading={loading}
-            onRefresh={loadFinanceData}
-          />
+          <SummaryTab />
         </TabsContent>
 
         <TabsContent value="taxes">
-          <Tabs defaultValue="manage" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="manage" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Manage Declarations
-                {pendingDeclarations > 0 && (
-                  <Badge variant="destructive" className="ml-1 text-xs h-5 w-5 p-0 flex items-center justify-center">
-                    {pendingDeclarations}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="calculators" className="flex items-center gap-2">
-                <Calculator className="w-4 h-4" />
-                Tax Calculators
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="manage">
-              <TaxManagementTab 
-                declarations={declarations}
-                loading={loading}
-                onRefresh={loadFinanceData}
-              />
-            </TabsContent>
-
-            <TabsContent value="calculators">
-              <TaxCalculatorsTab />
-            </TabsContent>
-          </Tabs>
+          <TaxesTab />
         </TabsContent>
 
-        <TabsContent value="calculators">
-          <TaxCalculatorsTab />
+        <TabsContent value="payslips">
+          <PayslipsTab />
+        </TabsContent>
+
+        <TabsContent value="declarations">
+          <DeclarationsTab />
+        </TabsContent>
+
+        <TabsContent value="proofs">
+          <ProofsTab />
+        </TabsContent>
+
+        <TabsContent value="projections">
+          <ProjectionsTab />
+        </TabsContent>
+
+        <TabsContent value="reimbursements">
+          <ReimbursementsTab />
         </TabsContent>
 
         <TabsContent value="statements">
