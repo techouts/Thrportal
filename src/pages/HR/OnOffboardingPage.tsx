@@ -14,19 +14,16 @@ import { OffboardingDocumentsTab } from '@/components/onoffboarding/offboarding/
 import { OffboardingApprovalsTab } from '@/components/onoffboarding/offboarding/OffboardingApprovalsTab';
 import { OffboardingIntegrationTab } from '@/components/onoffboarding/offboarding/OffboardingIntegrationTab';
 
+// Onboarding Components
+import { OnboardingDashboardTab } from '@/components/onoffboarding/onboarding/OnboardingDashboardTab';
+import { OnboardingChecklistsTab } from '@/components/onoffboarding/onboarding/OnboardingChecklistsTab';
+import { OnboardingTasksTab } from '@/components/onoffboarding/onboarding/OnboardingTasksTab';
+import { OnboardingDocumentsTab } from '@/components/onoffboarding/onboarding/OnboardingDocumentsTab';
+import { OnboardingApprovalsTab } from '@/components/onoffboarding/onboarding/OnboardingApprovalsTab';
+import { OnboardingIntegrationTab } from '@/components/onoffboarding/onboarding/OnboardingIntegrationTab';
+
 // Settings Components
 import { OnOffboardingSettingsTab } from '@/components/onoffboarding/settings/OnOffboardingSettingsTab';
-
-// Placeholder onboarding components
-const PlaceholderOnboardingTab: React.FC<{ title: string; description: string }> = ({ title, description }) => (
-  <Card>
-    <CardContent className="text-center py-12">
-      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-      <div className="text-lg font-medium">{title}</div>
-      <div className="text-muted-foreground">{description}</div>
-    </CardContent>
-  </Card>
-);
 
 const OnOffboardingPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -89,22 +86,22 @@ const OnOffboardingPage: React.FC = () => {
             </TabsList>
 
             <TabsContent value="dashboard">
-              <PlaceholderOnboardingTab title="Onboarding Dashboard" description="Track new employee onboarding progress" />
+              <OnboardingDashboardTab />
             </TabsContent>
             <TabsContent value="checklists">
-              <PlaceholderOnboardingTab title="Onboarding Checklists" description="Manage onboarding checklists and tasks" />
+              <OnboardingChecklistsTab />
             </TabsContent>
             <TabsContent value="tasks">
-              <PlaceholderOnboardingTab title="Onboarding Tasks" description="Track individual onboarding tasks" />
+              <OnboardingTasksTab />
             </TabsContent>
             <TabsContent value="documents">
-              <PlaceholderOnboardingTab title="Onboarding Documents" description="Manage required documents" />
+              <OnboardingDocumentsTab />
             </TabsContent>
             <TabsContent value="approvals">
-              <PlaceholderOnboardingTab title="Onboarding Approvals" description="Handle onboarding approvals" />
+              <OnboardingApprovalsTab />
             </TabsContent>
             <TabsContent value="integration">
-              <PlaceholderOnboardingTab title="Onboarding Integration" description="Integration with other systems" />
+              <OnboardingIntegrationTab />
             </TabsContent>
           </Tabs>
         </TabsContent>

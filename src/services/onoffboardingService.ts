@@ -194,11 +194,45 @@ class OnOffboardingServiceClass {
     };
   }
 
-  // Onboarding methods (placeholders)
+  // Onboarding methods
   async getOnboardingEmployees(): Promise<ApiResponse<OnboardingEmployee[]>> {
     await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const mockData: OnboardingEmployee[] = [
+      {
+        id: '1',
+        employeeId: 'EMP101',
+        employeeName: 'Rajesh Kumar',
+        department: 'Engineering',
+        joiningDate: '2024-02-12',
+        status: 'in_progress',
+        completionPercentage: 75,
+        assignedTo: 'HR Team'
+      },
+      {
+        id: '2',
+        employeeId: 'EMP102',
+        employeeName: 'Priya Sharma',
+        department: 'Marketing',
+        joiningDate: '2024-02-08',
+        status: 'completed',
+        completionPercentage: 100,
+        assignedTo: 'HR Team'
+      },
+      {
+        id: '3',
+        employeeId: 'EMP103',
+        employeeName: 'Amit Patel',
+        department: 'Sales',
+        joiningDate: '2024-02-15',
+        status: 'pending',
+        completionPercentage: 25,
+        assignedTo: 'Manager'
+      }
+    ];
+    
     return { 
-      data: [], 
+      data: mockData, 
       success: true, 
       message: 'Success', 
       timestamp: new Date().toISOString() 
@@ -211,7 +245,9 @@ class OnOffboardingServiceClass {
       data: { 
         pendingOnboarding: 3, 
         completedOnboarding: 15, 
-        inProgressOnboarding: 7 
+        inProgressOnboarding: 7,
+        slaBreaches: 2,
+        avgCompletion: 85
       }, 
       success: true, 
       message: 'Success', 
