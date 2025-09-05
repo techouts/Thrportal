@@ -21,6 +21,11 @@ import ManagementPage from "./pages/Management/ManagementPage";
 
 import AdminPage from "./pages/Admin/AdminPage";
 
+// Import Payroll pages
+import HRPayrollPage from "./pages/HR/PayrollPage";
+import FinancePayrollPage from "./pages/Finance/PayrollPage";
+import AdminPayrollPage from "./pages/Admin/PayrollPage";
+
 // Import MyTeam and expense pages
 import MyTeamPage from "./pages/MyTeam/MyTeamPage";
 import ExpensesPage from "./pages/Me/ExpensesPage";
@@ -488,6 +493,13 @@ const App = () => (
                 </MainLayout>
               </RBACGuard>
             } />
+            <Route path="/HR/Payroll" element={
+              <RBACGuard route="/HR/Payroll">
+                <MainLayout>
+                  <HRPayrollPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
 
             {/* Management Routes */}
             <Route path="/Management/Dashboard" element={
@@ -546,6 +558,20 @@ const App = () => (
               <RBACGuard route="/Admin/Security">
                 <MainLayout>
                   <AdminPage defaultTab="Security" />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Admin/Payroll" element={
+              <RBACGuard route="/Admin/Payroll">
+                <MainLayout>
+                  <AdminPayrollPage />
+                </MainLayout>
+              </RBACGuard>
+            } />
+            <Route path="/Finance/Payroll" element={
+              <RBACGuard route="/Finance/Payroll">
+                <MainLayout>
+                  <FinancePayrollPage />
                 </MainLayout>
               </RBACGuard>
             } />

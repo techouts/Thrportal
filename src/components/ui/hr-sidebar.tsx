@@ -125,6 +125,7 @@ const navigationSections = {
       { name: "Leave", path: "/HR/Leave", icon: Calendar },
       { name: "Attendance", path: "/HR/Attendance", icon: Clock },
       { name: "Expenses", path: "/HR/Expenses", icon: DollarSign },
+      { name: "Payroll", path: "/HR/Payroll", icon: DollarSign },
       { name: "Learning", path: "/HR/Learning", icon: BookOpen },
       { name: "Recognition", path: "/HR/Recognition", icon: Star },
       { name: "Helpdesk", path: "/HR/Helpdesk", icon: Headphones },
@@ -134,6 +135,12 @@ const navigationSections = {
       { name: "Succession", path: "/HR/Succession", icon: TrendingUp },
       { name: "OnOffboarding", path: "/HR/OnOffboarding", icon: UserCheck },
       { name: "Reports", path: "/HR/Reports", icon: BarChart3 }
+    ]
+  },
+  "Finance": {
+    icon: DollarSign,
+    routes: [
+      { name: "Payroll", path: "/Finance/Payroll", icon: DollarSign }
     ]
   },
   "IT": {
@@ -147,6 +154,7 @@ const navigationSections = {
     routes: [
       { name: "Tenant", path: "/Admin/Tenant", icon: Building2 },
       { name: "Access", path: "/Admin/Access", icon: Shield },
+      { name: "Payroll", path: "/Admin/Payroll", icon: DollarSign },
       { name: "Integrations", path: "/Admin/Integrations", icon: Settings },
       { name: "Audit", path: "/Admin/Audit", icon: FileText },
       { name: "Security", path: "/Admin/Security", icon: Shield }
