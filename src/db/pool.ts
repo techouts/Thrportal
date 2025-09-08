@@ -1,15 +1,17 @@
+// pool.ts
 import 'dotenv/config';
 import { Pool } from 'pg';
 
-const databaseUrl = process.env.DATABASE_URL;
-
-// Prefer explicit separate fields; fall back to DATABASE_URL if provided
+// Create a connection pool
 export const pool = new Pool({
-  connectionString: databaseUrl,
-  host: process.env.PGHOST,
-  port: process.env.PGPORT ? Number(process.env.PGPORT) : undefined,
-  user: process.env.PGUSER,
-  password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  connectionString: process.env.DATABASE_URL, // optional, can override below values
+  host: process.env.PGHOST || 'localhost',
+  port: process.env.PGPORT ? Number(process.env.PGPORT) : 5432,
+  user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || 'Techouts@123',
+  database: process.env.PGDATABASE || 'thrportal',
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
 });
