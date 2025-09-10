@@ -1,0 +1,434 @@
+{
+  "guard_usage": [
+    {
+      "file": "src/App.tsx",
+      "line": 84,
+      "condition": "route=\"/Home\""
+    },
+    {
+      "file": "src/App.tsx", 
+      "line": 93,
+      "condition": "route=\"/Home\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 103,
+      "condition": "route=\"/Me/Dashboard\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 110,
+      "condition": "route=\"/Me/Profile\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 117,
+      "condition": "route=\"/Me/Attendance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 124,
+      "condition": "route=\"/Me/Leave\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 131,
+      "condition": "route=\"/Me/Timesheet\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 138,
+      "condition": "route=\"/Me/Expenses\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 145,
+      "condition": "route=\"/Me/Performance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 152,
+      "condition": "route=\"/Me/IJP\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 159,
+      "condition": "route=\"/Me/Referrals\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 166,
+      "condition": "route=\"/Me/Helpdesk\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 173,
+      "condition": "route=\"/Me/Finance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 180,
+      "condition": "route=\"/Me/Learning\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 187,
+      "condition": "route=\"/Me/Recognition\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 194,
+      "condition": "route=\"/Me/Helpdesk\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 201,
+      "condition": "route=\"/MyTeam/Learning\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 208,
+      "condition": "route=\"/MyTeam/Recognition\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 215,
+      "condition": "route=\"/HR/Learning\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 222,
+      "condition": "route=\"/HR/Recognition\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 229,
+      "condition": "route=\"/HR/Helpdesk\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 236,
+      "condition": "route=\"/IT/Helpdesk\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 245,
+      "condition": "route=\"/MyTeam/Dashboard\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 252,
+      "condition": "route=\"/MyTeam/Leave\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 259,
+      "condition": "route=\"/MyTeam/Attendance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 266,
+      "condition": "route=\"/MyTeam/Timesheet\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 273,
+      "condition": "route=\"/MyTeam/Expenses\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 280,
+      "condition": "route=\"/MyTeam/Performance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 287,
+      "condition": "route=\"/MyTeam/ProfileChanges\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 295,
+      "condition": "route=\"/MyTeam/IJP\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 304,
+      "condition": "route=\"/Hiring/Dashboard\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 311,
+      "condition": "route=\"/Hiring/JobRequisitions\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 318,
+      "condition": "route=\"/Hiring/Assignment\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 325,
+      "condition": "route=\"/Hiring/Applications\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 332,
+      "condition": "route=\"/Hiring/Pipeline\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 339,
+      "condition": "route=\"/Hiring/FollowUp\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 346,
+      "condition": "route=\"/Hiring/BGV\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 353,
+      "condition": "route=\"/Hiring/Settings\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 362,
+      "condition": "route=\"/Project/Dashboard\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 369,
+      "condition": "route=\"/Project/Clients\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 376,
+      "condition": "route=\"/Project/Projects\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 383,
+      "condition": "route=\"/Project/Assignments\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 390,
+      "condition": "route=\"/Project/Tasks\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 397,
+      "condition": "route=\"/Project/Bench\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 406,
+      "condition": "route=\"/Org/EmployeeDirectory\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 413,
+      "condition": "route=\"/Org/OrgStructure\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 420,
+      "condition": "route=\"/Org/PolicyHub\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 429,
+      "condition": "route=\"/HR/Performance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 436,
+      "condition": "route=\"/HR/Leave\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 443,
+      "condition": "route=\"/HR/Attendance\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 449,
+      "condition": "route=\"/HR/Expenses\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 456,
+      "condition": "route=\"/HR/Timesheet\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 463,
+      "condition": "route=\"/HR/Hiring\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 470,
+      "condition": "route=\"/HR/Succession\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 477,
+      "condition": "route=\"/HR/OnOffboarding\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 485,
+      "condition": "route=\"/HR/Reports\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 492,
+      "condition": "route=\"/HR/IJP\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 499,
+      "condition": "route=\"/HR/Payroll\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 532,
+      "condition": "route=\"/Admin/Tenant\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 539,
+      "condition": "route=\"/Admin/Access\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 546,
+      "condition": "route=\"/Admin/Integrations\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 553,
+      "condition": "route=\"/Admin/Audit\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 560,
+      "condition": "route=\"/Admin/Security\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 567,
+      "condition": "route=\"/Admin/Payroll\""
+    },
+    {
+      "file": "src/App.tsx",
+      "line": 576,
+      "condition": "route=\"/Finance/Payroll\""
+    },
+    {
+      "file": "src/pages/HR/LeavePage.tsx",
+      "line": 93,
+      "condition": "requiredRoles=[\"MANAGER\", \"HR\", \"ADMIN\"]"
+    },
+    {
+      "file": "src/pages/HR/PerformancePage.tsx",
+      "line": 111,
+      "condition": "requiredRoles=[\"HR\", \"ADMIN\"]"
+    },
+    {
+      "file": "src/pages/Me/LeavePage.tsx",
+      "line": 27,
+      "condition": "requiredRoles=[\"EMPLOYEE\", \"MANAGER\", \"HR\", \"ADMIN\"]"
+    },
+    {
+      "file": "src/pages/Me/PerformancePage.tsx",
+      "line": 101,
+      "condition": "requiredRoles=[\"EMPLOYEE\", \"MANAGER\", \"HR\", \"ADMIN\"]"
+    },
+    {
+      "file": "src/pages/MyTeam/LeavePage.tsx",
+      "line": 107,
+      "condition": "requiredRoles=[\"MANAGER\", \"HR\", \"ADMIN\"]"
+    },
+    {
+      "file": "src/pages/MyTeam/PerformancePage.tsx",
+      "line": 94,
+      "condition": "requiredRoles=[\"MANAGER\", \"HR\", \"ADMIN\"]"
+    },
+    {
+      "file": "src/components/org/PolicyHub.tsx",
+      "line": 24,
+      "condition": "currentUser?.role === 'HR' || currentUser?.role === 'Admin'"
+    },
+    {
+      "file": "src/components/org/PolicyHub.tsx",
+      "line": 35,
+      "condition": "isHRAdmin"
+    },
+    {
+      "file": "src/components/org/PolicyHub.tsx",
+      "line": 37,
+      "condition": "isHRAdmin"
+    },
+    {
+      "file": "src/components/org/PolicyHub.tsx",
+      "line": 43,
+      "condition": "isHRAdmin"
+    },
+    {
+      "file": "src/pages/Home/HomePage.tsx",
+      "line": 189,
+      "condition": "!isManager"
+    },
+    {
+      "file": "src/pages/Home/HomePage.tsx",
+      "line": 190,
+      "condition": "userRole !== 'Manager' && userRole !== 'HR'"
+    },
+    {
+      "file": "src/pages/Home/HomePage.tsx",
+      "line": 696,
+      "condition": "isManager"
+    },
+    {
+      "file": "src/pages/Home/HomePage.tsx",
+      "line": 759,
+      "condition": "userRole === 'Manager' || userRole === 'HR'"
+    },
+    {
+      "file": "src/hooks/useAuth.ts",
+      "line": 93,
+      "condition": "userRole === 'Manager' || userRole === 'HR'"
+    },
+    {
+      "file": "src/features/performance/components/guards/RBACGuard.tsx",
+      "line": 26,
+      "condition": "requiredRoles.includes(userRole)"
+    },
+    {
+      "file": "src/features/performance/components/guards/RBACGuard.tsx",
+      "line": 50,
+      "condition": "roles.includes(userRole)"
+    },
+    {
+      "file": "src/features/performance/components/guards/RBACGuard.tsx",
+      "line": 51,
+      "condition": "userRole === \"EMPLOYEE\""
+    },
+    {
+      "file": "src/features/performance/components/guards/RBACGuard.tsx",
+      "line": 52,
+      "condition": "userRole === \"MANAGER\""
+    },
+    {
+      "file": "src/features/performance/components/guards/RBACGuard.tsx",
+      "line": 53,
+      "condition": "userRole === \"HR\""
+    },
+    {
+      "file": "src/features/performance/components/guards/RBACGuard.tsx",
+      "line": 54,
+      "condition": "userRole === \"ADMIN\""
+    }
+  ]
+}
