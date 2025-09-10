@@ -1,0 +1,538 @@
+{
+  "routes": [
+    {
+      "module": "Home Portal",
+      "route_path": "/Home/*",
+      "default_tab": "HomePage",
+      "tabs": ["HomePage"],
+      "owner_team": "IT",
+      "role_checks": ["*"],
+      "notes": "Main landing page accessible to all authenticated users"
+    },
+    {
+      "module": "Me - Dashboard",
+      "route_path": "/Me/Dashboard",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard"],
+      "owner_team": "IT", 
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee self-service dashboard"
+    },
+    {
+      "module": "Me - Profile",
+      "route_path": "/Me/Profile",
+      "default_tab": "Profile",
+      "tabs": ["Profile"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee profile management"
+    },
+    {
+      "module": "Me - Attendance",
+      "route_path": "/Me/Attendance",
+      "default_tab": "Stats",
+      "tabs": ["Stats", "Clock-in", "Logs"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee attendance tracking and clock-in/out"
+    },
+    {
+      "module": "Me - Leave",
+      "route_path": "/Me/Leave",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Request Leave", "My Requests", "Calendar"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee leave management and requests"
+    },
+    {
+      "module": "Me - Timesheet",
+      "route_path": "/Me/Timesheet",
+      "default_tab": "Fill",
+      "tabs": ["Fill", "History", "Overview", "Exports"],
+      "owner_team": "Project",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee timesheet management"
+    },
+    {
+      "module": "Me - Expenses",
+      "route_path": "/Me/Expenses",
+      "default_tab": "Submit",
+      "tabs": ["Submit", "Imports", "History"],
+      "owner_team": "Finance",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee expense submission and tracking"
+    },
+    {
+      "module": "Me - Performance",
+      "route_path": "/Me/Performance",
+      "default_tab": "Goals",
+      "tabs": ["Goals", "1:1s", "Reviews", "Feedback", "PIP"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee performance management and goal tracking"
+    },
+    {
+      "module": "Me - IJP",
+      "route_path": "/Me/IJP",
+      "default_tab": "Postings",
+      "tabs": ["Postings", "Recommended", "Saved", "My Applications"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Internal job postings and applications"
+    },
+    {
+      "module": "Me - Learning",
+      "route_path": "/Me/Learning",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Catalog", "My Learning", "Recommendations"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee learning and development"
+    },
+    {
+      "module": "Me - Recognition",
+      "route_path": "/Me/Recognition",
+      "default_tab": "Give Recognition",
+      "tabs": ["Give Recognition", "My Recognition", "Leaderboard", "Rewards"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee recognition and rewards system"
+    },
+    {
+      "module": "Me - Helpdesk",
+      "route_path": "/Me/Helpdesk",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "My Tickets", "Create Ticket", "Knowledge Base"],
+      "owner_team": "IT",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee IT support and helpdesk"
+    },
+    {
+      "module": "Me - Finance",
+      "route_path": "/Me/Finance",
+      "default_tab": "Summary",
+      "tabs": ["Summary", "Statements", "Tax Management", "Tax Calculators", "Investment", "Loans", "Insurance", "Benefits"],
+      "owner_team": "Finance",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Employee financial services and benefits"
+    },
+    {
+      "module": "MyTeam - Dashboard", 
+      "route_path": "/MyTeam/Dashboard",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard"],
+      "owner_team": "Management",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team overview dashboard"
+    },
+    {
+      "module": "MyTeam - Leave",
+      "route_path": "/MyTeam/Leave", 
+      "default_tab": "Approvals",
+      "tabs": ["Approvals", "Team Calendar", "Analytics"],
+      "owner_team": "HR",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager leave approvals and team calendar"
+    },
+    {
+      "module": "MyTeam - Attendance",
+      "route_path": "/MyTeam/Attendance",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Team View", "Reports"],
+      "owner_team": "HR", 
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team attendance tracking"
+    },
+    {
+      "module": "MyTeam - Expenses",
+      "route_path": "/MyTeam/Expenses",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Approvals"],
+      "owner_team": "Finance",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team expense approvals"
+    },
+    {
+      "module": "MyTeam - Performance",
+      "route_path": "/MyTeam/Performance",
+      "default_tab": "Team Goals",
+      "tabs": ["Team Goals", "Team Reviews", "Peer Feedback", "Team PIP"],
+      "owner_team": "HR",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team performance management"
+    },
+    {
+      "module": "MyTeam - IJP",
+      "route_path": "/MyTeam/IJP",
+      "default_tab": "Team Applications",
+      "tabs": ["Team Applications", "Referrals", "Analytics"],
+      "owner_team": "HR",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team internal job applications"
+    },
+    {
+      "module": "MyTeam - Learning",
+      "route_path": "/MyTeam/Learning",
+      "default_tab": "Team Progress",
+      "tabs": ["Team Progress", "Assign Learning", "Reports"],
+      "owner_team": "HR",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team learning assignments"
+    },
+    {
+      "module": "MyTeam - Recognition",
+      "route_path": "/MyTeam/Recognition",
+      "default_tab": "Team Feed",
+      "tabs": ["Team Feed", "Team Leaderboard", "Reward Approvals"],
+      "owner_team": "HR",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Manager team recognition and rewards"
+    },
+    {
+      "module": "Hiring - Dashboard",
+      "route_path": "/Hiring/Dashboard",
+      "default_tab": "Overview",
+      "tabs": ["Overview", "Recruiter", "Client", "Bench", "JD Insights", "Follow Up", "TAT Tracker"],
+      "owner_team": "Recruiter",
+      "role_checks": ["Recruiter", "HR", "Admin"],
+      "notes": "Main hiring dashboard with multiple views"
+    },
+    {
+      "module": "Hiring - Job Requisitions",
+      "route_path": "/Hiring/JobRequisitions",
+      "default_tab": "Manage",
+      "tabs": ["Manage", "Approvals", "Reports"],
+      "owner_team": "Recruiter",
+      "role_checks": ["Recruiter", "HR", "Admin"],
+      "notes": "Job requisition management and approvals"
+    },
+    {
+      "module": "Hiring - Assignment",
+      "route_path": "/Hiring/Assignment",
+      "default_tab": "Manage",
+      "tabs": ["Manage", "Unassigned", "Unattended", "Reports"],
+      "owner_team": "Recruiter",
+      "role_checks": ["Recruiter", "HR", "Admin"],
+      "notes": "Candidate assignment management"
+    },
+    {
+      "module": "Hiring - Applications",
+      "route_path": "/Hiring/Applications",
+      "default_tab": "Manage",
+      "tabs": ["Manage", "JD Resume Match", "Dashboard"],
+      "owner_team": "Recruiter",
+      "role_checks": ["Recruiter", "HR", "Admin"],
+      "notes": "Application management and resume matching"
+    },
+    {
+      "module": "Hiring - Pipeline",
+      "route_path": "/Hiring/Pipeline",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Active JDs", "Manage"],
+      "owner_team": "Recruiter",
+      "role_checks": ["Recruiter", "HR", "Admin"],
+      "notes": "Recruitment pipeline management"
+    },
+    {
+      "module": "Hiring - Follow Up",
+      "route_path": "/Hiring/FollowUp",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Pending Feedback", "All Submissions", "Email Upload", "Followup History", "Escalation Reports"],
+      "owner_team": "Recruiter",
+      "role_checks": ["Recruiter", "HR", "Admin"],
+      "notes": "Interview follow-up and feedback management"
+    },
+    {
+      "module": "Hiring - BGV",
+      "route_path": "/Hiring/BGV",
+      "default_tab": "Checks",
+      "tabs": ["Checks", "Outcomes", "Exceptions", "Settings"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "Background verification management"
+    },
+    {
+      "module": "Hiring - Settings",
+      "route_path": "/Hiring/Settings",
+      "default_tab": "Global Defaults",
+      "tabs": ["Global Defaults", "SLA", "Offer Matrix", "JD Parser", "Rejection Reasons", "Feedback Followups", "Compliance Vendors"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "Hiring system configuration and settings"
+    },
+    {
+      "module": "Project - Dashboard",
+      "route_path": "/Project/Dashboard",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard"],
+      "owner_team": "Project",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Project management dashboard"
+    },
+    {
+      "module": "Project - Clients",
+      "route_path": "/Project/Clients",
+      "default_tab": "Clients", 
+      "tabs": ["Clients"],
+      "owner_team": "Project",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Client management"
+    },
+    {
+      "module": "Project - Projects",
+      "route_path": "/Project/Projects",
+      "default_tab": "Projects",
+      "tabs": ["Projects"],
+      "owner_team": "Project", 
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Project management"
+    },
+    {
+      "module": "Project - Assignments",
+      "route_path": "/Project/Assignments",
+      "default_tab": "Assignments",
+      "tabs": ["Assignments"],
+      "owner_team": "Project",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Project assignments management"
+    },
+    {
+      "module": "Project - Tasks",
+      "route_path": "/Project/Tasks",
+      "default_tab": "Tasks",
+      "tabs": ["Tasks"],
+      "owner_team": "Project",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Task management"
+    },
+    {
+      "module": "Project - Bench",
+      "route_path": "/Project/Bench",
+      "default_tab": "Bench",
+      "tabs": ["Bench"],
+      "owner_team": "Project",
+      "role_checks": ["Manager", "HR", "Admin"],
+      "notes": "Bench resource management"
+    },
+    {
+      "module": "Org - Employee Directory",
+      "route_path": "/Org/EmployeeDirectory",
+      "default_tab": "EmployeeDirectory",
+      "tabs": ["EmployeeDirectory"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Organization employee directory"
+    },
+    {
+      "module": "Org - Structure",
+      "route_path": "/Org/OrgStructure", 
+      "default_tab": "OrgStructure",
+      "tabs": ["OrgStructure"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Organization structure and hierarchy"
+    },
+    {
+      "module": "Org - Policy Hub",
+      "route_path": "/Org/PolicyHub",
+      "default_tab": "PolicyHub",
+      "tabs": ["PolicyHub"],
+      "owner_team": "HR",
+      "role_checks": ["Employee", "Manager", "HR", "Admin"],
+      "notes": "Company policies and documentation"
+    },
+    {
+      "module": "HR - Performance",
+      "route_path": "/HR/Performance",
+      "default_tab": "Company Goals",
+      "tabs": ["Company Goals", "Department Goals", "Reviews", "Periods"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR performance management administration"
+    },
+    {
+      "module": "HR - Leave",
+      "route_path": "/HR/Leave",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Approvals", "Policies", "Calendar", "Reports"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR leave administration and policies"
+    },
+    {
+      "module": "HR - Attendance", 
+      "route_path": "/HR/Attendance",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Reports", "Policies", "Devices"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR attendance administration"
+    },
+    {
+      "module": "HR - Expenses",
+      "route_path": "/HR/Expenses",
+      "default_tab": "Categories",
+      "tabs": ["Categories", "Limits", "Approval Matrix", "Retention"],
+      "owner_team": "Finance",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR expense policy administration"
+    },
+    {
+      "module": "HR - OnOffboarding",
+      "route_path": "/HR/OnOffboarding",
+      "default_tab": "onboarding",
+      "tabs": ["onboarding", "offboarding", "settings"],
+      "nested_tabs": {
+        "onboarding": ["dashboard", "checklists", "tasks", "documents", "approvals", "integration"],
+        "offboarding": ["dashboard", "checklists", "tasks", "exit-interviews", "documents", "approvals", "integration"]
+      },
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "Complex nested tab structure for employee onboarding and offboarding processes"
+    },
+    {
+      "module": "HR - Payroll",
+      "route_path": "/HR/Payroll",
+      "default_tab": "Setup",
+      "tabs": ["Setup", "Inputs", "Runs", "Validation", "Approvals", "Reports", "Masters", "Payments", "FnF", "Statutory"],
+      "owner_team": "Finance",
+      "role_checks": ["HR", "Admin"],
+      "notes": "Comprehensive HR payroll administration with multiple sub-modules"
+    },
+    {
+      "module": "HR - IJP",
+      "route_path": "/HR/IJP", 
+      "default_tab": "Postings",
+      "tabs": ["Postings", "Applications", "Analytics", "Settings"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR internal job posting administration"
+    },
+    {
+      "module": "HR - Learning",
+      "route_path": "/HR/Learning",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Catalog", "Assignments", "Reports"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR learning and development administration"
+    },
+    {
+      "module": "HR - Recognition",
+      "route_path": "/HR/Recognition",
+      "default_tab": "Analytics",
+      "tabs": ["Analytics", "Approvals", "Leaderboard", "Settings"],
+      "owner_team": "HR",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR recognition program administration"
+    },
+    {
+      "module": "HR - Helpdesk",
+      "route_path": "/HR/Helpdesk",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard", "Tickets", "Categories", "SLA"],
+      "owner_team": "IT",
+      "role_checks": ["HR", "Admin"],
+      "notes": "HR helpdesk administration"
+    },
+    {
+      "module": "Management - Dashboard",
+      "route_path": "/Management/Dashboard",
+      "default_tab": "Dashboard",
+      "tabs": ["Dashboard"],
+      "owner_team": "Management",
+      "role_checks": ["Management", "Admin"],
+      "notes": "Management executive dashboard"
+    },
+    {
+      "module": "Management - Scorecards",
+      "route_path": "/Management/Scorecards",
+      "default_tab": "Scorecards",
+      "tabs": ["Scorecards"],
+      "owner_team": "Management",
+      "role_checks": ["Management", "Admin"],
+      "notes": "Management scorecards and KPIs"
+    },
+    {
+      "module": "Management - Forecasts",
+      "route_path": "/Management/Forecasts",
+      "default_tab": "Forecasts", 
+      "tabs": ["Forecasts"],
+      "owner_team": "Management",
+      "role_checks": ["Management", "Admin"],
+      "notes": "Management forecasting and planning"
+    },
+    {
+      "module": "Admin - Tenant",
+      "route_path": "/Admin/Tenant",
+      "default_tab": "Tenant",
+      "tabs": ["Tenant"],
+      "owner_team": "IT",
+      "role_checks": ["Admin"],
+      "notes": "Admin tenant configuration"
+    },
+    {
+      "module": "Admin - Access",
+      "route_path": "/Admin/Access",
+      "default_tab": "Access",
+      "tabs": ["Access"],
+      "owner_team": "IT",
+      "role_checks": ["Admin"],
+      "notes": "Admin access control management"
+    },
+    {
+      "module": "Admin - Integrations",
+      "route_path": "/Admin/Integrations",
+      "default_tab": "Integrations",
+      "tabs": ["Integrations"],
+      "owner_team": "IT",
+      "role_checks": ["Admin"],
+      "notes": "Admin system integrations"
+    },
+    {
+      "module": "Admin - Audit",
+      "route_path": "/Admin/Audit",
+      "default_tab": "Audit",
+      "tabs": ["Audit"],
+      "owner_team": "IT",
+      "role_checks": ["Admin"],
+      "notes": "Admin audit logs and compliance"
+    },
+    {
+      "module": "Admin - Security",
+      "route_path": "/Admin/Security",
+      "default_tab": "Security",
+      "tabs": ["Security"],
+      "owner_team": "IT",
+      "role_checks": ["Admin"],
+      "notes": "Admin security configuration"
+    },
+    {
+      "module": "Admin - Payroll",
+      "route_path": "/Admin/Payroll",
+      "default_tab": "Compliance",
+      "tabs": ["Compliance", "Security", "Integration", "Data Tools"],
+      "owner_team": "Finance",
+      "role_checks": ["Admin"],
+      "notes": "Admin payroll system configuration"
+    },
+    {
+      "module": "Finance - Payroll",
+      "route_path": "/Finance/Payroll",
+      "default_tab": "JV Export",
+      "tabs": ["JV Export", "Bank Files", "Reconciliation", "Audits"],
+      "owner_team": "Finance", 
+      "role_checks": ["Finance", "Admin"],
+      "notes": "Finance payroll operations and reconciliation"
+    }
+  ],
+  "metadata": {
+    "total_routes": 47,
+    "teams": ["IT", "HR", "Finance", "Project", "Management", "Recruiter"],
+    "roles": ["Employee", "Manager", "HR", "Recruiter", "Finance", "Management", "Admin"],
+    "complex_nested_modules": ["HR/OnOffboarding", "HR/Payroll", "Admin/Payroll", "Finance/Payroll"],
+    "generated_date": "2025-01-10",
+    "version": "1.0"
+  }
+}
