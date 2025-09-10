@@ -1,18 +1,8 @@
 import { Sequelize } from 'sequelize';
-
-const databaseUrl = process.env.DATABASE_URL;
+import "../modules/auth/models/user.model.ts";
 
 // Mirror pool.ts behavior: allow DATABASE_URL override, otherwise use individual vars with same defaults
-export const sequelize = databaseUrl
-  ? new Sequelize(databaseUrl, {
-      dialect: 'postgres',
-      dialectOptions:
-        process.env.NODE_ENV === 'production'
-          ? { ssl: { require: true, rejectUnauthorized: false } }
-          : {},
-      logging: false,
-    })
-  : new Sequelize(
+export const sequelize =  new Sequelize(
       process.env.PGDATABASE || 'THr',
       process.env.PGUSER || 'postgres',
       process.env.PGPASSWORD || 'password',
@@ -29,7 +19,16 @@ export const sequelize = databaseUrl
     );
 
 export async function connectSequelize() {
-  await sequelize.authenticate();
+ try {
+    await sequelize.authenticate();
+    
+    // Create tables automatically (without dropping existing data)
+    await sequelize.sync({ alter: true });
+    console.log("✅ All models were synchronized successfully");
+  } catch (error) {
+    console.error("❌ Sequelize connection failed:", error);
+    throw error;
+  }
 }
 
 
