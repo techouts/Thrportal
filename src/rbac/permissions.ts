@@ -4,13 +4,13 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
   ADMIN: ["*"],
 
   MANAGEMENT: [
+    "portal.announcements.read",
     "employees.directory.read","employees.analytics.read","employees.read",
     "leave.reports.read","attendance.reports.read",
     "performance.cycles.read","performance.reviews.read",
     "projects.*.read","timesheets.*.read","timesheets.export.*",
-    "hiring.requisitions.read","applications.pipeline.read",
-    "finance.payroll.read","finance.reports.read",
-    "portal.announcements.read"
+    "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read",
+    "finance.payroll.read","finance.reports.read"
     // no admin/security/roles/integrations
   ],
 
@@ -35,6 +35,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
   ],
 
   MANAGER: [
+    "portal.announcements.read",
     "employees.read",
     "attendance.team.read","attendance.approvals.*",
     "leave.team.calendar.read","leave.approvals.*",
@@ -44,59 +45,71 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
   ],
 
   RECRUITER: [
+    "portal.announcements.read",
     "hiring.dashboard.read","hiring.requisitions.read","hiring.requisitions.create",
     "applications.submissions.*","applications.pipeline.read",
     "interviews.schedule.*","bgv.cases.create","bgv.cases.read"
   ],
 
   HIRING_MANAGER: [
-    "hiring.requisitions.approve","hiring.requisitions.read",
+    "portal.announcements.read",
+    "hiring.dashboard.read","hiring.requisitions.approve","hiring.requisitions.read",
     "applications.pipeline.read","offers.create","offers.approve",
     "candidates.sensitive.read"
   ],
 
   PROJECT_LEAD: [
-    "projects.read","projects.assignments.update",
+    "portal.announcements.read",
+    "projects.read","projects.*.read","projects.assignments.update",
     "timesheets.read","timesheets.approvals.*",
     "bench.requests.create","staffing.requests.create"
   ],
 
   DELIVERY_HEAD: [
+    "portal.announcements.read",
     "projects.*","timesheets.*.read","timesheets.export.*","bench.*","staffing.*"
   ],
 
   HR_LEAD: [
+    "portal.announcements.read",
     "employees.read","employees.letters.create",
     "leave.adjustments.update","attendance.adjustments.update",
     "onboarding.employees.read","offboarding.employees.read"
   ],
 
   HR_MANAGER: [
+    "portal.announcements.read",
     "employees.*","leave.*","attendance.*",
     "onboarding.*","offboarding.*","performance.*",
     "policy.*","letters.*","bgv.*","ijp.settings.*","payroll.runs.read"
   ],
 
   PAYROLL_SPECIALIST: [
+    "portal.announcements.read",
     "payroll.runs.read","payroll.runs.create","payroll.runs.approve",
-    "payroll.bank_file.generate","payroll.statutory.generate","finance.payslips.generate"
+    "payroll.bank_file.generate","payroll.statutory.generate","finance.payslips.generate",
+    "finance.payroll.read"
   ],
 
   FINANCE_ANALYST: [
-    "finance.reports.read","finance.jv.export","finance.audit_logs.read","payroll.runs.read"
+    "portal.announcements.read",
+    "finance.reports.read","finance.payroll.read","finance.jv.export","finance.audit_logs.read","payroll.runs.read"
   ],
 
   IT_HELPDESK: [
+    "portal.announcements.read",
     "helpdesk.dashboard.read","helpdesk.tickets.read_queue",
     "helpdesk.tickets.assign","helpdesk.tickets.update_status"
   ],
 
   AUDITOR_RO: [
+    "portal.announcements.read",
     "employees.read","leave.reports.read","attendance.reports.read",
     "finance.reports.read","payroll.runs.read"
   ],
 
   DPO_PRIVACY: [
+    "portal.announcements.read",
     "privacy.dsr.read","privacy.dsr.fulfill","employees.pii.view","employees.pii.export"
   ]
 };

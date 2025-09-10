@@ -42,7 +42,7 @@ function App() {
 
                 {/* Home */}
                 <Route path="/Home" element={
-                  <ProtectedRoute required={["portal.announcements.read"]}>
+                  <ProtectedRoute>
                     <MainLayout><HomePage /></MainLayout>
                   </ProtectedRoute>
                 } />
@@ -70,14 +70,14 @@ function App() {
 
                 {/* Hiring Section */}
                 <Route path="/Hiring/*" element={
-                  <ProtectedRoute required={["hiring.dashboard.read", "hiring.requisitions.read", "applications.pipeline.read"]}>
+                  <ProtectedRoute required={["hiring.dashboard.read"]}>
                     <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
 
                 {/* Projects */}
                 <Route path="/Projects" element={
-                  <ProtectedRoute required={["projects.read", "projects.*.read"]}>
+                  <ProtectedRoute required={["projects.read"]}>
                     <MainLayout><ProjectPage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
@@ -91,14 +91,14 @@ function App() {
 
                 {/* HR Section */}
                 <Route path="/HR/*" element={
-                  <ProtectedRoute required={["employees.*", "leave.*", "attendance.*", "performance.*", "onboarding.*", "offboarding.*"]}>
+                  <ProtectedRoute required={["employees.*"]}>
                     <MainLayout><HRPage defaultTab="Performance" /></MainLayout>
                   </ProtectedRoute>
                 } />
 
                 {/* Finance */}
                 <Route path="/Finance/*" element={
-                  <ProtectedRoute required={["finance.reports.read", "payroll.runs.read", "finance.payroll.read"]}>
+                  <ProtectedRoute required={["finance.reports.read"]}>
                     <MainLayout><PayrollPage /></MainLayout>
                   </ProtectedRoute>
                 } />
