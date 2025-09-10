@@ -11,6 +11,11 @@ export default function ProtectedRoute({ required = [], children }: ProtectedRou
   
   if (!user) return <Navigate to="/Auth/SignIn" replace />;
   
-  const ok = required.length === 0 || required.some(p => can(p));
-  return ok ? <>{children}</> : <Navigate to="/403" replace />;
+  // If no permissions required, allow access
+  if (required.length === 0) return <>{children}</>;
+  
+  // Check if user has any of the required permissions
+  const hasPermission = required.some(permission => can(permission));
+  
+  return hasPermission ? <>{children}</> : <Navigate to="/403" replace />;
 }
