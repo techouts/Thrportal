@@ -1,8 +1,5 @@
-import { Router } from 'express';
-import { login } from '../controllers/auth.controller.js';
+import { router as authModuleRoutes } from '../modules/auth/routes.js';
 
-export const router = Router();
-
-router.post('/login', login);
+export const router = authModuleRoutes;
 
 

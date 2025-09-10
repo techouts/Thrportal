@@ -1,6 +1,5 @@
 import express from 'express';
-import { router as usersRouter } from './routes/users.js';
-import { router as authRouter } from './routes/auth.js';
+import { router as aggregateRoutes } from './routes/index.js';
 
 export const createApp = () => {
   const app = express();
@@ -11,8 +10,7 @@ export const createApp = () => {
     res.send('Hello World');
   });
 
-  app.use('/api/auth', authRouter);
-  app.use('/api/users', usersRouter);
+  app.use('/api', aggregateRoutes);
 
   return app;
 };
