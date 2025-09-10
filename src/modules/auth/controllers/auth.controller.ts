@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../../employee/models/user.model.js';
+import { User } from '../models/user.model.js';
 
 // Simple login without hashing (for initial setup). Consider hashing later.
 export async function login(req: Request, res: Response, next: NextFunction) {
@@ -11,9 +11,8 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       return res.status(400).json({ message: 'email and password are required' });
     }
 
-    const user = await User.findOne({ where: { email } });
-    console.log(JSON.stringify(user),"hell");
-    console.log(user,"user")
+    const foundUser = await User.findOne({ where: { email } });
+    const user = foundUser?.toJSON();
     if (!user || user.password !== password) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
