@@ -1,591 +1,392 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Sidebar from "./components/Sidebar";
+import SignIn from "./pages/Auth/SignIn";
+import SignOut from "./pages/Auth/SignOut";
+import Forbidden from "./pages/Forbidden";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider as JotaiProvider } from 'jotai';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { MainLayout } from "@/components/layout/MainLayout";
-import DashboardPage from "./pages/DashboardPage";
-import NotFound from "./pages/NotFound";
-import { Provider as JotaiProvider } from 'jotai';
-import { RBACGuard } from "@/components/guards/RBACGuard";
 
-// Import all page components
-import HomePage from "./pages/Home/HomePage";
-import MePage from "./pages/Me/MePage";
-import FinancePage from "./pages/Me/FinancePage";
-import HiringPage from "./pages/Hiring/HiringPage";
-import ProjectPage from "./pages/Project/ProjectPage";
-import OrgPage from "./pages/Org/OrgPage";
-import HRPage from "./pages/HR/HRPage";
-import ManagementPage from "./pages/Management/ManagementPage";
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
+}
 
-import AdminPage from "./pages/Admin/AdminPage";
+function App() {
+  const queryClient = new QueryClient();
 
-// Import Payroll pages
-import HRPayrollPage from "./pages/HR/PayrollPage";
-import FinancePayrollPage from "./pages/Finance/PayrollPage";
-import AdminPayrollPage from "./pages/Admin/PayrollPage";
-
-// Import MyTeam and expense pages
-import MyTeamPage from "./pages/MyTeam/MyTeamPage";
-import ExpensesPage from "./pages/Me/ExpensesPage";
-import TeamExpensesPage from "./pages/MyTeam/ExpensesPage";
-import HRExpensesPage from "./pages/HR/ExpensesPage";
-
-// Import IJP pages
-import IJPPage from "./pages/Me/IJPPage";
-import MyTeamIJPPage from "./pages/MyTeam/IJPPage";
-import HRIJPPage from "./pages/HR/IJPPage";
-
-// Import Leave pages
-import LeavePage from "./pages/Me/LeavePage";
-import MyTeamLeavePage from "./pages/MyTeam/LeavePage";
-import HRLeavePage from "./pages/HR/LeavePage";
-
-// Import Attendance pages
-import AttendancePage from "./pages/Me/AttendancePage";
-import MyTeamAttendancePage from "./pages/MyTeam/AttendancePage";
-import HRAttendancePage from "./pages/HR/AttendancePage";
-
-// Import Performance pages
-import PerformancePage from "./pages/Me/PerformancePage";
-import MyTeamPerformancePage from "./pages/MyTeam/PerformancePage";
-import HRPerformancePage from "./pages/HR/PerformancePage";
-
-// Import Learning pages
-import LearningPage from "./pages/Me/LearningPage";
-import MyTeamLearningPage from "./pages/MyTeam/LearningPage";
-import HRLearningPage from "./pages/HR/LearningPage";
-
-// Import Recognition pages
-import RecognitionPage from "./pages/Me/RecognitionPage";
-import MyTeamRecognitionPage from "./pages/MyTeam/RecognitionPage";
-import HRRecognitionPage from "./pages/HR/RecognitionPage";
-
-// Import Helpdesk pages
-import HelpdeskPage from "./pages/Me/HelpdeskPage";
-import HRHelpdeskPage from "./pages/HR/HelpdeskPage";
-import ITHelpdeskPage from "./pages/IT/HelpdeskPage";
-
-// Import OnOffboarding page
-import OnOffboardingPage from "./pages/HR/OnOffboardingPage";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <JotaiProvider>
+  return (
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={
-              <RBACGuard route="/Home">
-                <MainLayout>
-                  <HomePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            
-            {/* Home Routes */}
-            <Route path="/Home" element={
-              <RBACGuard route="/Home">
-                <MainLayout>
-                  <HomePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Portal/Dashboard" element={<Navigate to="/Home" replace />} />
-            
-            {/* Me Routes */}
-            <Route path="/Me/Dashboard" element={
-              <RBACGuard route="/Me/Dashboard">
-                <MainLayout>
-                  <MePage defaultTab="Dashboard" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Profile" element={
-              <RBACGuard route="/Me/Profile">
-                <MainLayout>
-                  <MePage defaultTab="Profile" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Attendance" element={
-              <RBACGuard route="/Me/Attendance">
-                <MainLayout>
-                  <AttendancePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Leave" element={
-              <RBACGuard route="/Me/Leave">
-                <MainLayout>
-                  <LeavePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Timesheet" element={
-              <RBACGuard route="/Me/Timesheet">
-                <MainLayout>
-                  <MePage defaultTab="Timesheet" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Expenses" element={
-              <RBACGuard route="/Me/Expenses">
-                <MainLayout>
-                  <ExpensesPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Performance" element={
-              <RBACGuard route="/Me/Performance">
-                <MainLayout>
-                  <MePage defaultTab="Performance" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/IJP" element={
-              <RBACGuard route="/Me/IJP">
-                <MainLayout>
-                  <IJPPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Referrals" element={
-              <RBACGuard route="/Me/Referrals">
-                <MainLayout>
-                  <MePage defaultTab="Referrals" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Helpdesk" element={
-              <RBACGuard route="/Me/Helpdesk">
-                <MainLayout>
-                  <MePage defaultTab="Helpdesk" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Finance" element={
-              <RBACGuard route="/Me/Finance">
-                <MainLayout>
-                  <FinancePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Learning" element={
-              <RBACGuard route="/Me/Learning">
-                <MainLayout>
-                  <LearningPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Recognition" element={
-              <RBACGuard route="/Me/Recognition">
-                <MainLayout>
-                  <RecognitionPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Me/Helpdesk-new" element={
-              <RBACGuard route="/Me/Helpdesk">
-                <MainLayout>
-                  <HelpdeskPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Learning" element={
-              <RBACGuard route="/MyTeam/Learning">
-                <MainLayout>
-                  <MyTeamLearningPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Recognition" element={
-              <RBACGuard route="/MyTeam/Recognition">
-                <MainLayout>
-                  <MyTeamRecognitionPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Learning" element={
-              <RBACGuard route="/HR/Learning">
-                <MainLayout>
-                  <HRLearningPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Recognition" element={
-              <RBACGuard route="/HR/Recognition">
-                <MainLayout>
-                  <HRRecognitionPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Helpdesk" element={
-              <RBACGuard route="/HR/Helpdesk">
-                <MainLayout>
-                  <HRHelpdeskPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/IT/Helpdesk" element={
-              <RBACGuard route="/IT/Helpdesk">
-                <MainLayout>
-                  <ITHelpdeskPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
+        <JotaiProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Navigate to="/Auth/SignIn" replace />} />
+                <Route path="/Auth/SignIn" element={<SignIn />} />
+                <Route path="/Auth/SignOut" element={<SignOut />} />
+                <Route path="/403" element={<Forbidden />} />
 
-            {/* MyTeam Routes */}
-            <Route path="/MyTeam/Dashboard" element={
-              <RBACGuard route="/MyTeam/Dashboard">
-                <MainLayout>
-                  <MyTeamPage defaultTab="Dashboard" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Leave" element={
-              <RBACGuard route="/MyTeam/Leave">
-                <MainLayout>
-                  <MyTeamLeavePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Attendance" element={
-              <RBACGuard route="/MyTeam/Attendance">
-                <MainLayout>
-                  <MyTeamAttendancePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Timesheet" element={
-              <RBACGuard route="/MyTeam/Timesheet">
-                <MainLayout>
-                  <MyTeamPage defaultTab="Timesheet" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Expenses" element={
-              <RBACGuard route="/MyTeam/Expenses">
-                <MainLayout>
-                  <TeamExpensesPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/Performance" element={
-              <RBACGuard route="/MyTeam/Performance">
-                <MainLayout>
-                  <MyTeamPage defaultTab="Performance" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/MyTeam/ProfileChanges" element={
-              <RBACGuard route="/MyTeam/ProfileChanges">
-                <MainLayout>
-                  <MyTeamPage defaultTab="ProfileChanges" />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Home" element={
+                  <ProtectedRoute required={["portal.announcements.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Home Dashboard</h1>
+                        <p className="text-muted-foreground">Welcome to the HRMS Portal</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            <Route path="/MyTeam/IJP" element={
-              <RBACGuard route="/MyTeam/IJP">
-                <MainLayout>
-                  <MyTeamIJPPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/Dashboard" element={
+                  <ProtectedRoute required={["portal.announcements.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">My Dashboard</h1>
+                        <p className="text-muted-foreground">Your personal dashboard</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* Hiring Routes */}
-            <Route path="/Hiring/Dashboard" element={
-              <RBACGuard route="/Hiring/Dashboard">
-                <MainLayout>
-                  <HiringPage defaultTab="Dashboard" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/JobRequisitions" element={
-              <RBACGuard route="/Hiring/JobRequisitions">
-                <MainLayout>
-                  <HiringPage defaultTab="JobRequisitions" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/Assignment" element={
-              <RBACGuard route="/Hiring/Assignment">
-                <MainLayout>
-                  <HiringPage defaultTab="Assignment" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/Applications" element={
-              <RBACGuard route="/Hiring/Applications">
-                <MainLayout>
-                  <HiringPage defaultTab="Applications" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/Pipeline" element={
-              <RBACGuard route="/Hiring/Pipeline">
-                <MainLayout>
-                  <HiringPage defaultTab="Pipeline" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/FollowUp" element={
-              <RBACGuard route="/Hiring/FollowUp">
-                <MainLayout>
-                  <HiringPage defaultTab="FollowUp" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/BGV" element={
-              <RBACGuard route="/Hiring/BGV">
-                <MainLayout>
-                  <HiringPage defaultTab="BGV" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Hiring/Settings" element={
-              <RBACGuard route="/Hiring/Settings">
-                <MainLayout>
-                  <HiringPage defaultTab="Settings" />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/Profile" element={
+                  <ProtectedRoute required={["employees.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">My Profile</h1>
+                        <p className="text-muted-foreground">Manage your personal information</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* Project Routes */}
-            <Route path="/Project/Dashboard" element={
-              <RBACGuard route="/Project/Dashboard">
-                <MainLayout>
-                  <ProjectPage defaultTab="Dashboard" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Project/Clients" element={
-              <RBACGuard route="/Project/Clients">
-                <MainLayout>
-                  <ProjectPage defaultTab="Clients" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Project/Projects" element={
-              <RBACGuard route="/Project/Projects">
-                <MainLayout>
-                  <ProjectPage defaultTab="Projects" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Project/Assignments" element={
-              <RBACGuard route="/Project/Assignments">
-                <MainLayout>
-                  <ProjectPage defaultTab="Assignments" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Project/Tasks" element={
-              <RBACGuard route="/Project/Tasks">
-                <MainLayout>
-                  <ProjectPage defaultTab="Tasks" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Project/Bench" element={
-              <RBACGuard route="/Project/Bench">
-                <MainLayout>
-                  <ProjectPage defaultTab="Bench" />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/Attendance" element={
+                  <ProtectedRoute required={["attendance.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">My Attendance</h1>
+                        <p className="text-muted-foreground">Attendance tracking and clock-in functionality</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* Org Routes */}
-            <Route path="/Org/EmployeeDirectory" element={
-              <RBACGuard route="/Org/EmployeeDirectory">
-                <MainLayout>
-                  <OrgPage defaultTab="EmployeeDirectory" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Org/OrgStructure" element={
-              <RBACGuard route="/Org/OrgStructure">
-                <MainLayout>
-                  <OrgPage defaultTab="OrgStructure" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Org/PolicyHub" element={
-              <RBACGuard route="/Org/PolicyHub">
-                <MainLayout>
-                  <OrgPage defaultTab="PolicyHub" />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/Leave" element={
+                  <ProtectedRoute required={["leave.requests.*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">My Leave</h1>
+                        <p className="text-muted-foreground">Request and manage your leave</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* HR Routes */}
-            <Route path="/HR/Performance" element={
-              <RBACGuard route="/HR/Performance">
-                <MainLayout>
-                  <HRPage defaultTab="Performance" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Leave" element={
-              <RBACGuard route="/HR/Leave">
-                <MainLayout>
-                  <HRLeavePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Attendance" element={
-              <RBACGuard route="/HR/Attendance">
-                <MainLayout>
-                  <HRAttendancePage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Expenses" element={
-              <RBACGuard route="/HR/Expenses">
-                <MainLayout>
-                  <HRExpensesPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Timesheet" element={
-              <RBACGuard route="/HR/Timesheet">
-                <MainLayout>
-                  <HRPage defaultTab="Timesheet" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Hiring" element={
-              <RBACGuard route="/HR/Hiring">
-                <MainLayout>
-                  <HRPage defaultTab="Hiring" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Succession" element={
-              <RBACGuard route="/HR/Succession">
-                <MainLayout>
-                  <HRPage defaultTab="Succession" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/OnOffboarding" element={
-              <RBACGuard route="/HR/OnOffboarding">
-                <MainLayout>
-                  <OnOffboardingPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Reports" element={
-              <RBACGuard route="/HR/Reports">
-                <MainLayout>
-                  <HRPage defaultTab="Reports" />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/Timesheet" element={
+                  <ProtectedRoute required={["timesheets.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">My Timesheet</h1>
+                        <p className="text-muted-foreground">Log your working hours</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            <Route path="/HR/IJP" element={
-              <RBACGuard route="/HR/IJP">
-                <MainLayout>
-                  <HRIJPPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/HR/Payroll" element={
-              <RBACGuard route="/HR/Payroll">
-                <MainLayout>
-                  <HRPayrollPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/Finance/Summary" element={
+                  <ProtectedRoute required={["finance.payslips.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">My Finance</h1>
+                        <p className="text-muted-foreground">View payslips and financial information</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* Management Routes */}
-            <Route path="/Management/Dashboard" element={
-              <RBACGuard route="/Management/Dashboard">
-                <MainLayout>
-                  <ManagementPage defaultTab="Dashboard" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Management/Scorecards" element={
-              <RBACGuard route="/Management/Scorecards">
-                <MainLayout>
-                  <ManagementPage defaultTab="Scorecards" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Management/Forecasts" element={
-              <RBACGuard route="/Management/Forecasts">
-                <MainLayout>
-                  <ManagementPage defaultTab="Forecasts" />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/Me/IJP" element={
+                  <ProtectedRoute required={["ijp.postings.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Internal Job Postings</h1>
+                        <p className="text-muted-foreground">Browse and apply for internal positions</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
+                <Route path="/MyTeam/Dashboard" element={
+                  <ProtectedRoute required={["attendance.team.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Team Dashboard</h1>
+                        <p className="text-muted-foreground">Overview of your team's activities</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* Admin Routes */}
-            <Route path="/Admin/Tenant" element={
-              <RBACGuard route="/Admin/Tenant">
-                <MainLayout>
-                  <AdminPage defaultTab="Tenant" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Admin/Access" element={
-              <RBACGuard route="/Admin/Access">
-                <MainLayout>
-                  <AdminPage defaultTab="Access" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Admin/Integrations" element={
-              <RBACGuard route="/Admin/Integrations">
-                <MainLayout>
-                  <AdminPage defaultTab="Integrations" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Admin/Audit" element={
-              <RBACGuard route="/Admin/Audit">
-                <MainLayout>
-                  <AdminPage defaultTab="Audit" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Admin/Security" element={
-              <RBACGuard route="/Admin/Security">
-                <MainLayout>
-                  <AdminPage defaultTab="Security" />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Admin/Payroll" element={
-              <RBACGuard route="/Admin/Payroll">
-                <MainLayout>
-                  <AdminPayrollPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
-            <Route path="/Finance/Payroll" element={
-              <RBACGuard route="/Finance/Payroll">
-                <MainLayout>
-                  <FinancePayrollPage />
-                </MainLayout>
-              </RBACGuard>
-            } />
+                <Route path="/MyTeam/Leave" element={
+                  <ProtectedRoute required={["leave.approvals.*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Team Leave Management</h1>
+                        <p className="text-muted-foreground">Manage your team's leave requests</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
 
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+                <Route path="/MyTeam/Performance" element={
+                  <ProtectedRoute required={["performance.reviews.create"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Team Performance</h1>
+                        <p className="text-muted-foreground">Conduct performance reviews and meetings</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Hiring/Dashboard" element={
+                  <ProtectedRoute required={["hiring.dashboard.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Hiring Dashboard</h1>
+                        <p className="text-muted-foreground">Recruitment pipeline and analytics</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Hiring/JobRequisitions" element={
+                  <ProtectedRoute required={["hiring.requisitions.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Job Requisitions</h1>
+                        <p className="text-muted-foreground">Manage job openings and requirements</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Hiring/Applications" element={
+                  <ProtectedRoute required={["applications.pipeline.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Applications</h1>
+                        <p className="text-muted-foreground">Review candidate applications</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Hiring/BGV" element={
+                  <ProtectedRoute required={["bgv.cases.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Background Verification</h1>
+                        <p className="text-muted-foreground">Manage background verification cases</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Hiring/Offers" element={
+                  <ProtectedRoute required={["offers.create"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Offers (Hiring Manager)</h1>
+                        <p className="text-muted-foreground">Create and approve job offers</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Projects" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Projects Dashboard</h1>
+                        <p className="text-muted-foreground">Manage projects and assignments</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Org/EmployeeDirectory" element={
+                  <ProtectedRoute required={["employees.directory.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Employee Directory</h1>
+                        <p className="text-muted-foreground">Browse company directory</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Org/OrgStructure" element={
+                  <ProtectedRoute required={["employees.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Organization Structure</h1>
+                        <p className="text-muted-foreground">View organizational hierarchy</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Org/PolicyHub" element={
+                  <ProtectedRoute required={["portal.announcements.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Policy Hub</h1>
+                        <p className="text-muted-foreground">Company policies and announcements</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/HR/Performance" element={
+                  <ProtectedRoute required={["performance.cycles.create"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">HR Performance Management</h1>
+                        <p className="text-muted-foreground">Manage performance cycles and reviews</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/HR/Leave" element={
+                  <ProtectedRoute required={["leave.policies.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">HR Leave Management</h1>
+                        <p className="text-muted-foreground">Manage leave policies and approvals</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/HR/Attendance" element={
+                  <ProtectedRoute required={["attendance.policies.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">HR Attendance Management</h1>
+                        <p className="text-muted-foreground">Manage attendance policies and tracking</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/HR/OnOffboarding" element={
+                  <ProtectedRoute required={["onboarding.*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">On/Offboarding</h1>
+                        <p className="text-muted-foreground">Manage employee onboarding and offboarding</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/HR/Payroll" element={
+                  <ProtectedRoute required={["payroll.runs.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">HR Payroll</h1>
+                        <p className="text-muted-foreground">Manage payroll runs and approvals</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Finance/Payroll" element={
+                  <ProtectedRoute required={["finance.reports.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Finance Payroll</h1>
+                        <p className="text-muted-foreground">Financial payroll reports and analytics</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/IT/Helpdesk" element={
+                  <ProtectedRoute required={["helpdesk.dashboard.read"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">IT Helpdesk</h1>
+                        <p className="text-muted-foreground">Manage IT support tickets</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Admin/Tenant" element={
+                  <ProtectedRoute required={["*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Tenant Management</h1>
+                        <p className="text-muted-foreground">Manage tenant settings and configuration</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Admin/Access" element={
+                  <ProtectedRoute required={["*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Access Management</h1>
+                        <p className="text-muted-foreground">Manage user roles and permissions</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Admin/Integrations" element={
+                  <ProtectedRoute required={["*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Integrations</h1>
+                        <p className="text-muted-foreground">Configure external integrations</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/Admin/Security" element={
+                  <ProtectedRoute required={["*"]}>
+                    <Shell>
+                      <div className="p-6">
+                        <h1 className="text-2xl font-bold mb-4">Admin Security</h1>
+                        <p className="text-muted-foreground">Security settings and access controls</p>
+                      </div>
+                    </Shell>
+                  </ProtectedRoute>
+                } />
+
+                {/* Catch all for 404 */}
+                <Route path="*" element={<Navigate to="/403" replace />} />
+              </Routes>
+              <Toaster />
+              <Sonner />
+            </BrowserRouter>
+          </AuthProvider>
+        </JotaiProvider>
       </TooltipProvider>
-    </JotaiProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;
