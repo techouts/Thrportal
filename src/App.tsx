@@ -70,14 +70,14 @@ function App() {
 
                 {/* Hiring Section */}
                 <Route path="/Hiring/*" element={
-                  <ProtectedRoute required={["hiring.requisitions.read", "applications.pipeline.read"]}>
+                  <ProtectedRoute required={["hiring.dashboard.read", "hiring.requisitions.read", "applications.pipeline.read"]}>
                     <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
 
                 {/* Projects */}
                 <Route path="/Projects" element={
-                  <ProtectedRoute required={["projects.read"]}>
+                  <ProtectedRoute required={["projects.read", "projects.*.read"]}>
                     <MainLayout><ProjectPage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
@@ -91,14 +91,14 @@ function App() {
 
                 {/* HR Section */}
                 <Route path="/HR/*" element={
-                  <ProtectedRoute required={["leave.policies.read", "attendance.policies.read", "performance.cycles.create", "employees.*"]}>
+                  <ProtectedRoute required={["employees.*", "leave.*", "attendance.*", "performance.*", "onboarding.*", "offboarding.*"]}>
                     <MainLayout><HRPage defaultTab="Performance" /></MainLayout>
                   </ProtectedRoute>
                 } />
 
                 {/* Finance */}
                 <Route path="/Finance/*" element={
-                  <ProtectedRoute required={["finance.reports.read", "payroll.runs.read"]}>
+                  <ProtectedRoute required={["finance.reports.read", "payroll.runs.read", "finance.payroll.read"]}>
                     <MainLayout><PayrollPage /></MainLayout>
                   </ProtectedRoute>
                 } />
