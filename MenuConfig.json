@@ -1,0 +1,472 @@
+{
+  "menu_config": {
+    "sidebar_sections": [
+      {
+        "section": "Home",
+        "icon": "Home",
+        "visibleIf": "all",
+        "items": [
+          {
+            "name": "Dashboard",
+            "route": "/Home",
+            "icon": "BarChart3",
+            "visibleIf": "all"
+          }
+        ]
+      },
+      {
+        "section": "Me",
+        "icon": "Users",
+        "visibleIf": "all",
+        "items": [
+          {
+            "name": "Dashboard",
+            "route": "/Me/Dashboard",
+            "icon": "BarChart3",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Profile",
+            "route": "/Me/Profile",
+            "icon": "Users",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Attendance",
+            "route": "/Me/Attendance",
+            "icon": "Clock",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Leave",
+            "route": "/Me/Leave",
+            "icon": "Calendar",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Timesheet",
+            "route": "/Me/Timesheet",
+            "icon": "Clock",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Expenses",
+            "route": "/Me/Expenses",
+            "icon": "DollarSign",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Finance",
+            "route": "/Me/Finance",
+            "icon": "DollarSign",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Learning",
+            "route": "/Me/Learning",
+            "icon": "BookOpen",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Recognition",
+            "route": "/Me/Recognition",
+            "icon": "Star",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Performance",
+            "route": "/Me/Performance",
+            "icon": "Target",
+            "visibleIf": "all"
+          },
+          {
+            "name": "IJP",
+            "route": "/Me/IJP",
+            "icon": "TrendingUp",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Referrals",
+            "route": "/Me/Referrals",
+            "icon": "Users",
+            "visibleIf": "all"
+          },
+          {
+            "name": "Helpdesk",
+            "route": "/Me/Helpdesk",
+            "icon": "MessageSquare",
+            "visibleIf": "all"
+          }
+        ]
+      },
+      {
+        "section": "MyTeam",
+        "icon": "Users",
+        "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'",
+        "items": [
+          {
+            "name": "Dashboard",
+            "route": "/MyTeam/Dashboard",
+            "icon": "BarChart3",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Leave",
+            "route": "/MyTeam/Leave",
+            "icon": "Calendar",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Attendance",
+            "route": "/MyTeam/Attendance",
+            "icon": "Clock",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Timesheet",
+            "route": "/MyTeam/Timesheet",
+            "icon": "Clock",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Expenses",
+            "route": "/MyTeam/Expenses",
+            "icon": "DollarSign",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Learning",
+            "route": "/MyTeam/Learning",
+            "icon": "BookOpen",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Recognition",
+            "route": "/MyTeam/Recognition",
+            "icon": "Star",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Performance",
+            "route": "/MyTeam/Performance",
+            "icon": "Target",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "IJP",
+            "route": "/MyTeam/IJP",
+            "icon": "TrendingUp",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "ProfileChanges",
+            "route": "/MyTeam/ProfileChanges",
+            "icon": "UserCheck",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          }
+        ]
+      },
+      {
+        "section": "Hiring",
+        "icon": "UserCheck",
+        "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'",
+        "items": [
+          {
+            "name": "Dashboard",
+            "route": "/Hiring/Dashboard",
+            "icon": "BarChart3",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "JobRequisitions",
+            "route": "/Hiring/JobRequisitions",
+            "icon": "FileText",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Assignment",
+            "route": "/Hiring/Assignment",
+            "icon": "CheckSquare",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Applications",
+            "route": "/Hiring/Applications",
+            "icon": "FileText",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Pipeline",
+            "route": "/Hiring/Pipeline",
+            "icon": "TrendingUp",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "FollowUp",
+            "route": "/Hiring/FollowUp",
+            "icon": "MessageSquare",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "BGV",
+            "route": "/Hiring/BGV",
+            "icon": "Shield",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Settings",
+            "route": "/Hiring/Settings",
+            "icon": "Settings",
+            "visibleIf": "role === 'Manager' || role === 'Recruiter' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          }
+        ]
+      },
+      {
+        "section": "Projects",
+        "icon": "Briefcase",
+        "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'",
+        "items": [
+          {
+            "name": "Dashboard",
+            "route": "/Project/Dashboard",
+            "icon": "BarChart3",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Clients",
+            "route": "/Project/Clients",
+            "icon": "Building2",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Projects",
+            "route": "/Project/Projects",
+            "icon": "FolderOpen",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Assignments",
+            "route": "/Project/Assignments",
+            "icon": "CheckSquare",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Tasks",
+            "route": "/Project/Tasks",
+            "icon": "CheckSquare",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Bench",
+            "route": "/Project/Bench",
+            "icon": "Users",
+            "visibleIf": "role === 'Manager' || role === 'HR' || role === 'Management' || role === 'Admin'"
+          }
+        ]
+      },
+      {
+        "section": "Org",
+        "icon": "Building2",
+        "visibleIf": "all",
+        "items": [
+          {
+            "name": "EmployeeDirectory",
+            "route": "/Org/EmployeeDirectory",
+            "icon": "Users",
+            "visibleIf": "all"
+          },
+          {
+            "name": "OrgStructure",
+            "route": "/Org/OrgStructure",
+            "icon": "Building2",
+            "visibleIf": "all"
+          },
+          {
+            "name": "PolicyHub",
+            "route": "/Org/PolicyHub",
+            "icon": "FileText",
+            "visibleIf": "all"
+          }
+        ]
+      },
+      {
+        "section": "HR",
+        "icon": "Heart",
+        "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'",
+        "items": [
+          {
+            "name": "Performance",
+            "route": "/HR/Performance",
+            "icon": "Target",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Leave",
+            "route": "/HR/Leave",
+            "icon": "Calendar",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Attendance",
+            "route": "/HR/Attendance",
+            "icon": "Clock",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Expenses",
+            "route": "/HR/Expenses",
+            "icon": "DollarSign",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Payroll",
+            "route": "/HR/Payroll",
+            "icon": "DollarSign",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Learning",
+            "route": "/HR/Learning",
+            "icon": "BookOpen",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Recognition",
+            "route": "/HR/Recognition",
+            "icon": "Star",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Helpdesk",
+            "route": "/HR/Helpdesk",
+            "icon": "Headphones",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Timesheet",
+            "route": "/HR/Timesheet",
+            "icon": "Clock",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "IJP",
+            "route": "/HR/IJP",
+            "icon": "TrendingUp",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Hiring",
+            "route": "/HR/Hiring",
+            "icon": "UserCheck",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Succession",
+            "route": "/HR/Succession",
+            "icon": "TrendingUp",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "OnOffboarding",
+            "route": "/HR/OnOffboarding",
+            "icon": "UserCheck",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          },
+          {
+            "name": "Reports",
+            "route": "/HR/Reports",
+            "icon": "BarChart3",
+            "visibleIf": "role === 'HR' || role === 'Management' || role === 'Admin'"
+          }
+        ]
+      },
+      {
+        "section": "Finance",
+        "icon": "DollarSign",
+        "visibleIf": "role === 'FINANCE'",
+        "items": [
+          {
+            "name": "Payroll",
+            "route": "/Finance/Payroll",
+            "icon": "DollarSign",
+            "visibleIf": "role === 'FINANCE'"
+          }
+        ]
+      },
+      {
+        "section": "IT",
+        "icon": "Monitor",
+        "visibleIf": "role === 'IT'",
+        "items": [
+          {
+            "name": "Helpdesk",
+            "route": "/IT/Helpdesk",
+            "icon": "Headphones",
+            "visibleIf": "role === 'IT'"
+          }
+        ]
+      },
+      {
+        "section": "Admin",
+        "icon": "Settings",
+        "visibleIf": "role === 'Admin'",
+        "items": [
+          {
+            "name": "Tenant",
+            "route": "/Admin/Tenant",
+            "icon": "Building2",
+            "visibleIf": "role === 'Admin'"
+          },
+          {
+            "name": "Access",
+            "route": "/Admin/Access",
+            "icon": "Shield",
+            "visibleIf": "role === 'Admin'"
+          },
+          {
+            "name": "Payroll",
+            "route": "/Admin/Payroll",
+            "icon": "DollarSign",
+            "visibleIf": "role === 'Admin'"
+          },
+          {
+            "name": "Integrations",
+            "route": "/Admin/Integrations",
+            "icon": "Settings",
+            "visibleIf": "role === 'Admin'"
+          },
+          {
+            "name": "Audit",
+            "route": "/Admin/Audit",
+            "icon": "FileText",
+            "visibleIf": "role === 'Admin'"
+          },
+          {
+            "name": "Security",
+            "route": "/Admin/Security",
+            "icon": "Shield",
+            "visibleIf": "role === 'Admin'"
+          }
+        ]
+      }
+    ],
+    "conditional_visibility": {
+      "home_sections": [
+        {
+          "section_id": "team",
+          "visibleIf": "isManager"
+        },
+        {
+          "section_id": "approvals", 
+          "visibleIf": "userRole === 'Manager' || userRole === 'HR'"
+        }
+      ],
+      "policy_hub_tabs": [
+        {
+          "tab": "library",
+          "visibleIf": "currentUser?.role === 'HR' || currentUser?.role === 'Admin'"
+        }
+      ]
+    }
+  }
+}
