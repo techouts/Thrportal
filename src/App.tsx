@@ -69,6 +69,46 @@ function App() {
                 } />
 
                 {/* Hiring Section */}
+                <Route path="/Hiring/Dashboard" element={
+                  <ProtectedRoute required={["hiring.dashboard.read"]}>
+                    <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/JobRequisitions" element={
+                  <ProtectedRoute required={["hiring.requisitions.read"]}>
+                    <MainLayout><HiringPage defaultTab="JobRequisitions" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Assignment" element={
+                  <ProtectedRoute required={["applications.submissions.*"]}>
+                    <MainLayout><HiringPage defaultTab="Assignment" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Applications" element={
+                  <ProtectedRoute required={["applications.pipeline.read"]}>
+                    <MainLayout><HiringPage defaultTab="Applications" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Pipeline" element={
+                  <ProtectedRoute required={["applications.pipeline.read"]}>
+                    <MainLayout><HiringPage defaultTab="Pipeline" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/FollowUp" element={
+                  <ProtectedRoute required={["applications.pipeline.read"]}>
+                    <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/BGV" element={
+                  <ProtectedRoute required={["bgv.cases.read"]}>
+                    <MainLayout><HiringPage defaultTab="BGV" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Settings" element={
+                  <ProtectedRoute required={["hiring.settings.*"]}>
+                    <MainLayout><HiringPage defaultTab="Settings" /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/Hiring/*" element={
                   <ProtectedRoute required={["hiring.dashboard.read"]}>
                     <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>

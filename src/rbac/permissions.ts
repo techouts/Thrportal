@@ -42,7 +42,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "timesheets.approvals.*",
     "performance.reviews.create","performance.meetings.*",
     "ijp.applications.read_team","ijp.applications.approve",
-    "hiring.dashboard.read","hiring.requisitions.read"
+    "hiring.dashboard.read","hiring.requisitions.read",
+    "applications.pipeline.read","applications.submissions.*"
   ],
 
   RECRUITER: [
@@ -83,7 +84,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "employees.*","leave.*","attendance.*",
     "onboarding.*","offboarding.*","performance.*",
     "policy.*","letters.*","bgv.*","ijp.settings.*","payroll.runs.read",
-    "hiring.*"
+    "hiring.*","applications.*","hiring.settings.*"
   ],
 
   PAYROLL_SPECIALIST: [
