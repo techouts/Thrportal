@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Filter, Lock, Unlock, Users, UserPlus, History, MoreHorizontal } from 'lucide-react';
+import { Search, Filter, Lock, Unlock, Users, UserPlus, History, MoreHorizontal, AlertTriangle, Send, Bell } from 'lucide-react';
 import { ownershipService } from '@/services/ownershipService';
-import { JDOwnership, JDStatus } from '@/types/ownership';
+import { JDOwnership, JDStatus, SlaStatus } from '@/types/ownership';
+import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,7 @@ export function JDOwnershipTab() {
   const [selectedJDs, setSelectedJDs] = useState<string[]>([]);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [selectedJD, setSelectedJD] = useState<JDOwnership | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadJDOwnerships();
@@ -81,6 +83,36 @@ export function JDOwnershipTab() {
       case 'Draft': return 'secondary';
       case 'Cancelled': return 'destructive';
       default: return 'secondary';
+    }
+  };
+
+  const getSlaStatusBadgeVariant = (slaStatus: SlaStatus) => {
+    switch (slaStatus) {
+      case 'On Track': return 'default';
+      case 'Amber': return 'secondary';
+      case 'Red': return 'destructive';
+      case 'No Submission': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const handleQuickAction = async (action: string, jdId: string) => {
+    try {
+      switch (action) {
+        case 'escalate':
+          await ownershipService.escalateToManager(jdId, 'No submissions received');
+          toast({ title: "Escalated to Manager", description: "JD has been escalated to the staffing manager." });
+          break;
+        case 'notify':
+          await ownershipService.notifyRecruiter(jdId, 'Please prioritize submissions for this JD');
+          toast({ title: "Recruiter Notified", description: "Reminder sent to the assigned recruiter." });
+          break;
+        default:
+          break;
+      }
+      loadJDOwnerships();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to perform action.", variant: "destructive" });
     }
   };
 
@@ -184,14 +216,16 @@ export function JDOwnershipTab() {
                     <th className="text-left p-2">Recruiter Owner(s)</th>
                     <th className="text-left p-2">Staffing Manager</th>
                     <th className="text-left p-2">Client SPOC</th>
+                    <th className="text-left p-2">Submissions</th>
+                    <th className="text-left p-2">SLA Status</th>
                     <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Lock Status</th>
+                    <th className="text-left p-2">Lock</th>
                     <th className="text-left p-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredJDs.map((jd) => (
-                    <tr key={jd.id} className="border-b hover:bg-muted/50">
+                    <tr key={jd.id} className={`border-b hover:bg-muted/50 ${jd.submissionsTotal === 0 ? 'bg-red-50/50' : ''}`}>
                       <td className="p-2">
                         <Checkbox
                           checked={selectedJDs.includes(jd.jdId)}
@@ -225,6 +259,19 @@ export function JDOwnershipTab() {
                       <td className="p-2">{jd.staffingManager}</td>
                       <td className="p-2">{jd.clientSpoc}</td>
                       <td className="p-2">
+                        <div className="text-sm">
+                          <div className={`font-medium ${jd.submissionsTotal === 0 ? 'text-red-600' : ''}`}>
+                            {jd.submissionsToday} / {jd.submissionsTotal}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Today / Total</div>
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <Badge variant={getSlaStatusBadgeVariant(jd.slaStatus)} className="text-xs">
+                          {jd.slaStatus}
+                        </Badge>
+                      </td>
+                      <td className="p-2">
                         <Badge variant={getStatusBadgeVariant(jd.status)}>
                           {jd.status}
                         </Badge>
@@ -244,32 +291,68 @@ export function JDOwnershipTab() {
                         </Button>
                       </td>
                       <td className="p-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedJD(jd);
-                                setShowReassignDialog(true);
-                              }}
-                            >
-                              <UserPlus className="mr-2 h-4 w-4" />
-                              Reassign Recruiters
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Users className="mr-2 h-4 w-4" />
-                              Change Manager
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <History className="mr-2 h-4 w-4" />
-                              View History
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center gap-1">
+                          {jd.submissionsTotal === 0 && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleQuickAction('escalate', jd.jdId)}
+                                title="Escalate to Manager"
+                                className="p-1"
+                              >
+                                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleQuickAction('notify', jd.jdId)}
+                                title="Notify Recruiter"
+                                className="p-1"
+                              >
+                                <Bell className="h-4 w-4 text-blue-500" />
+                              </Button>
+                            </>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedJD(jd);
+                                  setShowReassignDialog(true);
+                                }}
+                              >
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Reassign Recruiters
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Users className="mr-2 h-4 w-4" />
+                                Change Manager
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <History className="mr-2 h-4 w-4" />
+                                View History
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleQuickAction('escalate', jd.jdId)}
+                              >
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                Escalate to Manager
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleQuickAction('notify', jd.jdId)}
+                              >
+                                <Send className="mr-2 h-4 w-4" />
+                                Notify Recruiter
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </td>
                     </tr>
                   ))}

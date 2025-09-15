@@ -9,12 +9,17 @@ export interface JDOwnership {
   clientSpoc: string;
   status: JDStatus;
   isLocked: boolean;
+  submissionsToday: number;
+  submissionsTotal: number;
+  slaStatus: SlaStatus;
+  slaDeadline: string;
   createdAt: string;
   updatedAt: string;
   updatedBy: string;
 }
 
 export type JDStatus = 'Active' | 'On Hold' | 'Closed' | 'Draft' | 'Cancelled';
+export type SlaStatus = 'On Track' | 'Amber' | 'Red' | 'No Submission';
 
 export interface CandidateOwnership {
   id: string;
@@ -241,6 +246,25 @@ export interface OwnershipMetrics {
   escalationRate: number;
   reassignmentRate: number;
   ownershipVelocity: number;
+}
+
+export interface NoSubmissionReport {
+  jdId: string;
+  jdTitle: string;
+  client: string;
+  recruiterOwner: string;
+  slaDeadline: string;
+  submissionsCount: number;
+  daysSincePosted: number;
+  daysPastDeadline?: number;
+  riskLevel: RiskLevel;
+}
+
+export interface NoSubmissionWidget {
+  jdsLast24h: number;
+  jdsLast7d: number;
+  totalOpenJds: number;
+  criticalJds: number;
 }
 
 export interface SpocDashboard {

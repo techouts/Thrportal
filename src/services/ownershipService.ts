@@ -19,7 +19,9 @@ import {
   CandidateStage,
   PoolAccessLevel,
   RecruiterStatus,
-  RiskLevel
+  RiskLevel,
+  NoSubmissionReport,
+  NoSubmissionWidget
 } from '@/types/ownership';
 
 class OwnershipService {
@@ -56,6 +58,10 @@ class OwnershipService {
         clientSpoc: 'spoc-1',
         status: 'Active',
         isLocked: false,
+        submissionsToday: 2,
+        submissionsTotal: 12,
+        slaStatus: 'On Track',
+        slaDeadline: '2024-02-15T23:59:59Z',
         createdAt: '2024-01-15T10:00:00Z',
         updatedAt: '2024-01-16T14:30:00Z',
         updatedBy: 'manager-1'
@@ -69,9 +75,47 @@ class OwnershipService {
         clientSpoc: 'spoc-2',
         status: 'Active',
         isLocked: true,
+        submissionsToday: 0,
+        submissionsTotal: 0,
+        slaStatus: 'No Submission',
+        slaDeadline: '2024-01-28T23:59:59Z',
         createdAt: '2024-01-14T09:00:00Z',
         updatedAt: '2024-01-15T11:45:00Z',
         updatedBy: 'manager-2'
+      },
+      {
+        id: 'jd-own-3',
+        jdId: 'jd-003',
+        jdTitle: 'Full Stack Developer',
+        recruiterOwners: ['recruiter-1'],
+        staffingManager: 'manager-1',
+        clientSpoc: 'spoc-3',
+        status: 'Active',
+        isLocked: false,
+        submissionsToday: 1,
+        submissionsTotal: 8,
+        slaStatus: 'Amber',
+        slaDeadline: '2024-02-01T23:59:59Z',
+        createdAt: '2024-01-12T14:30:00Z',
+        updatedAt: '2024-01-28T09:15:00Z',
+        updatedBy: 'hr'
+      },
+      {
+        id: 'jd-own-4',
+        jdId: 'jd-004',
+        jdTitle: 'Data Scientist',
+        recruiterOwners: ['recruiter-2'],
+        staffingManager: 'manager-1',
+        clientSpoc: 'spoc-1',
+        status: 'Active',
+        isLocked: false,
+        submissionsToday: 0,
+        submissionsTotal: 5,
+        slaStatus: 'Red',
+        slaDeadline: '2024-01-30T23:59:59Z',
+        createdAt: '2024-01-08T11:20:00Z',
+        updatedAt: '2024-01-29T16:45:00Z',
+        updatedBy: 'recruiter'
       }
     ];
 
@@ -566,6 +610,53 @@ class OwnershipService {
       reassignmentRate: 0.08,
       ownershipVelocity: 1.25
     };
+  }
+
+  // No Submission Reports
+  async getNoSubmissionReports(): Promise<NoSubmissionReport[]> {
+    return [
+      {
+        jdId: 'jd-002',
+        jdTitle: 'Python Backend Engineer',
+        client: 'TechCorp Solutions',
+        recruiterOwner: 'recruiter-3',
+        slaDeadline: '2024-01-28T23:59:59Z',
+        submissionsCount: 0,
+        daysSincePosted: 18,
+        daysPastDeadline: 2,
+        riskLevel: 'High'
+      },
+      {
+        jdId: 'jd-005',
+        jdTitle: 'Product Manager',
+        client: 'StartupXYZ',
+        recruiterOwner: 'recruiter-4',
+        slaDeadline: '2024-02-05T23:59:59Z',
+        submissionsCount: 0,
+        daysSincePosted: 5,
+        riskLevel: 'Medium'
+      }
+    ];
+  }
+
+  async getNoSubmissionWidget(): Promise<NoSubmissionWidget> {
+    return {
+      jdsLast24h: 3,
+      jdsLast7d: 8,
+      totalOpenJds: 24,
+      criticalJds: 5
+    };
+  }
+
+  // Quick Actions
+  async escalateToManager(jdId: string, reason: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log(`Escalating JD ${jdId} to manager. Reason: ${reason}`);
+  }
+
+  async notifyRecruiter(jdId: string, message: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    console.log(`Notifying recruiter for JD ${jdId}. Message: ${message}`);
   }
 
   // Bulk Operations

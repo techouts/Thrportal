@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, TrendingUp, Users, AlertTriangle } from 'lucide-react';
+import { Download, TrendingUp, Users, AlertTriangle, Clock, Target } from 'lucide-react';
 import { ownershipService } from '@/services/ownershipService';
-import { WorkloadDistribution, ManagerDashboard, ClientSlaReport, OrphanReport } from '@/types/ownership';
+import { WorkloadDistribution, ManagerDashboard, ClientSlaReport, OrphanReport, NoSubmissionReport, NoSubmissionWidget } from '@/types/ownership';
 import { KPICard } from '@/components/shared/KPICard';
 
 export function OwnershipReportsTab() {
@@ -12,6 +12,8 @@ export function OwnershipReportsTab() {
   const [managerData, setManagerData] = useState<ManagerDashboard[]>([]);
   const [clientData, setClientData] = useState<ClientSlaReport[]>([]);
   const [orphanData, setOrphanData] = useState<OrphanReport | null>(null);
+  const [noSubmissionData, setNoSubmissionData] = useState<NoSubmissionReport[]>([]);
+  const [noSubmissionWidget, setNoSubmissionWidget] = useState<NoSubmissionWidget | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,16 +23,20 @@ export function OwnershipReportsTab() {
   const loadReports = async () => {
     setLoading(true);
     try {
-      const [workload, manager, client, orphan] = await Promise.all([
+      const [workload, manager, client, orphan, noSubmission, widget] = await Promise.all([
         ownershipService.getWorkloadDistribution(),
         ownershipService.getManagerDashboards(),
         ownershipService.getClientSlaReports(),
-        ownershipService.getOrphanReport()
+        ownershipService.getOrphanReport(),
+        ownershipService.getNoSubmissionReports(),
+        ownershipService.getNoSubmissionWidget()
       ]);
       setWorkloadData(workload);
       setManagerData(manager);
       setClientData(client);
       setOrphanData(orphan);
+      setNoSubmissionData(noSubmission);
+      setNoSubmissionWidget(widget);
     } catch (error) {
       console.error('Failed to load reports:', error);
     } finally {
@@ -52,13 +58,104 @@ export function OwnershipReportsTab() {
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="workload" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="nosubmissions" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="nosubmissions">No Submissions</TabsTrigger>
           <TabsTrigger value="workload">Workload</TabsTrigger>
           <TabsTrigger value="managers">Managers</TabsTrigger>
           <TabsTrigger value="clients">Client SLA</TabsTrigger>
           <TabsTrigger value="orphans">Orphan Report</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="nosubmissions" className="space-y-6">
+          {/* No Submission Widget */}
+          {noSubmissionWidget && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <KPICard
+                title="JDs (Last 24h)"
+                value={noSubmissionWidget.jdsLast24h.toString()}
+                icon={Clock}
+                trend={{ direction: "down", value: "1" }}
+              />
+              <KPICard
+                title="JDs (Last 7d)"
+                value={noSubmissionWidget.jdsLast7d.toString()}
+                icon={AlertTriangle}
+                trend={{ direction: "up", value: "3" }}
+              />
+              <KPICard
+                title="Total Open JDs"
+                value={noSubmissionWidget.totalOpenJds.toString()}
+                icon={Target}
+                trend={{ direction: "up", value: "2" }}
+              />
+              <KPICard
+                title="Critical JDs"
+                value={noSubmissionWidget.criticalJds.toString()}
+                icon={AlertTriangle}
+                trend={{ direction: "down", value: "1" }}
+              />
+            </div>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Open JDs with No Submissions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">JD ID</th>
+                      <th className="text-left p-2">JD Title</th>
+                      <th className="text-left p-2">Client</th>
+                      <th className="text-left p-2">Recruiter Owner</th>
+                      <th className="text-left p-2">SLA Deadline</th>
+                      <th className="text-left p-2">Days Since Posted</th>
+                      <th className="text-left p-2">Days Past Deadline</th>
+                      <th className="text-left p-2">Risk Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {noSubmissionData.map((jd) => (
+                      <tr key={jd.jdId} className="border-b">
+                        <td className="p-2 font-mono text-sm">{jd.jdId}</td>
+                        <td className="p-2 font-medium">{jd.jdTitle}</td>
+                        <td className="p-2">{jd.client}</td>
+                        <td className="p-2">{jd.recruiterOwner}</td>
+                        <td className="p-2">{new Date(jd.slaDeadline).toLocaleDateString()}</td>
+                        <td className="p-2">{jd.daysSincePosted}</td>
+                        <td className="p-2">
+                          {jd.daysPastDeadline ? (
+                            <span className="text-red-600 font-medium">{jd.daysPastDeadline}</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="p-2">
+                          <span className={`text-sm font-medium ${
+                            jd.riskLevel === 'High' ? 'text-red-600' : 
+                            jd.riskLevel === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {jd.riskLevel}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {noSubmissionData.length === 0 && (
+                  <div className="text-center py-8">
+                    <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">All JDs have submissions</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="workload" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
