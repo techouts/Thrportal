@@ -250,41 +250,6 @@ function App() {
                 } />
 
                 {/* CRM Section */}
-                <Route path="/CRM/Home" element={
-                  <ProtectedRoute required={["crm.read"]}>
-                    <MainLayout><CRMHomePage /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/CRM/Clients" element={
-                  <ProtectedRoute required={["crm.read"]}>
-                    <MainLayout><CRMClientsPage /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/CRM/Accounts" element={
-                  <ProtectedRoute required={["crm.read"]}>
-                    <MainLayout><CRMAccountsPage /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/CRM/Projects" element={
-                  <ProtectedRoute required={["crm.read"]}>
-                    <MainLayout><CRMProjectsPage /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/CRM/Opportunities" element={
-                  <ProtectedRoute required={["crm.read"]}>
-                    <MainLayout><CRMOpportunitiesPage /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/CRM/Interactions" element={
-                  <ProtectedRoute required={["crm.interactions.*"]}>
-                    <MainLayout><CRMInteractionsPage /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/CRM/Reports" element={
-                  <ProtectedRoute required={["crm.read"]}>
-                    <MainLayout><CRMReportsPage /></MainLayout>
-                  </ProtectedRoute>
-                } />
                 <Route path="/CRM/*" element={
                   <ProtectedRoute required={["crm.read"]}>
                     <MainLayout><CRMHomePage /></MainLayout>
