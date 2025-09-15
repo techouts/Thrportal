@@ -111,15 +111,13 @@ export function CandidateReportsTab() {
               title="Total Candidates"
               value={reports.pipelineHealth.totalCandidates.toLocaleString()}
               icon={Users}
-              trend={{ direction: "up", value: "8.2%" }}
-              trendLabel="vs last month"
+              trend={{ direction: "up", value: "8.2%", label: "vs last month" }}
             />
             <KPICard
               title="Conversion Rate"
               value={`${reports.conversionMetrics.overallConversion}%`}
               icon={Target}
-              trend={{ direction: "down", value: "2.1%" }}
-              trendLabel="vs last month"
+              trend={{ direction: "down", value: "2.1%", label: "vs last month" }}
             />
             <KPICard
               title="Active Candidates"
@@ -128,15 +126,13 @@ export function CandidateReportsTab() {
                 .reduce((sum, count) => sum + count, 0)
                 .toLocaleString()}
               icon={TrendingUp}
-              trend={{ direction: "up", value: "5.7%" }}
-              trendLabel="vs last month"
+              trend={{ direction: "up", value: "5.7%", label: "vs last month" }}
             />
             <KPICard
               title="Bottlenecks"
               value={reports.pipelineHealth.bottlenecks.length.toString()}
               icon={AlertTriangle}
-              trend={{ direction: "neutral", value: "0" }}
-              trendLabel="identified"
+              trend={{ direction: "neutral", value: "0", label: "identified" }}
             />
           </div>
 
@@ -146,16 +142,17 @@ export function CandidateReportsTab() {
               <CardTitle>Candidate Conversion Funnel</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartKit
-                type="funnel"
-                data={conversionFunnelData}
-                config={{
-                  xAxis: { dataKey: 'stage' },
-                  series: [
-                    { dataKey: 'count', name: 'Candidates', color: 'hsl(var(--primary))' }
-                  ]
-                }}
-              />
+              <div className="space-y-4">
+                {conversionFunnelData.map((item) => (
+                  <div key={item.stage} className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{item.stage}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{item.count.toLocaleString()}</span>
+                      <span className="text-xs text-muted-foreground">({item.percentage}%)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -169,11 +166,8 @@ export function CandidateReportsTab() {
                 <ChartKit
                   type="pie"
                   data={pipelineData}
-                  config={{
-                    series: [
-                      { dataKey: 'count', name: 'Candidates', color: 'hsl(var(--primary))' }
-                    ]
-                  }}
+                  dataKey="count"
+                  xAxisKey="stage"
                 />
               </CardContent>
             </Card>
@@ -289,12 +283,8 @@ export function CandidateReportsTab() {
               <ChartKit
                 type="bar"
                 data={reports.sourceAnalytics}
-                config={{
-                  xAxis: { dataKey: 'source' },
-                  series: [
-                    { dataKey: 'totalCandidates', name: 'Total Candidates', color: 'hsl(var(--primary))' }
-                  ]
-                }}
+                dataKey="totalCandidates"
+                xAxisKey="source"
               />
             </CardContent>
           </Card>
@@ -345,12 +335,8 @@ export function CandidateReportsTab() {
               <ChartKit
                 type="bar"
                 data={reports.rejectionAnalysis.topReasons}
-                config={{
-                  xAxis: { dataKey: 'reason' },
-                  series: [
-                    { dataKey: 'count', name: 'Count', color: 'hsl(var(--destructive))' }
-                  ]
-                }}
+                dataKey="count"
+                xAxisKey="reason"
               />
             </CardContent>
           </Card>
