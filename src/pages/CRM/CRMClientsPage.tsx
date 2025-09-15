@@ -48,7 +48,8 @@ export default function CRMClientsPage() {
   };
 
   const handleFilterChange = (key: keyof CrmClientFilters, value: string) => {
-    const newFilters = { ...filters, [key]: value };
+    const actualValue = value === 'all' ? '' : value;
+    const newFilters = { ...filters, [key]: actualValue };
     setFilters(newFilters);
     
     // Update URL params
@@ -214,24 +215,24 @@ export default function CRMClientsPage() {
               />
             </div>
             
-            <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+            <Select value={filters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {statusOptions.map(status => (
                   <SelectItem key={status} value={status}>{status}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={filters.industry} onValueChange={(value) => handleFilterChange('industry', value)}>
+            <Select value={filters.industry || 'all'} onValueChange={(value) => handleFilterChange('industry', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by industry" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 {industryOptions.map(industry => (
                   <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                 ))}
