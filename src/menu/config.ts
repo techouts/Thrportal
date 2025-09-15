@@ -59,7 +59,7 @@ export const MENU: MenuSection[] = [
       { label: "Approvals",       route: "/Hiring/Approvals",       requiresAny: ["jds.approve.internal","jds.approve.external","jds.approve.management"] },
       { label: "Candidates",      route: "/Hiring/Candidates",      requiresAny: ["candidates.create","resumes.create","applications.rank"] },
       { label: "Ownership",       route: "/Hiring/Ownership",       requiresAny: ["ownership.assign","mapping.propose","mapping.approve"] },
-      { label: "Assignment",      route: "/Hiring/Assignment",      requiresAny: ["applications.submissions.*"] },
+      
       { label: "Applications",    route: "/Hiring/Applications",    requiresAny: ["applications.pipeline.read"] },
       { label: "Pipeline",        route: "/Hiring/Pipeline",        requiresAny: ["applications.pipeline.read"] },
       { label: "FollowUp",        route: "/Hiring/FollowUp",        requiresAny: ["applications.pipeline.read","followup.tasks.*"] },

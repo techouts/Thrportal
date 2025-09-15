@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader'
 import { HiringDashboard } from '@/components/hiring/HiringDashboard'
 import { JobRequisitionsModule } from '@/components/hiring/requisitions/JobRequisitionsModule'
-import { AssignmentModule } from '@/components/hiring/assignment/AssignmentModule'
+
 import { ApplicationsModule } from '@/components/hiring/applications/ApplicationsModule'
 import { PipelineModule } from '@/components/hiring/pipeline/PipelineModule'
 import { FollowupModule } from '@/components/hiring/followup/FollowupModule'
@@ -32,7 +32,8 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
     case 'Ownership':
       return <OwnershipModule />
     case 'Assignment':
-      return <AssignmentModule />
+      // Redirect to Ownership - this case should not be reached due to routing
+      return <OwnershipModule />
     case 'Applications':
       return <ApplicationsModule />
     case 'Pipeline':

@@ -32,6 +32,7 @@ export function JDOwnershipTab() {
   const [selectedJDs, setSelectedJDs] = useState<string[]>([]);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [selectedJD, setSelectedJD] = useState<JDOwnership | null>(null);
+  const [viewFilter, setViewFilter] = useState<'all' | 'unassigned' | 'unattended'>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -129,7 +130,33 @@ export function JDOwnershipTab() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>JD Ownership Management</CardTitle>
+            <div className="flex items-center gap-4">
+              <CardTitle>JD Ownership Management</CardTitle>
+              {/* View Toggle Buttons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewFilter('all')}
+                >
+                  All JDs ({jdOwnerships.length})
+                </Button>
+                <Button
+                  variant={viewFilter === 'unassigned' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewFilter('unassigned')}
+                >
+                  Unassigned ({jdOwnerships.filter(jd => jd.primaryRecruiter === '').length})
+                </Button>
+                <Button
+                  variant={viewFilter === 'unattended' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewFilter('unattended')}
+                >
+                  Unattended ({jdOwnerships.filter(jd => jd.submissionsTotal === 0).length})
+                </Button>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               {selectedJDs.length > 0 && (
                 <Button variant="outline" size="sm">
@@ -216,7 +243,7 @@ export function JDOwnershipTab() {
                     <th className="text-left p-2">Title</th>
                     <th className="text-left p-2">Primary</th>
                     <th className="text-left p-2">Collaborators</th>
-                    <th className="text-left p-2">Submissions (by recruiter)</th>
+                    <th className="text-left p-2">Submissions Count (today/total)</th>
                     <th className="text-left p-2">First Submit Age</th>
                     <th className="text-left p-2">SLA Status</th>
                     <th className="text-left p-2">Status</th>
@@ -265,19 +292,38 @@ export function JDOwnershipTab() {
                           )}
                         </div>
                       </td>
-                      <td className="p-2">
-                        <div className="space-y-1">
-                          {Object.entries(jd.submissionsByRecruiter).map(([recruiter, count]) => (
-                            <div key={recruiter} className="flex justify-between text-xs">
-                              <span className="truncate max-w-[80px]">{recruiter.split(' ')[0]}</span>
-                              <span className={`font-medium ${count === 0 ? 'text-red-600' : ''}`}>{count}</span>
-                            </div>
-                          ))}
-                          <div className="text-xs text-muted-foreground border-t pt-1">
-                            Total: {jd.submissionsTotal} | Cap: {jd.perRecruiterSubmissionCap}
-                          </div>
-                        </div>
-                      </td>
+                       <td className="p-2">
+                         <div className="space-y-1">
+                           <div className="flex justify-between text-sm font-medium">
+                             <span>Today:</span>
+                             <span className={`${jd.submissionsToday === 0 ? 'text-red-600 font-bold' : 'text-green-600'}`}>
+                               {jd.submissionsToday}
+                             </span>
+                           </div>
+                           <div className="flex justify-between text-sm">
+                             <span>Total:</span>
+                             <span className={`${jd.submissionsTotal === 0 ? 'text-red-600 font-bold' : ''}`}>
+                               {jd.submissionsTotal}
+                             </span>
+                           </div>
+                           <details className="text-xs">
+                             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                               By Recruiter
+                             </summary>
+                             <div className="mt-1 space-y-1 border-t pt-1">
+                               {Object.entries(jd.submissionsByRecruiter).map(([recruiter, count]) => (
+                                 <div key={recruiter} className="flex justify-between">
+                                   <span className="truncate max-w-[80px]">{recruiter.split(' ')[0]}</span>
+                                   <span className={`font-medium ${count === 0 ? 'text-red-600' : ''}`}>{count}</span>
+                                 </div>
+                               ))}
+                               <div className="text-muted-foreground border-t pt-1">
+                                 Cap: {jd.perRecruiterSubmissionCap}/day
+                               </div>
+                             </div>
+                           </details>
+                         </div>
+                       </td>
                       <td className="p-2">
                         <div className="text-sm">
                           {jd.firstSubmitAge > 0 ? (

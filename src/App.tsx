@@ -213,11 +213,11 @@ function App() {
                     <MainLayout><HiringPage defaultTab="Ownership" /></MainLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/Hiring/Assignment" element={
-                  <ProtectedRoute required={["applications.submissions.*"]}>
-                    <MainLayout><HiringPage defaultTab="Assignment" /></MainLayout>
-                  </ProtectedRoute>
-                } />
+                <Route path="/Hiring/Assignment" element={<Navigate to="/Hiring/Ownership" replace />} />
+                <Route path="/Hiring/Assignment/Manage" element={<Navigate to="/Hiring/Ownership" replace />} />
+                <Route path="/Hiring/Assignment/Unassigned" element={<Navigate to="/Hiring/Ownership?view=unassigned" replace />} />
+                <Route path="/Hiring/Assignment/Unattended" element={<Navigate to="/Hiring/Ownership?view=unattended" replace />} />
+                <Route path="/Hiring/Assignment/Reports" element={<Navigate to="/Hiring/Ownership" replace />} />
                 <Route path="/Hiring/Applications" element={
                   <ProtectedRoute required={["applications.pipeline.read"]}>
                     <MainLayout><HiringPage defaultTab="Applications" /></MainLayout>
