@@ -7,6 +7,10 @@ import { PipelineModule } from '@/components/hiring/pipeline/PipelineModule'
 import { FollowupModule } from '@/components/hiring/followup/FollowupModule'
 import BGVPage from './BGVPage'
 import HiringSettingsPage from './HiringSettingsPage'
+import { JDManagementModule } from '@/components/hiring/jds/JDManagementModule'
+import { ApprovalsModule } from '@/components/hiring/approvals/ApprovalsModule'
+import { CandidatesModule } from '@/components/hiring/candidates/CandidatesModule'
+import { OwnershipModule } from '@/components/hiring/ownership/OwnershipModule'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface HiringPageProps {
@@ -19,6 +23,14 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
       return <HiringDashboard />
     case 'JobRequisitions':
       return <JobRequisitionsModule />
+    case 'JDs':
+      return <JDManagementModule />
+    case 'Approvals':
+      return <ApprovalsModule />
+    case 'Candidates':
+      return <CandidatesModule />
+    case 'Ownership':
+      return <OwnershipModule />
     case 'Assignment':
       return <AssignmentModule />
     case 'Applications':

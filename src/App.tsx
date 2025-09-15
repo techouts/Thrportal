@@ -184,6 +184,26 @@ function App() {
                     <MainLayout><HiringPage defaultTab="JobRequisitions" /></MainLayout>
                   </ProtectedRoute>
                 } />
+                <Route path="/Hiring/JDs" element={
+                  <ProtectedRoute required={["jds.create", "jds.read"]}>
+                    <MainLayout><HiringPage defaultTab="JDs" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Approvals" element={
+                  <ProtectedRoute required={["jds.approve.internal", "jds.approve.external", "jds.approve.management"]}>
+                    <MainLayout><HiringPage defaultTab="Approvals" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Candidates" element={
+                  <ProtectedRoute required={["candidates.create", "resumes.create", "applications.rank"]}>
+                    <MainLayout><HiringPage defaultTab="Candidates" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Ownership" element={
+                  <ProtectedRoute required={["ownership.assign", "mapping.propose", "mapping.approve"]}>
+                    <MainLayout><HiringPage defaultTab="Ownership" /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/Hiring/Assignment" element={
                   <ProtectedRoute required={["applications.submissions.*"]}>
                     <MainLayout><HiringPage defaultTab="Assignment" /></MainLayout>
@@ -200,7 +220,7 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/Hiring/FollowUp" element={
-                  <ProtectedRoute required={["applications.pipeline.read"]}>
+                  <ProtectedRoute required={["applications.pipeline.read", "followup.tasks.*"]}>
                     <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
                   </ProtectedRoute>
                 } />
@@ -217,6 +237,38 @@ function App() {
                 <Route path="/Hiring/*" element={
                   <ProtectedRoute required={["hiring.dashboard.read"]}>
                     <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+
+                {/* CRM Section */}
+                <Route path="/CRM/Dashboard" element={
+                  <ProtectedRoute required={["crm.kpis.read"]}>
+                    <MainLayout><div>CRM Dashboard</div></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/Clients" element={
+                  <ProtectedRoute required={["crm.clients.*"]}>
+                    <MainLayout><div>CRM Clients</div></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/Accounts" element={
+                  <ProtectedRoute required={["crm.accounts.*"]}>
+                    <MainLayout><div>CRM Accounts</div></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/Projects" element={
+                  <ProtectedRoute required={["crm.projects.*"]}>
+                    <MainLayout><div>CRM Projects</div></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/Interactions" element={
+                  <ProtectedRoute required={["crm.interactions.*"]}>
+                    <MainLayout><div>CRM Interactions</div></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/*" element={
+                  <ProtectedRoute required={["crm.kpis.read"]}>
+                    <MainLayout><div>CRM Dashboard</div></MainLayout>
                   </ProtectedRoute>
                 } />
 

@@ -10,7 +10,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "performance.cycles.read","performance.reviews.read",
     "projects.*.read","timesheets.*.read","timesheets.export.*",
     "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read","applications.submissions.*",
-    "finance.payroll.read","finance.reports.read"
+    "finance.payroll.read","finance.reports.read",
+    "jds.approve.management","jds.reports.read","crm.kpis.read"
     // no admin/security/roles/integrations
   ],
 
@@ -52,7 +53,11 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "portal.announcements.read",
     "hiring.dashboard.read","hiring.requisitions.read","hiring.requisitions.create",
     "applications.submissions.*","applications.pipeline.read",
-    "interviews.schedule.*","bgv.cases.create","bgv.cases.read"
+    "interviews.schedule.*","bgv.cases.create","bgv.cases.read",
+    "jds.create","jds.bulk_import","jds.smart_import",
+    "candidates.create","resumes.create","applications.rank",
+    "email.campaigns.send","ownership.assign","mapping.propose",
+    "crm.interactions.*","followup.tasks.*"
   ],
 
   HIRING_MANAGER: [
@@ -60,7 +65,15 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "hiring.dashboard.read","hiring.requisitions.approve","hiring.requisitions.read",
     "applications.pipeline.read","applications.submissions.*","offers.create","offers.approve",
     "bgv.cases.read","hiring.settings.*",
-    "candidates.sensitive.read"
+    "candidates.sensitive.read","jds.create","crm.read"
+  ],
+
+  STAFFING_MANAGER: [
+    "portal.announcements.read",
+    "hiring.dashboard.read","hiring.requisitions.read",
+    "jds.approve.external","mapping.approve",
+    "applications.pipeline.read","applications.submissions.*",
+    "crm.kpis.read","crm.*","ownership.*"
   ],
 
   PROJECT_LEAD: [
@@ -88,7 +101,9 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "onboarding.*","offboarding.*","performance.*",
     "policy.*","letters.*","bgv.*","ijp.*","payroll.runs.read",
     "hiring.*","applications.*","hiring.settings.*",
-    "finance.audit_logs.read","helpdesk.dashboard.read","helpdesk.tickets.*"
+    "finance.audit_logs.read","helpdesk.dashboard.read","helpdesk.tickets.*",
+    "jds.approve.internal","jds.publish","crm.kpis.read",
+    "candidates.*","resumes.*","ownership.*"
   ],
 
   PAYROLL_SPECIALIST: [

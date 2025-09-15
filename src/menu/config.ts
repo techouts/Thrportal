@@ -51,17 +51,32 @@ export const MENU: MenuSection[] = [
   },
   { 
     label: "Hiring", 
-    requiresAny: ["hiring.requisitions.read","applications.pipeline.read"], 
+    requiresAny: ["hiring.requisitions.read","applications.pipeline.read","jds.create"], 
     items: [
       { label: "Dashboard",       route: "/Hiring/Dashboard",       requiresAny: ["hiring.dashboard.read","hiring.requisitions.read"] },
       { label: "Job Requisitions",route: "/Hiring/JobRequisitions", requiresAny: ["hiring.requisitions.read"] },
+      { label: "JDs",             route: "/Hiring/JDs",             requiresAny: ["jds.create","jds.read"] },
+      { label: "Approvals",       route: "/Hiring/Approvals",       requiresAny: ["jds.approve.internal","jds.approve.external","jds.approve.management"] },
+      { label: "Candidates",      route: "/Hiring/Candidates",      requiresAny: ["candidates.create","resumes.create","applications.rank"] },
+      { label: "Ownership",       route: "/Hiring/Ownership",       requiresAny: ["ownership.assign","mapping.propose","mapping.approve"] },
       { label: "Assignment",      route: "/Hiring/Assignment",      requiresAny: ["applications.submissions.*"] },
       { label: "Applications",    route: "/Hiring/Applications",    requiresAny: ["applications.pipeline.read"] },
       { label: "Pipeline",        route: "/Hiring/Pipeline",        requiresAny: ["applications.pipeline.read"] },
-      { label: "FollowUp",        route: "/Hiring/FollowUp",        requiresAny: ["applications.pipeline.read"] },
+      { label: "FollowUp",        route: "/Hiring/FollowUp",        requiresAny: ["applications.pipeline.read","followup.tasks.*"] },
       { label: "BGV",             route: "/Hiring/BGV",             requiresAny: ["bgv.cases.read"] },
       { label: "Settings",        route: "/Hiring/Settings",        requiresAny: ["hiring.settings.*"] },
       { label: "Offers (HM)",     route: "/Hiring/Offers",          requiresAny: ["offers.create","offers.approve","candidates.sensitive.read"] }
+    ] 
+  },
+  { 
+    label: "CRM", 
+    requiresAny: ["crm.clients.*","crm.accounts.*","crm.interactions.*"], 
+    items: [
+      { label: "Dashboard",       route: "/CRM/Dashboard",          requiresAny: ["crm.kpis.read"] },
+      { label: "Clients",         route: "/CRM/Clients",            requiresAny: ["crm.clients.*"] },
+      { label: "Accounts",        route: "/CRM/Accounts",           requiresAny: ["crm.accounts.*"] },
+      { label: "Projects",        route: "/CRM/Projects",           requiresAny: ["crm.projects.*"] },
+      { label: "Interactions",    route: "/CRM/Interactions",       requiresAny: ["crm.interactions.*"] }
     ] 
   },
   { 
