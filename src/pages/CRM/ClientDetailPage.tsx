@@ -83,6 +83,7 @@ export default function ClientDetailPage() {
     {
       id: 'name',
       header: 'Name',
+      accessor: 'name' as keyof CrmSpoc,
       cell: (spoc: CrmSpoc) => (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -96,6 +97,7 @@ export default function ClientDetailPage() {
     {
       id: 'contact',
       header: 'Contact',
+      accessor: 'email' as keyof CrmSpoc,
       cell: (spoc: CrmSpoc) => (
         <div className="space-y-1">
           {spoc.email && (
@@ -116,6 +118,7 @@ export default function ClientDetailPage() {
     {
       id: 'last_contacted',
       header: 'Last Contact',
+      accessor: 'last_contacted_at' as keyof CrmSpoc,
       cell: (spoc: CrmSpoc) => (
         <span className="text-sm text-muted-foreground">
           {spoc.last_contacted_at 
@@ -131,6 +134,7 @@ export default function ClientDetailPage() {
     {
       id: 'name',
       header: 'Account Name',
+      accessor: 'name' as keyof CrmAccount,
       cell: (account: CrmAccount) => (
         <div className="space-y-1">
           <span className="font-medium">{account.name}</span>
@@ -143,6 +147,7 @@ export default function ClientDetailPage() {
     {
       id: 'primary_spoc',
       header: 'Primary SPOC',
+      accessor: 'primary_spoc_id' as keyof CrmAccount,
       cell: (account: CrmAccount) => (
         <span className="text-sm">{account.primary_spoc?.name || 'Not assigned'}</span>
       )
@@ -150,6 +155,7 @@ export default function ClientDetailPage() {
     {
       id: 'sla_override',
       header: 'SLA Override',
+      accessor: 'sla_override' as keyof CrmAccount,
       cell: (account: CrmAccount) => (
         <span className="text-sm">{account.sla_override || 'Inherits from client'}</span>
       )
@@ -160,6 +166,7 @@ export default function ClientDetailPage() {
     {
       id: 'name',
       header: 'Project Name',
+      accessor: 'name' as keyof CrmProject,
       cell: (project: CrmProject) => (
         <div className="space-y-1">
           <span className="font-medium">{project.name}</span>
@@ -170,6 +177,7 @@ export default function ClientDetailPage() {
     {
       id: 'targets',
       header: 'Targets',
+      accessor: 'ft_target' as keyof CrmProject,
       cell: (project: CrmProject) => (
         <div className="flex gap-2">
           <Badge variant="secondary">{project.ft_target} FT</Badge>
@@ -180,6 +188,7 @@ export default function ClientDetailPage() {
     {
       id: 'dates',
       header: 'Timeline',
+      accessor: 'start_date' as keyof CrmProject,
       cell: (project: CrmProject) => (
         <div className="text-sm">
           {project.start_date && project.end_date ? 
@@ -195,6 +204,7 @@ export default function ClientDetailPage() {
     {
       id: 'counts',
       header: 'Opportunity',
+      accessor: 'ft_count' as keyof CrmOpportunity,
       cell: (opportunity: CrmOpportunity) => (
         <div className="flex gap-2">
           <Badge variant="secondary">{opportunity.ft_count} FT</Badge>
@@ -206,6 +216,7 @@ export default function ClientDetailPage() {
     {
       id: 'status',
       header: 'Status',
+      accessor: 'status' as keyof CrmOpportunity,
       cell: (opportunity: CrmOpportunity) => (
         <Badge variant={opportunity.status === 'Open' ? 'default' : 'secondary'}>
           {opportunity.status}
@@ -215,6 +226,7 @@ export default function ClientDetailPage() {
     {
       id: 'notes',
       header: 'Notes',
+      accessor: 'notes' as keyof CrmOpportunity,
       cell: (opportunity: CrmOpportunity) => (
         <span className="text-sm text-muted-foreground">
           {opportunity.notes || 'No notes'}
@@ -227,6 +239,7 @@ export default function ClientDetailPage() {
     {
       id: 'name',
       header: 'Document',
+      accessor: 'name' as keyof CrmDocument,
       cell: (document: CrmDocument) => (
         <div className="space-y-1">
           <span className="font-medium">{document.name}</span>
@@ -237,6 +250,7 @@ export default function ClientDetailPage() {
     {
       id: 'validity',
       header: 'Validity',
+      accessor: 'valid_until' as keyof CrmDocument,
       cell: (document: CrmDocument) => (
         <div className="text-sm">
           {document.valid_until ? 
@@ -249,6 +263,7 @@ export default function ClientDetailPage() {
     {
       id: 'link',
       header: 'Link',
+      accessor: 'sharepoint_url' as keyof CrmDocument,
       cell: (document: CrmDocument) => (
         <Button variant="outline" size="sm" asChild>
           <a href={document.sharepoint_url} target="_blank" rel="noopener noreferrer">
@@ -447,7 +462,6 @@ export default function ClientDetailPage() {
               <DataTable
                 data={client.spocs || []}
                 columns={spocColumns}
-                searchableColumns={['name', 'email']}
               />
             </CardContent>
           </Card>

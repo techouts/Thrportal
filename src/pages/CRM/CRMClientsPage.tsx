@@ -102,6 +102,7 @@ export default function CRMClientsPage() {
     {
       id: 'location',
       header: 'Location',
+      accessor: 'location' as keyof CrmClient,
       cell: (client: CrmClient) => (
         <div className="flex items-center gap-1">
           <MapPin className="h-3 w-3 text-muted-foreground" />
@@ -112,6 +113,7 @@ export default function CRMClientsPage() {
     {
       id: 'status',
       header: 'Status',
+      accessor: 'status' as keyof CrmClient,
       cell: (client: CrmClient) => (
         <Badge 
           variant={client.status === 'Active' ? 'default' : client.status === 'Prospect' ? 'secondary' : 'outline'}
@@ -123,6 +125,7 @@ export default function CRMClientsPage() {
     {
       id: 'health_score',
       header: 'Health Score',
+      accessor: 'health_score' as keyof CrmClient,
       cell: (client: CrmClient) => (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -137,6 +140,7 @@ export default function CRMClientsPage() {
     {
       id: 'created_at',
       header: 'Created',
+      accessor: 'created_at' as keyof CrmClient,
       cell: (client: CrmClient) => (
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <Calendar className="h-3 w-3" />
@@ -147,6 +151,7 @@ export default function CRMClientsPage() {
     {
       id: 'actions',
       header: 'Actions',
+      accessor: 'id' as keyof CrmClient,
       cell: (client: CrmClient) => (
         <div className="flex items-center gap-2">
           <Button
@@ -284,11 +289,6 @@ export default function CRMClientsPage() {
             data={clients}
             columns={columns}
             loading={loading}
-            searchableColumns={['name', 'industry', 'location']}
-            filterableColumns={[
-              { id: 'status', title: 'Status', options: statusOptions },
-              { id: 'industry', title: 'Industry', options: industryOptions }
-            ]}
           />
         </CardContent>
       </Card>

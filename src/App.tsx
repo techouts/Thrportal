@@ -28,10 +28,10 @@ import AdminPage from "./pages/Admin/AdminPage";
 // CRM Pages
 import CRMHomePage from "./pages/CRM/CRMHomePage";
 import CRMClientsPage from "./pages/CRM/CRMClientsPage";
-import CRMAccountsPage from "./pages/CRM/CRMAccountsPage";
-import CRMProjectsPage from "./pages/CRM/CRMProjectsPage";
-import CRMOpportunitiesPage from "./pages/CRM/CRMOpportunitiesPage";
-import CRMInteractionsPage from "./pages/CRM/CRMInteractionsPage";
+import { CRMAccountsPage } from "./pages/CRM/CRMAccountsPage";
+import { CRMProjectsPage } from "./pages/CRM/CRMProjectsPage";
+import { CRMOpportunitiesPage } from "./pages/CRM/CRMOpportunitiesPage";
+import { CRMInteractionsPage } from "./pages/CRM/CRMInteractionsPage";
 import CRMReportsPage from "./pages/CRM/CRMReportsPage";
 
 function App() {

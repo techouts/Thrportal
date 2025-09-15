@@ -82,6 +82,20 @@ export class CrmService {
   }
 
   // Accounts
+  static async getAccounts() {
+    const { data, error } = await supabase
+      .from('crm_accounts')
+      .select(`
+        *,
+        client:crm_clients(*),
+        primary_spoc:crm_spocs(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as CrmAccount[];
+  }
+
   static async getAccountsByClient(clientId: string) {
     const { data, error } = await supabase
       .from('crm_accounts')
@@ -156,7 +170,11 @@ export class CrmService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return (data || []).map(project => ({
+      ...project,
+      priority: project.priority as 'Low' | 'Medium' | 'High' | 'Critical',
+      status: project.status as 'Planned' | 'In-flight' | 'Closed'
+    })) as CrmProject[];
   }
 
   static async createProject(project: Omit<CrmProject, 'id' | 'created_at' | 'updated_at'>) {
@@ -183,7 +201,10 @@ export class CrmService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return (data || []).map(opportunity => ({
+      ...opportunity,
+      status: opportunity.status as 'Open' | 'In Progress' | 'Closed' | 'Lost'
+    })) as CrmOpportunity[];
   }
 
   static async createOpportunity(opportunity: Omit<CrmOpportunity, 'id' | 'created_at' | 'updated_at'>) {
@@ -212,7 +233,10 @@ export class CrmService {
       .limit(limit);
 
     if (error) throw error;
-    return data;
+    return (data || []).map(interaction => ({
+      ...interaction,
+      interaction_type: interaction.interaction_type as 'call' | 'meeting' | 'email' | 'whatsapp' | 'linkedin' | 'onsite'
+    })) as CrmInteraction[];
   }
 
   static async createInteraction(interaction: Omit<CrmInteraction, 'id' | 'created_at'>) {
