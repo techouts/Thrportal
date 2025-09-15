@@ -2,19 +2,27 @@ import { useState } from 'react'
 import { FileText } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { ManageTab } from './ManageTab'
-import { JDResumeMatchTab } from './JDResumeMatchTab'
-import { DashboardTab } from './DashboardTab'
+import { ApplicationListTab } from './ApplicationListTab'
+import { ApplicationProfileTab } from './ApplicationProfileTab'
+import { InterviewsTab } from './InterviewsTab'
+import { OffersTab } from './OffersTab'
+import { ApplicationReportsTab } from './ApplicationReportsTab'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
 export function ApplicationsModule() {
-  const [activeTab, setActiveTab] = useState('manage')
+  const [activeTab, setActiveTab] = useState('list')
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null)
+
+  const handleViewApplication = (applicationId: string) => {
+    setSelectedApplicationId(applicationId)
+    setActiveTab('profile')
+  }
 
   const moduleSpec = moduleRegistry.getModuleSpec('/Hiring/Applications') || 
     moduleRegistry.registerModuleSpec('/Hiring/Applications', {
       brdStatus: 'draft',
       promptStatus: 'pending',
-      description: 'Applications management with resume processing and JD matching'
+      description: 'Manage candidate applications, interviews, offers, and pipeline tracking'
     })
 
   return (
@@ -30,22 +38,35 @@ export function ApplicationsModule() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="manage">Manage</TabsTrigger>
-          <TabsTrigger value="jd-resume-match">JD-Resume Match</TabsTrigger>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="list">Application List</TabsTrigger>
+          <TabsTrigger value="profile">Application Profile</TabsTrigger>
+          <TabsTrigger value="interviews">Interviews</TabsTrigger>
+          <TabsTrigger value="offers">Offers</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="manage" className="space-y-6">
-          <ManageTab />
+        <TabsContent value="list" className="space-y-6">
+          <ApplicationListTab onViewApplication={handleViewApplication} />
         </TabsContent>
 
-        <TabsContent value="jd-resume-match" className="space-y-6">
-          <JDResumeMatchTab />
+        <TabsContent value="profile" className="space-y-6">
+          <ApplicationProfileTab 
+            applicationId={selectedApplicationId}
+            onBack={() => setActiveTab('list')}
+          />
         </TabsContent>
 
-        <TabsContent value="dashboard" className="space-y-6">
-          <DashboardTab />
+        <TabsContent value="interviews" className="space-y-6">
+          <InterviewsTab />
+        </TabsContent>
+
+        <TabsContent value="offers" className="space-y-6">
+          <OffersTab />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6">
+          <ApplicationReportsTab />
         </TabsContent>
       </Tabs>
     </div>
