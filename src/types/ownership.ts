@@ -4,13 +4,18 @@ export interface JDOwnership {
   id: string;
   jdId: string;
   jdTitle: string;
-  recruiterOwners: string[];
+  primaryRecruiter: string;
+  collaborators: string[];
+  openPoolFlag: boolean;
+  perRecruiterSubmissionCap: number;
   staffingManager: string;
   clientSpoc: string;
   status: JDStatus;
   isLocked: boolean;
+  submissionsByRecruiter: Record<string, number>;
   submissionsToday: number;
   submissionsTotal: number;
+  firstSubmitAge: number; // hours since first submission
   slaStatus: SlaStatus;
   slaDeadline: string;
   createdAt: string;
@@ -246,6 +251,104 @@ export interface OwnershipMetrics {
   escalationRate: number;
   reassignmentRate: number;
   ownershipVelocity: number;
+}
+
+export interface JDSubmission {
+  id: string;
+  jdId: string;
+  candidateId: string;
+  candidateName: string;
+  submitterId: string;
+  submitterName: string;
+  stage: string;
+  age: number; // hours
+  sentToClient: boolean;
+  sentBy?: string;
+  sentAt?: string;
+  clientFeedback?: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubmissionBreakdown {
+  jdId: string;
+  jdTitle: string;
+  primary: string;
+  recruiterSubmissions: Array<{
+    recruiterId: string;
+    recruiterName: string;
+    submissions: number;
+    shortlistRate: number;
+    offers: number;
+    joins: number;
+  }>;
+}
+
+export interface PrimaryFollowUp {
+  id: string;
+  jdId: string;
+  jdTitle: string;
+  candidateId: string;
+  candidateName: string;
+  followUpType: FollowUpType;
+  age: number; // hours
+  nextSlaDate: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  notes?: string;
+}
+
+export type FollowUpType = 'Client Feedback' | 'Scheduling' | 'Offer Follow-up' | 'Document Collection';
+
+export interface OwnershipRules {
+  creditRules: CreditRules;
+  dedupeKeys: DedupeConfig;
+  submissionCaps: SubmissionCapConfig;
+  openPoolDefaults: OpenPoolConfig;
+}
+
+export interface CreditRules {
+  submitterCredit: number;
+  primaryFollowUpCredit: number;
+  customSchemes: Array<{
+    name: string;
+    submitterCredit: number;
+    primaryCredit: number;
+    conditions: string;
+  }>;
+}
+
+export interface DedupeConfig {
+  keys: Array<'email' | 'phone' | 'resume_hash'>;
+  mode: 'strict' | 'soft';
+  blockDuplicates: boolean;
+}
+
+export interface SubmissionCapConfig {
+  defaultDailyCap: number;
+  enforceAtJDLevel: boolean;
+  allowOverrides: boolean;
+}
+
+export interface OpenPoolConfig {
+  defaultAllowCollaborators: boolean;
+  requireApproval: boolean;
+  autoNotifyPrimary: boolean;
+}
+
+export interface RecruiterCreditWidget {
+  recruiterId: string;
+  recruiterName: string;
+  submitterCredits: {
+    count: number;
+    creditEarned: number;
+  };
+  primaryCredits: {
+    count: number;
+    creditEarned: number;
+  };
+  totalCredit: number;
+  period: string;
 }
 
 export interface NoSubmissionReport {

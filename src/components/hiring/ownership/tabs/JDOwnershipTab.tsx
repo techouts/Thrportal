@@ -50,10 +50,10 @@ export function JDOwnershipTab() {
     }
   };
 
-  const handleReassign = async (jdId: string, newOwners: string[]) => {
+  const handleReassign = async (jdId: string, newPrimary: string) => {
     try {
       await ownershipService.updateJDOwnership(jdId, {
-        recruiterOwners: newOwners,
+        primaryRecruiter: newPrimary,
         updatedBy: 'current-user'
       });
       loadJDOwnerships();
@@ -119,7 +119,8 @@ export function JDOwnershipTab() {
   const filteredJDs = jdOwnerships.filter(jd =>
     jd.jdTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
     jd.jdId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    jd.recruiterOwners.some(owner => owner.toLowerCase().includes(searchTerm.toLowerCase()))
+    jd.primaryRecruiter.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    jd.collaborators.some(collaborator => collaborator.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -213,13 +214,13 @@ export function JDOwnershipTab() {
                     </th>
                     <th className="text-left p-2">JD ID</th>
                     <th className="text-left p-2">Title</th>
-                    <th className="text-left p-2">Recruiter Owner(s)</th>
-                    <th className="text-left p-2">Staffing Manager</th>
-                    <th className="text-left p-2">Client SPOC</th>
-                    <th className="text-left p-2">Submissions</th>
+                    <th className="text-left p-2">Primary</th>
+                    <th className="text-left p-2">Collaborators</th>
+                    <th className="text-left p-2">Submissions (by recruiter)</th>
+                    <th className="text-left p-2">First Submit Age</th>
                     <th className="text-left p-2">SLA Status</th>
                     <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Lock</th>
+                    <th className="text-left p-2">Open Pool</th>
                     <th className="text-left p-2">Actions</th>
                   </tr>
                 </thead>
@@ -248,22 +249,44 @@ export function JDOwnershipTab() {
                         </div>
                       </td>
                       <td className="p-2">
+                        <Badge variant="default" className="text-xs">
+                          {jd.primaryRecruiter}
+                        </Badge>
+                      </td>
+                      <td className="p-2">
                         <div className="flex flex-wrap gap-1">
-                          {jd.recruiterOwners.map((owner) => (
-                            <Badge key={owner} variant="outline" className="text-xs">
-                              {owner}
+                          {jd.collaborators.map((collaborator) => (
+                            <Badge key={collaborator} variant="outline" className="text-xs">
+                              {collaborator}
                             </Badge>
                           ))}
+                          {jd.collaborators.length === 0 && (
+                            <span className="text-xs text-muted-foreground">None</span>
+                          )}
                         </div>
                       </td>
-                      <td className="p-2">{jd.staffingManager}</td>
-                      <td className="p-2">{jd.clientSpoc}</td>
+                      <td className="p-2">
+                        <div className="space-y-1">
+                          {Object.entries(jd.submissionsByRecruiter).map(([recruiter, count]) => (
+                            <div key={recruiter} className="flex justify-between text-xs">
+                              <span className="truncate max-w-[80px]">{recruiter.split(' ')[0]}</span>
+                              <span className={`font-medium ${count === 0 ? 'text-red-600' : ''}`}>{count}</span>
+                            </div>
+                          ))}
+                          <div className="text-xs text-muted-foreground border-t pt-1">
+                            Total: {jd.submissionsTotal} | Cap: {jd.perRecruiterSubmissionCap}
+                          </div>
+                        </div>
+                      </td>
                       <td className="p-2">
                         <div className="text-sm">
-                          <div className={`font-medium ${jd.submissionsTotal === 0 ? 'text-red-600' : ''}`}>
-                            {jd.submissionsToday} / {jd.submissionsTotal}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Today / Total</div>
+                          {jd.firstSubmitAge > 0 ? (
+                            <span className={`${jd.firstSubmitAge > 72 ? 'text-orange-600' : ''}`}>
+                              {jd.firstSubmitAge}h
+                            </span>
+                          ) : (
+                            <span className="text-red-600">No submissions</span>
+                          )}
                         </div>
                       </td>
                       <td className="p-2">
@@ -277,18 +300,14 @@ export function JDOwnershipTab() {
                         </Badge>
                       </td>
                       <td className="p-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLockToggle(jd.jdId, jd.isLocked)}
-                          className="p-1"
-                        >
-                          {jd.isLocked ? (
-                            <Lock className="h-4 w-4 text-red-500" />
-                          ) : (
-                            <Unlock className="h-4 w-4 text-green-500" />
-                          )}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={jd.openPoolFlag ? "default" : "outline"} 
+                            className="text-xs"
+                          >
+                            {jd.openPoolFlag ? "Open" : "Closed"}
+                          </Badge>
+                        </div>
                       </td>
                       <td className="p-2">
                         <div className="flex items-center gap-1">
@@ -328,15 +347,23 @@ export function JDOwnershipTab() {
                                 }}
                               >
                                 <UserPlus className="mr-2 h-4 w-4" />
-                                Reassign Recruiters
+                                Set/Change Primary
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <Users className="mr-2 h-4 w-4" />
-                                Change Manager
+                                Manage Collaborators
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Badge className="mr-2 h-4 w-4" />
+                                Toggle Open Pool
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Users className="mr-2 h-4 w-4" />
+                                Set Submission Cap
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <History className="mr-2 h-4 w-4" />
-                                View History
+                                View Submitter Breakdown
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleQuickAction('escalate', jd.jdId)}
@@ -348,7 +375,7 @@ export function JDOwnershipTab() {
                                 onClick={() => handleQuickAction('notify', jd.jdId)}
                               >
                                 <Send className="mr-2 h-4 w-4" />
-                                Notify Recruiter
+                                Notify Primary
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -374,27 +401,23 @@ export function JDOwnershipTab() {
       <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Reassign JD Recruiters</DialogTitle>
+            <DialogTitle>Set Primary Recruiter</DialogTitle>
             <DialogDescription>
-              Reassign recruiters for "{selectedJD?.jdTitle}"
+              Set primary recruiter for "{selectedJD?.jdTitle}"
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Current Recruiters</label>
-              <div className="flex flex-wrap gap-2">
-                {selectedJD?.recruiterOwners.map((owner) => (
-                  <Badge key={owner} variant="outline">
-                    {owner}
-                  </Badge>
-                ))}
-              </div>
+              <label className="text-sm font-medium">Current Primary</label>
+              <Badge variant="default">
+                {selectedJD?.primaryRecruiter}
+              </Badge>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">New Recruiters</label>
+              <label className="text-sm font-medium">New Primary</label>
               <Select>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select recruiters" />
+                  <SelectValue placeholder="Select primary recruiter" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recruiter-1">Sarah Johnson</SelectItem>
@@ -404,8 +427,18 @@ export function JDOwnershipTab() {
               </Select>
             </div>
             <div className="space-y-2">
+              <label className="text-sm font-medium">Current Collaborators</label>
+              <div className="flex flex-wrap gap-2">
+                {selectedJD?.collaborators.map((collaborator) => (
+                  <Badge key={collaborator} variant="outline">
+                    {collaborator}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium">Reason</label>
-              <Input placeholder="Reason for reassignment" />
+              <Input placeholder="Reason for change" />
             </div>
           </div>
           <DialogFooter>
@@ -418,11 +451,11 @@ export function JDOwnershipTab() {
             <Button
               onClick={() => {
                 if (selectedJD) {
-                  handleReassign(selectedJD.jdId, ['recruiter-1']); // Mock reassignment
+                  handleReassign(selectedJD.jdId, 'recruiter-1'); // Mock reassignment
                 }
               }}
             >
-              Reassign
+              Set Primary
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,5 +1,8 @@
 import {
   JDOwnership,
+  JDSubmission,
+  PrimaryFollowUp,
+  OwnershipRules,
   CandidateOwnership,
   ClientSpocMapping,
   RecruiterManagerMapping,
@@ -53,13 +56,21 @@ class OwnershipService {
         id: 'jd-own-1',
         jdId: 'jd-001',
         jdTitle: 'Senior React Developer',
-        recruiterOwners: ['recruiter-1', 'recruiter-2'],
+        primaryRecruiter: 'Sarah Johnson',
+        collaborators: ['David Chen'],
+        openPoolFlag: true,
+        perRecruiterSubmissionCap: 5,
         staffingManager: 'manager-1',
         clientSpoc: 'spoc-1',
         status: 'Active',
         isLocked: false,
+        submissionsByRecruiter: {
+          'Sarah Johnson': 8,
+          'David Chen': 4
+        },
         submissionsToday: 2,
         submissionsTotal: 12,
+        firstSubmitAge: 48,
         slaStatus: 'On Track',
         slaDeadline: '2024-02-15T23:59:59Z',
         createdAt: '2024-01-15T10:00:00Z',
@@ -70,13 +81,20 @@ class OwnershipService {
         id: 'jd-own-2',
         jdId: 'jd-002',
         jdTitle: 'Python Backend Engineer',
-        recruiterOwners: ['recruiter-3'],
+        primaryRecruiter: 'Emily Davis',
+        collaborators: [],
+        openPoolFlag: false,
+        perRecruiterSubmissionCap: 3,
         staffingManager: 'manager-2',
         clientSpoc: 'spoc-2',
         status: 'Active',
         isLocked: true,
+        submissionsByRecruiter: {
+          'Emily Davis': 0
+        },
         submissionsToday: 0,
         submissionsTotal: 0,
+        firstSubmitAge: 0,
         slaStatus: 'No Submission',
         slaDeadline: '2024-01-28T23:59:59Z',
         createdAt: '2024-01-14T09:00:00Z',
@@ -87,13 +105,21 @@ class OwnershipService {
         id: 'jd-own-3',
         jdId: 'jd-003',
         jdTitle: 'Full Stack Developer',
-        recruiterOwners: ['recruiter-1'],
+        primaryRecruiter: 'John Martinez',
+        collaborators: ['Sarah Johnson'],
+        openPoolFlag: true,
+        perRecruiterSubmissionCap: 4,
         staffingManager: 'manager-1',
         clientSpoc: 'spoc-3',
         status: 'Active',
         isLocked: false,
+        submissionsByRecruiter: {
+          'John Martinez': 5,
+          'Sarah Johnson': 3
+        },
         submissionsToday: 1,
         submissionsTotal: 8,
+        firstSubmitAge: 72,
         slaStatus: 'Amber',
         slaDeadline: '2024-02-01T23:59:59Z',
         createdAt: '2024-01-12T14:30:00Z',
@@ -104,13 +130,20 @@ class OwnershipService {
         id: 'jd-own-4',
         jdId: 'jd-004',
         jdTitle: 'Data Scientist',
-        recruiterOwners: ['recruiter-2'],
+        primaryRecruiter: 'David Chen',
+        collaborators: [],
+        openPoolFlag: false,
+        perRecruiterSubmissionCap: 2,
         staffingManager: 'manager-1',
         clientSpoc: 'spoc-1',
         status: 'Active',
         isLocked: false,
+        submissionsByRecruiter: {
+          'David Chen': 5
+        },
         submissionsToday: 0,
         submissionsTotal: 5,
+        firstSubmitAge: 96,
         slaStatus: 'Red',
         slaDeadline: '2024-01-30T23:59:59Z',
         createdAt: '2024-01-08T11:20:00Z',
@@ -338,7 +371,10 @@ class OwnershipService {
     
     if (filters) {
       if (filters.recruiter) {
-        ownerships = ownerships.filter(o => o.recruiterOwners.includes(filters.recruiter!));
+        ownerships = ownerships.filter(o => 
+          o.primaryRecruiter.includes(filters.recruiter!) || 
+          o.collaborators.includes(filters.recruiter!)
+        );
       }
       if (filters.manager) {
         ownerships = ownerships.filter(o => o.staffingManager === filters.manager);
@@ -368,8 +404,8 @@ class OwnershipService {
       resourceId: jdId,
       resourceName: this.mockJDOwnerships[index].jdTitle,
       changeType: 'Reassign',
-      fromValue: JSON.stringify(oldOwnership.recruiterOwners),
-      toValue: JSON.stringify(updates.recruiterOwners || oldOwnership.recruiterOwners),
+      fromValue: oldOwnership.primaryRecruiter,
+      toValue: updates.primaryRecruiter || oldOwnership.primaryRecruiter,
       changedBy: updates.updatedBy || 'system',
       changedAt: new Date().toISOString()
     });
@@ -700,6 +736,42 @@ class OwnershipService {
   async exportOwnershipData(type: 'excel' | 'pdf', dataType: string): Promise<string> {
     // Mock export
     return `https://exports.company.com/ownership-${dataType}-${Date.now()}.${type}`;
+  }
+
+  async getJDSubmissions(jdId: string): Promise<JDSubmission[]> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return [];
+  }
+
+  async getPrimaryFollowUps(primaryRecruiterId: string): Promise<PrimaryFollowUp[]> {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return [];
+  }
+
+  async getOwnershipRules(): Promise<OwnershipRules> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return {
+      creditRules: {
+        submitterCredit: 1.0,
+        primaryFollowUpCredit: 0.25,
+        customSchemes: []
+      },
+      dedupeKeys: {
+        keys: ['email', 'phone'],
+        mode: 'strict',
+        blockDuplicates: true
+      },
+      submissionCaps: {
+        defaultDailyCap: 5,
+        enforceAtJDLevel: true,
+        allowOverrides: false
+      },
+      openPoolDefaults: {
+        defaultAllowCollaborators: true,
+        requireApproval: false,
+        autoNotifyPrimary: true
+      }
+    };
   }
 }
 
