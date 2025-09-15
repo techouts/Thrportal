@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import CRMHomePage from './CRMHomePage';
+import CRMDashboardPage from './CRMDashboardPage';
 import CRMClientsPage from './CRMClientsPage';
 import { CRMAccountsPage } from './CRMAccountsPage';
 import { CRMProjectsPage } from './CRMProjectsPage';
@@ -11,7 +11,7 @@ import ClientDetailPage from './ClientDetailPage';
 export default function CRMRoutes() {
   return (
     <Routes>
-      <Route path="/Home" element={<CRMHomePage />} />
+      <Route path="/Home" element={<CRMDashboardPage />} />
       <Route path="/Clients" element={<CRMClientsPage />} />
       <Route path="/Client/:clientId" element={<ClientDetailPage />} />
       <Route path="/Accounts" element={<CRMAccountsPage />} />
@@ -19,7 +19,7 @@ export default function CRMRoutes() {
       <Route path="/Opportunities" element={<CRMOpportunitiesPage />} />
       <Route path="/Interactions" element={<CRMInteractionsPage />} />
       <Route path="/Reports" element={<CRMReportsPage />} />
-      <Route path="/*" element={<CRMHomePage />} />
+      <Route path="/*" element={<CRMDashboardPage />} />
     </Routes>
   );
 }
