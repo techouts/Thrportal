@@ -65,7 +65,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "hiring.dashboard.read","hiring.requisitions.approve","hiring.requisitions.read",
     "applications.pipeline.read","applications.submissions.*","offers.create","offers.approve",
     "bgv.cases.read","hiring.settings.*",
-    "candidates.sensitive.read","jds.create","crm.read"
+    "candidates.sensitive.read","candidates.create","resumes.create","applications.rank",
+    "ownership.assign","mapping.propose","jds.create","crm.read"
   ],
 
   STAFFING_MANAGER: [
