@@ -61,12 +61,16 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess }: Crea
       setLoading(true);
       
       await CrmService.createProject({
-        ...data,
+        name: data.name,
         client_id: clientId,
         account_id: data.account_id || undefined,
         primary_spoc_id: data.primary_spoc_id || undefined,
         start_date: data.start_date?.toISOString().split('T')[0],
         end_date: data.end_date?.toISOString().split('T')[0],
+        ft_target: data.ft_target || 0,
+        contract_target: data.contract_target || 0,
+        priority: data.priority || 'Medium',
+        status: data.status || 'Planned',
         skills: data.skills ? data.skills.split(',').map(s => s.trim()) : undefined
       });
       

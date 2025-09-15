@@ -1,10 +1,10 @@
 import { Routes, Route } from 'react-router-dom';
 import CRMHomePage from './CRMHomePage';
 import CRMClientsPage from './CRMClientsPage';
-import CRMAccountsPage from './CRMAccountsPage';
-import CRMProjectsPage from './CRMProjectsPage';
-import CRMOpportunitiesPage from './CRMOpportunitiesPage';
-import CRMInteractionsPage from './CRMInteractionsPage';
+import { CRMAccountsPage } from './CRMAccountsPage';
+import { CRMProjectsPage } from './CRMProjectsPage';
+import { CRMOpportunitiesPage } from './CRMOpportunitiesPage';
+import { CRMInteractionsPage } from './CRMInteractionsPage';
 import CRMReportsPage from './CRMReportsPage';
 import ClientDetailPage from './ClientDetailPage';
 

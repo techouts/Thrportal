@@ -44,7 +44,9 @@ export function CreateAccountForm({ clientId, spocs, onSuccess }: CreateAccountF
       setLoading(true);
       
       await CrmService.createAccount({
-        ...data,
+        name: data.name,
+        type: data.type,
+        sla_override: data.sla_override,
         client_id: clientId,
         primary_spoc_id: data.primary_spoc_id || undefined
       });

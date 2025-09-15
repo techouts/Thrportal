@@ -54,7 +54,9 @@ export function CreateDocumentForm({ clientId, accounts, projects, onSuccess }: 
       setLoading(true);
       
       await CrmService.createDocument({
-        ...data,
+        name: data.name,
+        document_type: data.document_type,
+        sharepoint_url: data.sharepoint_url,
         client_id: clientId,
         account_id: data.account_id || undefined,
         project_id: data.project_id || undefined,

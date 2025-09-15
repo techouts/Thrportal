@@ -52,11 +52,14 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess 
       setLoading(true);
       
       await CrmService.createOpportunity({
-        ...data,
+        jd_count: data.jd_count,
+        ft_count: data.ft_count,
+        contract_count: data.contract_count,
+        status: data.status,
+        notes: data.notes,
         client_id: clientId,
         account_id: data.account_id || undefined,
-        project_id: data.project_id || undefined,
-        notes: data.notes || undefined
+        project_id: data.project_id || undefined
       });
       
       toast({
