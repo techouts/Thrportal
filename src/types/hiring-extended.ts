@@ -326,6 +326,8 @@ export interface SmartJDParseRequest {
 export interface SmartJDParseResponse {
   draft: Partial<JobDescription>;
   confidence: number;
+  suggestions: string[];
+  uncertainFields: string[];
 }
 
 export interface EmailCampaignRequest {

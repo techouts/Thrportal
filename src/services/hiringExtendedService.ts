@@ -297,7 +297,7 @@ export class HiringExtendedService {
     return { created, failed };
   }
 
-  async parseSmartJD(file_content: string, file_name: string): Promise<SmartJDParseResponse> {
+  async parseSmartJD(file_content: string, file_name: string): Promise<JDParseResult> {
     // Mock smart parsing logic
     const draft: Partial<JobDescription> = {
       job_title: 'Senior Software Engineer', // Extracted from document
@@ -310,7 +310,13 @@ export class HiringExtendedService {
 
     return {
       draft,
-      confidence: 0.85 // 85% confidence
+      confidence: 0.85, // 85% confidence
+      suggestions: [
+        'Consider adding more specific technical requirements',
+        'The experience range seems appropriate for the role level',
+        'You may want to specify the team size or project scope'
+      ],
+      uncertainFields: ['department', 'min_exp_years'] // Fields with low confidence
     };
   }
 
