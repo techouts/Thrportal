@@ -17,9 +17,9 @@ export function EscalationsTab() {
   const [loading, setLoading] = useState(true);
   const [selectedEscalation, setSelectedEscalation] = useState<EscalationEvent | null>(null);
   const [filters, setFilters] = useState({
-    status: '',
-    resourceType: '',
-    level: ''
+    status: 'all',
+    resourceType: 'all',
+    level: 'all'
   });
 
   useEffect(() => {
@@ -30,7 +30,18 @@ export function EscalationsTab() {
     setLoading(true);
     try {
       const data = await ownershipService.getEscalationEvents();
-      setEscalations(data);
+      // Filter data based on filters, treating 'all' as no filter
+      let filteredData = data;
+      if (filters.status !== 'all') {
+        filteredData = filteredData.filter(e => e.status === filters.status);
+      }
+      if (filters.resourceType !== 'all') {
+        filteredData = filteredData.filter(e => e.resourceType === filters.resourceType);
+      }
+      if (filters.level !== 'all') {
+        filteredData = filteredData.filter(e => e.escalationLevel.toString() === filters.level);
+      }
+      setEscalations(filteredData);
     } catch (error) {
       console.error('Failed to load escalations:', error);
     } finally {
@@ -236,7 +247,7 @@ export function EscalationsTab() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="Triggered">Triggered</SelectItem>
                 <SelectItem value="In Progress">In Progress</SelectItem>
                 <SelectItem value="Resolved">Resolved</SelectItem>
@@ -249,7 +260,7 @@ export function EscalationsTab() {
                 <SelectValue placeholder="Resource Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="JD">JD</SelectItem>
                 <SelectItem value="Candidate">Candidate</SelectItem>
               </SelectContent>
@@ -260,7 +271,7 @@ export function EscalationsTab() {
                 <SelectValue placeholder="Escalation Level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Levels</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
                 <SelectItem value="1">Level 1</SelectItem>
                 <SelectItem value="2">Level 2</SelectItem>
                 <SelectItem value="3">Level 3</SelectItem>
