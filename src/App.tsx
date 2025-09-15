@@ -55,6 +55,61 @@ function App() {
                 } />
 
                 {/* Me Section */}
+                <Route path="/Me/Dashboard" element={
+                  <ProtectedRoute required={["portal.announcements.read"]}>
+                    <MainLayout><MePage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Profile" element={
+                  <ProtectedRoute required={["employees.read"]}>
+                    <MainLayout><MePage defaultTab="Profile" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Attendance" element={
+                  <ProtectedRoute required={["attendance.read"]}>
+                    <MainLayout><MePage defaultTab="Attendance" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Leave" element={
+                  <ProtectedRoute required={["leave.requests.*"]}>
+                    <MainLayout><MePage defaultTab="Leave" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Timesheet" element={
+                  <ProtectedRoute required={["timesheets.read"]}>
+                    <MainLayout><MePage defaultTab="Timesheet" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Expenses" element={
+                  <ProtectedRoute required={["finance.tax_declarations.read"]}>
+                    <MainLayout><MePage defaultTab="Expenses" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Finance" element={
+                  <ProtectedRoute required={["finance.payslips.read"]}>
+                    <MainLayout><MePage defaultTab="Finance" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Learning" element={
+                  <ProtectedRoute required={["performance.goals.read"]}>
+                    <MainLayout><MePage defaultTab="Learning" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Recognition" element={
+                  <ProtectedRoute required={["performance.feedback_requests.read"]}>
+                    <MainLayout><MePage defaultTab="Recognition" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/IJP" element={
+                  <ProtectedRoute required={["ijp.postings.read"]}>
+                    <MainLayout><MePage defaultTab="IJP" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Me/Helpdesk" element={
+                  <ProtectedRoute required={["helpdesk.tickets.read_own"]}>
+                    <MainLayout><MePage defaultTab="Helpdesk" /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/Me/*" element={
                   <ProtectedRoute required={["employees.read"]}>
                     <MainLayout><MePage defaultTab="Dashboard" /></MainLayout>
@@ -62,6 +117,56 @@ function App() {
                 } />
 
                 {/* My Team Section */}
+                <Route path="/MyTeam/Dashboard" element={
+                  <ProtectedRoute required={["attendance.team.read"]}>
+                    <MainLayout><MyTeamPage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Leave" element={
+                  <ProtectedRoute required={["leave.approvals.*"]}>
+                    <MainLayout><MyTeamPage defaultTab="Leave" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Attendance" element={
+                  <ProtectedRoute required={["attendance.team.read"]}>
+                    <MainLayout><MyTeamPage defaultTab="Attendance" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Timesheet" element={
+                  <ProtectedRoute required={["timesheets.approvals.*"]}>
+                    <MainLayout><MyTeamPage defaultTab="Timesheet" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Expenses" element={
+                  <ProtectedRoute required={["finance.audit_logs.read"]}>
+                    <MainLayout><MyTeamPage defaultTab="Expenses" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Performance" element={
+                  <ProtectedRoute required={["performance.reviews.create"]}>
+                    <MainLayout><MyTeamPage defaultTab="Performance" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Recognition" element={
+                  <ProtectedRoute required={["performance.feedback_requests.read"]}>
+                    <MainLayout><MyTeamPage defaultTab="Recognition" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/Learning" element={
+                  <ProtectedRoute required={["performance.goals.read"]}>
+                    <MainLayout><MyTeamPage defaultTab="Learning" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/ProfileChanges" element={
+                  <ProtectedRoute required={["employees.update"]}>
+                    <MainLayout><MyTeamPage defaultTab="ProfileChanges" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/MyTeam/IJP" element={
+                  <ProtectedRoute required={["ijp.applications.read_team"]}>
+                    <MainLayout><MyTeamPage defaultTab="IJP" /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/MyTeam/*" element={
                   <ProtectedRoute required={["attendance.team.read", "leave.team.calendar.read", "performance.reviews.create"]}>
                     <MainLayout><MyTeamPage defaultTab="Dashboard" /></MainLayout>
@@ -130,6 +235,56 @@ function App() {
                 } />
 
                 {/* HR Section */}
+                <Route path="/HR/Performance" element={
+                  <ProtectedRoute required={["performance.cycles.create"]}>
+                    <MainLayout><HRPage defaultTab="Performance" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Leave" element={
+                  <ProtectedRoute required={["leave.policies.read"]}>
+                    <MainLayout><HRPage defaultTab="Leave" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Attendance" element={
+                  <ProtectedRoute required={["attendance.policies.read"]}>
+                    <MainLayout><HRPage defaultTab="Attendance" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Recognition" element={
+                  <ProtectedRoute required={["performance.feedback_requests.read"]}>
+                    <MainLayout><HRPage defaultTab="Recognition" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Expenses" element={
+                  <ProtectedRoute required={["finance.audit_logs.read"]}>
+                    <MainLayout><HRPage defaultTab="Expenses" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Learning" element={
+                  <ProtectedRoute required={["performance.goals.read"]}>
+                    <MainLayout><HRPage defaultTab="Learning" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/IJP" element={
+                  <ProtectedRoute required={["ijp.postings.read"]}>
+                    <MainLayout><HRPage defaultTab="IJP" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Helpdesk" element={
+                  <ProtectedRoute required={["helpdesk.dashboard.read"]}>
+                    <MainLayout><HRPage defaultTab="Helpdesk" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/OnOffboarding" element={
+                  <ProtectedRoute required={["onboarding.*"]}>
+                    <MainLayout><HRPage defaultTab="OnOffboarding" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/HR/Reports" element={
+                  <ProtectedRoute required={["leave.reports.read"]}>
+                    <MainLayout><HRPage defaultTab="Reports" /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/HR/*" element={
                   <ProtectedRoute required={["employees.*"]}>
                     <MainLayout><HRPage defaultTab="Performance" /></MainLayout>

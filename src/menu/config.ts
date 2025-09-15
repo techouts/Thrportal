@@ -26,7 +26,7 @@ export const MENU: MenuSection[] = [
       { label: "Leave",      route: "/Me/Leave",      requiresAny: ["leave.requests.*","leave.balance.read"] },
       { label: "Timesheet",  route: "/Me/Timesheet",  requiresAny: ["timesheets.read"] },
       { label: "Expenses",   route: "/Me/Expenses",   requiresAny: ["finance.tax_declarations.read","finance.investment_planner.read"] },
-      { label: "Finance",    route: "/Me/Finance/Summary", requiresAny: ["finance.payslips.read"] },
+      { label: "Finance",    route: "/Me/Finance",    requiresAny: ["finance.payslips.read"] },
       { label: "Learning",   route: "/Me/Learning",   requiresAny: ["performance.goals.read"] },
       { label: "Recognition",route: "/Me/Recognition",requiresAny: ["performance.feedback_requests.read"] },
       { label: "IJP",        route: "/Me/IJP",        requiresAny: ["ijp.postings.read"] },
@@ -43,6 +43,8 @@ export const MENU: MenuSection[] = [
       { label: "Timesheet",      route: "/MyTeam/Timesheet",     requiresAny: ["timesheets.approvals.*","timesheets.projects.read"] },
       { label: "Expenses",       route: "/MyTeam/Expenses",      requiresAny: ["finance.audit_logs.read"] },
       { label: "Performance",    route: "/MyTeam/Performance",   requiresAny: ["performance.reviews.create"] },
+      { label: "Recognition",    route: "/MyTeam/Recognition",   requiresAny: ["performance.feedback_requests.read"] },
+      { label: "Learning",       route: "/MyTeam/Learning",      requiresAny: ["performance.goals.read"] },
       { label: "Profile Changes",route: "/MyTeam/ProfileChanges",requiresAny: ["employees.update"] },
       { label: "IJP",            route: "/MyTeam/IJP",           requiresAny: ["ijp.applications.read_team"] }
     ] 
@@ -55,7 +57,10 @@ export const MENU: MenuSection[] = [
       { label: "Job Requisitions",route: "/Hiring/JobRequisitions", requiresAny: ["hiring.requisitions.read"] },
       { label: "Assignment",      route: "/Hiring/Assignment",      requiresAny: ["applications.submissions.*"] },
       { label: "Applications",    route: "/Hiring/Applications",    requiresAny: ["applications.pipeline.read"] },
+      { label: "Pipeline",        route: "/Hiring/Pipeline",        requiresAny: ["applications.pipeline.read"] },
+      { label: "FollowUp",        route: "/Hiring/FollowUp",        requiresAny: ["applications.pipeline.read"] },
       { label: "BGV",             route: "/Hiring/BGV",             requiresAny: ["bgv.cases.read"] },
+      { label: "Settings",        route: "/Hiring/Settings",        requiresAny: ["hiring.settings.*"] },
       { label: "Offers (HM)",     route: "/Hiring/Offers",          requiresAny: ["offers.create","offers.approve","candidates.sensitive.read"] }
     ] 
   },
@@ -80,6 +85,11 @@ export const MENU: MenuSection[] = [
       { label: "Performance",   route: "/HR/Performance",   requiresAny: ["performance.cycles.create"] },
       { label: "Leave",         route: "/HR/Leave",         requiresAny: ["leave.policies.read"] },
       { label: "Attendance",    route: "/HR/Attendance",    requiresAny: ["attendance.policies.read"] },
+      { label: "Recognition",   route: "/HR/Recognition",   requiresAny: ["performance.feedback_requests.read"] },
+      { label: "Expenses",      route: "/HR/Expenses",      requiresAny: ["finance.audit_logs.read"] },
+      { label: "Learning",      route: "/HR/Learning",      requiresAny: ["performance.goals.read"] },
+      { label: "IJP",           route: "/HR/IJP",           requiresAny: ["ijp.postings.read"] },
+      { label: "Helpdesk",      route: "/HR/Helpdesk",      requiresAny: ["helpdesk.dashboard.read"] },
       { label: "On/Offboarding",route: "/HR/OnOffboarding", requiresAny: ["onboarding.*","offboarding.*","onboarding.employees.read","offboarding.employees.read"] },
       { label: "Reports",       route: "/HR/Reports",       requiresAny: ["leave.reports.read","attendance.reports.read"] }
     ] 

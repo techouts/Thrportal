@@ -28,7 +28,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "attendance.read","attendance.clock_in","attendance.logs.read",
     "leave.requests.*","leave.balance.read",
     "timesheets.read","timesheets.submit",
-    "finance.payslips.read","finance.payslips.download",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
     "performance.goals.*","performance.feedback_requests.*",
     "ijp.postings.read","ijp.applications.create",
     "helpdesk.tickets.read_own","helpdesk.tickets.create"
@@ -36,14 +36,16 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   MANAGER: [
     "portal.announcements.read",
-    "employees.read",
-    "attendance.team.read","attendance.approvals.*",
-    "leave.team.calendar.read","leave.approvals.*",
-    "timesheets.approvals.*",
-    "performance.reviews.create","performance.meetings.*",
-    "ijp.applications.read_team","ijp.applications.approve",
+    "employees.read","employees.update",
+    "attendance.read","attendance.clock_in","attendance.team.read","attendance.approvals.*",
+    "leave.requests.*","leave.balance.read","leave.team.calendar.read","leave.approvals.*",
+    "timesheets.read","timesheets.approvals.*","timesheets.projects.read",
+    "finance.payslips.read","finance.tax_declarations.read","finance.investment_planner.read","finance.audit_logs.read",
+    "performance.goals.*","performance.feedback_requests.*","performance.reviews.create","performance.meetings.*",
+    "ijp.postings.read","ijp.applications.read_team","ijp.applications.approve","ijp.applications.create",
     "hiring.dashboard.read","hiring.requisitions.read",
-    "applications.pipeline.read","applications.submissions.*"
+    "applications.pipeline.read","applications.submissions.*",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
 
   RECRUITER: [
@@ -84,8 +86,9 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "portal.announcements.read",
     "employees.*","leave.*","attendance.*",
     "onboarding.*","offboarding.*","performance.*",
-    "policy.*","letters.*","bgv.*","ijp.settings.*","payroll.runs.read",
-    "hiring.*","applications.*","hiring.settings.*"
+    "policy.*","letters.*","bgv.*","ijp.*","payroll.runs.read",
+    "hiring.*","applications.*","hiring.settings.*",
+    "finance.audit_logs.read","helpdesk.dashboard.read","helpdesk.tickets.*"
   ],
 
   PAYROLL_SPECIALIST: [
@@ -97,7 +100,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   FINANCE_ANALYST: [
     "portal.announcements.read",
-    "finance.reports.read","finance.payroll.read","finance.jv.export","finance.audit_logs.read","payroll.runs.read"
+    "finance.reports.read","finance.payroll.read","finance.jv.export","finance.audit_logs.read","payroll.runs.read",
+    "employees.read","employees.directory.read"
   ],
 
   IT_HELPDESK: [
