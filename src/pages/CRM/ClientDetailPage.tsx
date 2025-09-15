@@ -502,7 +502,6 @@ export default function ClientDetailPage() {
               <DataTable
                 data={client.accounts || []}
                 columns={accountColumns}
-                searchableColumns={['name', 'type']}
               />
             </CardContent>
           </Card>
@@ -544,7 +543,6 @@ export default function ClientDetailPage() {
               <DataTable
                 data={client.projects || []}
                 columns={projectColumns}
-                searchableColumns={['name']}
               />
             </CardContent>
           </Card>
@@ -627,7 +625,6 @@ export default function ClientDetailPage() {
               <DataTable
                 data={client.documents || []}
                 columns={documentColumns}
-                searchableColumns={['name']}
               />
             </CardContent>
           </Card>
