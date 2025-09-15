@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Filter, Upload, Download, Eye, Edit, Link, Calendar, MoreHorizontal } from 'lucide-react';
+import { Search, Filter, Upload, Download, Eye, Edit, UserPlus, Archive, MoreHorizontal } from 'lucide-react';
 import { candidatesService } from '@/services/candidatesService';
 import { CandidateProfile, CandidateFilters, CandidateStatus, CandidateSource } from '@/types/candidates';
 import {
@@ -27,6 +27,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [filters, setFilters] = useState<CandidateFilters>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [activeView, setActiveView] = useState<'all' | 'unassigned' | 'unattended'>('all');
 
   useEffect(() => {
     loadCandidates();
@@ -89,6 +90,13 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
       enableHiding: false,
     },
     {
+      accessorKey: 'id',
+      header: 'Candidate ID',
+      cell: ({ row }: any) => (
+        <div className="text-sm font-mono">{row.original.id}</div>
+      ),
+    },
+    {
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }: any) => {
@@ -140,9 +148,35 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
     },
     {
       accessorKey: 'recruiterOwner',
-      header: 'Recruiter',
+      header: 'Recruiter Owner',
       cell: ({ row }: any) => (
-        <div className="text-sm">{row.original.recruiterOwner}</div>
+        <div className="text-sm">{row.original.recruiterOwner || 'Unassigned'}</div>
+      ),
+    },
+    {
+      accessorKey: 'source',
+      header: 'Source',
+      cell: ({ row }: any) => (
+        <Badge variant="outline">{row.original.source}</Badge>
+      ),
+    },
+    {
+      accessorKey: 'poolTags',
+      header: 'Pool Tags',
+      cell: ({ row }: any) => (
+        <div className="flex flex-wrap gap-1">
+          <Badge variant="secondary" className="text-xs">Frontend</Badge>
+          <Badge variant="secondary" className="text-xs">Senior</Badge>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'consent',
+      header: 'Consent',
+      cell: ({ row }: any) => (
+        <Badge variant={row.original.consent ? 'default' : 'destructive'}>
+          {row.original.consent ? 'Y' : 'N'}
+        </Badge>
       ),
     },
     {
@@ -192,12 +226,10 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 Edit Candidate
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link className="mr-2 h-4 w-4" />
-                Link to JD
+                Reassign Owner
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Calendar className="mr-2 h-4 w-4" />
-                Schedule Interview
+                Add to Pool
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -218,6 +250,10 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 <Filter className="mr-2 h-4 w-4" />
                 {showFilters ? 'Hide' : 'Show'} Filters
               </Button>
+              <Button variant="default" size="sm">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Candidate
+              </Button>
               <Button variant="outline" size="sm">
                 <Upload className="mr-2 h-4 w-4" />
                 Bulk Upload
@@ -230,6 +266,31 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* View Tabs */}
+          <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
+            <Button 
+              variant={activeView === 'all' ? 'default' : 'ghost'} 
+              size="sm"
+              onClick={() => setActiveView('all')}
+            >
+              All Candidates
+            </Button>
+            <Button 
+              variant={activeView === 'unassigned' ? 'default' : 'ghost'} 
+              size="sm"
+              onClick={() => setActiveView('unassigned')}
+            >
+              Unassigned <Badge variant="secondary" className="ml-1">5</Badge>
+            </Button>
+            <Button 
+              variant={activeView === 'unattended' ? 'default' : 'ghost'} 
+              size="sm"
+              onClick={() => setActiveView('unattended')}
+            >
+              Unattended <Badge variant="destructive" className="ml-1">12</Badge>
+            </Button>
+          </div>
+
           {/* Search Bar */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -349,9 +410,18 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 <span className="text-sm text-muted-foreground">
                   {selectedCandidates.length} selected
                 </span>
-                <Button variant="outline" size="sm">
-                  Bulk Actions
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    Reassign Owner
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Add to Pool
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -361,46 +431,66 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
+                  <th className="text-left p-2">Candidate ID</th>
                   <th className="text-left p-2">Name</th>
-                  <th className="text-left p-2">Skills</th>
-                  <th className="text-left p-2">Experience</th>
                   <th className="text-left p-2">Location</th>
-                  <th className="text-left p-2">Status</th>
+                  <th className="text-left p-2">Recruiter Owner</th>
+                  <th className="text-left p-2">Source</th>
+                  <th className="text-left p-2">Pool Tags</th>
+                  <th className="text-left p-2">Consent</th>
+                  <th className="text-left p-2">Last Updated</th>
                   <th className="text-left p-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate) => (
-                  <tr key={candidate.id} className="border-b hover:bg-muted/50">
-                    <td className="p-2">
-                      <div>{candidate.name}</div>
-                      <div className="text-sm text-muted-foreground">{candidate.email}</div>
-                    </td>
-                    <td className="p-2">
-                      <div className="flex flex-wrap gap-1">
-                        {candidate.skills.slice(0, 2).map((skill) => (
-                          <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="p-2">{candidate.experience}y</td>
-                    <td className="p-2">{candidate.location}</td>
-                    <td className="p-2">
-                      <Badge variant={getStatusBadgeVariant(candidate.status)}>
-                        {candidate.status}
-                      </Badge>
-                    </td>
-                    <td className="p-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => onViewCandidate(candidate.id)}
-                      >
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {candidates.map((candidate) => {
+                  const isUnattended = new Date(candidate.lastUpdated) < new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+                  return (
+                    <tr 
+                      key={candidate.id} 
+                      className={`border-b hover:bg-muted/50 ${isUnattended ? 'bg-red-50 border-red-200' : ''}`}
+                    >
+                      <td className="p-2">
+                        <div className="text-sm font-mono">{candidate.id}</div>
+                      </td>
+                      <td className="p-2">
+                        <div>{candidate.name}</div>
+                        <div className="text-sm text-muted-foreground">{candidate.email}</div>
+                        <div className="text-sm text-muted-foreground">{candidate.phone}</div>
+                      </td>
+                      <td className="p-2">{candidate.location}</td>
+                      <td className="p-2">
+                        <div className="text-sm">{candidate.recruiterOwner || 'Unassigned'}</div>
+                      </td>
+                      <td className="p-2">
+                        <Badge variant="outline">{candidate.source}</Badge>
+                      </td>
+                      <td className="p-2">
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="secondary" className="text-xs">Frontend</Badge>
+                          <Badge variant="secondary" className="text-xs">Senior</Badge>
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <Badge variant={candidate.consent ? 'default' : 'destructive'}>
+                          {candidate.consent ? 'Y' : 'N'}
+                        </Badge>
+                      </td>
+                      <td className="p-2">
+                        <div className="text-sm">{new Date(candidate.lastUpdated).toLocaleDateString()}</div>
+                      </td>
+                      <td className="p-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => onViewCandidate(candidate.id)}
+                        >
+                          View
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

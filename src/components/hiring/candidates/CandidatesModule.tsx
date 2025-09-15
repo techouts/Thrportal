@@ -3,8 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { CandidateListTab } from './tabs/CandidateListTab';
 import { CandidateProfileTab } from './tabs/CandidateProfileTab';
-import { CandidateSecurityTab } from './tabs/CandidateSecurityTab';
-import { TalentPoolsTab } from './tabs/TalentPoolsTab';
+import { CandidateComplianceTab } from './tabs/CandidateComplianceTab';
 import { CandidateReportsTab } from './tabs/CandidateReportsTab';
 
 export function CandidatesModule() {
@@ -19,16 +18,15 @@ export function CandidatesModule() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Candidates & Resumes"
-        description="Manage candidate profiles, resumes, applications, and talent pools"
+        title="Candidates"
+        description="Manage candidate profiles, compliance, and analytics"
       />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="list">Candidate List</TabsTrigger>
           <TabsTrigger value="profile">Candidate Profile</TabsTrigger>
-          <TabsTrigger value="pools">Talent Pools</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="compliance">Compliance</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
         
@@ -43,12 +41,8 @@ export function CandidatesModule() {
           />
         </TabsContent>
         
-        <TabsContent value="pools" className="space-y-6">
-          <TalentPoolsTab />
-        </TabsContent>
-        
-        <TabsContent value="security" className="space-y-6">
-          <CandidateSecurityTab />
+        <TabsContent value="compliance" className="space-y-6">
+          <CandidateComplianceTab />
         </TabsContent>
         
         <TabsContent value="reports" className="space-y-6">
