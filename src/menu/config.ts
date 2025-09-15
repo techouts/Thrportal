@@ -78,7 +78,9 @@ export const MENU: MenuSection[] = [
       { label: "Projects",        route: "/CRM/Projects",           requiresAny: ["crm.read"] },
       { label: "Opportunities",   route: "/CRM/Opportunities",      requiresAny: ["crm.read"] },
       { label: "Interactions",    route: "/CRM/Interactions",       requiresAny: ["crm.interactions.*"] },
-      { label: "Reports",         route: "/CRM/Reports",            requiresAny: ["crm.read"] }
+      { label: "Reports",         route: "/CRM/Reports",            requiresAny: ["crm.read"] },
+      { label: "Integrations",    route: "/CRM/Integrations",       requiresAny: ["crm.read"] },
+      { label: "Demo Overview",   route: "/CRM/Demo",               requiresAny: ["crm.read"] }
     ] 
   },
   { 
