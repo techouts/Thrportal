@@ -14,13 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          business_unit: string | null
+          created_at: string
+          department: string | null
+          display_name: string | null
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          last_name: string | null
+          phone: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          business_unit?: string | null
+          created_at?: string
+          department?: string | null
+          display_name?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          is_active?: boolean
+          last_name?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          business_unit?: string | null
+          created_at?: string
+          department?: string | null
+          display_name?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

@@ -56,15 +56,33 @@ export default function SignIn() {
                   key={u.email} 
                   onClick={() => quickSignIn(u.email, u.password)} 
                   disabled={loading}
-                  className="border rounded-xl p-4 text-left hover:shadow-md transition-all hover:bg-muted/50 disabled:opacity-50"
+                  className={`border rounded-xl p-4 text-left hover:shadow-md transition-all hover:bg-muted/50 disabled:opacity-50 ${
+                    u.role === 'STAFFING_MANAGER' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : ''
+                  }`}
                 >
                   <div className="font-medium text-foreground">{u.display_name}</div>
                   <div className="text-xs text-muted-foreground">{u.role}</div>
+                  {u.role === 'STAFFING_MANAGER' && (
+                    <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      🎯 External JD Approvals
+                    </div>
+                  )}
                   {u.mfa_enabled && (
                     <div className="text-xs text-amber-600 mt-1">🔐 MFA</div>
                   )}
                 </button>
               ))}
+            </div>
+            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div className="text-sm text-amber-800 dark:text-amber-200">
+                <strong>New:</strong> Staffing Manager role added for external hiring workflows:
+                <ul className="mt-2 text-xs space-y-1 list-disc list-inside">
+                  <li>Approves external JD requisitions</li>
+                  <li>Manages JD mapping proposals</li>
+                  <li>Oversees resume ownership decisions</li>
+                  <li>Access to CRM and client data</li>
+                </ul>
+              </div>
             </div>
           </div>
         ) : (
