@@ -9,16 +9,16 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "leave.reports.read","attendance.reports.read",
     "performance.cycles.read","performance.reviews.read",
     "projects.*.read","timesheets.*.read","timesheets.export.*",
-    "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read",
+    "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read","applications.submissions.*",
     "finance.payroll.read","finance.reports.read"
     // no admin/security/roles/integrations
   ],
 
   VIEWER: [
     "portal.announcements.read",
-    "employees.directory.read","employees.read",        // server will redact PII where needed
+    "employees.directory.read","employees.read",        // server will redacted PII where needed
     "leave.reports.read","attendance.reports.read",
-    "projects.*.read","hiring.requisitions.read","applications.pipeline.read",
+    "projects.*.read","hiring.requisitions.read","applications.pipeline.read","applications.submissions.*",
     "finance.reports.read"                                // no exports, no bank files
   ],
 
