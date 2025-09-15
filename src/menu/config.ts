@@ -70,13 +70,15 @@ export const MENU: MenuSection[] = [
   },
   { 
     label: "CRM", 
-    requiresAny: ["crm.clients.*","crm.accounts.*","crm.interactions.*"], 
+    requiresAny: ["crm.read","crm.interactions.*"], 
     items: [
-      { label: "Dashboard",       route: "/CRM/Dashboard",          requiresAny: ["crm.kpis.read"] },
-      { label: "Clients",         route: "/CRM/Clients",            requiresAny: ["crm.clients.*"] },
-      { label: "Accounts",        route: "/CRM/Accounts",           requiresAny: ["crm.accounts.*"] },
-      { label: "Projects",        route: "/CRM/Projects",           requiresAny: ["crm.projects.*"] },
-      { label: "Interactions",    route: "/CRM/Interactions",       requiresAny: ["crm.interactions.*"] }
+      { label: "Dashboard",       route: "/CRM/Home",               requiresAny: ["crm.read"] },
+      { label: "Clients",         route: "/CRM/Clients",            requiresAny: ["crm.read"] },
+      { label: "Accounts",        route: "/CRM/Accounts",           requiresAny: ["crm.read"] },
+      { label: "Projects",        route: "/CRM/Projects",           requiresAny: ["crm.read"] },
+      { label: "Opportunities",   route: "/CRM/Opportunities",      requiresAny: ["crm.read"] },
+      { label: "Interactions",    route: "/CRM/Interactions",       requiresAny: ["crm.interactions.*"] },
+      { label: "Reports",         route: "/CRM/Reports",            requiresAny: ["crm.read"] }
     ] 
   },
   { 

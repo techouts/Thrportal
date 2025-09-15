@@ -57,7 +57,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "jds.create","jds.bulk_import","jds.smart_import",
     "candidates.create","resumes.create","applications.rank",
     "email.campaigns.send","ownership.assign","mapping.propose",
-    "crm.interactions.*","followup.tasks.*"
+    "crm.interactions.*","crm.opportunities.*","followup.tasks.*"
   ],
 
   HIRING_MANAGER: [
@@ -74,7 +74,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "hiring.dashboard.read","hiring.requisitions.read",
     "jds.approve.external","mapping.approve",
     "applications.pipeline.read","applications.submissions.*",
-    "crm.kpis.read","crm.*","ownership.*"
+    "crm.*","ownership.*"
   ],
 
   PROJECT_LEAD: [

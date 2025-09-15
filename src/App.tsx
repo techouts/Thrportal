@@ -25,6 +25,15 @@ import PayrollPage from "./pages/Finance/PayrollPage";
 import HelpdeskPage from "./pages/IT/HelpdeskPage";
 import AdminPage from "./pages/Admin/AdminPage";
 
+// CRM Pages
+import CRMHomePage from "./pages/CRM/CRMHomePage";
+import CRMClientsPage from "./pages/CRM/CRMClientsPage";
+import CRMAccountsPage from "./pages/CRM/CRMAccountsPage";
+import CRMProjectsPage from "./pages/CRM/CRMProjectsPage";
+import CRMOpportunitiesPage from "./pages/CRM/CRMOpportunitiesPage";
+import CRMInteractionsPage from "./pages/CRM/CRMInteractionsPage";
+import CRMReportsPage from "./pages/CRM/CRMReportsPage";
+
 function App() {
   const queryClient = new QueryClient();
 
@@ -241,34 +250,44 @@ function App() {
                 } />
 
                 {/* CRM Section */}
-                <Route path="/CRM/Dashboard" element={
-                  <ProtectedRoute required={["crm.kpis.read"]}>
-                    <MainLayout><div>CRM Dashboard</div></MainLayout>
+                <Route path="/CRM/Home" element={
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMHomePage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/CRM/Clients" element={
-                  <ProtectedRoute required={["crm.clients.*"]}>
-                    <MainLayout><div>CRM Clients</div></MainLayout>
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMClientsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/CRM/Accounts" element={
-                  <ProtectedRoute required={["crm.accounts.*"]}>
-                    <MainLayout><div>CRM Accounts</div></MainLayout>
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMAccountsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/CRM/Projects" element={
-                  <ProtectedRoute required={["crm.projects.*"]}>
-                    <MainLayout><div>CRM Projects</div></MainLayout>
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMProjectsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/Opportunities" element={
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMOpportunitiesPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/CRM/Interactions" element={
                   <ProtectedRoute required={["crm.interactions.*"]}>
-                    <MainLayout><div>CRM Interactions</div></MainLayout>
+                    <MainLayout><CRMInteractionsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/CRM/Reports" element={
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMReportsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/CRM/*" element={
-                  <ProtectedRoute required={["crm.kpis.read"]}>
-                    <MainLayout><div>CRM Dashboard</div></MainLayout>
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><CRMHomePage /></MainLayout>
                   </ProtectedRoute>
                 } />
 
