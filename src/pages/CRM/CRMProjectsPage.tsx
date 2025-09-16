@@ -10,6 +10,8 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/auth/AuthContext';
+import { useVisible } from '@/hooks/useVisible';
 import type { CrmProject, CrmClient } from '@/types/crm';
 
 export function CRMProjectsPage() {
@@ -20,6 +22,14 @@ export function CRMProjectsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const { toast } = useToast();
+  const { can } = useAuth();
+  
+  // Permission checks
+  const canCreateProjects = useVisible(['crm.projects.create', 'crm.projects.*', 'projects.create']);
+  const canEditProjects = useVisible(['crm.projects.update', 'crm.projects.*', 'projects.update']);
+  const canDeleteProjects = useVisible(['crm.projects.delete', 'crm.projects.*', 'projects.delete']);
+  const canViewClients = useVisible(['crm.clients.read', 'crm.clients.*', 'crm.*']);
+  const canCreateOpportunities = useVisible(['crm.opportunities.create', 'crm.opportunities.*', 'crm.*']);
 
   useEffect(() => {
     loadData();
@@ -153,14 +163,22 @@ export function CRMProjectsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/CRM/Clients/${project.client_id}`}>View Client</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>Edit Project</DropdownMenuItem>
-            <DropdownMenuItem>Create Opportunity</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
-              Delete Project
-            </DropdownMenuItem>
+            {canViewClients && (
+              <DropdownMenuItem asChild>
+                <Link to={`/CRM/Clients/${project.client_id}`}>View Client</Link>
+              </DropdownMenuItem>
+            )}
+            {canEditProjects && (
+              <DropdownMenuItem>Edit Project</DropdownMenuItem>
+            )}
+            {canCreateOpportunities && (
+              <DropdownMenuItem>Create Opportunity</DropdownMenuItem>
+            )}
+            {canDeleteProjects && (
+              <DropdownMenuItem className="text-destructive">
+                Delete Project
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -194,12 +212,14 @@ export function CRMProjectsPage() {
         title="Project Management"
         description="Manage client projects and hiring requirements"
         actions={
-          <Button asChild>
-            <Link to="/CRM/Clients">
-              <Plus className="h-4 w-4 mr-2" />
-              New Project
-            </Link>
-          </Button>
+          canCreateProjects ? (
+            <Button asChild>
+              <Link to="/CRM/Clients">
+                <Plus className="h-4 w-4 mr-2" />
+                New Project
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 

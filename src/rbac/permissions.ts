@@ -12,13 +12,11 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "employees.directory.read","employees.analytics.read","employees.read",
     "leave.reports.read","attendance.reports.read",
     "performance.cycles.read","performance.reviews.read",
-    "projects.*.read","timesheets.*.read","timesheets.export.*",
+    "projects.*","timesheets.*.read","timesheets.export.*",
     "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read","applications.submissions.*",
     "finance.payroll.read","finance.reports.read",
     "jds.approve.management","jds.reports.read","crm.kpis.read",
-    "crm.read","crm.dashboard.read","crm.clients.read","crm.accounts.read",
-    "crm.projects.read","crm.opportunities.read","crm.interactions.read","crm.reports.read",
-    "crm.integrations.read","crm.demo.read"
+    "crm.*","crm.integrations.read","crm.demo.read"
     // no admin/security/roles/integrations
   ],
 
@@ -42,7 +40,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "learning.read","recognition.read",
     "ijp.postings.read","ijp.applications.create",
     "helpdesk.tickets.read_own","helpdesk.tickets.create",
-    "projects.read","projects.dashboard.read","projects.tasks.read","projects.assignments.read"
+    "projects.read","projects.dashboard.read","projects.tasks.read","projects.assignments.read",
+    "crm.projects.read"
   ],
 
   MANAGER: [
@@ -59,7 +58,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "hiring.dashboard.read","hiring.requisitions.read",
     "applications.pipeline.read","applications.submissions.*",
     "helpdesk.tickets.read_own","helpdesk.tickets.create",
-    "projects.read","projects.dashboard.read","projects.clients.read","projects.projects.read","projects.assignments.read","projects.tasks.read","projects.bench.read"
+    "projects.read","projects.dashboard.read","projects.clients.read","projects.projects.read","projects.assignments.read","projects.tasks.read","projects.bench.read",
+    "crm.projects.read","crm.projects.update","crm.clients.read"
   ],
 
   RECRUITER: [
@@ -98,14 +98,16 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   PROJECT_LEAD: [
     "portal.announcements.read",
-    "projects.read","projects.*.read","projects.assignments.update",
-    "timesheets.read","timesheets.approvals.*",
-    "bench.requests.create","staffing.requests.create"
+    "projects.*","timesheets.read","timesheets.approvals.*",
+    "bench.requests.create","staffing.requests.create",
+    "crm.projects.*","crm.clients.read","crm.accounts.read",
+    "crm.opportunities.read","crm.spocs.read","crm.interactions.create"
   ],
 
   DELIVERY_HEAD: [
     "portal.announcements.read",
-    "projects.*","timesheets.*.read","timesheets.export.*","bench.*","staffing.*"
+    "projects.*","timesheets.*","bench.*","staffing.*",
+    "crm.*","crm.reports.export","crm.analytics.read"
   ],
 
   HR_LEAD: [
