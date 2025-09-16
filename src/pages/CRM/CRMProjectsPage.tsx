@@ -8,6 +8,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, Column } from '@/components/shared/DataTable';
+import { AdvancedFilter, FilterConfig, FilterState } from '@/components/shared/AdvancedFilter';
+import { SearchAndSort, SortOption, QuickFilter } from '@/components/shared/SearchAndSort';
+import { useAdvancedFilter } from '@/hooks/useAdvancedFilter';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
@@ -19,8 +22,9 @@ export function CRMProjectsPage() {
   const [clients, setClients] = useState<CrmClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [quickFilters, setQuickFilters] = useState<string[]>([]);
   const { toast } = useToast();
   const { can } = useAuth();
   
@@ -30,6 +34,194 @@ export function CRMProjectsPage() {
   const canDeleteProjects = useVisible(['crm.projects.delete', 'crm.projects.*', 'projects.delete']);
   const canViewClients = useVisible(['crm.clients.read', 'crm.clients.*', 'crm.*']);
   const canCreateOpportunities = useVisible(['crm.opportunities.create', 'crm.opportunities.*', 'crm.*']);
+  const canViewFinancials = useVisible(['crm.projects.financials', 'crm.reports.*', 'finance.reports.read']);
+  const canExportData = useVisible(['crm.projects.export', 'crm.reports.export', 'reports.export']);
+
+  // Advanced filtering configuration
+  const filterConfigs: FilterConfig[] = [
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'multiselect',
+      options: [
+        { value: 'Planned', label: 'Planned' },
+        { value: 'In-flight', label: 'In-flight' },
+        { value: 'Closed', label: 'Closed' },
+        { value: 'On-hold', label: 'On-hold' }
+      ]
+    },
+    {
+      id: 'priority',
+      label: 'Priority',
+      type: 'multiselect',
+      options: [
+        { value: 'Critical', label: 'Critical' },
+        { value: 'High', label: 'High' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Low', label: 'Low' }
+      ]
+    },
+    {
+      id: 'client',
+      label: 'Client',
+      type: 'select',
+      options: clients.map(client => ({ value: client.id, label: client.name }))
+    },
+    {
+      id: 'ft_target_min',
+      label: 'Min FT Target',
+      type: 'number',
+      placeholder: '0',
+      requiresPermission: ['crm.projects.financials', 'crm.reports.*']
+    },
+    {
+      id: 'ft_target_max',
+      label: 'Max FT Target',
+      type: 'number',
+      placeholder: '100',
+      requiresPermission: ['crm.projects.financials', 'crm.reports.*']
+    },
+    {
+      id: 'skills',
+      label: 'Required Skills',
+      type: 'text',
+      placeholder: 'React, Node.js, etc.'
+    },
+    {
+      id: 'has_budget',
+      label: 'Has Budget Defined',
+      type: 'checkbox',
+      requiresPermission: ['crm.projects.financials', 'finance.reports.read']
+    }
+  ];
+
+  // Sort options based on permissions
+  const sortOptions: SortOption[] = [
+    { value: 'name', label: 'Project Name' },
+    { value: 'client', label: 'Client Name' },
+    { value: 'status', label: 'Status' },
+    { value: 'priority', label: 'Priority' },
+    { value: 'start_date', label: 'Start Date' },
+    { 
+      value: 'ft_target', 
+      label: 'FT Target',
+      requiresPermission: ['crm.projects.financials', 'crm.reports.*']
+    },
+    { 
+      value: 'contract_target', 
+      label: 'Contract Target',
+      requiresPermission: ['crm.projects.financials', 'crm.reports.*']
+    }
+  ];
+
+  // Quick filters based on permissions
+  const quickFilterOptions: QuickFilter[] = [
+    { 
+      value: 'in_flight', 
+      label: 'In-flight',
+      count: projects.filter(p => p.status === 'In-flight').length
+    },
+    { 
+      value: 'high_priority', 
+      label: 'High Priority',
+      count: projects.filter(p => p.priority === 'Critical' || p.priority === 'High').length
+    },
+    { 
+      value: 'urgent_hiring', 
+      label: 'Urgent Hiring',
+      count: projects.filter(p => (p.ft_target || 0) > 5).length,
+      requiresPermission: ['crm.projects.financials', 'hiring.dashboard.read']
+    },
+    { 
+      value: 'needs_attention', 
+      label: 'Needs Attention',
+      count: projects.filter(p => p.status === 'On-hold' || p.priority === 'Critical').length
+    }
+  ];
+
+  // Filter function for advanced filtering
+  const projectFilterFunction = (project: CrmProject, filters: FilterState) => {
+    // Text search
+    const searchMatch = !searchQuery || 
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.client?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    if (!searchMatch) return false;
+
+    // Status filter
+    if (filters.status?.length > 0 && !filters.status.includes(project.status)) {
+      return false;
+    }
+
+    // Priority filter
+    if (filters.priority?.length > 0 && !filters.priority.includes(project.priority)) {
+      return false;
+    }
+
+    // Client filter
+    if (filters.client && filters.client !== '' && project.client_id !== filters.client) {
+      return false;
+    }
+
+    // FT Target range
+    if (filters.ft_target_min && (project.ft_target || 0) < parseInt(filters.ft_target_min)) {
+      return false;
+    }
+    if (filters.ft_target_max && (project.ft_target || 0) > parseInt(filters.ft_target_max)) {
+      return false;
+    }
+
+    // Skills filter
+    if (filters.skills && filters.skills.trim()) {
+      const skillQuery = filters.skills.toLowerCase();
+      const hasSkill = project.skills?.some(skill => 
+        skill.toLowerCase().includes(skillQuery)
+      );
+      if (!hasSkill) return false;
+    }
+
+    // Has budget filter
+    if (filters.has_budget && !project.budget) {
+      return false;
+    }
+
+    // Quick filters
+    if (quickFilters.includes('in_flight') && project.status !== 'In-flight') {
+      return false;
+    }
+    if (quickFilters.includes('high_priority') && 
+        !['Critical', 'High'].includes(project.priority || '')) {
+      return false;
+    }
+    if (quickFilters.includes('urgent_hiring') && (project.ft_target || 0) <= 5) {
+      return false;
+    }
+    if (quickFilters.includes('needs_attention')) {
+      const isOnHold = project.status === 'On-hold';
+      const isCritical = project.priority === 'Critical';
+      if (!isOnHold && !isCritical) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Use advanced filtering hook
+  const {
+    filters,
+    filteredData: filteredProjects,
+    savedFilters,
+    handleFilterChange,
+    handleReset,
+    handleSave,
+    getFilterStats
+  } = useAdvancedFilter(projects, projectFilterFunction, {
+    defaultFilters: {},
+    storageKey: 'crm_projects',
+    debounceMs: 250
+  });
 
   useEffect(() => {
     loadData();
@@ -55,16 +247,58 @@ export function CRMProjectsPage() {
     }
   };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.client?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || project.priority === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  // Sort filtered projects
+  const sortedAndFilteredProjects = React.useMemo(() => {
+    const sorted = [...filteredProjects].sort((a, b) => {
+      let aVal: any = '';
+      let bVal: any = '';
+
+      switch (sortField) {
+        case 'name':
+          aVal = a.name || '';
+          bVal = b.name || '';
+          break;
+        case 'client':
+          aVal = a.client?.name || '';
+          bVal = b.client?.name || '';
+          break;
+        case 'status':
+          aVal = a.status || '';
+          bVal = b.status || '';
+          break;
+        case 'priority':
+          const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+          aVal = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          bVal = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          break;
+        case 'start_date':
+          aVal = new Date(a.start_date || '').getTime();
+          bVal = new Date(b.start_date || '').getTime();
+          break;
+        case 'ft_target':
+          aVal = a.ft_target || 0;
+          bVal = b.ft_target || 0;
+          break;
+        case 'contract_target':
+          aVal = a.contract_target || 0;
+          bVal = b.contract_target || 0;
+          break;
+        default:
+          aVal = a.name || '';
+          bVal = b.name || '';
+      }
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        const comparison = aVal.localeCompare(bVal);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+
+      const comparison = aVal - bVal;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [filteredProjects, sortField, sortDirection]);
 
   const columns: Column<CrmProject>[] = [
     {
@@ -239,40 +473,35 @@ export function CRMProjectsPage() {
         ))}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Planned">Planned</SelectItem>
-                <SelectItem value="In-flight">In-flight</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Search and Quick Filters */}
+      <SearchAndSort
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortValue={sortField}
+        onSortChange={setSortField}
+        sortDirection={sortDirection}
+        onSortDirectionChange={setSortDirection}
+        sortOptions={sortOptions}
+        quickFilters={quickFilterOptions}
+        selectedQuickFilters={quickFilters}
+        onQuickFilterChange={setQuickFilters}
+        placeholder="Search projects, clients, or skills..."
+        resultCount={sortedAndFilteredProjects.length}
+        totalCount={projects.length}
+      />
 
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="Critical">Critical</SelectItem>
-                <SelectItem value="High">High</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Advanced Filters */}
+      <AdvancedFilter
+        title="Advanced Project Filters"
+        filters={filterConfigs}
+        value={filters}
+        onChange={handleFilterChange}
+        onReset={handleReset}
+        onSave={handleSave}
+        savedFilters={savedFilters}
+        collapsible={true}
+        showSaveLoad={canExportData}
+      />
 
       {/* Projects Table */}
       <Card>
@@ -284,12 +513,11 @@ export function CRMProjectsPage() {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={filteredProjects}
+            data={sortedAndFilteredProjects}
             columns={columns}
             loading={loading}
-            searchable
-            onSearch={setSearchQuery}
-            emptyMessage="No projects found"
+            searchable={false}
+            emptyMessage="No projects found matching your criteria"
           />
         </CardContent>
       </Card>

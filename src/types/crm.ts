@@ -60,7 +60,8 @@ export interface CrmProject {
   contract_target: number;
   skills?: string[];
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  status: 'Planned' | 'In-flight' | 'Closed';
+  status: 'Planned' | 'In-flight' | 'Closed' | 'On-hold';
+  budget?: number;
   owner_id?: string;
   primary_spoc_id?: string;
   created_at: string;
