@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useAuth } from "../../auth/AuthContext"
-import { useVisible } from "../../hooks/useVisible"
+import { useMenuVisibility } from "../../hooks/useMenuVisibility"
 import { MENU } from "../../menu/config"
 import { Button } from "@/components/ui/button"
 
@@ -104,6 +104,7 @@ export function HRSidebar() {
   const currentPath = location.pathname
   const collapsed = state === "collapsed"
   const { user, signOut } = useAuth()
+  const visibility = useMenuVisibility()
   
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
     const initialExpanded: Record<string, boolean> = {}
@@ -149,8 +150,8 @@ export function HRSidebar() {
 
       <SidebarContent className="p-2">
         {MENU.map((section) => {
-          const visible = useVisible(section.requiresAny)
-          if (!visible) return null
+          const sectionVisibility = visibility.sections[section.label]
+          if (!sectionVisibility?.visible) return null
 
           const SectionIcon = getIconForSection(section.label)
           const isExpanded = expandedSections[section.label]
@@ -192,7 +193,7 @@ export function HRSidebar() {
                     <SidebarGroupContent>
                       <SidebarMenu>
                         {section.items?.map((item) => {
-                          const itemVisible = useVisible(item.requiresAny)
+                          const itemVisible = sectionVisibility.items[item.route]
                           if (!itemVisible) return null
 
                           const RouteIcon = getIconForRoute(item.label)

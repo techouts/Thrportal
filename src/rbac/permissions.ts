@@ -1,7 +1,11 @@
 export type Permission = string; // e.g., "attendance.read", "payroll.export"
 
 export const roleToPermissionPatterns: Record<string, string[]> = {
-  ADMIN: ["*"],
+  ADMIN: [
+    "*",
+    "admin.read","admin.tenant.read","admin.access.read",
+    "admin.integrations.read","admin.audit.read","admin.security.read"
+  ],
 
   MANAGEMENT: [
     "portal.announcements.read",
@@ -11,7 +15,10 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "projects.*.read","timesheets.*.read","timesheets.export.*",
     "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read","applications.submissions.*",
     "finance.payroll.read","finance.reports.read",
-    "jds.approve.management","jds.reports.read","crm.kpis.read"
+    "jds.approve.management","jds.reports.read","crm.kpis.read",
+    "crm.read","crm.dashboard.read","crm.clients.read","crm.accounts.read",
+    "crm.projects.read","crm.opportunities.read","crm.interactions.read","crm.reports.read",
+    "crm.integrations.read","crm.demo.read"
     // no admin/security/roles/integrations
   ],
 
@@ -25,7 +32,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   EMPLOYEE: [
     "portal.announcements.read",
-    "employees.read",
+    "employees.read","org.structure.read","org.policies.read",
     "attendance.read","attendance.clock_in","attendance.logs.read",
     "leave.requests.*","leave.balance.read","leave.requests.read",
     "timesheets.read","timesheets.submit",
@@ -34,12 +41,15 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "performance.goals.*","performance.feedback_requests.*",
     "learning.read","recognition.read",
     "ijp.postings.read","ijp.applications.create",
-    "helpdesk.tickets.read_own","helpdesk.tickets.create"
+    "helpdesk.tickets.read_own","helpdesk.tickets.create",
+    "projects.read","projects.dashboard.read","projects.tasks.read","projects.assignments.read"
   ],
 
   MANAGER: [
     "portal.announcements.read",
-    "employees.read","employees.update",
+    "employees.read","employees.update","org.structure.read","org.policies.read",
+    "team.management.read","team.leave.read","team.attendance.read","team.timesheets.read","team.expenses.read",
+    "team.performance.read","team.recognition.read","team.learning.read","team.profile_changes.read","team.ijp.read",
     "attendance.read","attendance.clock_in","attendance.team.read","attendance.approvals.*",
     "leave.requests.*","leave.balance.read","leave.team.calendar.read","leave.approvals.*",
     "timesheets.read","timesheets.approvals.*","timesheets.projects.read",
@@ -48,12 +58,15 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "ijp.postings.read","ijp.applications.read_team","ijp.applications.approve","ijp.applications.create",
     "hiring.dashboard.read","hiring.requisitions.read",
     "applications.pipeline.read","applications.submissions.*",
-    "helpdesk.tickets.read_own","helpdesk.tickets.create"
+    "helpdesk.tickets.read_own","helpdesk.tickets.create",
+    "projects.read","projects.dashboard.read","projects.clients.read","projects.projects.read","projects.assignments.read","projects.tasks.read","projects.bench.read"
   ],
 
   RECRUITER: [
     "portal.announcements.read",
-    "hiring.dashboard.read","hiring.requisitions.read","hiring.requisitions.create",
+    "hiring.read","hiring.dashboard.read","hiring.jds.read","hiring.candidates.read",
+    "hiring.applications.read","hiring.pipeline.read","hiring.followup.read",
+    "hiring.requisitions.read","hiring.requisitions.create",
     "applications.submissions.*","applications.pipeline.read",
     "interviews.schedule.*","bgv.cases.create","bgv.cases.read",
     "jds.create","jds.bulk_import","jds.smart_import",
@@ -64,7 +77,10 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   HIRING_MANAGER: [
     "portal.announcements.read",
-    "hiring.dashboard.read","hiring.requisitions.approve","hiring.requisitions.read",
+    "hiring.read","hiring.dashboard.read","hiring.jds.read","hiring.approvals.read",
+    "hiring.candidates.read","hiring.ownership.read","hiring.applications.read","hiring.pipeline.read",
+    "hiring.followup.read","hiring.settings.read",
+    "hiring.requisitions.approve","hiring.requisitions.read",
     "applications.pipeline.read","applications.submissions.*","offers.create","offers.approve",
     "bgv.cases.read","hiring.settings.*",
     "candidates.sensitive.read","candidates.create","resumes.create","applications.rank",
@@ -101,6 +117,9 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   HR_MANAGER: [
     "portal.announcements.read",
+    "hr.read","hr.performance.read","hr.leave.read","hr.attendance.read",
+    "hr.recognition.read","hr.expenses.read","hr.learning.read","hr.ijp.read",
+    "hr.helpdesk.read","hr.onboarding.read","hr.reports.read",
     "employees.*","leave.*","attendance.*",
     "onboarding.*","offboarding.*","performance.*",
     "policy.*","letters.*","bgv.*","ijp.*","payroll.runs.read",
@@ -119,12 +138,14 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   FINANCE_ANALYST: [
     "portal.announcements.read",
-    "finance.reports.read","finance.payroll.read","finance.jv.export","finance.audit_logs.read","payroll.runs.read",
+    "finance.read","finance.payroll.read",
+    "finance.reports.read","finance.jv.export","finance.audit_logs.read","payroll.runs.read",
     "employees.read","employees.directory.read"
   ],
 
   IT_HELPDESK: [
     "portal.announcements.read",
+    "it.read","it.helpdesk.read",
     "helpdesk.dashboard.read","helpdesk.tickets.read_queue",
     "helpdesk.tickets.assign","helpdesk.tickets.update_status"
   ],
