@@ -16,9 +16,11 @@ import { OffboardingIntegrationTab } from '@/components/onoffboarding/offboardin
 
 // Onboarding Components
 import { OnboardingDashboardTab } from '@/components/onoffboarding/onboarding/OnboardingDashboardTab';
+import { OnboardingCandidatePipelineTab } from '@/components/onoffboarding/onboarding/OnboardingCandidatePipelineTab';
 import { OnboardingChecklistsTab } from '@/components/onoffboarding/onboarding/OnboardingChecklistsTab';
 import { OnboardingTasksTab } from '@/components/onoffboarding/onboarding/OnboardingTasksTab';
 import { OnboardingDocumentsTab } from '@/components/onoffboarding/onboarding/OnboardingDocumentsTab';
+import { OnboardingBGVTab } from '@/components/onoffboarding/onboarding/OnboardingBGVTab';
 import { OnboardingApprovalsTab } from '@/components/onoffboarding/onboarding/OnboardingApprovalsTab';
 import { OnboardingIntegrationTab } from '@/components/onoffboarding/onboarding/OnboardingIntegrationTab';
 
@@ -76,17 +78,22 @@ const OnOffboardingPage: React.FC = () => {
         {/* Onboarding Section */}
         <TabsContent value="onboarding" className="space-y-6">
           <Tabs value={activeSubTab} onValueChange={handleSubTabChange}>
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="pipeline">Candidate Pipeline</TabsTrigger>
               <TabsTrigger value="checklists">Checklists</TabsTrigger>
               <TabsTrigger value="tasks">Tasks</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsTrigger value="bgv">BGV</TabsTrigger>
               <TabsTrigger value="approvals">Approvals</TabsTrigger>
               <TabsTrigger value="integration">Integration</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard">
               <OnboardingDashboardTab />
+            </TabsContent>
+            <TabsContent value="pipeline">
+              <OnboardingCandidatePipelineTab />
             </TabsContent>
             <TabsContent value="checklists">
               <OnboardingChecklistsTab />
@@ -96,6 +103,9 @@ const OnOffboardingPage: React.FC = () => {
             </TabsContent>
             <TabsContent value="documents">
               <OnboardingDocumentsTab />
+            </TabsContent>
+            <TabsContent value="bgv">
+              <OnboardingBGVTab />
             </TabsContent>
             <TabsContent value="approvals">
               <OnboardingApprovalsTab />
