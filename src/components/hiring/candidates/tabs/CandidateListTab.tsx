@@ -38,7 +38,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
-  const [activeView, setActiveView] = useState<'all' | 'unassigned' | 'unattended'>('all');
+  const [activeView, setActiveView] = useState<'all'>('all');
   const [showSmartUpload, setShowSmartUpload] = useState(false);
   const [filters, setFilters] = useState<CandidateFilters>({});
   const [showFilters, setShowFilters] = useState(false);
@@ -288,25 +288,10 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
           {/* View Tabs */}
           <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
             <Button 
-              variant={activeView === 'all' ? 'default' : 'ghost'} 
+              variant="default" 
               size="sm"
-              onClick={() => setActiveView('all')}
             >
               All Candidates
-            </Button>
-            <Button 
-              variant={activeView === 'unassigned' ? 'default' : 'ghost'} 
-              size="sm"
-              onClick={() => setActiveView('unassigned')}
-            >
-              Unassigned <Badge variant="secondary" className="ml-1">5</Badge>
-            </Button>
-            <Button 
-              variant={activeView === 'unattended' ? 'default' : 'ghost'} 
-              size="sm"
-              onClick={() => setActiveView('unattended')}
-            >
-              Unattended <Badge variant="destructive" className="ml-1">12</Badge>
             </Button>
           </div>
 

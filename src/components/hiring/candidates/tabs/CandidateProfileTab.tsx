@@ -14,6 +14,7 @@ import { CandidateCommunicationTab } from './profile/CandidateCommunicationTab';
 import { CandidateTimelineTab } from './profile/CandidateTimelineTab';
 import { CandidateComplianceTab } from './profile/CandidateComplianceTab';
 import { CandidateOfferTab } from './profile/CandidateOfferTab';
+import { CandidateClientResumesTab } from './profile/CandidateClientResumesTab';
 
 interface CandidateProfileTabProps {
   candidateId: string | null;
@@ -117,7 +118,7 @@ export function CandidateProfileTab({ candidateId, onBack }: CandidateProfileTab
 
       {/* Profile Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Overview
@@ -133,6 +134,10 @@ export function CandidateProfileTab({ candidateId, onBack }: CandidateProfileTab
           <TabsTrigger value="documents" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Documents
+          </TabsTrigger>
+          <TabsTrigger value="client-resumes" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Client Resumes
           </TabsTrigger>
           <TabsTrigger value="communication" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
@@ -166,6 +171,10 @@ export function CandidateProfileTab({ candidateId, onBack }: CandidateProfileTab
 
         <TabsContent value="documents">
           <CandidateDocumentsTab candidateId={candidate.id} />
+        </TabsContent>
+
+        <TabsContent value="client-resumes">
+          <CandidateClientResumesTab candidateId={candidate.id} />
         </TabsContent>
 
         <TabsContent value="communication">
