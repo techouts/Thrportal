@@ -257,9 +257,35 @@ function App() {
                 } />
 
                 {/* Projects */}
-                <Route path="/Projects" element={
+                <Route path="/Projects" element={<Navigate to="/Projects/Dashboard" replace />} />
+                <Route path="/Projects/Dashboard" element={
                   <ProtectedRoute required={["projects.read"]}>
                     <MainLayout><ProjectPage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Clients" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <MainLayout><ProjectPage defaultTab="Clients" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Projects" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <MainLayout><ProjectPage defaultTab="Projects" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Assignments" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <MainLayout><ProjectPage defaultTab="Assignments" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Tasks" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <MainLayout><ProjectPage defaultTab="Tasks" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Bench" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <MainLayout><ProjectPage defaultTab="Bench" /></MainLayout>
                   </ProtectedRoute>
                 } />
 
