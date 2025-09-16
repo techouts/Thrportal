@@ -23,6 +23,7 @@ import {
   Download, Search, Filter, Plus, Zap, DollarSign, UserCheck
 } from 'lucide-react'
 
+import { HiringFeatureStatus } from '@/components/shared/HiringFeatureStatus'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -814,6 +815,10 @@ export default function HomePage() {
             </div>
           </section>
         )}
+      </div>
+      {/* New Hiring Features Status */}
+      <div className="col-span-full">
+        <HiringFeatureStatus />
       </div>
     </div>
   )

@@ -12,7 +12,7 @@ import { ApprovalRulesTab } from '@/components/hiring/settings/ApprovalRulesTab'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function HiringSettingsPage() {
-  const [activeTab, setActiveTab] = useState('jd-parser')
+  const [activeTab, setActiveTab] = useState('targets')
 
   return (
     <div className="space-y-6">
