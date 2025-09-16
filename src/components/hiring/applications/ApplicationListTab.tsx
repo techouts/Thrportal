@@ -97,7 +97,7 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
           onClick={() => onApplicationSelect(value)}
           className="p-0 h-auto font-mono text-sm"
         >
-          {value.slice(-8)}
+          {value?.slice(-8) || 'N/A'}
         </Button>
       )
     },
@@ -107,7 +107,7 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       accessor: 'candidateId' as const,
       cell: (value: string) => (
         <div>
-          <div className="font-medium">Candidate {value.slice(-3)}</div>
+          <div className="font-medium">Candidate {value?.slice(-3) || 'N/A'}</div>
           <div className="text-sm text-muted-foreground">candidate@email.com</div>
         </div>
       )
@@ -118,7 +118,7 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       accessor: 'jdId' as const,
       cell: (value: string) => (
         <div>
-          <div className="font-medium">JD {value.slice(-3)}</div>
+          <div className="font-medium">JD {value?.slice(-3) || 'N/A'}</div>
           <div className="text-sm text-muted-foreground">TechCorp</div>
         </div>
       )
