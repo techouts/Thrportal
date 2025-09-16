@@ -28,7 +28,18 @@ export class ApplicationsService {
         minExp: 5,
         maxExp: 8,
         createdAt: '2024-01-15T10:00:00Z',
-        assignedRecruiterId: 'recruiter-1'
+        assignedRecruiterId: 'recruiter-1',
+        status: 'Approved',
+        headcount: 3,
+        headcountFilled: 1,
+        compensationMin: 120000,
+        compensationMax: 180000,
+        currency: 'USD',
+        workType: 'Full-time',
+        seniority: 'Senior',
+        primaryRecruiter: 'recruiter-1',
+        collaborators: ['recruiter-3'],
+        slaHealth: 'Green'
       },
       {
         id: 'jd-002',
@@ -40,7 +51,18 @@ export class ApplicationsService {
         minExp: 3,
         maxExp: 6,
         createdAt: '2024-01-14T09:00:00Z',
-        assignedRecruiterId: 'recruiter-2'
+        assignedRecruiterId: 'recruiter-2',
+        status: 'Published',
+        headcount: 2,
+        headcountFilled: 0,
+        compensationMin: 90000,
+        compensationMax: 140000,
+        currency: 'USD',
+        workType: 'Full-time',
+        seniority: 'Mid',
+        primaryRecruiter: 'recruiter-2',
+        collaborators: [],
+        slaHealth: 'Amber'
       }
     ]
   }
@@ -56,11 +78,16 @@ export class ApplicationsService {
     return [
       {
         id: 'sub-001',
+        candidateId: 'candidate-001',
         jdId: 'jd-001',
         resumeId: 'resume-001',
         submittedBy: 'John Recruiter',
+        primaryRecruiter: 'recruiter-1',
         submittedAt: '2024-01-16T14:30:00Z',
+        stage: 'Submitted',
         status: 'New',
+        slaStatus: 'Green',
+        lastUpdatedAt: '2024-01-16T14:30:00Z',
         match: {
           score: 85,
           matched: ['React', 'TypeScript', 'Node.js'],
@@ -75,12 +102,17 @@ export class ApplicationsService {
       },
       {
         id: 'sub-002',
+        candidateId: 'candidate-002',
         jdId: 'jd-002',
         resumeId: 'resume-002',
         submittedBy: 'Sarah Staffing',
+        primaryRecruiter: 'recruiter-2',
         submittedAt: '2024-01-15T16:45:00Z',
+        stage: 'Shortlisted',
         status: 'Shortlisted',
         statusReason: 'Strong AWS and Kubernetes experience',
+        slaStatus: 'Amber',
+        lastUpdatedAt: '2024-01-15T18:00:00Z',
         match: {
           score: 78,
           matched: ['AWS', 'Docker', 'Kubernetes'],
@@ -110,11 +142,16 @@ export class ApplicationsService {
     // Mock implementation
     const newSubmission: Submission = {
       id: `sub-${Date.now()}`,
+      candidateId: submission.candidateId!,
       jdId: submission.jdId!,
       resumeId: submission.resumeId!,
       submittedBy: submission.submittedBy!,
+      primaryRecruiter: submission.primaryRecruiter!,
       submittedAt: new Date().toISOString(),
+      stage: 'Submitted',
       status: 'New',
+      slaStatus: 'Green',
+      lastUpdatedAt: new Date().toISOString(),
       match: submission.match || {
         score: 0,
         matched: [],
@@ -147,7 +184,16 @@ export class ApplicationsService {
         rawFileUrl: '/uploads/alice-johnson-resume.pdf',
         parsedJson: {},
         parsedAt: '2024-01-16T10:00:00Z',
-        parseConfidence: 0.92
+        parseConfidence: 0.92,
+        owner: 'recruiter-1',
+        consent: true,
+        activelyLooking: true,
+        activelyLookingExpiresAt: '2024-03-15T10:00:00Z',
+        lastContactedAt: '2024-01-10T14:00:00Z',
+        currentCTC: 110000,
+        expectedCTC: 150000,
+        noticePeriod: 30,
+        availability: 'Immediate'
       },
       {
         id: 'resume-002',
@@ -167,7 +213,15 @@ export class ApplicationsService {
         rawFileUrl: '/uploads/bob-chen-resume.pdf',
         parsedJson: {},
         parsedAt: '2024-01-15T12:00:00Z',
-        parseConfidence: 0.88
+        parseConfidence: 0.88,
+        owner: 'recruiter-2',
+        consent: true,
+        activelyLooking: false,
+        lastContactedAt: '2024-01-05T10:00:00Z',
+        currentCTC: 95000,
+        expectedCTC: 120000,
+        noticePeriod: 60,
+        availability: '60 days'
       }
     ]
   }
@@ -192,7 +246,9 @@ export class ApplicationsService {
       vendorName: config.vendorName,
       skills: [],
       parsedJson: {},
-      parseConfidence: 0.8
+      parseConfidence: 0.8,
+      consent: false,
+      activelyLooking: false
     }
     return newResume
   }
