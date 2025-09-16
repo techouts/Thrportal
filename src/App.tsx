@@ -233,11 +233,6 @@ function App() {
                     <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/Hiring/BGV" element={
-                  <ProtectedRoute required={["bgv.cases.read"]}>
-                    <MainLayout><HiringPage defaultTab="BGV" /></MainLayout>
-                  </ProtectedRoute>
-                } />
                 <Route path="/Hiring/Settings" element={
                   <ProtectedRoute required={["hiring.settings.*"]}>
                     <MainLayout><HiringPage defaultTab="Settings" /></MainLayout>

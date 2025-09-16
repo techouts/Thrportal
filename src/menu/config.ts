@@ -59,9 +59,7 @@ export const MENU: MenuSection[] = [
       { label: "Applications",    route: "/Hiring/Applications" },
       { label: "Pipeline",        route: "/Hiring/Pipeline" },
       { label: "FollowUp",        route: "/Hiring/FollowUp" },
-      { label: "BGV",             route: "/Hiring/BGV" },
-      { label: "Settings",        route: "/Hiring/Settings" },
-      { label: "Offers (HM)",     route: "/Hiring/Offers" }
+      { label: "Settings",        route: "/Hiring/Settings" }
     ] 
   },
   { 

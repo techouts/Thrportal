@@ -82,8 +82,6 @@ const getIconForRoute = (routeName: string) => {
     case "Job Requisitions": return FileText
     case "Assignment": return CheckSquare
     case "Applications": return FileText
-    case "BGV": return Shield
-    case "Offers (HM)": return Target
     case "Employee Directory": return Users
     case "Org Structure": return Building2
     case "Policy Hub": return FileText
