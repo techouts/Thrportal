@@ -21,6 +21,7 @@ import HiringPage from "./pages/Hiring/HiringPage";
 import ProjectPage from "./pages/Project/ProjectPage";
 import OrgPage from "./pages/Org/OrgPage";
 import HRPage from "./pages/HR/HRPage";
+import OnOffboardingPage from "./pages/HR/OnOffboardingPage";
 import PayrollPage from "./pages/Finance/PayrollPage";
 import HelpdeskPage from "./pages/IT/HelpdeskPage";
 import AdminPage from "./pages/Admin/AdminPage";
@@ -312,7 +313,7 @@ function App() {
                 } />
                 <Route path="/HR/OnOffboarding" element={
                   <ProtectedRoute required={["onboarding.*"]}>
-                    <MainLayout><HRPage defaultTab="OnOffboarding" /></MainLayout>
+                    <MainLayout><OnOffboardingPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/HR/Reports" element={
