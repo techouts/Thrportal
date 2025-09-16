@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DataTable } from '@/components/shared/DataTable'
-import { PipelineService } from '@/services/pipelineService'
+import { pipelineService } from '@/services/pipelineService'
 import { ActiveJD } from '@/types/pipeline'
 import { useToast } from '@/hooks/use-toast'
 

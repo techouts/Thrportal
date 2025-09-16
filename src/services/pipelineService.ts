@@ -1,309 +1,361 @@
-import { ApiService } from './api'
 import { 
-  PipelineApplication, 
-  ActiveJD, 
-  PipelineFilters, 
+  PipelineApplication,
+  JDPipeline,
+  PipelineFilters,
   PipelineMetrics,
-  FunnelData,
-  RecruiterPerformance,
+  RecruiterPipelineStats,
+  TeamPipelineStats,
+  LeadershipInsight,
+  ClientProgress,
+  PipelineAlert,
+  PipelineAuditEntry,
   BulkStatusUpdate,
+  ReminderAction,
+  EscalationAction,
+  PipelineSettings,
   ApplicationStatus,
-  StatusHistoryEntry,
-  PipelineAuditEntry
+  FunnelStage,
+  ActiveJD
 } from '@/types/pipeline'
 
-export class PipelineService {
-  private static readonly BASE_URL = '/api/pipeline'
+class PipelineService {
+  private mockApplications: PipelineApplication[] = [
+    {
+      id: '1',
+      candidateName: 'John Doe',
+      jdId: 'jd-001',
+      jdTitle: 'Senior React Developer',
+      client: 'TechCorp Inc',
+      recruiterName: 'Alice Smith',
+      primaryRecruiter: 'Alice Smith',
+      submittedBy: 'Alice Smith',
+      currentStatus: 'Interview-R1',
+      currentRound: 'Technical Round',
+      lastUpdated: '2024-01-15T10:30:00Z',
+      notes: 'Strong technical background',
+      updatedBy: 'Alice Smith',
+      submittedAt: '2024-01-10T09:00:00Z',
+      ageing: 5,
+      slaStatus: 'on-time',
+      nextAction: 'Schedule R2 interview',
+      statusHistory: []
+    }
+  ]
 
-  // Pipeline Applications
-  static async getApplications(filters?: PipelineFilters): Promise<PipelineApplication[]> {
-    // Mock data for now
-    return [
-      {
-        id: 'app-001',
-        candidateName: 'Alice Johnson',
-        jdId: 'jd-001',
-        jdTitle: 'Senior React Developer',
-        client: 'TechCorp',
-        recruiterName: 'John Recruiter',
-        currentStatus: 'L2 Cleared',
-        lastUpdated: '2024-01-16T14:30:00Z',
-        notes: 'Strong technical background, excellent communication skills',
-        updatedBy: 'Sarah HR',
-        submittedAt: '2024-01-10T09:00:00Z',
-        statusHistory: [
-          {
-            id: 'hist-001',
-            newStatus: 'Submitted',
-            changedBy: 'John Recruiter',
-            changedAt: '2024-01-10T09:00:00Z'
-          },
-          {
-            id: 'hist-002',
-            previousStatus: 'Submitted',
-            newStatus: 'L1 Cleared',
-            changedBy: 'Technical Lead',
-            changedAt: '2024-01-12T15:30:00Z',
-            comment: 'Good technical skills, cleared L1 interview'
-          },
-          {
-            id: 'hist-003',
-            previousStatus: 'L1 Cleared',
-            newStatus: 'L2 Cleared',
-            changedBy: 'Engineering Manager',
-            changedAt: '2024-01-16T14:30:00Z',
-            comment: 'Excellent problem-solving approach'
-          }
-        ]
-      },
-      {
-        id: 'app-002',
-        candidateName: 'Bob Chen',
-        jdId: 'jd-002',
-        jdTitle: 'DevOps Engineer',
-        client: 'CloudSoft',
-        recruiterName: 'Sarah Staffing',
-        currentStatus: 'Offer',
-        lastUpdated: '2024-01-17T10:15:00Z',
-        notes: 'Strong AWS experience, team player',
-        updatedBy: 'HR Manager',
-        submittedAt: '2024-01-08T11:00:00Z',
-        statusHistory: [
-          {
-            id: 'hist-004',
-            newStatus: 'Submitted',
-            changedBy: 'Sarah Staffing',
-            changedAt: '2024-01-08T11:00:00Z'
-          },
-          {
-            id: 'hist-005',
-            previousStatus: 'Submitted',
-            newStatus: 'L1 Cleared',
-            changedBy: 'DevOps Lead',
-            changedAt: '2024-01-10T16:00:00Z'
-          },
-          {
-            id: 'hist-006',
-            previousStatus: 'L1 Cleared',
-            newStatus: 'L2 Cleared',
-            changedBy: 'DevOps Manager',
-            changedAt: '2024-01-12T14:00:00Z'
-          },
-          {
-            id: 'hist-007',
-            previousStatus: 'L2 Cleared',
-            newStatus: 'HR Cleared',
-            changedBy: 'HR Manager',
-            changedAt: '2024-01-15T11:30:00Z'
-          },
-          {
-            id: 'hist-008',
-            previousStatus: 'HR Cleared',
-            newStatus: 'Offer',
-            changedBy: 'HR Manager',
-            changedAt: '2024-01-17T10:15:00Z',
-            comment: 'Offer extended - 120K package'
-          }
-        ]
-      },
-      {
-        id: 'app-003',
-        candidateName: 'Carol Davis',
-        jdId: 'jd-001',
-        jdTitle: 'Senior React Developer',
-        client: 'TechCorp',
-        recruiterName: 'Mike Talent',
-        currentStatus: 'Rejected',
-        lastUpdated: '2024-01-15T16:45:00Z',
-        notes: 'Technical skills good but communication needs improvement',
-        updatedBy: 'Technical Lead',
-        submittedAt: '2024-01-11T14:20:00Z',
-        statusHistory: [
-          {
-            id: 'hist-009',
-            newStatus: 'Submitted',
-            changedBy: 'Mike Talent',
-            changedAt: '2024-01-11T14:20:00Z'
-          },
-          {
-            id: 'hist-010',
-            previousStatus: 'Submitted',
-            newStatus: 'Rejected',
-            changedBy: 'Technical Lead',
-            changedAt: '2024-01-15T16:45:00Z',
-            comment: 'Communication skills not meeting requirements'
-          }
-        ]
-      }
-    ]
+  async getApplications(filters?: PipelineFilters): Promise<PipelineApplication[]> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return this.mockApplications
   }
 
-  static async updateApplicationStatus(
-    id: string, 
-    status: ApplicationStatus, 
-    comment?: string
-  ): Promise<void> {
-    // Mock implementation
-    console.log('Updating application status:', { id, status, comment })
+  async getMyApplications(userId: string): Promise<PipelineApplication[]> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    return this.mockApplications
   }
 
-  static async bulkUpdateStatus(update: BulkStatusUpdate): Promise<void> {
-    // Mock implementation
-    console.log('Bulk updating applications:', update)
+  async getJDPipelines(filters?: PipelineFilters): Promise<JDPipeline[]> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return [{
+      id: 'jd-001',
+      title: 'Senior React Developer',
+      client: 'TechCorp Inc',
+      approvalStatus: 'approved',
+      headcountApproved: 3,
+      headcountRemaining: 2,
+      submissions: 12,
+      shortlisted: 8,
+      interviews: 5,
+      offers: 2,
+      joins: 1,
+      slaHealth: 'good',
+      primaryRecruiter: 'Alice Smith',
+      lastActivity: '2024-01-15T10:30:00Z',
+      applications: this.mockApplications
+    }]
   }
 
-  static async addNotes(id: string, notes: string): Promise<void> {
-    // Mock implementation
-    console.log('Adding notes to application:', { id, notes })
-  }
-
-  // Active JDs
-  static async getActiveJDs(): Promise<ActiveJD[]> {
-    // Mock data
-    return [
-      {
-        id: 'jd-003',
-        title: 'Full Stack Developer',
-        client: 'StartupCo',
-        postedDate: '2024-01-05T10:00:00Z',
-        assignedRecruiter: 'John Recruiter',
-        daysSinceCreated: 12,
-        hasSubmissions: false
-      },
-      {
-        id: 'jd-004',
-        title: 'Data Scientist',
-        client: 'DataTech',
-        postedDate: '2024-01-12T15:30:00Z',
-        assignedRecruiter: 'Mike Talent',
-        daysSinceCreated: 5,
-        hasSubmissions: false
-      },
-      {
-        id: 'jd-005',
-        title: 'Product Manager',
-        client: 'InnovateTech',
-        postedDate: '2024-01-01T09:00:00Z',
-        assignedRecruiter: 'Sarah Staffing',
-        daysSinceCreated: 16,
-        hasSubmissions: false
-      }
-    ]
-  }
-
-  static async assignRecruiter(jdId: string, recruiterId: string): Promise<void> {
-    // Mock implementation
-    console.log('Assigning recruiter to JD:', { jdId, recruiterId })
-  }
-
-  // Analytics
-  static async getMetrics(filters?: PipelineFilters): Promise<PipelineMetrics> {
-    // Mock data
+  async getJDPipelineDetail(jdId: string): Promise<JDPipeline | null> {
+    await new Promise(resolve => setTimeout(resolve, 300))
     return {
-      totalActiveJDs: 23,
-      totalApplications: 156,
-      avgTimeToOffer: 12.5,
-      dropoffRate: 25.8,
-      offerAcceptanceRatio: 78.5,
-      jdsWithNoSubmissions: 8,
-      dailySubmissions: [
-        { date: '2024-01-10', count: 12 },
-        { date: '2024-01-11', count: 15 },
-        { date: '2024-01-12', count: 8 },
-        { date: '2024-01-13', count: 18 },
-        { date: '2024-01-14', count: 22 },
-        { date: '2024-01-15', count: 19 },
-        { date: '2024-01-16', count: 25 }
+      id: jdId,
+      title: 'Senior React Developer',
+      client: 'TechCorp Inc',
+      approvalStatus: 'approved',
+      headcountApproved: 3,
+      headcountRemaining: 2,
+      submissions: 12,
+      shortlisted: 8,
+      interviews: 5,
+      offers: 2,
+      joins: 1,
+      slaHealth: 'good',
+      primaryRecruiter: 'Alice Smith',
+      lastActivity: '2024-01-15T10:30:00Z',
+      applications: this.mockApplications
+    }
+  }
+
+  async getPipelineMetrics(filters?: PipelineFilters): Promise<PipelineMetrics> {
+    await new Promise(resolve => setTimeout(resolve, 800))
+    
+    const mockFunnel: FunnelStage[] = [
+      { stage: 'Submitted', count: 150, conversionRate: 100, dropoffRate: 0 },
+      { stage: 'Shortlisted', count: 90, conversionRate: 60, dropoffRate: 40 },
+      { stage: 'Interview-R1', count: 65, conversionRate: 72, dropoffRate: 28 },
+      { stage: 'Offer-Released', count: 25, conversionRate: 56, dropoffRate: 44 },
+      { stage: 'Joined', count: 18, conversionRate: 72, dropoffRate: 28 }
+    ]
+
+    return {
+      totalApplications: 150,
+      totalJDs: 25,
+      globalFunnel: mockFunnel,
+      slaHealth: {
+        onTimePercent: 75,
+        overdueCount: 28,
+        dueTodayCount: 12,
+        stageBreakdown: [
+          { stage: 'Feedback-Pending', onTime: 15, overdue: 8 }
+        ]
+      },
+      headcountProgress: {
+        approved: 85,
+        filled: 35,
+        remaining: 50,
+        byClient: [
+          { client: 'TechCorp Inc', approved: 15, filled: 8, remaining: 7 }
+        ]
+      },
+      bottlenecks: [
+        { stage: 'Feedback-Pending', count: 23, avgAgeing: 6, description: 'Client feedback pending' }
       ]
     }
   }
 
-  static async getFunnelData(filters?: PipelineFilters): Promise<FunnelData[]> {
-    // Mock data
-    return [
-      { stage: 'Submitted', count: 156, conversionRate: 100, dropoffRate: 0 },
-      { stage: 'L1 Cleared', count: 125, conversionRate: 80.1, dropoffRate: 19.9 },
-      { stage: 'L2 Cleared', count: 98, conversionRate: 78.4, dropoffRate: 21.6 },
-      { stage: 'L3 Cleared', count: 76, conversionRate: 77.6, dropoffRate: 22.4 },
-      { stage: 'HR Cleared', count: 65, conversionRate: 85.5, dropoffRate: 14.5 },
-      { stage: 'Offer', count: 45, conversionRate: 69.2, dropoffRate: 30.8 },
-      { stage: 'Rejected', count: 0, conversionRate: 0, dropoffRate: 0 }
-    ]
+  async getRecruiterStats(recruiterId?: string): Promise<RecruiterPipelineStats> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    return {
+      recruiterId: recruiterId || 'current-user',
+      recruiterName: 'Current User',
+      activeJDs: 8,
+      activeCandidates: 24,
+      submissions: 45,
+      shortlistPercent: 65,
+      offerPercent: 28,
+      joinPercent: 18,
+      funnel: {
+        asSubmitter: [
+          { stage: 'Submitted', count: 30, conversionRate: 100, dropoffRate: 0 }
+        ],
+        asPrimary: [
+          { stage: 'Interview-R1', count: 15, conversionRate: 75, dropoffRate: 25 }
+        ]
+      },
+      slaHeatmap: {
+        dueToday: 5,
+        overdue: 3
+      },
+      todos: [
+        {
+          id: '1',
+          type: 'follow-up',
+          jdId: 'jd-001',
+          jdTitle: 'Senior React Developer',
+          candidateName: 'John Doe',
+          description: 'Follow up on R2 interview feedback',
+          dueDate: '2024-01-16',
+          priority: 'high'
+        }
+      ]
+    }
   }
 
-  static async getRecruiterPerformance(filters?: PipelineFilters): Promise<RecruiterPerformance[]> {
-    // Mock data
+  async getTeamStats(): Promise<TeamPipelineStats> {
+    await new Promise(resolve => setTimeout(resolve, 600))
+    
+    return {
+      teamFunnel: [
+        {
+          recruiter: 'Alice Smith',
+          funnel: [
+            { stage: 'Submitted', count: 25, conversionRate: 100, dropoffRate: 0 }
+          ]
+        }
+      ],
+      atRiskJDs: [
+        {
+          jdId: 'jd-003',
+          jdTitle: 'DevOps Engineer',
+          client: 'CloudTech',
+          issue: 'No submissions in 5 days',
+          daysSinceLastSubmission: 5
+        }
+      ],
+      roundStalls: [
+        { round: 'Client Interview', count: 12, avgAgeing: 7 }
+      ]
+    }
+  }
+
+  async getLeadershipInsights(): Promise<LeadershipInsight[]> {
+    await new Promise(resolve => setTimeout(resolve, 700))
+    
     return [
       {
-        recruiterId: 'rec-001',
-        recruiterName: 'John Recruiter',
-        submissions: 45,
-        l1Clears: 38,
-        offersMade: 15,
-        offersAccepted: 12,
-        avgTimeToOffer: 11.2,
-        offerToJoinRatio: 80.0
-      },
-      {
-        recruiterId: 'rec-002',
-        recruiterName: 'Sarah Staffing',
-        submissions: 38,
-        l1Clears: 32,
-        offersMade: 18,
-        offersAccepted: 15,
-        avgTimeToOffer: 10.8,
-        offerToJoinRatio: 83.3
-      },
-      {
-        recruiterId: 'rec-003',
-        recruiterName: 'Mike Talent',
-        submissions: 32,
-        l1Clears: 25,
-        offersMade: 12,
-        offersAccepted: 8,
-        avgTimeToOffer: 14.5,
-        offerToJoinRatio: 66.7
+        type: 'redistribution',
+        priority: 'high',
+        title: 'Redistribute focus on TechCorp Inc',
+        description: 'SLA breaches high; only 1 active recruiter on 8 JDs',
+        actionable: true,
+        clientId: 'client-001',
+        jdIds: ['jd-001', 'jd-002']
       }
     ]
   }
 
-  // Audit Trail
-  static async getAuditTrail(applicationId?: string): Promise<PipelineAuditEntry[]> {
-    // Mock data
+  async getClientProgress(): Promise<ClientProgress[]> {
+    await new Promise(resolve => setTimeout(resolve, 600))
+    
+    return [
+      {
+        clientId: 'client-001',
+        clientName: 'TechCorp Inc',
+        totalHeadcount: 25,
+        filledPositions: 12,
+        progressPercent: 48,
+        avgFeedbackTime: 3.5,
+        slaBreaches: 8,
+        stuckJDs: 2,
+        forecast: {
+          submissionsNeeded: 45,
+          estimatedCompletionDays: 30
+        }
+      }
+    ]
+  }
+
+  async getAlerts(role?: string): Promise<PipelineAlert[]> {
+    await new Promise(resolve => setTimeout(resolve, 400))
+    
+    return [
+      {
+        id: 'alert-001',
+        type: 'sla-breach',
+        severity: 'critical',
+        title: 'Feedback Overdue',
+        description: 'Client feedback pending for 7 days on JD#001',
+        targetRole: ['recruiter', 'manager'],
+        jdId: 'jd-001',
+        candidateId: 'cand-001',
+        createdAt: '2024-01-15T08:00:00Z'
+      }
+    ]
+  }
+
+  async sendReminder(action: ReminderAction): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    console.log('Reminder sent:', action)
+  }
+
+  async escalateIssue(action: EscalationAction): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 400))
+    console.log('Issue escalated:', action)
+  }
+
+  async getAuditTrail(filters?: any): Promise<PipelineAuditEntry[]> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
     return [
       {
         id: 'audit-001',
-        applicationId: 'app-001',
-        candidateName: 'Alice Johnson',
-        action: 'Status Changed',
-        previousValue: 'L1 Cleared',
-        newValue: 'L2 Cleared',
-        changedBy: 'Engineering Manager',
-        changedAt: '2024-01-16T14:30:00Z',
-        comment: 'Excellent problem-solving approach'
-      },
-      {
-        id: 'audit-002',
-        applicationId: 'app-002',
-        candidateName: 'Bob Chen',
-        action: 'Status Changed',
-        previousValue: 'HR Cleared',
-        newValue: 'Offer',
-        changedBy: 'HR Manager',
-        changedAt: '2024-01-17T10:15:00Z',
-        comment: 'Offer extended - 120K package'
+        applicationId: '1',
+        candidateName: 'John Doe',
+        action: 'status-change',
+        actor: 'Alice Smith',
+        actorRole: 'Recruiter',
+        previousValue: 'Submitted',
+        newValue: 'Interview-R1',
+        timestamp: '2024-01-15T10:30:00Z',
+        comment: 'Moved to technical round'
       }
     ]
   }
 
-  // Export
-  static async exportApplications(filters?: PipelineFilters, format: 'csv' | 'excel' = 'csv'): Promise<void> {
-    // Mock implementation
-    console.log('Exporting applications:', { filters, format })
+  async exportPipelineReport(type: string, filters?: any): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log(`Exporting ${type} report with filters:`, filters)
   }
 
-  static async exportAuditTrail(filters?: PipelineFilters): Promise<void> {
-    // Mock implementation
-    console.log('Exporting audit trail:', filters)
+  async getPipelineSettings(): Promise<PipelineSettings> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    
+    return {
+      slaTimers: {
+        'feedback': {
+          defaultHours: 48,
+          clientOverrides: {},
+          jdOverrides: {}
+        }
+      },
+      statusPermissions: {
+        'recruiter': {
+          canUpdate: ['Submitted', 'Shortlisted'],
+          requiresApproval: ['Offer-Released'],
+          canOverride: false
+        }
+      },
+      reminderSettings: {
+        cadence: 'daily',
+        channels: ['email'],
+        digestEnabled: true
+      },
+      integrationSettings: {
+        ownershipSyncEnabled: true,
+        applicationsSyncEnabled: true,
+        approvalGatingEnabled: true
+      }
+    }
+  }
+
+  async updatePipelineSettings(settings: Partial<PipelineSettings>): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    console.log('Settings updated:', settings)
+  }
+
+  async updateApplicationStatus(
+    id: string, 
+    status: ApplicationStatus, 
+    comment?: string,
+    overrideReason?: string
+  ): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    console.log(`Updated application ${id} to ${status}`, { comment, overrideReason })
+  }
+
+  async bulkUpdateStatus(update: BulkStatusUpdate): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    console.log('Bulk status update:', update)
+  }
+
+  async getActiveJDs(): Promise<ActiveJD[]> {
+    await new Promise(resolve => setTimeout(resolve, 400))
+    return [
+      {
+        id: 'jd-001',
+        title: 'Senior React Developer',
+        client: 'TechCorp Inc',
+        postedDate: '2024-01-10',
+        assignedRecruiter: 'Alice Smith',
+        daysSinceCreated: 5,
+        hasSubmissions: true
+      }
+    ]
+  }
+
+  async assignRecruiter(jdId: string, recruiterId: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    console.log(`Assigned recruiter ${recruiterId} to JD ${jdId}`)
   }
 }
+
+export const pipelineService = new PipelineService()

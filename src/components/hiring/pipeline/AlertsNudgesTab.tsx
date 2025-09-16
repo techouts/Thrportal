@@ -93,70 +93,76 @@ export function AlertsNudgesTab() {
 
   const columns = [
     {
-      accessorKey: 'severity',
+      id: 'severity',
       header: 'Severity',
-      cell: ({ row }: any) => (
-        <Badge variant={getSeverityColor(row.original.severity)}>
-          {row.original.severity}
+      accessor: 'severity' as keyof PipelineAlert,
+      cell: (value: any, row: PipelineAlert) => (
+        <Badge variant={getSeverityColor(row.severity)}>
+          {row.severity}
         </Badge>
       )
     },
     {
-      accessorKey: 'type',
+      id: 'type',
       header: 'Type',
-      cell: ({ row }: any) => {
-        const IconComponent = getTypeIcon(row.original.type)
+      accessor: 'type' as keyof PipelineAlert,
+      cell: (value: any, row: PipelineAlert) => {
+        const IconComponent = getTypeIcon(row.type)
         return (
           <div className="flex items-center gap-2">
             <IconComponent className="h-4 w-4" />
-            <span>{row.original.type.replace('-', ' ')}</span>
+            <span>{row.type.replace('-', ' ')}</span>
           </div>
         )
       }
     },
     {
-      accessorKey: 'title',
+      id: 'title',
       header: 'Alert',
-      cell: ({ row }: any) => (
+      accessor: 'title' as keyof PipelineAlert,
+      cell: (value: any, row: PipelineAlert) => (
         <div>
-          <div className="font-medium">{row.original.title}</div>
-          <div className="text-sm text-muted-foreground">{row.original.description}</div>
+          <div className="font-medium">{row.title}</div>
+          <div className="text-sm text-muted-foreground">{row.description}</div>
         </div>
       )
     },
     {
-      accessorKey: 'createdAt',
+      id: 'createdAt',
       header: 'Created',
-      cell: ({ row }: any) => (
-        <div className="text-sm">{new Date(row.original.createdAt).toLocaleDateString()}</div>
+      accessor: 'createdAt' as keyof PipelineAlert,
+      cell: (value: any, row: PipelineAlert) => (
+        <div className="text-sm">{new Date(row.createdAt).toLocaleDateString()}</div>
       )
     },
     {
-      accessorKey: 'actionTaken',
+      id: 'actionTaken',
       header: 'Status',
-      cell: ({ row }: any) => (
-        <Badge variant={row.original.actionTaken ? 'default' : 'secondary'}>
-          {row.original.actionTaken ? 'Resolved' : 'Pending'}
+      accessor: 'actionTaken' as keyof PipelineAlert,
+      cell: (value: any, row: PipelineAlert) => (
+        <Badge variant={row.actionTaken ? 'default' : 'secondary'}>
+          {row.actionTaken ? 'Resolved' : 'Pending'}
         </Badge>
       )
     },
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }: any) => (
+      accessor: 'id' as keyof PipelineAlert,
+      cell: (value: any, row: PipelineAlert) => (
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setSelectedAlert(row.original)}
+                onClick={() => setSelectedAlert(row)}
               >
                 <Send className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <ReminderDialog alert={row.original} onSend={handleSendReminder} />
+              <ReminderDialog alert={row} onSend={handleSendReminder} />
             </DialogContent>
           </Dialog>
           
@@ -165,13 +171,13 @@ export function AlertsNudgesTab() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setSelectedAlert(row.original)}
+                onClick={() => setSelectedAlert(row)}
               >
                 <AlertTriangle className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <EscalationDialog alert={row.original} onEscalate={handleEscalate} />
+              <EscalationDialog alert={row} onEscalate={handleEscalate} />
             </DialogContent>
           </Dialog>
         </div>

@@ -99,17 +99,15 @@ export function LeadershipViewTab() {
           title="Avg Client SLA"
           value={`${avgSLA.toFixed(1)} days`}
           icon={Clock}
-          variant={avgSLA > 3 ? 'destructive' : 'default'}
         />
         <KPICard
           title="SLA Breaches"
-          value={totalBreaches}
+          value={totalBreaches.toString()}
           icon={AlertTriangle}
-          variant={totalBreaches > 10 ? 'destructive' : 'default'}
         />
         <KPICard
           title="Active Insights"
-          value={insights.filter(i => i.actionable).length}
+          value={insights.filter(i => i.actionable).length.toString()}
           icon={Brain}
         />
       </div>
@@ -123,11 +121,8 @@ export function LeadershipViewTab() {
           <ChartKit
             type="bar"
             data={progressData}
-            config={{
-              xField: 'name',
-              yField: 'progress',
-              colorField: 'name'
-            }}
+            dataKey="progress"
+            xAxisKey="name"
           />
         </CardContent>
       </Card>
@@ -140,13 +135,10 @@ export function LeadershipViewTab() {
           </CardHeader>
           <CardContent>
             <ChartKit
-              type="scatter"
+              type="bar"
               data={slaData}
-              config={{
-                xField: 'avgFeedbackTime',
-                yField: 'breaches',
-                colorField: 'name'
-              }}
+              dataKey="avgFeedbackTime"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>
@@ -160,11 +152,8 @@ export function LeadershipViewTab() {
             <ChartKit
               type="bar"
               data={forecastData}
-              config={{
-                xField: 'name',
-                yField: 'estimatedDays',
-                colorField: 'name'
-              }}
+              dataKey="estimatedDays"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>

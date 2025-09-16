@@ -128,27 +128,26 @@ export function PipelineDashboardTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="Total Applications"
-          value={metrics.totalApplications}
-          trend={{ value: 12, direction: 'up' }}
+          value={metrics.totalApplications.toString()}
+          trend={{ direction: 'up', value: '12%' }}
           icon={Users}
         />
         <KPICard
           title="Active JDs"
-          value={metrics.totalJDs}
-          trend={{ value: 5, direction: 'up' }}
+          value={metrics.totalJDs.toString()}
+          trend={{ direction: 'up', value: '5%' }}
           icon={Target}
         />
         <KPICard
           title="SLA Health"
           value={`${metrics.slaHealth.onTimePercent}%`}
-          trend={{ value: -3, direction: 'down' }}
+          trend={{ direction: 'down', value: '3%' }}
           icon={Clock}
-          variant={metrics.slaHealth.onTimePercent >= 80 ? 'default' : 'destructive'}
         />
         <KPICard
           title="Headcount Progress"
           value={`${Math.round((metrics.headcountProgress.filled / metrics.headcountProgress.approved) * 100)}%`}
-          trend={{ value: 8, direction: 'up' }}
+          trend={{ direction: 'up', value: '8%' }}
           icon={TrendingUp}
         />
       </div>
@@ -162,13 +161,10 @@ export function PipelineDashboardTab() {
           </CardHeader>
           <CardContent>
             <ChartKit
-              type="funnel"
+              type="bar"
               data={funnelData}
-              config={{
-                xField: 'name',
-                yField: 'count',
-                colorField: 'name'
-              }}
+              dataKey="count"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>
@@ -182,12 +178,8 @@ export function PipelineDashboardTab() {
             <ChartKit
               type="bar"
               data={slaData}
-              config={{
-                xField: 'name',
-                yField: ['onTime', 'overdue'],
-                stackField: 'type',
-                colors: ['#10b981', '#ef4444']
-              }}
+              dataKey="onTime"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>

@@ -68,76 +68,83 @@ export function MyPipelineTab() {
 
   const columns = [
     {
-      accessorKey: 'jdTitle',
+      id: 'jdTitle',
       header: 'JD',
-      cell: ({ row }: any) => (
+      accessor: 'jdTitle' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div>
-          <div className="font-medium">{row.original.jdTitle}</div>
-          <div className="text-sm text-muted-foreground">{row.original.client}</div>
+          <div className="font-medium">{row.jdTitle}</div>
+          <div className="text-sm text-muted-foreground">{row.client}</div>
         </div>
       )
     },
     {
-      accessorKey: 'candidateName',
+      id: 'candidateName',
       header: 'Candidate',
+      accessor: 'candidateName' as keyof PipelineApplication,
     },
     {
-      accessorKey: 'currentStatus',
+      id: 'currentStatus',
       header: 'Stage/Round',
-      cell: ({ row }: any) => (
+      accessor: 'currentStatus' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div>
-          <div className="font-medium">{row.original.currentStatus}</div>
-          {row.original.currentRound && (
-            <div className="text-sm text-muted-foreground">{row.original.currentRound}</div>
+          <div className="font-medium">{row.currentStatus}</div>
+          {row.currentRound && (
+            <div className="text-sm text-muted-foreground">{row.currentRound}</div>
           )}
         </div>
       )
     },
     {
-      accessorKey: 'ageing',
+      id: 'ageing',
       header: 'Ageing',
-      cell: ({ row }: any) => (
+      accessor: 'ageing' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div className="flex items-center gap-2">
-          <span className="font-medium">{row.original.ageing} days</span>
-          {row.original.ageing > 7 && (
+          <span className="font-medium">{row.ageing} days</span>
+          {row.ageing > 7 && (
             <AlertCircle className="h-4 w-4 text-amber-500" />
           )}
         </div>
       )
     },
     {
-      accessorKey: 'slaStatus',
+      id: 'slaStatus',
       header: 'SLA',
-      cell: ({ row }: any) => (
-        <Badge variant={row.original.slaStatus === 'overdue' ? 'destructive' : 
-                       row.original.slaStatus === 'due-today' ? 'secondary' : 'default'}>
-          {row.original.slaStatus}
+      accessor: 'slaStatus' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
+        <Badge variant={row.slaStatus === 'overdue' ? 'destructive' : 
+                       row.slaStatus === 'due-today' ? 'secondary' : 'default'}>
+          {row.slaStatus}
         </Badge>
       )
     },
     {
-      accessorKey: 'nextAction',
+      id: 'nextAction',
       header: 'Next Action',
-      cell: ({ row }: any) => (
-        <div className="text-sm">{row.original.nextAction}</div>
+      accessor: 'nextAction' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
+        <div className="text-sm">{row.nextAction}</div>
       )
     },
     {
       id: 'actions',
       header: 'Quick Actions',
-      cell: ({ row }: any) => (
+      accessor: 'id' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div className="flex gap-1">
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => handleScheduleInterview(row.original.id)}
+            onClick={() => handleScheduleInterview(row.id)}
           >
             <Calendar className="h-4 w-4" />
           </Button>
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => handleSendReminder(row.original.id)}
+            onClick={() => handleSendReminder(row.id)}
           >
             <CheckCircle className="h-4 w-4" />
           </Button>
@@ -152,12 +159,12 @@ export function MyPipelineTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="Active JDs"
-          value={stats.activeJDs}
+          value={stats.activeJDs.toString()}
           icon={Users}
         />
         <KPICard
           title="Active Candidates"
-          value={stats.activeCandidates}
+          value={stats.activeCandidates.toString()}
           icon={Users}
         />
         <KPICard
@@ -182,12 +189,8 @@ export function MyPipelineTab() {
             <ChartKit
               type="bar"
               data={funnelData}
-              config={{
-                xField: 'name',
-                yField: 'value',
-                colorField: 'type',
-                stackField: 'type'
-              }}
+              dataKey="value"
+              xAxisKey="name"
             />
           </CardContent>
         </Card>

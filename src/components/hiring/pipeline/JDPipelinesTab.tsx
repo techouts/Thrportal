@@ -76,91 +76,101 @@ export function JDPipelinesTab() {
 
   const columns = [
     {
-      accessorKey: 'title',
+      id: 'title',
       header: 'JD Title',
-      cell: ({ row }: any) => (
+      accessor: 'title' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
         <div>
-          <div className="font-medium">{row.original.title}</div>
-          <div className="text-sm text-muted-foreground">{row.original.client}</div>
+          <div className="font-medium">{row.title}</div>
+          <div className="text-sm text-muted-foreground">{row.client}</div>
         </div>
       )
     },
     {
-      accessorKey: 'approvalStatus',
+      id: 'approvalStatus',
       header: 'Approval Status',
-      cell: ({ row }: any) => (
-        <Badge variant={getStatusColor(row.original.approvalStatus)}>
-          {row.original.approvalStatus}
+      accessor: 'approvalStatus' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <Badge variant={getStatusColor(row.approvalStatus)}>
+          {row.approvalStatus}
         </Badge>
       )
     },
     {
-      accessorKey: 'headcount',
+      id: 'headcount',
       header: 'Headcount',
-      cell: ({ row }: any) => (
+      accessor: 'headcountApproved' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
         <div className="text-center">
-          <div className="font-medium">{row.original.headcountApproved}</div>
+          <div className="font-medium">{row.headcountApproved}</div>
           <div className="text-sm text-muted-foreground">
-            {row.original.headcountRemaining} remaining
+            {row.headcountRemaining} remaining
           </div>
         </div>
       )
     },
     {
-      accessorKey: 'submissions',
+      id: 'submissions',
       header: 'Submissions',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.submissions}</div>
+      accessor: 'submissions' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <div className="font-medium">{row.submissions}</div>
       )
     },
     {
-      accessorKey: 'shortlisted',
+      id: 'shortlisted',
       header: 'Shortlisted',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.shortlisted}</div>
+      accessor: 'shortlisted' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <div className="font-medium">{row.shortlisted}</div>
       )
     },
     {
-      accessorKey: 'interviews',
+      id: 'interviews',
       header: 'Interviews',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.interviews}</div>
+      accessor: 'interviews' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <div className="font-medium">{row.interviews}</div>
       )
     },
     {
-      accessorKey: 'offers',
+      id: 'offers',
       header: 'Offers',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.offers}</div>
+      accessor: 'offers' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <div className="font-medium">{row.offers}</div>
       )
     },
     {
-      accessorKey: 'joins',
+      id: 'joins',
       header: 'Joins',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.joins}</div>
+      accessor: 'joins' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <div className="font-medium">{row.joins}</div>
       )
     },
     {
-      accessorKey: 'slaHealth',
+      id: 'slaHealth',
       header: 'SLA Health',
-      cell: ({ row }: any) => (
-        <Badge variant={getSLAHealthColor(row.original.slaHealth)}>
-          {row.original.slaHealth}
+      accessor: 'slaHealth' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
+        <Badge variant={getSLAHealthColor(row.slaHealth)}>
+          {row.slaHealth}
         </Badge>
       )
     },
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }: any) => (
+      accessor: 'id' as keyof JDPipeline,
+      cell: (value: any, row: JDPipeline) => (
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => loadJDDetail(row.original.id)}
+                onClick={() => loadJDDetail(row.id)}
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -177,11 +187,11 @@ export function JDPipelinesTab() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleReassign(row.original.id)}>
+              <DropdownMenuItem onClick={() => handleReassign(row.id)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Reassign
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSendReminder(row.original.id)}>
+              <DropdownMenuItem onClick={() => handleSendReminder(row.id)}>
                 <Send className="h-4 w-4 mr-2" />
                 Send Reminder
               </DropdownMenuItem>
@@ -223,58 +233,65 @@ function JDPipelineDetail({ jd }: { jd: JDPipeline | null }) {
 
   const applicationColumns = [
     {
-      accessorKey: 'candidateName',
+      id: 'candidateName',
       header: 'Candidate',
+      accessor: 'candidateName' as keyof PipelineApplication,
     },
     {
-      accessorKey: 'currentStatus',
+      id: 'currentStatus',
       header: 'Current Round/Stage',
-      cell: ({ row }: any) => (
+      accessor: 'currentStatus' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div>
-          <div className="font-medium">{row.original.currentStatus}</div>
-          {row.original.currentRound && (
-            <div className="text-sm text-muted-foreground">{row.original.currentRound}</div>
+          <div className="font-medium">{row.currentStatus}</div>
+          {row.currentRound && (
+            <div className="text-sm text-muted-foreground">{row.currentRound}</div>
           )}
         </div>
       )
     },
     {
-      accessorKey: 'ageing',
+      id: 'ageing',
       header: 'Ageing',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.ageing} days</div>
+      accessor: 'ageing' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
+        <div className="font-medium">{row.ageing} days</div>
       )
     },
     {
-      accessorKey: 'primaryRecruiter',
+      id: 'primaryRecruiter',
       header: 'Owner',
-      cell: ({ row }: any) => (
+      accessor: 'primaryRecruiter' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div>
-          <div className="font-medium">{row.original.primaryRecruiter}</div>
+          <div className="font-medium">{row.primaryRecruiter}</div>
           <div className="text-sm text-muted-foreground">Primary</div>
         </div>
       )
     },
     {
-      accessorKey: 'slaStatus',
+      id: 'slaStatus',
       header: 'SLA',
-      cell: ({ row }: any) => (
-        <Badge variant={row.original.slaStatus === 'overdue' ? 'destructive' : 'default'}>
-          {row.original.slaStatus}
+      accessor: 'slaStatus' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
+        <Badge variant={row.slaStatus === 'overdue' ? 'destructive' : 'default'}>
+          {row.slaStatus}
         </Badge>
       )
     },
     {
-      accessorKey: 'nextAction',
+      id: 'nextAction',
       header: 'Next Action',
-      cell: ({ row }: any) => (
-        <div className="text-sm">{row.original.nextAction}</div>
+      accessor: 'nextAction' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
+        <div className="text-sm">{row.nextAction}</div>
       )
     },
     {
       id: 'actions',
       header: 'Quick Actions',
-      cell: ({ row }: any) => (
+      accessor: 'id' as keyof PipelineApplication,
+      cell: (value: any, row: PipelineApplication) => (
         <div className="flex gap-1">
           <Button variant="ghost" size="sm">
             <Calendar className="h-4 w-4" />
@@ -316,7 +333,7 @@ function JDPipelineDetail({ jd }: { jd: JDPipeline | null }) {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">SLA Health:</span>
-              <Badge variant={getSLAHealthColor(jd.slaHealth)}>{jd.slaHealth}</Badge>
+              <Badge variant={getSLAHealthColor(jd?.slaHealth || 'good')}>{jd?.slaHealth || 'good'}</Badge>
             </div>
           </CardContent>
         </Card>

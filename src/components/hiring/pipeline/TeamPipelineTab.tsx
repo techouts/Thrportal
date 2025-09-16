@@ -59,97 +59,85 @@ export function TeamPipelineTab() {
 
   const teamColumns = [
     {
-      accessorKey: 'recruiter',
+      id: 'recruiter',
       header: 'Recruiter',
+      accessor: 'recruiter' as keyof any,
     },
     {
-      accessorKey: 'activeJDs',
+      id: 'activeJDs',
       header: 'Active JDs',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.activeJDs || 0}</div>
+      accessor: 'activeJDs' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="font-medium">{row.activeJDs || 0}</div>
       )
     },
     {
-      accessorKey: 'activeCandidates',
+      id: 'activeCandidates',
       header: 'Active Candidates',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.activeCandidates || 0}</div>
+      accessor: 'activeCandidates' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="font-medium">{row.activeCandidates || 0}</div>
       )
     },
     {
-      accessorKey: 'submissions',
+      id: 'submissions',
       header: 'Submissions',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.submissions || 0}</div>
+      accessor: 'submissions' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="font-medium">{row.submissions || 0}</div>
       )
     },
     {
-      accessorKey: 'shortlistPercent',
+      id: 'shortlistPercent',
       header: 'Shortlist %',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.shortlistPercent || 0}%</div>
+      accessor: 'shortlistPercent' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="font-medium">{row.shortlistPercent || 0}%</div>
       )
     },
     {
-      accessorKey: 'offerPercent',
+      id: 'offerPercent',
       header: 'Offer %',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.offerPercent || 0}%</div>
+      accessor: 'offerPercent' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="font-medium">{row.offerPercent || 0}%</div>
       )
     },
     {
-      accessorKey: 'joinPercent',
+      id: 'joinPercent',
       header: 'Join %',
-      cell: ({ row }: any) => (
-        <div className="font-medium">{row.original.joinPercent || 0}%</div>
-      )
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }: any) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => handleReassignApplication(row.original.id)}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Reassign Applications
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleBulkReminder('recruiters')}>
-              <Send className="h-4 w-4 mr-2" />
-              Send Reminder
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      accessor: 'joinPercent' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="font-medium">{row.joinPercent || 0}%</div>
       )
     }
   ]
 
   const atRiskColumns = [
     {
-      accessorKey: 'jdTitle',
+      id: 'jdTitle',
       header: 'JD Title',
+      accessor: 'jdTitle' as keyof any,
     },
     {
-      accessorKey: 'client',
+      id: 'client',
       header: 'Client',
+      accessor: 'client' as keyof any,
     },
     {
-      accessorKey: 'issue',
+      id: 'issue',
       header: 'Issue',
-      cell: ({ row }: any) => (
-        <div className="text-sm text-red-600">{row.original.issue}</div>
+      accessor: 'issue' as keyof any,
+      cell: (value: any, row: any) => (
+        <div className="text-sm text-red-600">{row.issue}</div>
       )
     },
     {
-      accessorKey: 'daysSinceLastSubmission',
+      id: 'daysSinceLastSubmission',
       header: 'Days Since Last Submission',
-      cell: ({ row }: any) => (
-        <Badge variant="destructive">{row.original.daysSinceLastSubmission} days</Badge>
+      accessor: 'daysSinceLastSubmission' as keyof any,
+      cell: (value: any, row: any) => (
+        <Badge variant="destructive">{row.daysSinceLastSubmission} days</Badge>
       )
     }
   ]
@@ -199,16 +187,12 @@ export function TeamPipelineTab() {
           <CardTitle>Team Funnel by Recruiter</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartKit
-            type="bar"
-            data={teamFunnelData}
-            config={{
-              xField: 'stage',
-              yField: 'count',
-              colorField: 'recruiter',
-              stackField: 'recruiter'
-            }}
-          />
+            <ChartKit
+              type="bar"
+              data={teamFunnelData}
+              dataKey="count"
+              xAxisKey="stage"
+            />
         </CardContent>
       </Card>
 
