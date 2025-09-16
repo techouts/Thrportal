@@ -286,15 +286,19 @@ export function SmartUploadCandidatesModal({ open, onClose }: SmartUploadCandida
             <Label htmlFor="jd-select" className="text-sm font-medium">
               Target JD (Optional but Recommended)
             </Label>
-            <Select value={selectedJD?.id || ''} onValueChange={(value) => {
-              const jd = availableJDs.find(j => j.id === value)
-              setSelectedJD(jd || null)
+            <Select value={selectedJD?.id || 'none'} onValueChange={(value) => {
+              if (value === "none") {
+                setSelectedJD(null)
+              } else {
+                const jd = availableJDs.find(j => j.id === value)
+                setSelectedJD(jd || null)
+              }
             }}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select JD to auto-create applications" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No JD selected</SelectItem>
+                <SelectItem value="none">No JD selected</SelectItem>
                 {availableJDs.map((jd) => (
                   <SelectItem key={jd.id} value={jd.id}>
                     {jd.jobTitle} - {jd.isInternal ? 'Internal' : jd.clientName}
