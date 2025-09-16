@@ -254,7 +254,7 @@ export function TargetsTab() {
       id: 'change',
       header: 'Change',
       accessor: 'oldValue' as const,
-      cell: ({ row }: any) => (
+      cell: (value: any, row: TargetChangeLog) => (
         <span className="font-mono">
           {row.oldValue} → {row.newValue}
         </span>
@@ -269,7 +269,7 @@ export function TargetsTab() {
       id: 'timestamp',
       header: 'When',
       accessor: 'timestamp' as const,
-      cell: ({ row }: any) => new Date(row.timestamp).toLocaleDateString()
+      cell: (value: any, row: TargetChangeLog) => new Date(row.timestamp).toLocaleDateString()
     }
   ]
 
