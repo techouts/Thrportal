@@ -7,6 +7,8 @@ import { RejectionReasonsTab } from '@/components/hiring/settings/RejectionReaso
 import { FeedbackFollowupsTab } from '@/components/hiring/settings/FeedbackFollowupsTab'
 import { ComplianceVendorsTab } from '@/components/hiring/settings/ComplianceVendorsTab'
 import { GlobalDefaultsTab } from '@/components/hiring/settings/GlobalDefaultsTab'
+import { TargetsTab } from '@/components/hiring/settings/TargetsTab'
+import { ApprovalRulesTab } from '@/components/hiring/settings/ApprovalRulesTab'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function HiringSettingsPage() {
@@ -20,7 +22,9 @@ export default function HiringSettingsPage() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="targets">Targets</TabsTrigger>
+          <TabsTrigger value="approval-rules">Approval Rules</TabsTrigger>
           <TabsTrigger value="jd-parser">JD Parser</TabsTrigger>
           <TabsTrigger value="offer-matrix">Offer Matrix</TabsTrigger>
           <TabsTrigger value="sla">SLA</TabsTrigger>
@@ -29,6 +33,14 @@ export default function HiringSettingsPage() {
           <TabsTrigger value="compliance-vendors">Compliance & Vendors</TabsTrigger>
           <TabsTrigger value="global-defaults">Global Defaults</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="targets" className="space-y-6">
+          <TargetsTab />
+        </TabsContent>
+
+        <TabsContent value="approval-rules" className="space-y-6">
+          <ApprovalRulesTab />
+        </TabsContent>
 
         <TabsContent value="jd-parser" className="space-y-6">
           <JDParserTab />

@@ -10,6 +10,7 @@ import { LeadershipViewTab } from './LeadershipViewTab'
 import { AlertsNudgesTab } from './AlertsNudgesTab'
 import { PipelineReportsTab } from './PipelineReportsTab'
 import { PipelineSettingsTab } from './PipelineSettingsTab'
+import { RecruiterPerformanceTab } from './RecruiterPerformanceTab'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
 export function PipelineModule() {
@@ -35,11 +36,12 @@ export function PipelineModule() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="jd-pipelines">JD Pipelines</TabsTrigger>
           <TabsTrigger value="my-pipeline">My Pipeline</TabsTrigger>
           <TabsTrigger value="team-pipeline">Team Pipeline</TabsTrigger>
+          <TabsTrigger value="recruiter-performance">Recruiter Performance</TabsTrigger>
           <TabsTrigger value="leadership">Leadership View</TabsTrigger>
           <TabsTrigger value="alerts">Alerts & Nudges</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -60,6 +62,10 @@ export function PipelineModule() {
 
         <TabsContent value="team-pipeline" className="space-y-6">
           <TeamPipelineTab />
+        </TabsContent>
+
+        <TabsContent value="recruiter-performance" className="space-y-6">
+          <RecruiterPerformanceTab />
         </TabsContent>
 
         <TabsContent value="leadership" className="space-y-6">
