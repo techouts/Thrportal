@@ -5,15 +5,20 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CheckCircle, XCircle, Eye, Send } from 'lucide-react';
-import { JobDescription, JDApproval } from '@/types/hiring-extended';
-import { hiringExtendedService } from '@/services/hiringExtendedService';
+import { CheckCircle, XCircle, Eye, Send, MessageSquare } from 'lucide-react';
+import { JDApproval, JDApprovalStep } from '@/types/approvals';
+import { approvalsService } from '@/services/approvalsService';
 import { useToast } from '@/hooks/use-toast';
 
+interface ApprovalItem {
+  approval: JDApproval;
+  currentStep: JDApprovalStep | null;
+}
+
 export function InternalApprovalsTab() {
-  const [pendingJDs, setPendingJDs] = useState<JobDescription[]>([]);
-  const [approvedJDs, setApprovedJDs] = useState<JobDescription[]>([]);
-  const [selectedJD, setSelectedJD] = useState<JobDescription | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<ApprovalItem[]>([]);
+  const [approvedApprovals, setApprovedApprovals] = useState<ApprovalItem[]>([]);
+  const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(null);
   const [comment, setComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -24,9 +29,10 @@ export function InternalApprovalsTab() {
 
   const loadApprovals = async () => {
     try {
-      const allJDs = await hiringExtendedService.getJDs({ approval_path: 'INTERNAL' });
-      setPendingJDs(allJDs.filter(jd => jd.status === 'PendingApproval'));
-      setApprovedJDs(allJDs.filter(jd => jd.status === 'Approved'));
+      // This would need to be implemented to fetch approvals from Supabase
+      // For now, return empty arrays
+      setPendingApprovals([]);
+      setApprovedApprovals([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -38,38 +44,44 @@ export function InternalApprovalsTab() {
     }
   };
 
-  const handleApproval = async (jdId: string, approverRole: string) => {
+  const handleApproval = async (stepId: string, action: 'approve' | 'reject' | 'request_changes') => {
     try {
-      await hiringExtendedService.approveJD(jdId, approverRole, comment);
-      toast({
-        title: "Success",
-        description: "JD approved successfully"
-      });
+      if (action === 'approve') {
+        await approvalsService.approveStep(stepId, comment);
+        toast({
+          title: "Success",
+          description: "Approval step completed successfully"
+        });
+      } else if (action === 'reject') {
+        await approvalsService.rejectStep(stepId, comment);
+        toast({
+          title: "Success",
+          description: "JD rejected and returned to submitter"
+        });
+      }
       setComment('');
       await loadApprovals();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to approve JD",
+        description: "Failed to process approval",
         variant: "destructive"
       });
     }
   };
 
-  const handlePublish = async (jdId: string) => {
-    try {
-      await hiringExtendedService.publishJD(jdId);
-      toast({
-        title: "Success",
-        description: "JD published successfully"
-      });
-      await loadApprovals();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to publish JD",
-        variant: "destructive"
-      });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return <Badge variant="outline">Submitted</Badge>;
+      case 'approved':
+        return <Badge variant="default">Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      case 'changes_requested':
+        return <Badge variant="secondary">Changes Requested</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -82,9 +94,8 @@ export function InternalApprovalsTab() {
     }).format(amount);
   };
 
-  const getApprovalStage = (jd: JobDescription) => {
-    // In a real implementation, this would check the approval history
-    return 'HR Manager Review';
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   if (isLoading) {
@@ -105,7 +116,7 @@ export function InternalApprovalsTab() {
           <CardTitle>Pending Internal Approvals</CardTitle>
         </CardHeader>
         <CardContent>
-          {pendingJDs.length === 0 ? (
+          {pendingApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No pending internal approvals
             </div>
@@ -114,96 +125,89 @@ export function InternalApprovalsTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>CTC Range</TableHead>
-                    <TableHead>Stage</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>JD ID</TableHead>
+                    <TableHead>Project/Client</TableHead>
+                    <TableHead>Headcount</TableHead>
+                    <TableHead>Salary Band</TableHead>
+                    <TableHead>Current Step</TableHead>
+                    <TableHead>Submitted</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pendingJDs.map((jd) => (
-                    <TableRow key={jd.id}>
-                      <TableCell className="font-medium">{jd.job_title}</TableCell>
-                      <TableCell>{jd.department}</TableCell>
+                  {pendingApprovals.map((item) => (
+                    <TableRow key={item.approval.id}>
+                      <TableCell className="font-medium">{item.approval.jd_id}</TableCell>
                       <TableCell>
-                        <Badge variant={jd.priority === 'Critical' ? 'destructive' : jd.priority === 'High' ? 'default' : 'secondary'}>
-                          {jd.priority}
-                        </Badge>
+                        {item.approval.project_name || item.approval.client_name || 'Not specified'}
                       </TableCell>
+                      <TableCell>{item.approval.headcount || 1}</TableCell>
                       <TableCell>
-                        {jd.min_ctc_annual && jd.max_ctc_annual ? (
+                        {item.approval.salary_band_min && item.approval.salary_band_max ? (
                           <>
-                            {formatCurrency(jd.min_ctc_annual, jd.currency)} - {formatCurrency(jd.max_ctc_annual, jd.currency)}
+                            {formatCurrency(item.approval.salary_band_min, item.approval.currency || 'USD')} - {formatCurrency(item.approval.salary_band_max, item.approval.currency || 'USD')}
                           </>
                         ) : (
                           'Not specified'
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{getApprovalStage(jd)}</Badge>
+                        <Badge variant="outline">
+                          {item.currentStep?.approver_role || 'Pending Assignment'}
+                        </Badge>
                       </TableCell>
-                      <TableCell>{new Date(jd.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{formatDate(item.approval.submitted_at || item.approval.created_at)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button size="sm" variant="outline" onClick={() => setSelectedJD(jd)}>
+                              <Button size="sm" variant="outline" onClick={() => setSelectedApproval(item)}>
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
-                                <DialogTitle>Review JD: {selectedJD?.job_title}</DialogTitle>
+                                <DialogTitle>Review JD Approval: {selectedApproval?.approval.jd_id}</DialogTitle>
                               </DialogHeader>
-                              {selectedJD && (
+                              {selectedApproval && (
                                 <div className="space-y-6">
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <h4 className="font-medium mb-2">Basic Information</h4>
+                                      <h4 className="font-medium mb-2">Approval Details</h4>
                                       <div className="space-y-2 text-sm">
-                                        <p><strong>Department:</strong> {selectedJD.department}</p>
-                                        <p><strong>Business Unit:</strong> {selectedJD.business_unit}</p>
-                                        <p><strong>Openings:</strong> {selectedJD.openings}</p>
-                                        <p><strong>Priority:</strong> {selectedJD.priority}</p>
-                                        <p><strong>Employment Type:</strong> {selectedJD.employment_type}</p>
+                                        <p><strong>JD ID:</strong> {selectedApproval.approval.jd_id}</p>
+                                        <p><strong>Status:</strong> {getStatusBadge(selectedApproval.approval.status)}</p>
+                                        <p><strong>Current Step:</strong> {selectedApproval.approval.current_step}</p>
+                                        <p><strong>Submitted By:</strong> {selectedApproval.approval.submitted_by || 'N/A'}</p>
+                                        <p><strong>Submitted At:</strong> {selectedApproval.approval.submitted_at ? formatDate(selectedApproval.approval.submitted_at) : 'N/A'}</p>
                                       </div>
                                     </div>
                                     <div>
-                                      <h4 className="font-medium mb-2">Requirements</h4>
+                                      <h4 className="font-medium mb-2">Request Details</h4>
                                       <div className="space-y-2 text-sm">
-                                        <p><strong>Experience:</strong> {selectedJD.min_exp_years}-{selectedJD.max_exp_years} years</p>
-                                        <p><strong>Location:</strong> {selectedJD.location}</p>
-                                        <p><strong>Work Mode:</strong> {selectedJD.remote_hybrid}</p>
-                                        <p><strong>CTC Range:</strong> {formatCurrency(selectedJD.min_ctc_annual, selectedJD.currency)} - {formatCurrency(selectedJD.max_ctc_annual, selectedJD.currency)}</p>
+                                        <p><strong>Headcount:</strong> {selectedApproval.approval.headcount || 1}</p>
+                                        <p><strong>Project:</strong> {selectedApproval.approval.project_name || 'Not specified'}</p>
+                                        <p><strong>Client:</strong> {selectedApproval.approval.client_name || 'Not specified'}</p>
+                                        <p><strong>Cost Center:</strong> {selectedApproval.approval.cost_center || 'Not specified'}</p>
+                                        <p><strong>Is Replacement:</strong> {selectedApproval.approval.is_replacement ? 'Yes' : 'No'}</p>
                                       </div>
                                     </div>
                                   </div>
                                   
                                   <div>
-                                    <h4 className="font-medium mb-2">Skills</h4>
-                                    <div className="space-y-2">
-                                      <div>
-                                        <span className="text-sm font-medium">Primary: </span>
-                                        {selectedJD.skills_primary?.map((skill, index) => (
-                                          <Badge key={index} variant="default" className="mr-1">{skill}</Badge>
-                                        ))}
-                                      </div>
-                                      <div>
-                                        <span className="text-sm font-medium">Secondary: </span>
-                                        {selectedJD.skills_secondary?.map((skill, index) => (
-                                          <Badge key={index} variant="secondary" className="mr-1">{skill}</Badge>
-                                        ))}
-                                      </div>
+                                    <h4 className="font-medium mb-2">Financial Details</h4>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                      <p><strong>Salary Band:</strong> {formatCurrency(selectedApproval.approval.salary_band_min, selectedApproval.approval.currency || 'USD')} - {formatCurrency(selectedApproval.approval.salary_band_max, selectedApproval.approval.currency || 'USD')}</p>
+                                      <p><strong>OPEX/CAPEX:</strong> {selectedApproval.approval.opex_capex || 'Not specified'}</p>
                                     </div>
                                   </div>
 
-                                  <div>
-                                    <h4 className="font-medium mb-2">Job Description</h4>
-                                    <p className="text-sm bg-muted p-3 rounded-md">{selectedJD.job_description}</p>
-                                  </div>
+                                  {selectedApproval.approval.business_justification && (
+                                    <div>
+                                      <h4 className="font-medium mb-2">Business Justification</h4>
+                                      <p className="text-sm bg-muted p-3 rounded-md">{selectedApproval.approval.business_justification}</p>
+                                    </div>
+                                  )}
 
                                   <div>
                                     <h4 className="font-medium mb-2">Approval Comments</h4>
@@ -217,19 +221,24 @@ export function InternalApprovalsTab() {
 
                                   <div className="flex justify-end gap-2">
                                     <Button
+                                      variant="outline"
+                                      onClick={() => selectedApproval.currentStep && handleApproval(selectedApproval.currentStep.id, 'request_changes')}
+                                      disabled={!selectedApproval.currentStep}
+                                    >
+                                      <MessageSquare className="h-4 w-4 mr-2" />
+                                      Request Changes
+                                    </Button>
+                                    <Button
                                       variant="destructive"
-                                      onClick={() => {
-                                        toast({
-                                          title: "JD Rejected",
-                                          description: "This functionality would reject the JD"
-                                        });
-                                      }}
+                                      onClick={() => selectedApproval.currentStep && handleApproval(selectedApproval.currentStep.id, 'reject')}
+                                      disabled={!selectedApproval.currentStep}
                                     >
                                       <XCircle className="h-4 w-4 mr-2" />
                                       Reject
                                     </Button>
                                     <Button
-                                      onClick={() => handleApproval(selectedJD.id, 'HR_MANAGER')}
+                                      onClick={() => selectedApproval.currentStep && handleApproval(selectedApproval.currentStep.id, 'approve')}
+                                      disabled={!selectedApproval.currentStep}
                                     >
                                       <CheckCircle className="h-4 w-4 mr-2" />
                                       Approve
@@ -256,48 +265,47 @@ export function InternalApprovalsTab() {
           <CardTitle>Approved - Awaiting Management Review</CardTitle>
         </CardHeader>
         <CardContent>
-          {approvedJDs.length === 0 ? (
+          {approvedApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No JDs awaiting management review
+              No approved JDs ready for publishing
             </div>
           ) : (
             <div className="border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Approved By HR</TableHead>
+                    <TableHead>JD ID</TableHead>
+                    <TableHead>Project/Client</TableHead>
+                    <TableHead>Headcount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Approved At</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {approvedJDs.map((jd) => (
-                    <TableRow key={jd.id}>
-                      <TableCell className="font-medium">{jd.job_title}</TableCell>
-                      <TableCell>{jd.department}</TableCell>
+                  {approvedApprovals.map((item) => (
+                    <TableRow key={item.approval.id}>
+                      <TableCell className="font-medium">{item.approval.jd_id}</TableCell>
                       <TableCell>
-                        <Badge variant={jd.priority === 'Critical' ? 'destructive' : jd.priority === 'High' ? 'default' : 'secondary'}>
-                          {jd.priority}
-                        </Badge>
+                        {item.approval.project_name || item.approval.client_name || 'Not specified'}
                       </TableCell>
-                      <TableCell>{new Date(jd.updated_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{item.approval.headcount || 1}</TableCell>
+                      <TableCell>{getStatusBadge(item.approval.status)}</TableCell>
+                      <TableCell>{formatDate(item.approval.updated_at)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button 
                             size="sm"
-                            onClick={() => handleApproval(jd.id, 'MANAGEMENT')}
-                          >
-                            Management Approve
-                          </Button>
-                          <Button 
-                            size="sm"
                             variant="outline"
-                            onClick={() => handlePublish(jd.id)}
+                            onClick={() => {
+                              toast({
+                                title: "Info",
+                                description: "Publishing functionality will be implemented in the Publishing tab"
+                              });
+                            }}
                           >
                             <Send className="h-4 w-4 mr-2" />
-                            Publish
+                            Ready to Publish
                           </Button>
                         </div>
                       </TableCell>

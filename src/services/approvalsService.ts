@@ -159,6 +159,63 @@ export const approvalsService = {
     return data || [];
   },
 
+  // Get approvals by status
+  async getApprovalsByStatus(status: ('draft' | 'submitted' | 'approved' | 'rejected' | 'on_hold' | 'changes_requested')[]): Promise<JDApproval[]> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select('*')
+      .in('status', status)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching approvals by status:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  // Get pending approvals for current user role
+  async getPendingApprovalsForRole(role: string): Promise<{approval: JDApproval, steps: JDApprovalStep[]}[]> {
+    // First get approvals that are submitted or in progress
+    const { data: approvals, error: approvalsError } = await supabase
+      .from('jd_approvals')
+      .select('*')
+      .in('status', ['submitted', 'on_hold'])
+      .order('created_at', { ascending: false });
+
+    if (approvalsError) {
+      console.error('Error fetching pending approvals:', approvalsError);
+      throw approvalsError;
+    }
+
+    if (!approvals) return [];
+
+    // Get all steps for these approvals
+    const approvalIds = approvals.map(a => a.id);
+    const { data: steps, error: stepsError } = await supabase
+      .from('jd_approval_steps')
+      .select('*')
+      .in('jd_approval_id', approvalIds)
+      .order('step_number');
+
+    if (stepsError) {
+      console.error('Error fetching approval steps:', stepsError);
+      throw stepsError;
+    }
+
+    // Filter to only approvals where the current step matches the user's role
+    const result = approvals
+      .map(approval => {
+        const approvalSteps = steps?.filter(s => s.jd_approval_id === approval.id) || [];
+        const currentStep = approvalSteps.find(s => s.status === 'pending' && s.approver_role === role);
+        return currentStep ? { approval, steps: approvalSteps } : null;
+      })
+      .filter(Boolean) as {approval: JDApproval, steps: JDApprovalStep[]}[];
+
+    return result;
+  },
+
   // Workflow Actions
   async submitForApproval(jdId: string, approvalData: Partial<JDApproval>): Promise<JDApproval> {
     // First create or update the approval record

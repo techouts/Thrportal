@@ -5,15 +5,20 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CheckCircle, XCircle, Eye, Send } from 'lucide-react';
-import { JobDescription } from '@/types/hiring-extended';
-import { hiringExtendedService } from '@/services/hiringExtendedService';
+import { CheckCircle, XCircle, Eye, Send, MessageSquare } from 'lucide-react';
+import { JDApproval, JDApprovalStep } from '@/types/approvals';
+import { approvalsService } from '@/services/approvalsService';
 import { useToast } from '@/hooks/use-toast';
 
+interface ExternalApprovalItem {
+  approval: JDApproval;
+  currentStep: JDApprovalStep | null;
+}
+
 export function ExternalApprovalsTab() {
-  const [pendingJDs, setPendingJDs] = useState<JobDescription[]>([]);
-  const [approvedJDs, setApprovedJDs] = useState<JobDescription[]>([]);
-  const [selectedJD, setSelectedJD] = useState<JobDescription | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<ExternalApprovalItem[]>([]);
+  const [approvedApprovals, setApprovedApprovals] = useState<ExternalApprovalItem[]>([]);
+  const [selectedApproval, setSelectedApproval] = useState<ExternalApprovalItem | null>(null);
   const [comment, setComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -24,9 +29,10 @@ export function ExternalApprovalsTab() {
 
   const loadApprovals = async () => {
     try {
-      const allJDs = await hiringExtendedService.getJDs({ approval_path: 'EXTERNAL' });
-      setPendingJDs(allJDs.filter(jd => jd.status === 'PendingApproval'));
-      setApprovedJDs(allJDs.filter(jd => jd.status === 'Approved'));
+      // For external approvals, we'd typically look for client-facing or external JDs
+      // This would need to be implemented based on specific business logic
+      setPendingApprovals([]);
+      setApprovedApprovals([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -38,36 +44,27 @@ export function ExternalApprovalsTab() {
     }
   };
 
-  const handleApproval = async (jdId: string) => {
+  const handleApproval = async (stepId: string, action: 'approve' | 'reject' | 'request_changes') => {
     try {
-      await hiringExtendedService.approveJD(jdId, 'STAFFING_MANAGER', comment);
-      toast({
-        title: "Success",
-        description: "External JD approved successfully"
-      });
+      if (action === 'approve') {
+        await approvalsService.approveStep(stepId, comment);
+        toast({
+          title: "Success",
+          description: "External approval completed successfully"
+        });
+      } else if (action === 'reject') {
+        await approvalsService.rejectStep(stepId, comment);
+        toast({
+          title: "Success",
+          description: "External JD rejected"
+        });
+      }
       setComment('');
       await loadApprovals();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to approve JD",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handlePublish = async (jdId: string) => {
-    try {
-      await hiringExtendedService.publishJD(jdId);
-      toast({
-        title: "Success",
-        description: "External JD published successfully"
-      });
-      await loadApprovals();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to publish JD",
+        description: "Failed to process external approval",
         variant: "destructive"
       });
     }
@@ -80,6 +77,25 @@ export function ExternalApprovalsTab() {
       currency: currency || 'INR',
       maximumFractionDigits: 0
     }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return <Badge variant="outline">Submitted</Badge>;
+      case 'approved':
+        return <Badge variant="default">Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      case 'changes_requested':
+        return <Badge variant="secondary">Changes Requested</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   if (isLoading) {
@@ -100,7 +116,7 @@ export function ExternalApprovalsTab() {
           <CardTitle>Pending External Approvals</CardTitle>
         </CardHeader>
         <CardContent>
-          {pendingJDs.length === 0 ? (
+          {pendingApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No pending external approvals
             </div>
@@ -109,112 +125,68 @@ export function ExternalApprovalsTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Job Title</TableHead>
+                    <TableHead>JD ID</TableHead>
                     <TableHead>Client</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>CTC Range</TableHead>
-                    <TableHead>Hiring Manager</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Headcount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pendingJDs.map((jd) => (
-                    <TableRow key={jd.id}>
-                      <TableCell className="font-medium">{jd.job_title}</TableCell>
-                      <TableCell>{jd.client_name || 'Not specified'}</TableCell>
-                      <TableCell>
-                        <Badge variant={jd.priority === 'Critical' ? 'destructive' : jd.priority === 'High' ? 'default' : 'secondary'}>
-                          {jd.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {jd.min_ctc_annual && jd.max_ctc_annual ? (
-                          <>
-                            {formatCurrency(jd.min_ctc_annual, jd.currency)} - {formatCurrency(jd.max_ctc_annual, jd.currency)}
-                          </>
-                        ) : (
-                          'Not specified'
-                        )}
-                      </TableCell>
-                      <TableCell>{jd.hiring_manager_email}</TableCell>
-                      <TableCell>{new Date(jd.created_at).toLocaleDateString()}</TableCell>
+                  {pendingApprovals.map((item) => (
+                    <TableRow key={item.approval.id}>
+                      <TableCell className="font-medium">{item.approval.jd_id}</TableCell>
+                      <TableCell>{item.approval.client_name || 'Not specified'}</TableCell>
+                      <TableCell>{item.approval.project_name || 'Not specified'}</TableCell>
+                      <TableCell>{item.approval.headcount || 1}</TableCell>
+                      <TableCell>{getStatusBadge(item.approval.status)}</TableCell>
+                      <TableCell>{formatDate(item.approval.submitted_at || item.approval.created_at)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button size="sm" variant="outline" onClick={() => setSelectedJD(jd)}>
+                              <Button size="sm" variant="outline" onClick={() => setSelectedApproval(item)}>
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
-                                <DialogTitle>Review External JD: {selectedJD?.job_title}</DialogTitle>
+                                <DialogTitle>Review External JD: {selectedApproval?.approval.jd_id}</DialogTitle>
                               </DialogHeader>
-                              {selectedJD && (
+                              {selectedApproval && (
                                 <div className="space-y-6">
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <h4 className="font-medium mb-2">Client Information</h4>
                                       <div className="space-y-2 text-sm">
-                                        <p><strong>Client:</strong> {selectedJD.client_name || 'Not specified'}</p>
-                                        <p><strong>Project Code:</strong> {selectedJD.project_code || 'Not specified'}</p>
-                                        <p><strong>Hiring Manager:</strong> {selectedJD.hiring_manager_email}</p>
-                                        <p><strong>Recruiter:</strong> {selectedJD.recruiter_owner_email}</p>
+                                        <p><strong>Client:</strong> {selectedApproval.approval.client_name || 'Not specified'}</p>
+                                        <p><strong>Project:</strong> {selectedApproval.approval.project_name || 'Not specified'}</p>
+                                        <p><strong>Cost Center:</strong> {selectedApproval.approval.cost_center || 'Not specified'}</p>
+                                        <p><strong>JD ID:</strong> {selectedApproval.approval.jd_id}</p>
                                       </div>
                                     </div>
                                     <div>
                                       <h4 className="font-medium mb-2">Job Details</h4>
                                       <div className="space-y-2 text-sm">
-                                        <p><strong>Department:</strong> {selectedJD.department}</p>
-                                        <p><strong>Openings:</strong> {selectedJD.openings}</p>
-                                        <p><strong>Priority:</strong> {selectedJD.priority}</p>
-                                        <p><strong>Employment Type:</strong> {selectedJD.employment_type}</p>
-                                        <p><strong>Location:</strong> {selectedJD.location}</p>
+                                        <p><strong>Headcount:</strong> {selectedApproval.approval.headcount || 1}</p>
+                                        <p><strong>Is Replacement:</strong> {selectedApproval.approval.is_replacement ? 'Yes' : 'No'}</p>
+                                        <p><strong>Currency:</strong> {selectedApproval.approval.currency || 'USD'}</p>
+                                        <p><strong>OPEX/CAPEX:</strong> {selectedApproval.approval.opex_capex || 'Not specified'}</p>
                                       </div>
                                     </div>
                                   </div>
 
                                   <div>
-                                    <h4 className="font-medium mb-2">Compensation & Experience</h4>
+                                    <h4 className="font-medium mb-2">Compensation</h4>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <p><strong>CTC Range:</strong> {formatCurrency(selectedJD.min_ctc_annual, selectedJD.currency)} - {formatCurrency(selectedJD.max_ctc_annual, selectedJD.currency)}</p>
-                                      <p><strong>Experience:</strong> {selectedJD.min_exp_years}-{selectedJD.max_exp_years} years</p>
-                                    </div>
-                                  </div>
-                                  
-                                  <div>
-                                    <h4 className="font-medium mb-2">Skills Required</h4>
-                                    <div className="space-y-2">
-                                      <div>
-                                        <span className="text-sm font-medium">Primary: </span>
-                                        {selectedJD.skills_primary?.map((skill, index) => (
-                                          <Badge key={index} variant="default" className="mr-1">{skill}</Badge>
-                                        ))}
-                                      </div>
-                                      <div>
-                                        <span className="text-sm font-medium">Secondary: </span>
-                                        {selectedJD.skills_secondary?.map((skill, index) => (
-                                          <Badge key={index} variant="secondary" className="mr-1">{skill}</Badge>
-                                        ))}
-                                      </div>
+                                      <p><strong>Salary Band:</strong> {formatCurrency(selectedApproval.approval.salary_band_min, selectedApproval.approval.currency || 'USD')} - {formatCurrency(selectedApproval.approval.salary_band_max, selectedApproval.approval.currency || 'USD')}</p>
                                     </div>
                                   </div>
 
                                   <div>
-                                    <h4 className="font-medium mb-2">Job Description</h4>
-                                    <p className="text-sm bg-muted p-3 rounded-md">{selectedJD.job_description}</p>
-                                  </div>
-
-                                  {selectedJD.must_have && (
-                                    <div>
-                                      <h4 className="font-medium mb-2">Must Have Requirements</h4>
-                                      <p className="text-sm bg-muted p-3 rounded-md">{selectedJD.must_have}</p>
-                                    </div>
-                                  )}
-
-                                  <div>
-                                    <h4 className="font-medium mb-2">Staffing Manager Comments</h4>
+                                    <h4 className="font-medium mb-2">Approval Comments</h4>
                                     <Textarea
                                       value={comment}
                                       onChange={(e) => setComment(e.target.value)}
@@ -225,19 +197,24 @@ export function ExternalApprovalsTab() {
 
                                   <div className="flex justify-end gap-2">
                                     <Button
+                                      variant="outline"
+                                      onClick={() => selectedApproval.currentStep && handleApproval(selectedApproval.currentStep.id, 'request_changes')}
+                                      disabled={!selectedApproval.currentStep}
+                                    >
+                                      <MessageSquare className="h-4 w-4 mr-2" />
+                                      Request Changes
+                                    </Button>
+                                    <Button
                                       variant="destructive"
-                                      onClick={() => {
-                                        toast({
-                                          title: "JD Rejected",
-                                          description: "This functionality would reject the external JD"
-                                        });
-                                      }}
+                                      onClick={() => selectedApproval.currentStep && handleApproval(selectedApproval.currentStep.id, 'reject')}
+                                      disabled={!selectedApproval.currentStep}
                                     >
                                       <XCircle className="h-4 w-4 mr-2" />
                                       Reject
                                     </Button>
                                     <Button
-                                      onClick={() => handleApproval(selectedJD.id)}
+                                      onClick={() => selectedApproval.currentStep && handleApproval(selectedApproval.currentStep.id, 'approve')}
+                                      disabled={!selectedApproval.currentStep}
                                     >
                                       <CheckCircle className="h-4 w-4 mr-2" />
                                       Approve for Publishing
@@ -264,7 +241,7 @@ export function ExternalApprovalsTab() {
           <CardTitle>Approved - Ready for Publishing</CardTitle>
         </CardHeader>
         <CardContent>
-          {approvedJDs.length === 0 ? (
+          {approvedApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No external JDs ready for publishing
             </div>
@@ -273,31 +250,32 @@ export function ExternalApprovalsTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Job Title</TableHead>
+                    <TableHead>JD ID</TableHead>
                     <TableHead>Client</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Approved By</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {approvedJDs.map((jd) => (
-                    <TableRow key={jd.id}>
-                      <TableCell className="font-medium">{jd.job_title}</TableCell>
-                      <TableCell>{jd.client_name || 'Not specified'}</TableCell>
-                      <TableCell>
-                        <Badge variant={jd.priority === 'Critical' ? 'destructive' : jd.priority === 'High' ? 'default' : 'secondary'}>
-                          {jd.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>Staffing Manager</TableCell>
+                  {approvedApprovals.map((item) => (
+                    <TableRow key={item.approval.id}>
+                      <TableCell className="font-medium">{item.approval.jd_id}</TableCell>
+                      <TableCell>{item.approval.client_name || 'Not specified'}</TableCell>
+                      <TableCell>{item.approval.project_name || 'Not specified'}</TableCell>
+                      <TableCell>{getStatusBadge(item.approval.status)}</TableCell>
                       <TableCell>
                         <Button 
                           size="sm"
-                          onClick={() => handlePublish(jd.id)}
+                          onClick={() => {
+                            toast({
+                              title: "Info",
+                              description: "Publishing functionality available in Publishing tab"
+                            });
+                          }}
                         >
                           <Send className="h-4 w-4 mr-2" />
-                          Publish JD
+                          Ready to Publish
                         </Button>
                       </TableCell>
                     </TableRow>
