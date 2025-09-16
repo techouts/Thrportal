@@ -188,11 +188,10 @@ function App() {
                     <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/Hiring/JobRequisitions" element={
-                  <ProtectedRoute required={["hiring.requisitions.read"]}>
-                    <MainLayout><HiringPage defaultTab="JobRequisitions" /></MainLayout>
-                  </ProtectedRoute>
-                } />
+                {/* Legacy Job Requisitions redirect to JDs */}
+                <Route path="/Hiring/JobRequisitions" element={<Navigate to="/Hiring/JDs" replace />} />
+                <Route path="/Hiring/Requisitions" element={<Navigate to="/Hiring/JDs" replace />} />
+                <Route path="/Hiring/Requisitions/:id" element={<Navigate to="/Hiring/JDs" replace />} />
                 <Route path="/Hiring/JDs" element={
                   <ProtectedRoute required={["jds.create", "jds.read"]}>
                     <MainLayout><HiringPage defaultTab="JDs" /></MainLayout>
@@ -244,8 +243,8 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/Hiring/*" element={
-                  <ProtectedRoute required={["hiring.dashboard.read"]}>
-                    <MainLayout><HiringPage defaultTab="Dashboard" /></MainLayout>
+                  <ProtectedRoute required={["jds.create", "jds.read"]}>
+                    <MainLayout><HiringPage defaultTab="JDs" /></MainLayout>
                   </ProtectedRoute>
                 } />
 

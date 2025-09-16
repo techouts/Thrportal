@@ -54,7 +54,6 @@ export const MENU: MenuSection[] = [
     requiresAny: ["hiring.requisitions.read","applications.pipeline.read","jds.create"], 
     items: [
       { label: "Dashboard",       route: "/Hiring/Dashboard",       requiresAny: ["hiring.dashboard.read","hiring.requisitions.read"] },
-      { label: "Job Requisitions",route: "/Hiring/JobRequisitions", requiresAny: ["hiring.requisitions.read"] },
       { label: "JDs",             route: "/Hiring/JDs",             requiresAny: ["jds.create","jds.read"] },
       { label: "Approvals",       route: "/Hiring/Approvals",       requiresAny: ["jds.approve.internal","jds.approve.external","jds.approve.management"] },
       { label: "Candidates",      route: "/Hiring/Candidates",      requiresAny: ["candidates.create","resumes.create","applications.rank"] },

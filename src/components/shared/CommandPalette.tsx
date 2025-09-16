@@ -184,13 +184,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       badge: 'Recruiter'
     },
     {
-      id: 'job-requisitions',
-      title: 'Job Requisitions',
-      description: 'Create and manage job openings',
+      id: 'jds',
+      title: 'Job Descriptions',
+      description: 'Create and manage job descriptions',
       icon: FileText,
       section: 'Hiring',
-      action: () => navigate('/Hiring/JobRequisitions'),
-      keywords: ['jobs', 'openings', 'positions'],
+      action: () => navigate('/Hiring/JDs'),
+      keywords: ['jobs', 'openings', 'positions', 'jds'],
       badge: 'Recruiter'
     },
 

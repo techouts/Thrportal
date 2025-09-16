@@ -22,7 +22,8 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
     case 'Dashboard':
       return <HiringDashboard />
     case 'JobRequisitions':
-      return <JobRequisitionsModule />
+      // Legacy - redirect to JDs
+      return <JDManagementModule />
     case 'JDs':
       return <JDManagementModule />
     case 'Approvals':
