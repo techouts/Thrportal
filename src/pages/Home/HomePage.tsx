@@ -35,6 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useToast } from '@/hooks/use-toast'
+import { QuickSignIn } from '@/components/shared/QuickSignIn'
 
 import { homeService } from '@/services/homeService'
 import { useCurrentUser, useUserRole, useIsManager } from '@/hooks/useAuth'
@@ -815,6 +816,10 @@ export default function HomePage() {
             </div>
           </section>
         )}
+      </div>
+      {/* Quick Sign In for Role Switching */}
+      <div className="col-span-full">
+        <QuickSignIn />
       </div>
       {/* New Hiring Features Status */}
       <div className="col-span-full">
