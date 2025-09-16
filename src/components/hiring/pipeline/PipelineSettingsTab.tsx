@@ -1,200 +1,109 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { DataTable } from '@/components/shared/DataTable'
-import { Settings, Clock, Shield, Bell, Link, History } from 'lucide-react'
-import { pipelineService } from '@/services/pipelineService'
-import { PipelineSettings, ApplicationStatus } from '@/types/pipeline'
+import { Settings, Clock, Shield, Bell, Link, FileText } from 'lucide-react'
 
 export function PipelineSettingsTab() {
-  const [settings, setSettings] = useState<PipelineSettings | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('sla-mappings')
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
-    try {
-      setLoading(true)
-      const data = await pipelineService.getPipelineSettings()
-      setSettings(data)
-    } catch (error) {
-      console.error('Failed to load settings:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const saveSettings = async () => {
-    if (!settings) return
-    
-    try {
-      setSaving(true)
-      await pipelineService.updatePipelineSettings(settings)
-      console.log('Settings saved successfully')
-    } catch (error) {
-      console.error('Failed to save settings:', error)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const updateSLATimer = (stage: string, field: string, value: any) => {
-    if (!settings) return
-    
-    setSettings(prev => ({
-      ...prev!,
-      slaTimers: {
-        ...prev!.slaTimers,
-        [stage]: {
-          ...prev!.slaTimers[stage],
-          [field]: value
-        }
-      }
-    }))
-  }
-
-  const updateStatusPermission = (role: string, field: string, value: any) => {
-    if (!settings) return
-    
-    setSettings(prev => ({
-      ...prev!,
-      statusPermissions: {
-        ...prev!.statusPermissions,
-        [role]: {
-          ...prev!.statusPermissions[role],
-          [field]: value
-        }
-      }
-    }))
-  }
-
-  const updateReminderSettings = (field: string, value: any) => {
-    if (!settings) return
-    
-    setSettings(prev => ({
-      ...prev!,
-      reminderSettings: {
-        ...prev!.reminderSettings,
-        [field]: value
-      }
-    }))
-  }
-
-  const updateIntegrationSettings = (field: string, value: boolean) => {
-    if (!settings) return
-    
-    setSettings(prev => ({
-      ...prev!,
-      integrationSettings: {
-        ...prev!.integrationSettings,
-        [field]: value
-      }
-    }))
-  }
-
-  if (loading || !settings) {
-    return <div className="flex items-center justify-center h-96">Loading pipeline settings...</div>
-  }
-
-  const slaColumns = [
-    {
-      accessorKey: 'stage',
-      header: 'Stage',
-    },
-    {
-      accessorKey: 'defaultHours',
-      header: 'Default Hours',
-      cell: ({ row }: any) => (
-        <Input
-          type="number"
-          value={settings.slaTimers[row.original.stage]?.defaultHours || 24}
-          onChange={(e) => updateSLATimer(row.original.stage, 'defaultHours', parseInt(e.target.value))}
-          className="w-24"
-        />
-      )
-    },
-    {
-      accessorKey: 'clientOverrides',
-      header: 'Client Overrides',
-      cell: ({ row }: any) => (
-        <Badge variant="outline">
-          {Object.keys(settings.slaTimers[row.original.stage]?.clientOverrides || {}).length} clients
-        </Badge>
-      )
-    },
-    {
-      accessorKey: 'jdOverrides',
-      header: 'JD Overrides',
-      cell: ({ row }: any) => (
-        <Badge variant="outline">
-          {Object.keys(settings.slaTimers[row.original.stage]?.jdOverrides || {}).length} JDs
-        </Badge>
-      )
-    }
-  ]
-
+  // Mock data
   const slaData = [
-    { stage: 'feedback' },
-    { stage: 'interview-schedule' },
-    { stage: 'offer-release' }
-  ]
-
-  const permissionColumns = [
-    {
-      accessorKey: 'role',
-      header: 'Role',
-    },
-    {
-      accessorKey: 'canUpdate',
-      header: 'Can Update Statuses',
-      cell: ({ row }: any) => (
-        <div className="space-y-1">
-          {(settings.statusPermissions[row.original.role]?.canUpdate || []).map((status: ApplicationStatus) => (
-            <Badge key={status} variant="outline" className="mr-1 text-xs">
-              {status}
-            </Badge>
-          ))}
-        </div>
-      )
-    },
-    {
-      accessorKey: 'canOverride',
-      header: 'Can Override',
-      cell: ({ row }: any) => (
-        <Switch
-          checked={settings.statusPermissions[row.original.role]?.canOverride || false}
-          onCheckedChange={(checked) => updateStatusPermission(row.original.role, 'canOverride', checked)}
-        />
-      )
-    }
+    { stage: 'Feedback Pending' },
+    { stage: 'Interview Schedule' },
+    { stage: 'Offer Release' }
   ]
 
   const permissionData = [
-    { role: 'recruiter' },
-    { role: 'manager' },
-    { role: 'hr' },
-    { role: 'leadership' }
+    { role: 'Recruiter' },
+    { role: 'Staffing Manager' },
+    { role: 'Collaborator' },
+    { role: 'HR' },
+    { role: 'Leadership' },
+    { role: 'Client SPOC' }
+  ]
+
+  const auditData = [
+    {
+      timestamp: '2024-01-15 10:30',
+      actor: 'Alice Smith',
+      action: 'Status Change',
+      target: 'John Doe - Senior React Developer',
+      details: 'Interview-R1 → Offer-Released',
+      ipAddress: '192.168.1.100'
+    },
+    {
+      timestamp: '2024-01-15 09:15',
+      actor: 'Bob Manager',
+      action: 'Reminder Sent',
+      target: 'TechCorp Inc SPOC',
+      details: 'Feedback pending for 3 days',
+      ipAddress: '192.168.1.101'
+    }
+  ]
+
+  // Column definitions
+  const slaColumns = [
+    { id: 'stage', header: 'Stage', accessor: 'stage' as keyof { stage: string } },
+    { 
+      id: 'actions', 
+      header: 'Actions',
+      accessor: () => '',
+      cell: () => (
+        <div className="flex items-center gap-2">
+          <Input 
+            type="number" 
+            defaultValue="48" 
+            className="w-20 h-8" 
+            placeholder="Hours"
+          />
+          <Button variant="outline" size="sm">Save</Button>
+        </div>
+      )
+    }
+  ]
+
+  const permissionColumns = [
+    { id: 'role', header: 'Role', accessor: 'role' as keyof { role: string } },
+    { 
+      id: 'permissions', 
+      header: 'Permissions',
+      accessor: () => '',
+      cell: () => (
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">View</Badge>
+          <Badge variant="outline">Edit Own</Badge>
+          <Button variant="outline" size="sm">Configure</Button>
+        </div>
+      )
+    }
+  ]
+
+  const auditColumns = [
+    { id: 'timestamp', header: 'Timestamp', accessor: 'timestamp' as keyof typeof auditData[0] },
+    { id: 'actor', header: 'Actor', accessor: 'actor' as keyof typeof auditData[0] },
+    { id: 'action', header: 'Action', accessor: 'action' as keyof typeof auditData[0] },
+    { id: 'target', header: 'Target', accessor: 'target' as keyof typeof auditData[0] },
+    { id: 'details', header: 'Details', accessor: 'details' as keyof typeof auditData[0] },
+    { id: 'ipAddress', header: 'IP Address', accessor: 'ipAddress' as keyof typeof auditData[0] }
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Pipeline Settings</h2>
-        <Button onClick={saveSettings} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Settings'}
+        <Button>
+          <Settings className="h-4 w-4 mr-2" />
+          Save All Changes
         </Button>
       </div>
 
-      <Tabs defaultValue="sla-mappings" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="sla-mappings">SLA Mappings</TabsTrigger>
           <TabsTrigger value="status-controls">Status Controls</TabsTrigger>
@@ -208,7 +117,7 @@ export function PipelineSettingsTab() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                SLA Timer Mappings
+                SLA Timer Configuration
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -233,7 +142,11 @@ export function PipelineSettingsTab() {
                         <Switch />
                       </div>
                       <div className="space-y-2">
-                        <Label>Allow manager override with reason</Label>
+                        <Label>Auto-escalate overdue items</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Send daily SLA reminders</Label>
                         <Switch defaultChecked />
                       </div>
                     </CardContent>
@@ -241,17 +154,18 @@ export function PipelineSettingsTab() {
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Escalation Rules</CardTitle>
+                      <CardTitle className="text-lg">Client Overrides</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Auto-escalate after SLA breach</Label>
-                        <Switch />
+                        <Label>TechCorp Inc - Feedback SLA</Label>
+                        <Input type="number" defaultValue="72" placeholder="Hours" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Escalation delay (hours)</Label>
-                        <Input type="number" defaultValue="4" />
+                        <Label>CloudTech - Interview Schedule SLA</Label>
+                        <Input type="number" defaultValue="24" placeholder="Hours" />
                       </div>
+                      <Button variant="outline" size="sm">Add Override</Button>
                     </CardContent>
                   </Card>
                 </div>
@@ -271,7 +185,7 @@ export function PipelineSettingsTab() {
             <CardContent>
               <div className="space-y-6">
                 <div className="text-sm text-muted-foreground">
-                  Configure who can change application statuses. Recruiters can only change status when they are Primary on that JD/candidate.
+                  Configure who can update application statuses and under what conditions.
                 </div>
                 
                 <DataTable
@@ -281,22 +195,19 @@ export function PipelineSettingsTab() {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Special Rules</CardTitle>
+                    <CardTitle className="text-lg">Global Rules</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Block pipeline actions for non-approved JDs</Label>
-                      <Switch 
-                        checked={settings.integrationSettings.approvalGatingEnabled}
-                        onCheckedChange={(checked) => updateIntegrationSettings('approvalGatingEnabled', checked)}
-                      />
+                      <Label>Require approval for offer release</Label>
+                      <Switch defaultChecked />
                     </div>
                     <div className="space-y-2">
-                      <Label>Require comment for status changes</Label>
-                      <Switch />
+                      <Label>Allow status override with reason</Label>
+                      <Switch defaultChecked />
                     </div>
                     <div className="space-y-2">
-                      <Label>Allow client SPOC feedback submission</Label>
+                      <Label>Block actions on unapproved JDs</Label>
                       <Switch defaultChecked />
                     </div>
                   </CardContent>
@@ -315,69 +226,61 @@ export function PipelineSettingsTab() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Reminder Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Cadence</Label>
-                      <Select 
-                        value={settings.reminderSettings.cadence}
-                        onValueChange={(value: any) => updateReminderSettings('cadence', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Channels</Label>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Cadence Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        {['email', 'whatsapp', 'slack'].map((channel) => (
-                          <div key={channel} className="flex items-center space-x-2">
-                            <Switch 
-                              checked={settings.reminderSettings.channels.includes(channel as any)}
-                              onCheckedChange={(checked) => {
-                                const newChannels = checked 
-                                  ? [...settings.reminderSettings.channels, channel as any]
-                                  : settings.reminderSettings.channels.filter(c => c !== channel)
-                                updateReminderSettings('channels', newChannels)
-                              }}
-                            />
-                            <Label className="capitalize">{channel}</Label>
-                          </div>
-                        ))}
+                        <Label>Daily reminders for overdue items</Label>
+                        <Switch defaultChecked />
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="space-y-2">
+                        <Label>Weekly digest for managers</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Monthly summary for leadership</Label>
+                        <Switch />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Channel Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Email notifications</Label>
+                        <Switch defaultChecked />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>WhatsApp notifications</Label>
+                        <Switch />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Slack notifications</Label>
+                        <Switch />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Digest Settings</CardTitle>
+                    <CardTitle className="text-lg">Template Configuration</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Daily digests for Managers</Label>
-                      <Switch 
-                        checked={settings.reminderSettings.digestEnabled}
-                        onCheckedChange={(checked) => updateReminderSettings('digestEnabled', checked)}
-                      />
+                      <Label>SLA Breach Reminder Template</Label>
+                      <Input defaultValue="Action required: {{candidateName}} - {{jdTitle}} is overdue for {{stage}}" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Weekly summaries for Leadership</Label>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Digest send time</Label>
-                      <Input type="time" defaultValue="09:00" />
+                      <Label>Daily Digest Template</Label>
+                      <Input defaultValue="Daily Pipeline Summary - {{overdueCount}} items need attention" />
                     </div>
                   </CardContent>
                 </Card>
@@ -395,83 +298,66 @@ export function PipelineSettingsTab() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Module Integrations</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Ownership Module Sync</Label>
-                        <Switch 
-                          checked={settings.integrationSettings.ownershipSyncEnabled}
-                          onCheckedChange={(checked) => updateIntegrationSettings('ownershipSyncEnabled', checked)}
-                        />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Module Integrations</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Ownership sync enabled</Label>
+                        <Switch defaultChecked />
+                        <div className="text-xs text-muted-foreground">
+                          Honor Primary + Collaborators from Ownership module
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Honor Primary + Collaborators; sync reassignment hooks
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Applications Module Sync</Label>
-                        <Switch 
-                          checked={settings.integrationSettings.applicationsSyncEnabled}
-                          onCheckedChange={(checked) => updateIntegrationSettings('applicationsSyncEnabled', checked)}
-                        />
+                      <div className="space-y-2">
+                        <Label>Applications sync enabled</Label>
+                        <Switch defaultChecked />
+                        <div className="text-xs text-muted-foreground">
+                          Bi-directional updates with Applications module
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Source of truth for stages; bi-directional updates
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>JD Approvals Integration</Label>
-                        <Switch 
-                          checked={settings.integrationSettings.approvalGatingEnabled}
-                          onCheckedChange={(checked) => updateIntegrationSettings('approvalGatingEnabled', checked)}
-                        />
+                      <div className="space-y-2">
+                        <Label>JD Approval gating enabled</Label>
+                        <Switch defaultChecked />
+                        <div className="text-xs text-muted-foreground">
+                          Block pipeline actions for unapproved JDs
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Block pipeline actions for non-approved JDs
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">External Integrations</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Email Provider</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select provider" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="outlook">Outlook</SelectItem>
-                          <SelectItem value="gmail">Gmail</SelectItem>
-                          <SelectItem value="sendgrid">SendGrid</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>WhatsApp Integration</Label>
-                      <Switch />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Slack Integration</Label>
-                      <Switch />
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">External Integrations</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Email provider (SMTP)</Label>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-green-600">Connected</Badge>
+                          <Button variant="outline" size="sm">Configure</Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>WhatsApp Business API</Label>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-red-600">Disconnected</Badge>
+                          <Button variant="outline" size="sm">Setup</Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Slack Workspace</Label>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-green-600">Connected</Badge>
+                          <Button variant="outline" size="sm">Configure</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -481,55 +367,22 @@ export function PipelineSettingsTab() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                Audit Configuration
+                <FileText className="h-5 w-5" />
+                Audit Trail
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Audit Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Log all status changes</Label>
-                      <Switch defaultChecked disabled />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Log reminders sent</Label>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Log escalations</Label>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Log manager overrides</Label>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="space-y-6">
+                <div className="text-sm text-muted-foreground">
+                  View all pipeline actions including status changes, reminders, and escalations.
+                </div>
                 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Retention Policy</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Audit log retention (days)</Label>
-                      <Input type="number" defaultValue="365" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Auto-archive old entries</Label>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Export audit logs</Label>
-                      <Button variant="outline">Export Current Logs</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <DataTable
+                  columns={auditColumns}
+                  data={auditData}
+                  searchable={true}
+                  exportable={true}
+                />
               </div>
             </CardContent>
           </Card>

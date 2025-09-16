@@ -23,7 +23,7 @@ export function ActiveJDsTab() {
   const loadActiveJDs = async () => {
     try {
       setLoading(true)
-      const data = await PipelineService.getActiveJDs()
+      const data = await pipelineService.getActiveJDs()
       setActiveJDs(data)
     } catch (error) {
       toast({
@@ -38,7 +38,7 @@ export function ActiveJDsTab() {
 
   const handleAssignRecruiter = async (jdId: string, recruiterId: string) => {
     try {
-      await PipelineService.assignRecruiter(jdId, recruiterId)
+      await pipelineService.assignRecruiter(jdId, recruiterId)
       toast({
         title: "Success",
         description: "Recruiter assigned successfully"
