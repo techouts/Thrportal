@@ -14,8 +14,11 @@ import {
   MessageSquare,
   History,
   Edit,
-  Copy
+  Copy,
+  Upload
 } from 'lucide-react'
+import { useState } from 'react'
+import { SmartUploadModal } from '../shared/SmartUploadModal'
 import type { JobRequisition } from '@/types/jobRequisitions'
 
 interface JDDetailsDrawerProps {
@@ -24,6 +27,8 @@ interface JDDetailsDrawerProps {
 }
 
 export function JDDetailsDrawer({ jobRequisition: jd, onClose }: JDDetailsDrawerProps) {
+  const [showSmartUpload, setShowSmartUpload] = useState(false)
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'Approved': return 'default'
@@ -77,6 +82,16 @@ export function JDDetailsDrawer({ jobRequisition: jd, onClose }: JDDetailsDrawer
         </div>
 
         <div className="flex gap-2">
+          <Button 
+            size="sm" 
+            variant="default"
+            onClick={() => setShowSmartUpload(true)}
+            disabled={jd.status === 'Rejected' || jd.status === 'On Hold'}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Smart Upload
+          </Button>
           <Button size="sm" variant="outline">
             <Edit className="h-4 w-4 mr-2" />
             Edit
@@ -339,6 +354,12 @@ export function JDDetailsDrawer({ jobRequisition: jd, onClose }: JDDetailsDrawer
           </CardContent>
         </Card>
       )}
+
+      <SmartUploadModal
+        open={showSmartUpload}
+        onClose={() => setShowSmartUpload(false)}
+        jobRequisition={jd}
+      />
     </div>
   )
 }
