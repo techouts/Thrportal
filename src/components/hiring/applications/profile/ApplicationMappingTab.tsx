@@ -1,6 +1,8 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Map } from 'lucide-react'
+import React, { useState } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { MappingJDTab } from './mapping/MappingJDTab'
+import { MappingCandidateTab } from './mapping/MappingCandidateTab'
+import { MappingSmartMapperTab } from './mapping/MappingSmartMapperTab'
 
 interface ApplicationMappingTabProps {
   applicationId: string
@@ -13,19 +15,27 @@ export const ApplicationMappingTab: React.FC<ApplicationMappingTabProps> = ({
   candidateId, 
   jdId 
 }) => {
+  const [activeTab, setActiveTab] = useState('jd')
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Map className="h-5 w-5" />
-          Mapping Details
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">
-          Advanced mapping functionality for finding best JDs for candidates and vice versa will be implemented here.
-        </p>
-      </CardContent>
-    </Card>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="jd">JD Matching</TabsTrigger>
+        <TabsTrigger value="candidate">Candidate Matching</TabsTrigger>
+        <TabsTrigger value="smart-mapper">Smart Mapper</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="jd" className="space-y-6">
+        <MappingJDTab candidateId={candidateId} />
+      </TabsContent>
+
+      <TabsContent value="candidate" className="space-y-6">
+        <MappingCandidateTab jdId={jdId} />
+      </TabsContent>
+
+      <TabsContent value="smart-mapper" className="space-y-6">
+        <MappingSmartMapperTab />
+      </TabsContent>
+    </Tabs>
   )
 }
