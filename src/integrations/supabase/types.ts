@@ -836,6 +836,108 @@ export type Database = {
         }
         Relationships: []
       }
+      project_spoc_links: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          project_id: string
+          role: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+          role: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_spoc_links_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_spocs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_spoc_links_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          account_id: string
+          allow_expenses: boolean
+          allow_non_billable: boolean
+          billing_type: string
+          code: string
+          created_at: string
+          end_date: string | null
+          id: string
+          name: string
+          pm_user_id: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          allow_expenses?: boolean
+          allow_non_billable?: boolean
+          billing_type?: string
+          code: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name: string
+          pm_user_id?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          allow_expenses?: boolean
+          allow_non_billable?: boolean
+          billing_type?: string
+          code?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          pm_user_id?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "crm_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_pm_user_id_fkey"
+            columns: ["pm_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
