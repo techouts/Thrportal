@@ -72,12 +72,12 @@ export function PipelineDashboardTab() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <Label>Client</Label>
-              <Select value={filters.client || ''} onValueChange={(value) => handleFilterChange('client', value || undefined)}>
+              <Select value={filters.client || 'all'} onValueChange={(value) => handleFilterChange('client', value === 'all' ? undefined : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="TechCorp Inc">TechCorp Inc</SelectItem>
                   <SelectItem value="InnovateCo">InnovateCo</SelectItem>
                 </SelectContent>
@@ -93,12 +93,12 @@ export function PipelineDashboardTab() {
             </div>
             <div>
               <Label>Recruiter</Label>
-              <Select value={filters.recruiter || ''} onValueChange={(value) => handleFilterChange('recruiter', value || undefined)}>
+              <Select value={filters.recruiter || 'all'} onValueChange={(value) => handleFilterChange('recruiter', value === 'all' ? undefined : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Recruiters" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Recruiters</SelectItem>
+                  <SelectItem value="all">All Recruiters</SelectItem>
                   <SelectItem value="Alice Smith">Alice Smith</SelectItem>
                   <SelectItem value="Bob Johnson">Bob Johnson</SelectItem>
                 </SelectContent>

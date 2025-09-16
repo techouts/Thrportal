@@ -349,11 +349,12 @@ export function EmailUploadTab() {
         return (
           <div className="flex items-center gap-1">
             <EmailPreviewDialog email={item} />
-            <Select defaultValue="">
+            <Select defaultValue="no-action">
               <SelectTrigger className="w-24 h-8 text-xs">
                 <SelectValue placeholder="Actions" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="no-action">Select Action</SelectItem>
                 <SelectItem value="edit-jd">Edit JD Code</SelectItem>
                 <SelectItem value="edit-client">Edit Client</SelectItem>
                 <SelectItem value="exclude">Exclude</SelectItem>
