@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      approval_rules: {
+        Row: {
+          approval_chain: Json
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          rule_name: string
+          updated_at: string
+        }
+        Insert: {
+          approval_chain?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          rule_name: string
+          updated_at?: string
+        }
+        Update: {
+          approval_chain?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          rule_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_accounts: {
         Row: {
           client_id: string
@@ -527,6 +568,226 @@ export type Database = {
           },
         ]
       }
+      jd_approval_steps: {
+        Row: {
+          approver_id: string | null
+          approver_role: string | null
+          assigned_at: string | null
+          comments: string | null
+          completed_at: string | null
+          created_at: string
+          escalated_at: string | null
+          escalated_to: string | null
+          id: string
+          jd_approval_id: string
+          sla_hours: number | null
+          status: Database["public"]["Enums"]["approval_step_status"]
+          step_number: number
+          updated_at: string
+        }
+        Insert: {
+          approver_id?: string | null
+          approver_role?: string | null
+          assigned_at?: string | null
+          comments?: string | null
+          completed_at?: string | null
+          created_at?: string
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          jd_approval_id: string
+          sla_hours?: number | null
+          status?: Database["public"]["Enums"]["approval_step_status"]
+          step_number: number
+          updated_at?: string
+        }
+        Update: {
+          approver_id?: string | null
+          approver_role?: string | null
+          assigned_at?: string | null
+          comments?: string | null
+          completed_at?: string | null
+          created_at?: string
+          escalated_at?: string | null
+          escalated_to?: string | null
+          id?: string
+          jd_approval_id?: string
+          sla_hours?: number | null
+          status?: Database["public"]["Enums"]["approval_step_status"]
+          step_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jd_approval_steps_approver_id_fkey"
+            columns: ["approver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_approval_steps_escalated_to_fkey"
+            columns: ["escalated_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_approval_steps_jd_approval_id_fkey"
+            columns: ["jd_approval_id"]
+            isOneToOne: false
+            referencedRelation: "jd_approvals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jd_approvals: {
+        Row: {
+          attachments: Json | null
+          business_justification: string | null
+          client_name: string | null
+          cost_center: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          current_step: number | null
+          headcount: number | null
+          id: string
+          is_replacement: boolean | null
+          jd_id: string
+          opex_capex: string | null
+          project_name: string | null
+          replacement_for: string | null
+          salary_band_max: number | null
+          salary_band_min: number | null
+          status: Database["public"]["Enums"]["approval_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          target_doj: string | null
+          target_first_submission_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          business_justification?: string | null
+          client_name?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          current_step?: number | null
+          headcount?: number | null
+          id?: string
+          is_replacement?: boolean | null
+          jd_id: string
+          opex_capex?: string | null
+          project_name?: string | null
+          replacement_for?: string | null
+          salary_band_max?: number | null
+          salary_band_min?: number | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          target_doj?: string | null
+          target_first_submission_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          business_justification?: string | null
+          client_name?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          current_step?: number | null
+          headcount?: number | null
+          id?: string
+          is_replacement?: boolean | null
+          jd_id?: string
+          opex_capex?: string | null
+          project_name?: string | null
+          replacement_for?: string | null
+          salary_band_max?: number | null
+          salary_band_min?: number | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          target_doj?: string | null
+          target_first_submission_days?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jd_approvals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_approvals_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jd_audit_log: {
+        Row: {
+          action: Database["public"]["Enums"]["approval_action"]
+          actor_id: string | null
+          actor_role: string | null
+          comments: string | null
+          details: Json | null
+          field_changes: Json | null
+          id: string
+          jd_approval_id: string | null
+          jd_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["approval_action"]
+          actor_id?: string | null
+          actor_role?: string | null
+          comments?: string | null
+          details?: Json | null
+          field_changes?: Json | null
+          id?: string
+          jd_approval_id?: string | null
+          jd_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["approval_action"]
+          actor_id?: string | null
+          actor_role?: string | null
+          comments?: string | null
+          details?: Json | null
+          field_changes?: Json | null
+          id?: string
+          jd_approval_id?: string | null
+          jd_id?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jd_audit_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_audit_log_jd_approval_id_fkey"
+            columns: ["jd_approval_id"]
+            isOneToOne: false
+            referencedRelation: "jd_approvals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -586,7 +847,26 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      approval_action:
+        | "submit"
+        | "approve"
+        | "reject"
+        | "request_changes"
+        | "reassign"
+        | "override"
+      approval_status:
+        | "draft"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "on_hold"
+        | "changes_requested"
+      approval_step_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "changes_requested"
+        | "skipped"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -713,6 +993,30 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      approval_action: [
+        "submit",
+        "approve",
+        "reject",
+        "request_changes",
+        "reassign",
+        "override",
+      ],
+      approval_status: [
+        "draft",
+        "submitted",
+        "approved",
+        "rejected",
+        "on_hold",
+        "changes_requested",
+      ],
+      approval_step_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "changes_requested",
+        "skipped",
+      ],
+    },
   },
 } as const
