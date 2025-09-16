@@ -38,11 +38,11 @@ export const MappingJDTab: React.FC<MappingJDTabProps> = ({ candidateId }) => {
       setLoading(true)
       const data = await MappingService.getJDsForCandidate(candidateId, {
         skills: filters.skills ? filters.skills.split(',').map(s => s.trim()) : undefined,
-        location: filters.location || undefined,
-        seniority: filters.seniority || undefined,
-        compensationRange: filters.compensationBand ? { min: 5, max: 50, currency: 'LPA' } : undefined,
-        client: filters.client || undefined,
-        workType: filters.workType || undefined,
+        location: filters.location && filters.location !== 'all' ? filters.location : undefined,
+        seniority: filters.seniority && filters.seniority !== 'all' ? filters.seniority : undefined,
+        compensationRange: filters.compensationBand && filters.compensationBand !== 'all' ? { min: 5, max: 50, currency: 'LPA' } : undefined,
+        client: filters.client && filters.client !== 'all' ? filters.client : undefined,
+        workType: filters.workType && filters.workType !== 'all' ? filters.workType : undefined,
         matchScoreRange: { min: filters.minMatchScore, max: 100 }
       })
       setJds(data)
@@ -159,7 +159,7 @@ export const MappingJDTab: React.FC<MappingJDTabProps> = ({ candidateId }) => {
                   <SelectValue placeholder="Any location" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any location</SelectItem>
+                  <SelectItem value="all">Any location</SelectItem>
                   <SelectItem value="bangalore">Bangalore</SelectItem>
                   <SelectItem value="mumbai">Mumbai</SelectItem>
                   <SelectItem value="delhi">Delhi</SelectItem>
@@ -174,7 +174,7 @@ export const MappingJDTab: React.FC<MappingJDTabProps> = ({ candidateId }) => {
                   <SelectValue placeholder="Any level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any level</SelectItem>
+                  <SelectItem value="all">Any level</SelectItem>
                   <SelectItem value="junior">Junior (0-2 years)</SelectItem>
                   <SelectItem value="mid">Mid (3-5 years)</SelectItem>
                   <SelectItem value="senior">Senior (6+ years)</SelectItem>
@@ -189,7 +189,7 @@ export const MappingJDTab: React.FC<MappingJDTabProps> = ({ candidateId }) => {
                   <SelectValue placeholder="Any type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any type</SelectItem>
+                  <SelectItem value="all">Any type</SelectItem>
                   <SelectItem value="remote">Remote</SelectItem>
                   <SelectItem value="hybrid">Hybrid</SelectItem>
                   <SelectItem value="onsite">On-site</SelectItem>

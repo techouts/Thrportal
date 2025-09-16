@@ -39,10 +39,10 @@ export const MappingCandidateTab: React.FC<MappingCandidateTabProps> = ({ jdId }
       setLoading(true)
       const data = await MappingService.getCandidatesForJD(jdId, {
         skills: filters.skills ? filters.skills.split(',').map(s => s.trim()) : undefined,
-        location: filters.location || undefined,
-        experience: filters.experience ? { min: 0, max: 10 } : undefined,
-        availability: filters.availability || undefined,
-        compensationRange: filters.ctcRange ? { min: 0, max: 50, currency: 'INR' } : undefined,
+        location: filters.location && filters.location !== 'all' ? filters.location : undefined,
+        experience: filters.experience && filters.experience !== 'all' ? { min: 0, max: 10 } : undefined,
+        availability: filters.availability && filters.availability !== 'all' ? filters.availability : undefined,
+        compensationRange: filters.ctcRange && filters.ctcRange !== 'all' ? { min: 0, max: 50, currency: 'INR' } : undefined,
         activelyLooking: filters.activelyLooking,
         consentStatus: filters.consent ? 'yes' : undefined,
         matchScoreRange: { min: filters.minMatchScore, max: 100 }
@@ -147,7 +147,7 @@ export const MappingCandidateTab: React.FC<MappingCandidateTabProps> = ({ jdId }
                   <SelectValue placeholder="Any location" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any location</SelectItem>
+                  <SelectItem value="all">Any location</SelectItem>
                   <SelectItem value="bangalore">Bangalore</SelectItem>
                   <SelectItem value="mumbai">Mumbai</SelectItem>
                   <SelectItem value="delhi">Delhi</SelectItem>
@@ -162,7 +162,7 @@ export const MappingCandidateTab: React.FC<MappingCandidateTabProps> = ({ jdId }
                   <SelectValue placeholder="Any experience" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any experience</SelectItem>
+                  <SelectItem value="all">Any experience</SelectItem>
                   <SelectItem value="0-2">0-2 years</SelectItem>
                   <SelectItem value="3-5">3-5 years</SelectItem>
                   <SelectItem value="6-10">6-10 years</SelectItem>
@@ -177,7 +177,7 @@ export const MappingCandidateTab: React.FC<MappingCandidateTabProps> = ({ jdId }
                   <SelectValue placeholder="Any availability" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any availability</SelectItem>
+                  <SelectItem value="all">Any availability</SelectItem>
                   <SelectItem value="immediate">Immediate</SelectItem>
                   <SelectItem value="15 days">15 days</SelectItem>
                   <SelectItem value="30 days">30 days</SelectItem>

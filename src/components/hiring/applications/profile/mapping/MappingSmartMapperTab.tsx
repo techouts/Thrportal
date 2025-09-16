@@ -34,7 +34,7 @@ export const MappingSmartMapperTab: React.FC = () => {
         activelyLooking: filters.onlyActivelyLooking,
         // atRiskJDs: filters.onlyAtRiskJDs, // Not in MappingFilters type
         matchScoreRange: { min: filters.minMatchScore, max: 100 },
-        client: filters.client || undefined
+        client: filters.client && filters.client !== 'all' ? filters.client : undefined
       })
       setMappingResults(data)
     } catch (error) {
@@ -198,7 +198,7 @@ export const MappingSmartMapperTab: React.FC = () => {
                   <SelectValue placeholder="All clients" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All clients</SelectItem>
+                  <SelectItem value="all">All clients</SelectItem>
                   <SelectItem value="TechCorp">TechCorp</SelectItem>
                   <SelectItem value="InnovateCo">InnovateCo</SelectItem>
                   <SelectItem value="DataSystems">DataSystems</SelectItem>
@@ -212,7 +212,7 @@ export const MappingSmartMapperTab: React.FC = () => {
                   <SelectValue placeholder="All conflicts" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All conflicts</SelectItem>
+                  <SelectItem value="all">All conflicts</SelectItem>
                   <SelectItem value="deep-stage">Deep Stage</SelectItem>
                   <SelectItem value="band-mismatch">Band Mismatch</SelectItem>
                   <SelectItem value="consent-pending">Consent Pending</SelectItem>
