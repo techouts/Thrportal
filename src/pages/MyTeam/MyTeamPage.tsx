@@ -29,6 +29,7 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
   const [metrics, setMetrics] = useState<any>(null)
   const [approvals, setApprovals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [activePerformanceTab, setActivePerformanceTab] = useState("goals")
   const { user: currentUser } = useAuth()
   
   const moduleSpec = moduleRegistry.getModuleSpec(`/MyTeam/${defaultTab}`) || 
@@ -118,8 +119,6 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
   }
 
   const renderPerformance = () => {
-    const [activePerformanceTab, setActivePerformanceTab] = useState("goals");
-
     // Mock data for cycle timeline
     const mockWindows = [
       {
