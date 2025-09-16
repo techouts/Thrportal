@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      allocations: {
+        Row: {
+          allocation_pct: number
+          bill_rate: number
+          cost_rate: number
+          created_at: string
+          employee_id: string
+          end_date: string | null
+          id: string
+          project_id: string | null
+          role_id: string
+          start_date: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          allocation_pct?: number
+          bill_rate?: number
+          cost_rate?: number
+          created_at?: string
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          project_id?: string | null
+          role_id: string
+          start_date: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          allocation_pct?: number
+          bill_rate?: number
+          cost_rate?: number
+          created_at?: string
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          project_id?: string | null
+          role_id?: string
+          start_date?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allocations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "allocations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "allocations_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_rules: {
         Row: {
           approval_chain: Json
@@ -934,6 +1001,92 @@ export type Database = {
             columns: ["pm_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles_catalog: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          standard_rate: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          standard_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          standard_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          actual_hours: number | null
+          assignees: string[] | null
+          billable: boolean
+          created_at: string
+          description: string | null
+          end_date: string | null
+          est_hours: number
+          id: string
+          name: string
+          phase: string | null
+          project_id: string
+          stage: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assignees?: string[] | null
+          billable?: boolean
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          est_hours?: number
+          id?: string
+          name: string
+          phase?: string | null
+          project_id: string
+          stage?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assignees?: string[] | null
+          billable?: boolean
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          est_hours?: number
+          id?: string
+          name?: string
+          phase?: string | null
+          project_id?: string
+          stage?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
