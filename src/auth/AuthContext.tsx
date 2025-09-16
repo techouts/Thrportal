@@ -273,12 +273,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
     
+    console.log('[AUTH] Permission check for:', perm, 'User:', user.email, 'Role:', user.role);
+    
+    // Get permission patterns for the user's role
+    const rolePermissions = roleToPermissionPatterns[user.role];
+    if (!rolePermissions) {
+      console.log('[AUTH] No permissions found for role:', user.role);
+      return false;
+    }
+    
+    console.log('[AUTH] Role permissions:', rolePermissions);
+    
+    // Use explicit permissions if available, otherwise use role permissions
     const perms = user.permissions && user.permissions.length > 0 ? 
       user.permissions : 
-      (roleToPermissionPatterns[user.role] || []);
+      rolePermissions;
     
     const hasPermission = matchPermission(perms, perm);
-    console.log('[AUTH] Permission check:', perm, 'for role:', user.role, 'result:', hasPermission);
+    console.log('[AUTH] Permission result:', hasPermission, 'for:', perm);
     return hasPermission;
   };
 

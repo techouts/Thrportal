@@ -151,8 +151,7 @@ export function HRSidebar() {
 
       <SidebarContent className="p-2">
         {MENU.map((section) => {
-          // Temporarily show all sections for testing
-          const visible = true; // useVisible(section.requiresAny)
+          const visible = useVisible(section.requiresAny)
           if (!visible) return null
 
           const SectionIcon = getIconForSection(section.label)
@@ -195,8 +194,7 @@ export function HRSidebar() {
                     <SidebarGroupContent>
                       <SidebarMenu>
                         {section.items?.map((item) => {
-                          // Temporarily show all items for testing
-                          const itemVisible = true; // useVisible(item.requiresAny)
+                          const itemVisible = useVisible(item.requiresAny)
                           if (!itemVisible) return null
 
                           const RouteIcon = getIconForRoute(item.label)
