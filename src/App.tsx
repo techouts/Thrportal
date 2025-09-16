@@ -32,6 +32,8 @@ import CRMHomePage from "./pages/CRM/CRMHomePage";
 import CRMClientsPage from "./pages/CRM/CRMClientsPage";
 import { CRMAccountsPage } from "./pages/CRM/CRMAccountsPage";
 import { CRMProjectsPage } from "./pages/CRM/CRMProjectsPage";
+import { ReportsPage } from "./pages/ReportsPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CRMOpportunitiesPage } from "./pages/CRM/CRMOpportunitiesPage";
 import { CRMInteractionsPage } from "./pages/CRM/CRMInteractionsPage";
 import CRMReportsPage from "./pages/CRM/CRMReportsPage";
@@ -371,7 +373,22 @@ function App() {
                     <MainLayout><HRPage defaultTab="Performance" /></MainLayout>
                   </ProtectedRoute>
                 } />
+                
+                {/* Reports */}
+                <Route path="/Reports" element={<Navigate to="/Reports/Dashboard" replace />} />
+                <Route path="/Reports/Dashboard" element={
+                  <ProtectedRoute required={["reports.read"]}>
+                    <MainLayout><ReportsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
 
+                {/* Analytics */}
+                <Route path="/Analytics" element={<Navigate to="/Analytics/Dashboard" replace />} />
+                <Route path="/Analytics/Dashboard" element={
+                  <ProtectedRoute required={["analytics.read"]}>
+                    <MainLayout><AnalyticsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 {/* Finance */}
                 <Route path="/Finance/*" element={
                   <ProtectedRoute required={["finance.reports.read"]}>

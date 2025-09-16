@@ -98,6 +98,24 @@ export const MENU: MenuSection[] = [
       { label: "Policy Hub",         route: "/Org/PolicyHub" }
     ] 
   },
+  {
+    label: "Reports",
+    requiresAny: ["reports.read", "reports.*"],
+    items: [
+      { label: "Dashboard", route: "/Reports/Dashboard", requiresAny: ["reports.read"] },
+      { label: "Custom Reports", route: "/Reports/Builder", requiresAny: ["reports.create"] },
+      { label: "Scheduled", route: "/Reports/Scheduled", requiresAny: ["reports.schedule"] }
+    ]
+  },
+  {
+    label: "Analytics",
+    requiresAny: ["analytics.read", "analytics.*", "reports.*"],
+    items: [
+      { label: "Dashboard", route: "/Analytics/Dashboard", requiresAny: ["analytics.read"] },
+      { label: "Business Intelligence", route: "/Analytics/BI", requiresAny: ["analytics.advanced"] },
+      { label: "Forecasting", route: "/Analytics/Forecasting", requiresAny: ["analytics.projections"] }
+    ]
+  },
   { 
     label: "HR", 
     requiresAny: ["hr.*", "employees.*", "leave.*", "attendance.*"],
