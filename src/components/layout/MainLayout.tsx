@@ -1,6 +1,5 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { HRSidebar } from "@/components/ui/hr-sidebar"
-import { RoleDebugger } from "@/components/debug/RoleDebugger"
 import { Button } from "@/components/ui/button"
 import { Bell, Search, User } from "lucide-react"
 
@@ -60,7 +59,6 @@ export function MainLayout({ children }: MainLayoutProps) {
           </main>
         </div>
       </div>
-      <RoleDebugger />
     </SidebarProvider>
   )
 }
