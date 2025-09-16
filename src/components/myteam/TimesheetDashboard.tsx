@@ -54,7 +54,7 @@ export function TimesheetDashboard({ metrics, loading }: TimesheetDashboardProps
     { week: 'Week 4', submissions: 16, overdue: 0, billable: 88 }
   ];
 
-  if (loading) {
+  if (loading || !metrics) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -229,7 +229,7 @@ export function TimesheetDashboard({ metrics, loading }: TimesheetDashboardProps
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {metrics.teamUtilization.map((member, index) => (
+            {(metrics.teamUtilization || []).map((member, index) => (
               <div key={index} className="flex items-center justify-between p-3 border rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
@@ -248,6 +248,11 @@ export function TimesheetDashboard({ metrics, loading }: TimesheetDashboardProps
                 </div>
               </div>
             ))}
+            {(!metrics.teamUtilization || metrics.teamUtilization.length === 0) && (
+              <div className="text-center py-4 text-muted-foreground">
+                No team members found
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
