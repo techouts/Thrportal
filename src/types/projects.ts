@@ -18,6 +18,8 @@ export interface Project {
   id: string
   client_id: string
   client_name?: string
+  account_id?: string
+  account_name?: string
   code: string
   name: string
   description?: string
@@ -32,6 +34,7 @@ export interface Project {
   budget?: number
   actual_cost?: number
   margin?: number
+  spoc_ids?: string[]
   created_at: string
   updated_at: string
 }
