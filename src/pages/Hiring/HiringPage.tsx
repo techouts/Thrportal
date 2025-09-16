@@ -6,7 +6,6 @@ import { ApplicationsModule } from '@/components/hiring/applications/Application
 import { PipelineModule } from '@/components/hiring/pipeline/PipelineModule'
 import { FollowupModule } from '@/components/hiring/followup/FollowupModule'
 
-import HiringSettingsPage from './HiringSettingsPage'
 import { JDManagementModule } from '@/components/hiring/jds/JDManagementModule'
 import { ApprovalsModule } from '@/components/hiring/approvals/ApprovalsModule'
 import { CandidatesModule } from '@/components/hiring/candidates/CandidatesModule'
@@ -42,7 +41,17 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
     case 'FollowUp':
       return <FollowupModule />
     case 'Settings':
-      return <HiringSettingsPage />
+      // Redirect to new settings structure
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <PageHeader
+              title="Settings Moved"
+              description="Hiring Settings have been reorganized. Please use the new Settings navigation."
+            />
+          </CardContent>
+        </Card>
+      )
     default:
       return (
         <Card>

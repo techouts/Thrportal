@@ -18,6 +18,7 @@ import HomePage from "./pages/Home/HomePage";
 import MePage from "./pages/Me/MePage";
 import MyTeamPage from "./pages/MyTeam/MyTeamPage";
 import HiringPage from "./pages/Hiring/HiringPage";
+import HiringSettingsPage from "./pages/Hiring/HiringSettingsPage";
 import ProjectPage from "./pages/Project/ProjectPage";
 import OrgPage from "./pages/Org/OrgPage";
 import HRPage from "./pages/HR/HRPage";
@@ -233,11 +234,34 @@ function App() {
                     <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
                   </ProtectedRoute>
                 } />
+                {/* New nested Hiring Settings routes */}
                 <Route path="/Hiring/Settings" element={
                   <ProtectedRoute required={["hiring.settings.*"]}>
-                    <MainLayout><HiringPage defaultTab="Settings" /></MainLayout>
+                    <MainLayout><HiringSettingsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
+                <Route path="/Hiring/Settings/:topTab" element={
+                  <ProtectedRoute required={["hiring.settings.*"]}>
+                    <MainLayout><HiringSettingsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Hiring/Settings/:topTab/:subTab" element={
+                  <ProtectedRoute required={["hiring.settings.*"]}>
+                    <MainLayout><HiringSettingsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                
+                {/* Legacy Hiring Settings redirects */}
+                <Route path="/Hiring/Settings/Targets" element={<Navigate to="/Hiring/Settings/performance/targets?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/Approval-Rules" element={<Navigate to="/Hiring/Settings/workflow/approvals?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/JD-Parser" element={<Navigate to="/Hiring/Settings/content/parser?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/Offer-Matrix" element={<Navigate to="/Hiring/Settings/content/offers?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/SLA" element={<Navigate to="/Hiring/Settings/workflow/sla?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/Rejection-Reasons" element={<Navigate to="/Hiring/Settings/content/reject-reasons?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/Feedback-Followups" element={<Navigate to="/Hiring/Settings/workflow/feedback?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/Compliance-Vendors" element={<Navigate to="/Hiring/Settings/compliance/vendors?redirected=true" replace />} />
+                <Route path="/Hiring/Settings/Global-Defaults" element={<Navigate to="/Hiring/Settings/defaults/global?redirected=true" replace />} />
+                <Route path="/Hiring/Pipeline/Settings" element={<Navigate to="/Hiring/Settings/workflow/pipeline?redirected=true" replace />} />
                 <Route path="/Hiring/*" element={
                   <ProtectedRoute required={["jds.create", "jds.read"]}>
                     <MainLayout><HiringPage defaultTab="JDs" /></MainLayout>
