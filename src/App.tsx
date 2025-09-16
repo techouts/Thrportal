@@ -59,19 +59,19 @@ function App() {
 
                 {/* Dashboard */}
                 <Route path="/Dashboard" element={
-                  <ProtectedRoute required={["portal.announcements.read"]}>
+                  <ProtectedRoute>
                     <MainLayout><DashboardPage /></MainLayout>
                   </ProtectedRoute>
                 } />
 
                 {/* Me Section */}
                 <Route path="/Me/Dashboard" element={
-                  <ProtectedRoute required={["portal.announcements.read"]}>
+                  <ProtectedRoute>
                     <MainLayout><MePage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/Me/Profile" element={
-                  <ProtectedRoute required={["employees.read"]}>
+                  <ProtectedRoute>
                     <MainLayout><MePage defaultTab="Profile" /></MainLayout>
                   </ProtectedRoute>
                 } />
