@@ -20,17 +20,17 @@ export const MENU: MenuSection[] = [
   { 
     label: "Me", 
     items: [
-      { label: "Dashboard",  route: "/Me/Dashboard" },
-      { label: "Profile",    route: "/Me/Profile" },
-      { label: "Attendance", route: "/Me/Attendance" },
-      { label: "Leave",      route: "/Me/Leave" },
-      { label: "Timesheet",  route: "/Me/Timesheet" },
-      { label: "Expenses",   route: "/Me/Expenses" },
-      { label: "Finance",    route: "/Me/Finance" },
-      { label: "Learning",   route: "/Me/Learning" },
-      { label: "Recognition",route: "/Me/Recognition" },
-      { label: "IJP",        route: "/Me/IJP" },
-      { label: "Helpdesk",   route: "/Me/Helpdesk" }
+      { label: "Dashboard",   route: "/Me/Dashboard" },
+      { label: "Profile",     route: "/Me/Profile" },
+      { label: "Attendance",  route: "/Me/Attendance", requiresAny: ["attendance.read"] },
+      { label: "Leave",       route: "/Me/Leave", requiresAny: ["leave.requests.read", "leave.balance.read"] },
+      { label: "Timesheet",   route: "/Me/Timesheet", requiresAny: ["timesheets.read"] },
+      { label: "Expenses",    route: "/Me/Expenses", requiresAny: ["expenses.read", "expenses.submit"] },
+      { label: "Finance",     route: "/Me/Finance", requiresAny: ["finance.payslips.read"] },
+      { label: "Learning",    route: "/Me/Learning", requiresAny: ["learning.read"] },
+      { label: "Recognition", route: "/Me/Recognition", requiresAny: ["recognition.read"] },
+      { label: "IJP",         route: "/Me/IJP", requiresAny: ["ijp.postings.read"] },
+      { label: "Helpdesk",    route: "/Me/Helpdesk", requiresAny: ["helpdesk.tickets.read_own"] }
     ] 
   },
   { 

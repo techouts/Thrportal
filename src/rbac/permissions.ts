@@ -27,10 +27,12 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "portal.announcements.read",
     "employees.read",
     "attendance.read","attendance.clock_in","attendance.logs.read",
-    "leave.requests.*","leave.balance.read",
+    "leave.requests.*","leave.balance.read","leave.requests.read",
     "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
     "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
     "performance.goals.*","performance.feedback_requests.*",
+    "learning.read","recognition.read",
     "ijp.postings.read","ijp.applications.create",
     "helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
