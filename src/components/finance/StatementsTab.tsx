@@ -17,12 +17,12 @@ import {
 } from 'lucide-react';
 import { Payslip, Form16 } from '@/types/finance';
 import { financeService } from '@/services/financeService';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
 import { format, subMonths } from 'date-fns';
 
 export function StatementsTab() {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [payslips, setPayslips] = useState<Payslip[]>([]);
   const [form16List, setForm16List] = useState<Form16[]>([]);
   const [loading, setLoading] = useState(true);

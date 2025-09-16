@@ -9,12 +9,12 @@ import { Switch } from '@/components/ui/switch';
 import { Clock, MapPin, Settings, Calendar } from 'lucide-react';
 import { attendanceService } from '@/services/attendanceService';
 import { AttendancePolicy } from '@/types/attendance';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HRAttendancePage() {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('timings');
   const [policies, setPolicies] = useState<AttendancePolicy[]>([]);
   const [loading, setLoading] = useState(true);

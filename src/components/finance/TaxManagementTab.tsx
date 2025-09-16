@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { TaxDeclaration, TaxSection, TaxRegime, DeclarationStatus } from '@/types/finance';
 import { financeService } from '@/services/financeService';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
 
 interface TaxManagementTabProps {
@@ -33,7 +33,7 @@ interface TaxManagementTabProps {
 }
 
 export function TaxManagementTab({ declarations, loading, onRefresh }: TaxManagementTabProps) {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [selectedRegime, setSelectedRegime] = useState<TaxRegime>('OLD');
   const [editingDeclaration, setEditingDeclaration] = useState<TaxDeclaration | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

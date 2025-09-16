@@ -38,7 +38,7 @@ import { useToast } from '@/hooks/use-toast'
 import { QuickSignIn } from '@/components/shared/QuickSignIn'
 
 import { homeService } from '@/services/homeService'
-import { useCurrentUser, useUserRole, useIsManager } from '@/hooks/useAuth'
+import { useAuth } from '@/auth/AuthContext'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import type { Poll, Recognition, Holiday, Celebration, InspirationalQuote } from '@/types/home'
 
@@ -54,9 +54,9 @@ const sections = [
 export default function HomePage() {
   console.log('🏠 HomePage - Component rendering...')
   const { toast } = useToast()
-  const currentUser = useCurrentUser()
-  const userRole = useUserRole()
-  const isManager = useIsManager()
+  const { user: currentUser } = useAuth()
+  const userRole = currentUser?.role || 'Employee'
+  const isManager = userRole === 'Manager' || userRole === 'HR' || userRole === 'MANAGER' || userRole === 'HR_MANAGER'
   
   console.log('🏠 HomePage - currentUser:', currentUser)
   console.log('🏠 HomePage - userRole:', userRole)

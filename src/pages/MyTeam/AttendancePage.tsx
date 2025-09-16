@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { attendanceService } from '@/services/attendanceService';
 import { AttendanceRecord, AttendanceApproval } from '@/types/attendance';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MyTeamAttendancePage() {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [teamAttendance, setTeamAttendance] = useState<AttendanceRecord[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<AttendanceApproval[]>([]);

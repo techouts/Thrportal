@@ -17,7 +17,7 @@ import { ApprovalQueues } from '@/components/myteam/ApprovalQueues'
 import { Target, FileText, MessageSquare, AlertTriangle, DollarSign, Clock, User } from "lucide-react"
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { myTeamService } from '@/services/myTeamService'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/auth/AuthContext'
 import { toast } from 'sonner'
 
 interface MyTeamPageProps {
@@ -29,7 +29,7 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
   const [metrics, setMetrics] = useState<any>(null)
   const [approvals, setApprovals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const { currentUser } = useAuth()
+  const { user: currentUser } = useAuth()
   
   const moduleSpec = moduleRegistry.getModuleSpec(`/MyTeam/${defaultTab}`) || 
     moduleRegistry.registerModuleSpec(`/MyTeam/${defaultTab}`, {

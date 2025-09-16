@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   Activity
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { ComplianceTables } from '@/components/payroll/admin/ComplianceTables';
 import { SecurityConfig } from '@/components/payroll/admin/SecurityConfig';
 import { IntegrationConfig } from '@/components/payroll/admin/IntegrationConfig';
@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 export default function AdminPayrollPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   
   const tab = searchParams.get('tab') || 'compliance';
   const [activeTab, setActiveTab] = useState(tab);

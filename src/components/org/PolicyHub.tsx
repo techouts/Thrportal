@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { mockPolicyFolders, mockPolicyDocs, mockPolicyAcks } from '@/mocks/orgData';
 import type { PolicyDoc, PolicyAck } from '@/types/org';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ interface PolicyHubProps {
 }
 
 export function PolicyHub({ className }: PolicyHubProps) {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const isHRAdmin = currentUser?.role === 'HR' || currentUser?.role === 'Admin';
 
   return (

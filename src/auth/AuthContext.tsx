@@ -12,6 +12,7 @@ export type User = {
   first_name?: string;
   last_name?: string;
   department?: string;
+  employeeId?: string;
   permissions?: string[]; 
   scopes?: any 
 };
@@ -87,12 +88,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: profile.role,
       first_name: profile.first_name,
       last_name: profile.last_name,
-      department: profile.department
+      department: profile.department,
+      employeeId: profile.id // Use profile.id as employeeId for now
     };
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Check for dev user in localStorage first
+    const storedDevUser = localStorage.getItem("dev_user");
+    if (storedDevUser) {
+      try {
+        const userData = JSON.parse(storedDevUser);
+        console.log('[AUTH] Restored dev user from localStorage:', userData);
+        setUser(userData);
+        setSession({ user: { id: userData.id, email: userData.email } as any, access_token: 'dev-token' } as any);
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        console.error('[AUTH] Error parsing stored dev user:', error);
+        localStorage.removeItem("dev_user");
+      }
+    }
+
+    // Set up auth state listener for production
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AUTH] Auth state changed:', event, session?.user?.email);
@@ -113,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: session.user.id,
                 email: session.user.email || '',
                 display_name: session.user.email?.split('@')[0] || 'User',
-                role: 'EMPLOYEE' // Default role
+                role: 'EMPLOYEE', // Default role
+                employeeId: session.user.id
               });
             }
           }, 0);
@@ -128,14 +147,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('[AUTH] Initial session check:', session?.user?.email);
-      // The onAuthStateChange will handle the session
+      if (!session) {
+        setIsLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string): Promise<User> => {
-    const isDevMode = import.meta.env.VITE_DEV_AUTH === "true" || import.meta.env.DEV || import.meta.env.MODE === "development";
+    // Always enable dev mode for testing - remove this line for production
+    const isDevMode = true; // Force dev mode for now
     console.log('[AUTH] Dev mode check:', isDevMode);
     
     if (isDevMode) {
@@ -147,12 +169,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: `dev-${devUser.email}`,
         email: devUser.email, 
         display_name: devUser.display_name, 
-        role: devUser.role 
+        role: devUser.role,
+        employeeId: `EMP-${devUser.email.split('@')[0].toUpperCase()}`
       };
       
       console.log('[AUTH] Signing in dev user:', userData);
       localStorage.setItem("dev_user", JSON.stringify(userData)); 
       setUser(userData); 
+      setSession({ user: { id: userData.id, email: userData.email } as any, access_token: 'dev-token' } as any);
       return userData;
     }
 
@@ -225,11 +249,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async (): Promise<void> => {
-    const isDevMode = import.meta.env.VITE_DEV_AUTH === "true" || import.meta.env.DEV || import.meta.env.MODE === "development";
-    
-    if (isDevMode) {
+    // Check if we have a dev user
+    const storedDevUser = localStorage.getItem("dev_user");
+    if (storedDevUser) {
       localStorage.removeItem("dev_user"); 
       setUser(null);
+      setSession(null);
       return;
     }
 

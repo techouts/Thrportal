@@ -16,7 +16,7 @@ import {
   Database,
   AlertTriangle
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { usePayrollRunStore } from '@/stores/payrollStore';
 import { PayrollSetupForm } from '@/components/payroll/hr/PayrollSetupForm';
 import { PayrollInputsImporter } from '@/components/payroll/hr/PayrollInputsImporter';
@@ -33,7 +33,7 @@ import { toast } from 'sonner';
 export default function PayrollPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   
   const tab = searchParams.get('tab') || 'setup';
   const [activeTab, setActiveTab] = useState(tab);

@@ -14,7 +14,7 @@ import {
   CreditCard,
   PieChart
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
 
 // Placeholder components - will be implemented based on requirements
@@ -152,7 +152,7 @@ const StatementsTab = () => (
 export default function FinancePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   
   const tab = searchParams.get('tab') || 'summary';
   const [activeTab, setActiveTab] = useState(tab);

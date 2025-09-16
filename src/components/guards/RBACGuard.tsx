@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/auth/AuthContext'
 import rolePolicies from '../../../config/rolePolicies.json'
 
 interface RBACGuardProps {
@@ -10,7 +10,7 @@ interface RBACGuardProps {
 }
 
 export function RBACGuard({ children, permission, route, fallback = null }: RBACGuardProps) {
-  const { currentUser } = useAuth()
+  const { user: currentUser } = useAuth()
   
   console.log('🛡️ RBACGuard - route:', route, 'currentUser:', currentUser)
   

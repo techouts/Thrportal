@@ -13,7 +13,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/auth/AuthContext';
 import { JVExportConfig } from '@/components/payroll/finance/JVExportConfig';
 import { BankBatchList } from '@/components/payroll/finance/BankBatchList';
 import { ReconcileTable } from '@/components/payroll/finance/ReconcileTable';
@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 export default function FinancePayrollPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   
   const tab = searchParams.get('tab') || 'jv';
   const [activeTab, setActiveTab] = useState(tab);

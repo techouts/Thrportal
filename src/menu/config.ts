@@ -14,127 +14,119 @@ export const MENU: MenuSection[] = [
   { 
     label: "Home", 
     items: [ 
-      { label: "Home", route: "/Home", requiresAny: ["portal.announcements.read"] } 
+      { label: "Home", route: "/Home" } 
     ] 
   },
   { 
     label: "Me", 
     items: [
-      { label: "Dashboard",  route: "/Me/Dashboard",  requiresAny: ["portal.announcements.read"] },
-      { label: "Profile",    route: "/Me/Profile",    requiresAny: ["employees.read"] },
-      { label: "Attendance", route: "/Me/Attendance", requiresAny: ["attendance.read","attendance.clock_in"] },
-      { label: "Leave",      route: "/Me/Leave",      requiresAny: ["leave.requests.*","leave.balance.read"] },
-      { label: "Timesheet",  route: "/Me/Timesheet",  requiresAny: ["timesheets.read"] },
-      { label: "Expenses",   route: "/Me/Expenses",   requiresAny: ["finance.tax_declarations.read","finance.investment_planner.read"] },
-      { label: "Finance",    route: "/Me/Finance",    requiresAny: ["finance.payslips.read"] },
-      { label: "Learning",   route: "/Me/Learning",   requiresAny: ["performance.goals.read"] },
-      { label: "Recognition",route: "/Me/Recognition",requiresAny: ["performance.feedback_requests.read"] },
-      { label: "IJP",        route: "/Me/IJP",        requiresAny: ["ijp.postings.read"] },
-      { label: "Helpdesk",   route: "/Me/Helpdesk",   requiresAny: ["helpdesk.tickets.read_own"] }
+      { label: "Dashboard",  route: "/Me/Dashboard" },
+      { label: "Profile",    route: "/Me/Profile" },
+      { label: "Attendance", route: "/Me/Attendance" },
+      { label: "Leave",      route: "/Me/Leave" },
+      { label: "Timesheet",  route: "/Me/Timesheet" },
+      { label: "Expenses",   route: "/Me/Expenses" },
+      { label: "Finance",    route: "/Me/Finance" },
+      { label: "Learning",   route: "/Me/Learning" },
+      { label: "Recognition",route: "/Me/Recognition" },
+      { label: "IJP",        route: "/Me/IJP" },
+      { label: "Helpdesk",   route: "/Me/Helpdesk" }
     ] 
   },
   { 
     label: "My Team", 
-    requiresAny: ["attendance.team.read","leave.team.calendar.read","performance.reviews.create"], 
     items: [
-      { label: "Dashboard",      route: "/MyTeam/Dashboard",     requiresAny: ["attendance.team.read","leave.team.calendar.read"] },
-      { label: "Leave",          route: "/MyTeam/Leave",         requiresAny: ["leave.approvals.*","leave.team.calendar.read"] },
-      { label: "Attendance",     route: "/MyTeam/Attendance",    requiresAny: ["attendance.team.read"] },
-      { label: "Timesheet",      route: "/MyTeam/Timesheet",     requiresAny: ["timesheets.approvals.*","timesheets.projects.read"] },
-      { label: "Expenses",       route: "/MyTeam/Expenses",      requiresAny: ["finance.audit_logs.read"] },
-      { label: "Performance",    route: "/MyTeam/Performance",   requiresAny: ["performance.reviews.create"] },
-      { label: "Recognition",    route: "/MyTeam/Recognition",   requiresAny: ["performance.feedback_requests.read"] },
-      { label: "Learning",       route: "/MyTeam/Learning",      requiresAny: ["performance.goals.read"] },
-      { label: "Profile Changes",route: "/MyTeam/ProfileChanges",requiresAny: ["employees.update"] },
-      { label: "IJP",            route: "/MyTeam/IJP",           requiresAny: ["ijp.applications.read_team"] }
+      { label: "Dashboard",      route: "/MyTeam/Dashboard" },
+      { label: "Leave",          route: "/MyTeam/Leave" },
+      { label: "Attendance",     route: "/MyTeam/Attendance" },
+      { label: "Timesheet",      route: "/MyTeam/Timesheet" },
+      { label: "Expenses",       route: "/MyTeam/Expenses" },
+      { label: "Performance",    route: "/MyTeam/Performance" },
+      { label: "Recognition",    route: "/MyTeam/Recognition" },
+      { label: "Learning",       route: "/MyTeam/Learning" },
+      { label: "Profile Changes",route: "/MyTeam/ProfileChanges" },
+      { label: "IJP",            route: "/MyTeam/IJP" }
     ] 
   },
   { 
     label: "Hiring", 
-    requiresAny: ["hiring.requisitions.read","applications.pipeline.read","jds.create"], 
     items: [
-      { label: "Dashboard",       route: "/Hiring/Dashboard",       requiresAny: ["hiring.dashboard.read","hiring.requisitions.read"] },
-      { label: "JDs",             route: "/Hiring/JDs",             requiresAny: ["jds.create","jds.read"] },
-      { label: "Approvals",       route: "/Hiring/Approvals",       requiresAny: ["jds.approve.internal","jds.approve.external","jds.approve.management"] },
-      { label: "Candidates",      route: "/Hiring/Candidates",      requiresAny: ["candidates.create","resumes.create","applications.rank"] },
-      { label: "Ownership",       route: "/Hiring/Ownership",       requiresAny: ["ownership.assign","mapping.propose","mapping.approve"] },
-      
-      { label: "Applications",    route: "/Hiring/Applications",    requiresAny: ["applications.pipeline.read"] },
-      { label: "Pipeline",        route: "/Hiring/Pipeline",        requiresAny: ["applications.pipeline.read"] },
-      { label: "FollowUp",        route: "/Hiring/FollowUp",        requiresAny: ["applications.pipeline.read","followup.tasks.*"] },
-      { label: "BGV",             route: "/Hiring/BGV",             requiresAny: ["bgv.cases.read"] },
-      { label: "Settings",        route: "/Hiring/Settings",        requiresAny: ["hiring.settings.*"] },
-      { label: "Offers (HM)",     route: "/Hiring/Offers",          requiresAny: ["offers.create","offers.approve","candidates.sensitive.read"] }
+      { label: "Dashboard",       route: "/Hiring/Dashboard" },
+      { label: "JDs",             route: "/Hiring/JDs" },
+      { label: "Approvals",       route: "/Hiring/Approvals" },
+      { label: "Candidates",      route: "/Hiring/Candidates" },
+      { label: "Ownership",       route: "/Hiring/Ownership" },
+      { label: "Applications",    route: "/Hiring/Applications" },
+      { label: "Pipeline",        route: "/Hiring/Pipeline" },
+      { label: "FollowUp",        route: "/Hiring/FollowUp" },
+      { label: "BGV",             route: "/Hiring/BGV" },
+      { label: "Settings",        route: "/Hiring/Settings" },
+      { label: "Offers (HM)",     route: "/Hiring/Offers" }
     ] 
   },
   { 
     label: "CRM", 
-    requiresAny: ["crm.read","crm.interactions.*"], 
     items: [
-      { label: "Dashboard",       route: "/CRM/Home",               requiresAny: ["crm.read"] },
-      { label: "Clients",         route: "/CRM/Clients",            requiresAny: ["crm.read"] },
-      { label: "Accounts",        route: "/CRM/Accounts",           requiresAny: ["crm.read"] },
-      { label: "Projects",        route: "/CRM/Projects",           requiresAny: ["crm.read"] },
-      { label: "Opportunities",   route: "/CRM/Opportunities",      requiresAny: ["crm.read"] },
-      { label: "Interactions",    route: "/CRM/Interactions",       requiresAny: ["crm.interactions.*"] },
-      { label: "Reports",         route: "/CRM/Reports",            requiresAny: ["crm.read"] },
-      { label: "Integrations",    route: "/CRM/Integrations",       requiresAny: ["crm.read"] },
-      { label: "Demo Overview",   route: "/CRM/Demo",               requiresAny: ["crm.read"] }
+      { label: "Dashboard",       route: "/CRM/Home" },
+      { label: "Clients",         route: "/CRM/Clients" },
+      { label: "Accounts",        route: "/CRM/Accounts" },
+      { label: "Projects",        route: "/CRM/Projects" },
+      { label: "Opportunities",   route: "/CRM/Opportunities" },
+      { label: "Interactions",    route: "/CRM/Interactions" },
+      { label: "Reports",         route: "/CRM/Reports" },
+      { label: "Integrations",    route: "/CRM/Integrations" },
+      { label: "Demo Overview",   route: "/CRM/Demo" }
     ] 
   },
   { 
     label: "Projects", 
     items: [ 
-      { label: "Dashboard", route: "/Projects", requiresAny: ["projects.read","projects.*.read"] } 
+      { label: "Dashboard", route: "/Projects" } 
     ] 
   },
   { 
     label: "Org", 
     items: [
-      { label: "Employee Directory", route: "/Org/EmployeeDirectory", requiresAny: ["employees.directory.read","employees.read"] },
-      { label: "Org Structure",      route: "/Org/OrgStructure",      requiresAny: ["employees.read"] },
-      { label: "Policy Hub",         route: "/Org/PolicyHub",         requiresAny: ["portal.announcements.read"] }
+      { label: "Employee Directory", route: "/Org/EmployeeDirectory" },
+      { label: "Org Structure",      route: "/Org/OrgStructure" },
+      { label: "Policy Hub",         route: "/Org/PolicyHub" }
     ] 
   },
   { 
     label: "HR", 
-    requiresAny: ["leave.policies.read","attendance.policies.read","performance.cycles.create","employees.*"], 
     items: [
-      { label: "Performance",   route: "/HR/Performance",   requiresAny: ["performance.cycles.create"] },
-      { label: "Leave",         route: "/HR/Leave",         requiresAny: ["leave.policies.read"] },
-      { label: "Attendance",    route: "/HR/Attendance",    requiresAny: ["attendance.policies.read"] },
-      { label: "Recognition",   route: "/HR/Recognition",   requiresAny: ["performance.feedback_requests.read"] },
-      { label: "Expenses",      route: "/HR/Expenses",      requiresAny: ["finance.audit_logs.read"] },
-      { label: "Learning",      route: "/HR/Learning",      requiresAny: ["performance.goals.read"] },
-      { label: "IJP",           route: "/HR/IJP",           requiresAny: ["ijp.postings.read"] },
-      { label: "Helpdesk",      route: "/HR/Helpdesk",      requiresAny: ["helpdesk.dashboard.read"] },
-      { label: "On/Offboarding",route: "/HR/OnOffboarding", requiresAny: ["onboarding.*","offboarding.*","onboarding.employees.read","offboarding.employees.read"] },
-      { label: "Reports",       route: "/HR/Reports",       requiresAny: ["leave.reports.read","attendance.reports.read"] }
+      { label: "Performance",   route: "/HR/Performance" },
+      { label: "Leave",         route: "/HR/Leave" },
+      { label: "Attendance",    route: "/HR/Attendance" },
+      { label: "Recognition",   route: "/HR/Recognition" },
+      { label: "Expenses",      route: "/HR/Expenses" },
+      { label: "Learning",      route: "/HR/Learning" },
+      { label: "IJP",           route: "/HR/IJP" },
+      { label: "Helpdesk",      route: "/HR/Helpdesk" },
+      { label: "On/Offboarding",route: "/HR/OnOffboarding" },
+      { label: "Reports",       route: "/HR/Reports" }
     ] 
   },
   { 
     label: "Finance", 
-    requiresAny: ["finance.reports.read","payroll.runs.read"], 
     items: [
-      { label: "Payroll", route: "/Finance/Payroll", requiresAny: ["payroll.runs.read","finance.reports.read"] }
+      { label: "Payroll", route: "/Finance/Payroll" }
     ] 
   },
   { 
     label: "IT", 
-    requiresAny: ["helpdesk.dashboard.read"], 
     items: [ 
-      { label: "Helpdesk", route: "/IT/Helpdesk", requiresAny: ["helpdesk.dashboard.read"] } 
+      { label: "Helpdesk", route: "/IT/Helpdesk" } 
     ] 
   },
   { 
     label: "Admin", 
-    requiresAny: ["*"], 
     items: [
-      { label: "Tenant",       route: "/Admin/Tenant",       requiresAny: ["*"] },
-      { label: "Access",       route: "/Admin/Access",       requiresAny: ["*"] },
-      { label: "Integrations", route: "/Admin/Integrations", requiresAny: ["*"] },
-      { label: "Audit",        route: "/Admin/Audit",        requiresAny: ["*"] },
-      { label: "Security",     route: "/Admin/Security",     requiresAny: ["*"] }
+      { label: "Tenant",       route: "/Admin/Tenant" },
+      { label: "Access",       route: "/Admin/Access" },
+      { label: "Integrations", route: "/Admin/Integrations" },
+      { label: "Audit",        route: "/Admin/Audit" },
+      { label: "Security",     route: "/Admin/Security" }
     ] 
   }
 ];
