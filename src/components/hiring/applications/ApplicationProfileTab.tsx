@@ -5,13 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { ChevronLeft, ChevronRight, Filter, User, FileText, Clock, Map } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Filter, User, FileText, Clock, ExternalLink } from 'lucide-react'
 import { Application } from '@/types/applications'
 import { ApplicationsService } from '@/services/applicationsService'
 import { ApplicationTimelineTab } from './profile/ApplicationTimelineTab'
 import { ApplicationNotesTab } from './profile/ApplicationNotesTab'
 import { ApplicationDocumentsTab } from './profile/ApplicationDocumentsTab'
-import { ApplicationMappingTab } from './profile/ApplicationMappingTab'
 import { toast } from 'sonner'
 
 interface ApplicationProfileTabProps {
@@ -110,14 +109,32 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
           </div>
         </div>
 
-        {/* Filter Dock Toggle */}
-        <Sheet open={filterDockOpen} onOpenChange={setFilterDockOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter Dock
-            </Button>
-          </SheetTrigger>
+        <div className="flex items-center gap-2">
+          {/* Open in Mapping Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const params = new URLSearchParams({
+                app_id: applicationId,
+                candidate_id: application.candidateId,
+                jd_id: application.jdId
+              })
+              window.location.href = `/Hiring/Applications?tab=mapping&${params.toString()}`
+            }}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Open in Mapping
+          </Button>
+
+          {/* Filter Dock Toggle */}
+          <Sheet open={filterDockOpen} onOpenChange={setFilterDockOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter Dock
+              </Button>
+            </SheetTrigger>
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Switch Applications</SheetTitle>
@@ -145,6 +162,7 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
             </div>
           </SheetContent>
         </Sheet>
+        </div>
       </div>
 
       {/* Application Summary */}
@@ -201,7 +219,7 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
 
       {/* Application Profile Tabs */}
       <Tabs value={activeProfileTab} onValueChange={setActiveProfileTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="timeline" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Timeline
@@ -213,10 +231,6 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
           <TabsTrigger value="documents" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Documents
-          </TabsTrigger>
-          <TabsTrigger value="mapping" className="flex items-center gap-2">
-            <Map className="h-4 w-4" />
-            Mapping
           </TabsTrigger>
         </TabsList>
 
@@ -230,14 +244,6 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
 
         <TabsContent value="documents" className="space-y-6">
           <ApplicationDocumentsTab applicationId={applicationId} />
-        </TabsContent>
-
-        <TabsContent value="mapping" className="space-y-6">
-          <ApplicationMappingTab 
-            applicationId={applicationId}
-            candidateId={application.candidateId}
-            jdId={application.jdId}
-          />
         </TabsContent>
       </Tabs>
     </div>

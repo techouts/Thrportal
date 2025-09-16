@@ -3,10 +3,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ApplicationListTab } from './ApplicationListTab'
 import { ApplicationProfileTab } from './ApplicationProfileTab'
-import { JDResumeMatchTab } from './JDResumeMatchTab'
+import { MappingModule } from './MappingModule'
 
 export const ApplicationsModule: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('list')
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check URL parameters for tab selection
+    const urlParams = new URLSearchParams(window.location.search)
+    return urlParams.get('tab') || 'list'
+  })
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>('app-001') // Default to first application for demo
 
   const handleApplicationSelect = (applicationId: string) => {
@@ -24,10 +28,8 @@ export const ApplicationsModule: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="list">All Applications</TabsTrigger>
-          <TabsTrigger value="profile">
-            Application Profile
-          </TabsTrigger>
-          <TabsTrigger value="matching">JD-Resume Matching</TabsTrigger>
+          <TabsTrigger value="profile">Application Profile</TabsTrigger>
+          <TabsTrigger value="mapping">Mapping</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="space-y-6">
@@ -47,8 +49,8 @@ export const ApplicationsModule: React.FC = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="matching" className="space-y-6">
-          <JDResumeMatchTab />
+        <TabsContent value="mapping" className="space-y-6">
+          <MappingModule />
         </TabsContent>
       </Tabs>
     </div>
