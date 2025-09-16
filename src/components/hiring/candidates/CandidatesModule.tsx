@@ -19,7 +19,7 @@ export function CandidatesModule() {
     <div className="space-y-6">
       <PageHeader
         title="Candidates"
-        description="Manage candidate profiles, compliance, and analytics"
+        description="Manage candidate profiles, compliance, and analytics."
       />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
