@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,19 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { OnOffboardingService } from '@/services/onoffboardingService';
 import type { OnboardingCandidate } from '@/types/onoffboarding';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  UserCheck, 
-  UserX, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
-  FileText, 
-  Shield, 
-  Calendar,
-  ChevronRight,
-  TrendingUp,
-  TrendingDown
-} from 'lucide-react';
+import { UserCheck, UserX, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export const OnboardingCandidatePipelineTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -101,30 +89,8 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
     }
   };
 
-  const getBgvStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified': return 'text-green-600';
-      case 'failed': return 'text-red-600';
-      case 'in_progress': return 'text-yellow-600';
-      case 'initiated': return 'text-blue-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getStageSteps = (stage: string) => {
-    const steps = ['offer', 'pre_onboarding', 'bgv', 'day_1', 'post_joining', 'completed'];
-    const currentIndex = steps.indexOf(stage);
-    return steps.map((step, index) => ({
-      step,
-      completed: index < currentIndex,
-      current: index === currentIndex,
-      upcoming: index > currentIndex
-    }));
-  };
-
   const filteredCandidates = candidates.filter(candidate => {
     if (filter === 'all') return true;
-    if (filter === 'active') return candidate.status !== 'dropped_out';
     if (filter === 'dropout') return candidate.status === 'dropped_out';
     return candidate.stage === filter;
   });
@@ -173,85 +139,20 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
 
       {/* Stage Filter Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'all' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold">{candidateCounts.all}</div>
-            <div className="text-xs text-muted-foreground">All Candidates</div>
-          </CardContent>
-        </Card>
-        
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'offer' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('offer')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{candidateCounts.offer}</div>
-            <div className="text-xs text-muted-foreground">Offer</div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'pre_onboarding' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('pre_onboarding')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{candidateCounts.pre_onboarding}</div>
-            <div className="text-xs text-muted-foreground">Pre-Onboarding</div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'bgv' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('bgv')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{candidateCounts.bgv}</div>
-            <div className="text-xs text-muted-foreground">BGV</div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'day_1' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('day_1')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{candidateCounts.day_1}</div>
-            <div className="text-xs text-muted-foreground">Day 1</div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'post_joining' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('post_joining')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-indigo-600">{candidateCounts.post_joining}</div>
-            <div className="text-xs text-muted-foreground">Post-Joining</div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'completed' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('completed')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-emerald-600">{candidateCounts.completed}</div>
-            <div className="text-xs text-muted-foreground">Completed</div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className={`cursor-pointer transition-colors ${filter === 'dropout' ? 'ring-2 ring-primary' : ''}`}
-          onClick={() => setFilter('dropout')}
-        >
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{candidateCounts.dropout}</div>
-            <div className="text-xs text-muted-foreground">Dropouts</div>
-          </CardContent>
-        </Card>
+        {Object.entries(candidateCounts).map(([stage, count]) => (
+          <Card 
+            key={stage}
+            className={`cursor-pointer transition-colors ${filter === stage ? 'ring-2 ring-primary' : ''}`}
+            onClick={() => setFilter(stage)}
+          >
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold">{count}</div>
+              <div className="text-xs text-muted-foreground capitalize">
+                {stage.replace('_', ' ')}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Candidates List */}
@@ -282,26 +183,6 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
                 <Progress value={candidate.completionPercentage} className="h-2" />
               </div>
 
-              {/* Stage Steps */}
-              <div className="flex items-center justify-between text-xs">
-                {getStageSteps(candidate.stage).map((step, index) => (
-                  <div key={step.step} className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full border-2 ${
-                      step.completed 
-                        ? 'bg-green-500 border-green-500' 
-                        : step.current 
-                        ? 'bg-blue-500 border-blue-500' 
-                        : 'bg-gray-200 border-gray-300'
-                    }`} />
-                    {index < getStageSteps(candidate.stage).length - 1 && (
-                      <div className={`w-8 h-0.5 ${
-                        step.completed ? 'bg-green-500' : 'bg-gray-200'
-                      }`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-
               {/* Key Info */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -315,11 +196,10 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
               </div>
 
               {/* BGV Status */}
-              {candidate.bgvStatus && candidate.stage !== 'dropout' && (
+              {candidate.bgvStatus && candidate.status !== 'dropped_out' && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Shield className="h-4 w-4" />
                   <span className="text-muted-foreground">BGV:</span>
-                  <span className={getBgvStatusColor(candidate.bgvStatus)}>
+                  <span className="font-medium">
                     {candidate.bgvStatus.replace('_', ' ').toUpperCase()}
                   </span>
                 </div>
@@ -327,7 +207,6 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
 
               {/* Documents Status */}
               <div className="flex items-center gap-2 text-sm">
-                <FileText className="h-4 w-4" />
                 <span className="text-muted-foreground">Documents:</span>
                 <span className="font-medium">
                   {candidate.documentsUploaded}/{candidate.totalDocuments}
@@ -428,11 +307,11 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="reason">Dropout Reason *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="dropout-reason">Reason (Required)</Label>
               <Select value={dropoutReason} onValueChange={setDropoutReason}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select reason" />
+                  <SelectValue placeholder="Select dropout reason" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="better_offer">Better Offer</SelectItem>
@@ -446,12 +325,13 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
               </Select>
             </div>
             
-            <div>
-              <Label htmlFor="comments">Comments</Label>
+            <div className="space-y-2">
+              <Label htmlFor="dropout-comments">Additional Comments</Label>
               <Textarea
+                id="dropout-comments"
+                placeholder="Add any additional details about the dropout..."
                 value={dropoutComments}
                 onChange={(e) => setDropoutComments(e.target.value)}
-                placeholder="Additional details about the dropout..."
               />
             </div>
           </div>
@@ -461,7 +341,7 @@ export const OnboardingCandidatePipelineTab: React.FC = () => {
               Cancel
             </Button>
             <Button 
-              variant="destructive" 
+              variant="destructive"
               onClick={handleDropout}
               disabled={!dropoutReason}
             >
