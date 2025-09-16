@@ -5,7 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Filter, Upload, Download, Eye, Edit, UserPlus, Archive, MoreHorizontal } from 'lucide-react';
+import { 
+  Search, 
+  Filter, 
+  Upload, 
+  Download, 
+  Eye, 
+  Edit, 
+  UserPlus, 
+  Archive, 
+  MoreHorizontal,
+  BrainCircuit,
+  AlertTriangle
+} from 'lucide-react';
 import { candidatesService } from '@/services/candidatesService';
 import { CandidateProfile, CandidateFilters, CandidateStatus, CandidateSource } from '@/types/candidates';
 import {
@@ -15,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/shared/DataTable';
+import { SmartUploadCandidatesModal } from '../shared/SmartUploadCandidatesModal';
 
 interface CandidateListTabProps {
   onViewCandidate: (candidateId: string) => void;
@@ -25,9 +38,10 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  const [activeView, setActiveView] = useState<'all' | 'unassigned' | 'unattended'>('all');
+  const [showSmartUpload, setShowSmartUpload] = useState(false);
   const [filters, setFilters] = useState<CandidateFilters>({});
   const [showFilters, setShowFilters] = useState(false);
-  const [activeView, setActiveView] = useState<'all' | 'unassigned' | 'unattended'>('all');
 
   useEffect(() => {
     loadCandidates();
@@ -250,13 +264,18 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 <Filter className="mr-2 h-4 w-4" />
                 {showFilters ? 'Hide' : 'Show'} Filters
               </Button>
-              <Button variant="default" size="sm">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Candidate
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => setShowSmartUpload(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <BrainCircuit className="mr-2 h-4 w-4" />
+                Smart Upload
               </Button>
               <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                Bulk Upload
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Candidate
               </Button>
               <Button variant="outline" size="sm">
                 <Download className="mr-2 h-4 w-4" />
@@ -496,6 +515,12 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Smart Upload Modal */}
+      <SmartUploadCandidatesModal
+        open={showSmartUpload}
+        onClose={() => setShowSmartUpload(false)}
+      />
     </div>
   );
 }
