@@ -1049,110 +1049,253 @@ export const mockRoles: RoleCatalog[] = [
   { id: 'role-12', name: 'Tech Lead', suggested_cost_rate: 170 }
 ]
 
+// ============= ENHANCED ALLOCATIONS DATA =============
 export const mockAllocations: Allocation[] = [
+  // Microsoft Azure AI Platform - Active Allocations
   {
-    id: '1',
+    id: 'alloc-1',
     employee_id: 'emp-1',
     employee_name: 'John Smith',
-    project_id: '1',
-    project_name: 'Digital Platform Modernization',
-    role_id: '1',
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    role_id: 'role-1',
     role_name: 'Senior Developer',
     type: 'ACTIVE',
-    allocation_pct: 80,
-    start_date: '2024-01-01',
-    end_date: '2024-06-30',
-    bill_rate: 120,
-    cost_rate: 85,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+    allocation_pct: 100,
+    start_date: '2024-01-15',
+    end_date: '2024-08-15',
+    bill_rate: 1200,
+    cost_rate: 850,
+    created_at: '2024-01-15T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z'
   },
   {
-    id: '2',
+    id: 'alloc-2', 
     employee_id: 'emp-2',
     employee_name: 'Jane Doe',
-    project_id: '2',
-    project_name: 'Mobile App Development',
-    role_id: '5',
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    role_id: 'role-5',
     role_name: 'UI/UX Designer',
+    type: 'ACTIVE',
+    allocation_pct: 75,
+    start_date: '2024-02-01',
+    end_date: '2024-07-31',
+    bill_rate: 950,
+    cost_rate: 700,
+    created_at: '2024-02-01T00:00:00Z',
+    updated_at: '2024-02-01T00:00:00Z'
+  },
+  {
+    id: 'alloc-3',
+    employee_id: 'emp-3',
+    employee_name: 'Bob Johnson',
+    project_id: 'proj-2',
+    project_name: 'Office 365 Collaboration Suite',
+    role_id: 'role-2',
+    role_name: 'Junior Developer',
+    type: 'ACTIVE',
+    allocation_pct: 100,
+    start_date: '2024-02-01',
+    end_date: '2024-09-30',
+    bill_rate: 800,
+    cost_rate: 550,
+    created_at: '2024-02-01T00:00:00Z',
+    updated_at: '2024-02-01T00:00:00Z'
+  },
+  // AWS Projects Allocations
+  {
+    id: 'alloc-4',
+    employee_id: 'emp-1',
+    employee_name: 'John Smith',
+    project_id: 'proj-3',
+    project_name: 'EC2 Performance Optimization',
+    role_id: 'role-6',
+    role_name: 'DevOps Engineer',
     type: 'SHADOW',
-    allocation_pct: 60,
+    allocation_pct: 25,
     start_date: '2024-03-01',
-    end_date: '2024-05-31',
-    bill_rate: 95,
-    cost_rate: 70,
+    end_date: '2024-07-10',
+    bill_rate: 1100,
+    cost_rate: 850,
     created_at: '2024-03-01T00:00:00Z',
     updated_at: '2024-03-01T00:00:00Z'
   },
+  // Bench Allocations
   {
-    id: '3',
-    employee_id: 'emp-3',
-    employee_name: 'Bob Johnson',
-    project_id: 'bench',
-    project_name: 'Bench Time',
-    role_id: '2',
-    role_name: 'Junior Developer',
+    id: 'alloc-5',
+    employee_id: 'emp-4',
+    employee_name: 'Alice Cooper',
+    project_id: null,
+    project_name: null,
+    role_id: 'role-4',
+    role_name: 'Business Analyst',
     type: 'BENCH',
     allocation_pct: 100,
-    start_date: '2024-03-15',
+    start_date: '2024-03-12',
+    end_date: null,
     bill_rate: 0,
-    cost_rate: 55,
-    created_at: '2024-03-15T00:00:00Z',
-    updated_at: '2024-03-15T00:00:00Z'
+    cost_rate: 750,
+    created_at: '2024-03-12T00:00:00Z',
+    updated_at: '2024-03-12T00:00:00Z'
   }
 ]
 
+// ============= ENHANCED TIMESHEET DATA =============
 export const mockTimesheets: Timesheet[] = [
   {
-    id: '1',
+    id: 'ts-1',
     employee_id: 'emp-1',
     employee_name: 'John Smith',
-    project_id: '1',
-    project_name: 'Digital Platform Modernization',
-    task_id: '1',
-    task_name: 'Requirements Analysis',
-    date: '2024-03-15',
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    task_id: 'task-1',
+    task_name: 'API Development',
+    date: '2024-03-11',
     hours: 8,
     overtime_hours: 0,
     allocation_type_snapshot: 'ACTIVE',
-    description: 'Completed requirements documentation',
+    description: 'Implemented user authentication endpoints',
+    approved_by: 'emp-201',
     status: 'approved',
-    approved_by: 'pm-1',
-    created_at: '2024-03-15T00:00:00Z',
-    updated_at: '2024-03-16T00:00:00Z'
+    created_at: '2024-03-11T18:00:00Z',
+    updated_at: '2024-03-12T09:00:00Z'
   },
   {
-    id: '2',
+    id: 'ts-2',
+    employee_id: 'emp-1',
+    employee_name: 'John Smith', 
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    task_id: 'task-2',
+    task_name: 'Database Design',
+    date: '2024-03-12',
+    hours: 7,
+    overtime_hours: 1,
+    allocation_type_snapshot: 'ACTIVE',
+    description: 'Designed and implemented user schema and relationships',
+    status: 'submitted',
+    created_at: '2024-03-12T18:00:00Z',
+    updated_at: '2024-03-12T18:00:00Z'
+  },
+  {
+    id: 'ts-3',
     employee_id: 'emp-2',
     employee_name: 'Jane Doe',
-    project_id: '2',
-    project_name: 'Mobile App Development',
-    task_id: '2',
-    task_name: 'UI Design',
-    date: '2024-03-15',
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    task_id: 'task-3',
+    task_name: 'UI Wireframes',
+    date: '2024-03-11',
     hours: 6,
-    overtime_hours: 2,
+    overtime_hours: 0,
+    allocation_type_snapshot: 'ACTIVE',
+    description: 'Created wireframes for dashboard and user management screens',
+    approved_by: 'emp-201',
+    status: 'approved',
+    created_at: '2024-03-11T17:30:00Z',
+    updated_at: '2024-03-12T10:00:00Z'
+  },
+  {
+    id: 'ts-4',
+    employee_id: 'emp-3',
+    employee_name: 'Bob Johnson',
+    project_id: 'proj-2',
+    project_name: 'Office 365 Collaboration Suite',
+    task_id: 'task-4',
+    task_name: 'Component Development',
+    date: '2024-03-12',
+    hours: 8,
+    overtime_hours: 0,
+    allocation_type_snapshot: 'ACTIVE',
+    description: 'Developed reusable React components for collaboration features',
+    status: 'draft',
+    created_at: '2024-03-12T17:45:00Z',
+    updated_at: '2024-03-12T17:45:00Z'
+  },
+  {
+    id: 'ts-5',
+    employee_id: 'emp-1',
+    employee_name: 'John Smith',
+    project_id: 'proj-3',
+    project_name: 'EC2 Performance Optimization',
+    task_id: 'task-1',
+    task_name: 'Performance Analysis',
+    date: '2024-03-12',
+    hours: 2,
+    overtime_hours: 0,
     allocation_type_snapshot: 'SHADOW',
-    description: 'Created mobile app wireframes',
+    description: 'Shadow work: Analyzed current EC2 performance metrics',
     status: 'submitted',
-    created_at: '2024-03-15T00:00:00Z',
-    updated_at: '2024-03-15T00:00:00Z'
+    created_at: '2024-03-12T19:00:00Z',
+    updated_at: '2024-03-12T19:00:00Z'
   }
 ]
 
+// ============= ENHANCED INVOICE DATA =============
 export const mockInvoices: Invoice[] = [
   {
-    id: '1',
-    project_id: '1',
-    project_name: 'Digital Platform Modernization',
-    client_id: '1',
-    client_name: 'Acme Corporation',
-    amount: 85000,
+    id: 'inv-1',
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    client_id: 'crm-1',
+    client_name: 'Microsoft Corporation',
+    amount: 285000,
     status: 'PAID',
     issued_on: '2024-02-01',
-    due_on: '2024-03-01',
+    due_on: '2024-02-31',
     paid_on: '2024-02-28',
-    description: 'January 2024 - Development Services'
+    description: 'January 2024 - Development services for Azure AI Platform Enhancement'
+  },
+  {
+    id: 'inv-2',
+    project_id: 'proj-1',
+    project_name: 'Azure AI Platform Enhancement',
+    client_id: 'crm-1',
+    client_name: 'Microsoft Corporation',
+    amount: 295000,
+    status: 'PAID',
+    issued_on: '2024-03-01',
+    due_on: '2024-03-31',
+    paid_on: '2024-03-25',
+    description: 'February 2024 - Development services for Azure AI Platform Enhancement'
+  },
+  {
+    id: 'inv-3',
+    project_id: 'proj-2',
+    project_name: 'Office 365 Collaboration Suite',
+    client_id: 'crm-1',
+    client_name: 'Microsoft Corporation',
+    amount: 180000,
+    status: 'PENDING',
+    issued_on: '2024-03-01',
+    due_on: '2024-03-31',
+    description: 'February 2024 - Development services for Office 365 Collaboration Suite'
+  },
+  {
+    id: 'inv-4',
+    project_id: 'proj-3',
+    project_name: 'EC2 Performance Optimization',
+    client_id: 'crm-2',
+    client_name: 'Amazon Web Services',
+    amount: 220000,
+    status: 'OVERDUE',
+    issued_on: '2024-02-15',
+    due_on: '2024-03-15',
+    description: 'February 2024 - Development services for EC2 Performance Optimization'
+  },
+  {
+    id: 'inv-5',
+    project_id: 'proj-5',
+    project_name: 'Trading Platform Modernization',
+    client_id: 'crm-3',
+    client_name: 'Goldman Sachs',
+    amount: 350000,
+    status: 'PAID',
+    issued_on: '2024-02-01',
+    due_on: '2024-02-31',
+    paid_on: '2024-02-20',
+    description: 'February 2024 - Retainer services for Trading Platform Modernization'
   },
   {
     id: '2',
@@ -1180,15 +1323,18 @@ export const mockInvoices: Invoice[] = [
   }
 ]
 
-// Dashboard data
-export const mockDashboardMetrics: ProjectDashboardMetrics = {
-  active_projects: 8,
-  core_utilization: 78.5,
-  effective_utilization: 84.2,
-  bench_cost_per_day: 2840,
-  estimated_margin_ytd: 28.6,
+// ============= ENHANCED DASHBOARD METRICS =============
+export const mockProjectDashboardMetrics: ProjectDashboardMetrics = {
+  active_projects: 18,
+  core_utilization: 87.5,
+  effective_utilization: 92.3,
+  bench_cost_per_day: 8400,
+  estimated_margin_ytd: 2850000,
   invoices_overdue: 3
 }
+
+// Legacy alias for backwards compatibility
+export const mockDashboardMetrics = mockProjectDashboardMetrics
 
 export const mockUtilizationData: UtilizationData[] = [
   { period: '2024-01', billable: 75.2, bench: 18.3, shadow: 6.5 },
@@ -1211,6 +1357,7 @@ export const mockRevenueData: RevenueData[] = [
   { period: '2024-03', revenue: 298000, cost: 205000, margin: 93000, shadow_cost: 11000 }
 ]
 
+
 export const mockBenchEmployees: BenchEmployee[] = [
   {
     id: 'emp-3',
@@ -1231,27 +1378,83 @@ export const mockBenchEmployees: BenchEmployee[] = [
     daily_cost: 600,
     bench_days: 8,
     avatar: 'https://images.unsplash.com/photo-1494790108755-2616b72cceaa?w=32&h=32&fit=crop&crop=face'
+  },
+  {
+    id: 'emp-5',
+    name: 'Mark Rodriguez',
+    role: 'Senior Developer',
+    skills: ['Python', 'Django', 'PostgreSQL', 'AWS'],
+    available_from: '2024-03-18',
+    daily_cost: 920,
+    bench_days: 5,
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face'
+  },
+  {
+    id: 'emp-6',
+    name: 'Sarah Kim',
+    role: 'DevOps Engineer',
+    skills: ['Kubernetes', 'Docker', 'Jenkins', 'Terraform'],
+    available_from: '2024-03-22',
+    daily_cost: 880,
+    bench_days: 3,
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b72cceaa?w=32&h=32&fit=crop&crop=face'
   }
 ]
 
 export const mockShadowAllocations: ShadowAllocation[] = [
   {
-    id: '2',
+    id: 'shadow-1',
+    employee_id: 'emp-1',
+    employee_name: 'John Smith',
+    role: 'Senior Developer',
+    target_project: 'EC2 Performance Optimization',
+    start_date: '2024-03-01',
+    allocation_pct: 25,
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
+  },
+  {
+    id: 'shadow-2',
     employee_id: 'emp-2',
     employee_name: 'Jane Doe',
     role: 'UI/UX Designer',
     target_project: 'Mobile App Development',
     start_date: '2024-03-01',
-    allocation_pct: 60,
+    allocation_pct: 25,
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face'
+  },
+  {
+    id: 'shadow-3',
+    employee_id: 'emp-5',
+    employee_name: 'Mark Rodriguez',
+    role: 'Senior Developer',
+    target_project: 'S3 Security Enhancement',
+    start_date: '2024-03-15',
+    allocation_pct: 50,
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face'
   }
 ]
 
 export const mockForecastData: ForecastData[] = [
-  { week: '2024-W13', role: 'Senior Developer', needed: 5, available: 4, shadow_coverage: 80 },
-  { week: '2024-W13', role: 'Junior Developer', needed: 3, available: 5, shadow_coverage: 100 },
-  { week: '2024-W14', role: 'Senior Developer', needed: 6, available: 4, shadow_coverage: 67 },
-  { week: '2024-W14', role: 'Junior Developer', needed: 4, available: 5, shadow_coverage: 100 }
+  { week: '2024-W13', role: 'Senior Developer', needed: 8, available: 6, shadow_coverage: 75 },
+  { week: '2024-W13', role: 'Junior Developer', needed: 4, available: 6, shadow_coverage: 100 },
+  { week: '2024-W13', role: 'DevOps Engineer', needed: 3, available: 2, shadow_coverage: 67 },
+  { week: '2024-W13', role: 'UI/UX Designer', needed: 2, available: 3, shadow_coverage: 100 },
+  { week: '2024-W13', role: 'Business Analyst', needed: 3, available: 2, shadow_coverage: 33 },
+  { week: '2024-W14', role: 'Senior Developer', needed: 9, available: 6, shadow_coverage: 67 },
+  { week: '2024-W14', role: 'Junior Developer', needed: 5, available: 6, shadow_coverage: 100 },
+  { week: '2024-W14', role: 'DevOps Engineer', needed: 4, available: 2, shadow_coverage: 50 },
+  { week: '2024-W14', role: 'UI/UX Designer', needed: 3, available: 3, shadow_coverage: 100 },
+  { week: '2024-W14', role: 'Business Analyst', needed: 4, available: 2, shadow_coverage: 25 },
+  { week: '2024-W15', role: 'Senior Developer', needed: 7, available: 7, shadow_coverage: 86 },
+  { week: '2024-W15', role: 'Junior Developer', needed: 4, available: 7, shadow_coverage: 100 },
+  { week: '2024-W15', role: 'DevOps Engineer', needed: 3, available: 3, shadow_coverage: 100 },
+  { week: '2024-W15', role: 'UI/UX Designer', needed: 2, available: 4, shadow_coverage: 100 },
+  { week: '2024-W15', role: 'Business Analyst', needed: 3, available: 3, shadow_coverage: 67 },
+  { week: '2024-W16', role: 'Senior Developer', needed: 10, available: 7, shadow_coverage: 60 },
+  { week: '2024-W16', role: 'Junior Developer', needed: 6, available: 7, shadow_coverage: 100 },
+  { week: '2024-W16', role: 'DevOps Engineer', needed: 5, available: 3, shadow_coverage: 40 },
+  { week: '2024-W16', role: 'UI/UX Designer', needed: 4, available: 4, shadow_coverage: 75 },
+  { week: '2024-W16', role: 'Business Analyst', needed: 5, available: 3, shadow_coverage: 20 }
 ]
 
 // API mock functions
