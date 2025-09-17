@@ -7,7 +7,7 @@ import { WorkflowSettings } from '@/components/hiring/settings/WorkflowSettings'
 import { ContentSettings } from '@/components/hiring/settings/ContentSettings'
 import { ComplianceSettings } from '@/components/hiring/settings/ComplianceSettings'
 import { DefaultsSettings } from '@/components/hiring/settings/DefaultsSettings'
-import { QuickLinksPanel } from '@/components/hiring/settings/QuickLinksPanel'
+
 import { SettingsSearch } from '@/components/hiring/settings/SettingsSearch'
 import { ReorganizationBanner } from '@/components/hiring/settings/ReorganizationBanner'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -137,19 +137,12 @@ export default function HiringSettingsPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Search and Quick Links */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <SettingsSearch 
-            query={searchQuery} 
-            onQueryChange={setSearchQuery}
-            onNavigate={(topTab, subTab) => navigate(`/Hiring/Settings/${topTab}/${subTab}`)}
-          />
-        </div>
-        <div className="lg:w-80">
-          <QuickLinksPanel />
-        </div>
-      </div>
+      {/* Search */}
+      <SettingsSearch 
+        query={searchQuery} 
+        onQueryChange={setSearchQuery}
+        onNavigate={(topTab, subTab) => navigate(`/Hiring/Settings/${topTab}/${subTab}`)}
+      />
 
       <Tabs value={activeTopTab} onValueChange={handleTopTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
