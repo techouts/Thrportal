@@ -24,7 +24,7 @@ export function SlotsList({ slots, loading, onSlotUpdated }: SlotsListProps) {
     const variants = {
       available: 'default',
       booked: 'secondary',
-      used: 'success',
+      used: 'default',
       expired: 'outline',
       cancelled: 'destructive'
     } as const

@@ -60,6 +60,7 @@ export const MENU: MenuSection[] = [
       { label: "Ownership",       route: "/Hiring/Ownership" },
       { label: "Applications",    route: "/Hiring/Applications" },
       { label: "Pipeline",        route: "/Hiring/Pipeline" },
+      { label: "Scheduling",      route: "/Hiring/Scheduling" },
       { label: "FollowUp",        route: "/Hiring/FollowUp" },
       { label: "Settings",        route: "/Hiring/Settings" }
     ] 

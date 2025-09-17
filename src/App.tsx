@@ -18,6 +18,7 @@ import HomePage from "./pages/Home/HomePage";
 import MePage from "./pages/Me/MePage";
 import MyTeamPage from "./pages/MyTeam/MyTeamPage";
 import HiringPage from "./pages/Hiring/HiringPage";
+import SchedulingPage from "./pages/Hiring/SchedulingPage";
 import HiringSettingsPage from "./pages/Hiring/HiringSettingsPage";
 import ProjectPage from "./pages/Project/ProjectPage";
 import OrgPage from "./pages/Org/OrgPage";
@@ -238,11 +239,16 @@ function App() {
                     <MainLayout><HiringPage defaultTab="Pipeline" /></MainLayout>
                   </ProtectedRoute>
                 } />
-                <Route path="/Hiring/FollowUp" element={
-                  <ProtectedRoute required={["applications.pipeline.read", "followup.tasks.*"]}>
-                    <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
-                  </ProtectedRoute>
-                } />
+                 <Route path="/Hiring/FollowUp" element={
+                   <ProtectedRoute required={["applications.pipeline.read", "followup.tasks.*"]}>
+                     <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
+                   </ProtectedRoute>
+                 } />
+                 <Route path="/Hiring/Scheduling" element={
+                   <ProtectedRoute required={["hiring.*", "applications.*"]}>
+                     <MainLayout><SchedulingPage /></MainLayout>
+                   </ProtectedRoute>
+                 } />
                 {/* New nested Hiring Settings routes */}
                 <Route path="/Hiring/Settings" element={
                   <ProtectedRoute required={["hiring.settings.*"]}>
