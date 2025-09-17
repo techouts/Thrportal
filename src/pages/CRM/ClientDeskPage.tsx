@@ -137,13 +137,28 @@ export function ClientDeskPage() {
 
   // Load CRM data - only when user is authenticated and has access
   const loadData = async () => {
+    // Debug logging
+    console.log('🔍 CRM LoadData Debug:', {
+      user: user ? { 
+        email: user.email, 
+        role: user.role, 
+        id: user.id 
+      } : null,
+      canWrite,
+      userDefined: user !== undefined,
+      DEV_AUTH_MODE: true
+    });
+
     if (!user || !canWrite) {
+      console.log('❌ Skipping data load - no user or no write access');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
+      console.log('🚀 Starting CRM data fetch...');
+      
       const [clientsData, accountsData, projectsData, spocsData] = await Promise.all([
         CrmService.getClients(),
         CrmService.getAccounts(),
@@ -151,14 +166,26 @@ export function ClientDeskPage() {
         CrmService.getAllSpocs()
       ]);
 
+      console.log('📊 CRM Data fetched:', {
+        clients: clientsData.length,
+        accounts: accountsData.length,
+        projects: projectsData.length,
+        spocs: spocsData.length
+      });
+
       setClients(clientsData);
       setAccounts(accountsData);
       setProjects(projectsData);
       setSpocs(spocsData);
 
       buildHierarchy(clientsData, accountsData, projectsData, spocsData);
+      
+      toast({
+        title: "CRM Data Loaded",
+        description: `Loaded ${clientsData.length} clients, ${accountsData.length} accounts, ${projectsData.length} projects`,
+      });
     } catch (error) {
-      console.error('Error loading CRM data:', error);
+      console.error('💥 Error loading CRM data:', error);
       toast({
         title: "Data Loading Error",
         description: "Failed to load CRM data. Please check your permissions and try again.",

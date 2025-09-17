@@ -13,6 +13,7 @@ export const DEV_USERS = [
   { email: "dh@dev.local",           display_name: "Dev DeliveryHead",    role: "DELIVERY_HEAD",      password: "DevOnly!2025", mfa_enabled: false },
   { email: "hrlead@dev.local",       display_name: "Hema HR Lead",        role: "HR_LEAD",            password: "DevOnly!2025", mfa_enabled: false },
   { email: "hrmgr@dev.local",        display_name: "Harsh HR Manager",    role: "HR_MANAGER",         password: "DevOnly!2025", mfa_enabled: false },
+  { email: "finmgr@dev.local",       display_name: "Finn Finance Mgr",    role: "FINANCE_MANAGER",    password: "DevOnly!2025", mfa_enabled: false },
   { email: "payroll@dev.local",      display_name: "Pia Payroll",         role: "PAYROLL_SPECIALIST", password: "DevOnly!2025", mfa_enabled: false },
   { email: "fin@dev.local",          display_name: "Farah Finance",       role: "FINANCE_ANALYST",    password: "DevOnly!2025", mfa_enabled: false },
   { email: "it@dev.local",           display_name: "Inder IT",            role: "IT_HELPDESK",        password: "DevOnly!2025", mfa_enabled: false },
