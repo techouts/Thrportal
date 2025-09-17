@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +19,11 @@ interface HRPageProps {
 
 export default function HRPage({ defaultTab }: HRPageProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
+
+  // Sync activeTab with defaultTab when URL changes
+  useEffect(() => {
+    setActiveTab(defaultTab)
+  }, [defaultTab])
   const [activePerformanceTab, setActivePerformanceTab] = useState("periods")
   const moduleSpec = moduleRegistry.getModuleSpec(`/HR/${defaultTab}`) || 
     moduleRegistry.registerModuleSpec(`/HR/${defaultTab}`, {

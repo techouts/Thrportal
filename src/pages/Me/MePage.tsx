@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -49,6 +49,11 @@ const tabConfig = {
 
 export default function MePage({ defaultTab }: MePageProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
+
+  // Sync activeTab with defaultTab when URL changes
+  useEffect(() => {
+    setActiveTab(defaultTab)
+  }, [defaultTab])
 
   // Register module spec
   const moduleSpec = moduleRegistry.getModuleSpec(`/Me/${defaultTab}`) || 

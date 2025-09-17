@@ -29,6 +29,11 @@ interface MyTeamPageProps {
 
 export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
+
+  // Sync activeTab with defaultTab when URL changes
+  useEffect(() => {
+    setActiveTab(defaultTab)
+  }, [defaultTab])
   const [metrics, setMetrics] = useState<any>(null)
   const [approvals, setApprovals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
