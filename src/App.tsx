@@ -39,6 +39,9 @@ import { CRMInteractionsPage } from "./pages/CRM/CRMInteractionsPage";
 import CRMReportsPage from "./pages/CRM/CRMReportsPage";
 import { ProjectAssignmentsPage } from "./pages/Project/ProjectAssignmentsPage";
 import { ProjectReportsPage } from "./pages/Project/ProjectReportsPage";
+import { CRMContractsPage } from "./pages/CRM/CRMContractsPage";
+import { ProjectContractsPage } from "./pages/Project/ProjectContractsPage";
+import { FinanceInvoicesPage } from "./pages/Finance/FinanceInvoicesPage";
 
 function App() {
   const queryClient = new QueryClient();
@@ -273,6 +276,11 @@ function App() {
                 } />
 
                 {/* CRM Section */}
+                <Route path="/CRM/Contracts" element={
+                  <ProtectedRoute required={["contracts.*"]}>
+                    <MainLayout><CRMContractsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/CRM/*" element={
                   <ProtectedRoute required={["crm.read"]}>
                     <MainLayout><CRMHomePage /></MainLayout>
@@ -294,6 +302,11 @@ function App() {
                 <Route path="/Projects/Projects" element={
                   <ProtectedRoute required={["projects.read"]}>
                     <MainLayout><ProjectPage defaultTab="Projects" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Contracts" element={
+                  <ProtectedRoute required={["projects.contracts.read"]}>
+                    <MainLayout><ProjectContractsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/Projects/Assignments" element={
@@ -397,6 +410,11 @@ function App() {
                   </ProtectedRoute>
                 } />
                 {/* Finance */}
+                <Route path="/Finance/Invoices" element={
+                  <ProtectedRoute required={["finance.invoices.*"]}>
+                    <MainLayout><FinanceInvoicesPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/Finance/*" element={
                   <ProtectedRoute required={["finance.reports.read"]}>
                     <MainLayout><PayrollPage /></MainLayout>

@@ -72,6 +72,7 @@ export const MENU: MenuSection[] = [
       { label: "Clients",         route: "/CRM/Clients" },
       { label: "Accounts",        route: "/CRM/Accounts" },
       { label: "Projects",        route: "/CRM/Projects" },
+      { label: "Contracts",       route: "/CRM/Contracts", requiresAny: ["contracts.*", "crm.*"] },
       { label: "Opportunities",   route: "/CRM/Opportunities" },
       { label: "Interactions",    route: "/CRM/Interactions" },
       { label: "Reports",         route: "/CRM/Reports" },
@@ -85,6 +86,7 @@ export const MENU: MenuSection[] = [
       { label: "Dashboard", route: "/Projects/Dashboard" },
       { label: "Clients", route: "/Projects/Clients", requiresAny: ["projects.clients.read", "crm.*"] },
       { label: "Projects", route: "/Projects/Projects" },
+      { label: "Contracts", route: "/Projects/Contracts", requiresAny: ["projects.contracts.read", "contracts.*"] },
       { label: "Assignments", route: "/Projects/Assignments" },
       { label: "Tasks", route: "/Projects/Tasks" },
       { label: "Bench", route: "/Projects/Bench", requiresAny: ["bench.*", "projects.bench.read"] },
@@ -137,7 +139,8 @@ export const MENU: MenuSection[] = [
     label: "Finance", 
     requiresAny: ["finance.*", "payroll.*"],
     items: [
-      { label: "Payroll", route: "/Finance/Payroll" }
+      { label: "Payroll", route: "/Finance/Payroll" },
+      { label: "Invoices", route: "/Finance/Invoices", requiresAny: ["finance.invoices.*", "finance.*"] }
     ] 
   },
   { 
