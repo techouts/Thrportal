@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, ExternalLink, Filter, Search, MoreVertical, Users, Building, FolderOpen, Archive, Edit, Eye } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  ChevronRight, Plus, ExternalLink, Search, MoreVertical, Users, Building, FolderOpen, 
+  Archive, Edit, Eye, Clock, Star, Filter, Command, Home, ArrowRight, FileText,
+  Phone, Mail, Globe, Calendar, TrendingUp, Activity, Copy
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { CrmService } from '@/services/crmService';
 import { CreateClientForm } from '@/components/crm/forms/CreateClientForm';
 import { CreateAccountForm } from '@/components/crm/forms/CreateAccountForm';
@@ -30,6 +37,15 @@ interface HierarchyNode {
   children: HierarchyNode[];
   spocs: CrmSpoc[];
   data: CrmClient | CrmAccount | CrmProject;
+  updated_at?: string;
+}
+
+interface SmartList {
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  count: number;
+  filter: (nodes: HierarchyNode[]) => HierarchyNode[];
 }
 
 export function ClientDeskPage() {
@@ -47,25 +63,76 @@ export function ClientDeskPage() {
   const [loading, setLoading] = useState(true);
 
   // UI state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [railSearch, setRailSearch] = useState('');
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [selectedNode, setSelectedNode] = useState<HierarchyNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState('overview');
-  const [showRightDrawer, setShowRightDrawer] = useState(false);
-  const [contextEntity, setContextEntity] = useState<any>(null);
+  const [showInspector, setShowInspector] = useState(false);
+  const [inspectorEntity, setInspectorEntity] = useState<any>(null);
+  const [recentEntities, setRecentEntities] = useState<HierarchyNode[]>([]);
+  const [selectedSmartList, setSelectedSmartList] = useState<string>('recents');
 
-  // Form dialogs
+  // Forms
   const [showCreateClient, setShowCreateClient] = useState(false);
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [showCreateSpoc, setShowCreateSpoc] = useState(false);
-  const [editingEntity, setEditingEntity] = useState<any>(null);
+  const [showLinkSpoc, setShowLinkSpoc] = useState(false);
+  const [parentContext, setParentContext] = useState<{ type: string; id: string } | null>(null);
 
-  // Permissions - simplified for now
+  // Permissions
   const canWrite = true; // TODO: Implement proper permission checking
-  const canWriteProjects = true; // TODO: Implement proper permission checking
+
+  // Smart lists configuration
+  const smartLists: SmartList[] = [
+    {
+      id: 'recents',
+      name: 'Recently Viewed',
+      icon: Clock,
+      count: recentEntities.length,
+      filter: () => recentEntities
+    },
+    {
+      id: 'active-projects',
+      name: 'Active Projects', 
+      icon: TrendingUp,
+      count: hierarchy.filter(c => c.children.some(a => a.children.some(p => p.status === 'In-flight'))).length,
+      filter: (nodes) => nodes.filter(c => c.children.some(a => a.children.some(p => p.status === 'In-flight')))
+    },
+    {
+      id: 'needs-attention',
+      name: 'Needs Attention',
+      icon: Star,
+      count: hierarchy.filter(c => c.spocs.length === 0).length,
+      filter: (nodes) => nodes.filter(c => c.spocs.length === 0)
+    }
+  ];
+
+  // Breadcrumb computation
+  const getBreadcrumbs = () => {
+    if (!selectedNode) return [];
+    
+    const breadcrumbs = [];
+    let current = selectedNode;
+    
+    while (current) {
+      breadcrumbs.unshift({
+        id: current.id,
+        name: current.name,
+        type: current.type
+      });
+      
+      if (current.parent) {
+        current = findNodeById(current.parent.replace(/^(client|account|project)-/, ''), hierarchy, true);
+      } else {
+        current = null;
+      }
+    }
+    
+    return breadcrumbs;
+  };
 
   // Load data
   useEffect(() => {
@@ -77,15 +144,48 @@ export function ClientDeskPage() {
     const entityType = searchParams.get('entity');
     const entityId = searchParams.get('id');
     
-    if (entityType && entityId) {
-      // Find and select the entity
-      const node = findNodeById(entityId, hierarchy);
+    if (entityType && entityId && hierarchy.length > 0) {
+      const node = findNodeById(entityId, hierarchy, true);
       if (node) {
         handleSelectNode(node);
-        setActiveTab(entityType);
+        setActiveTab(entityType === 'client' ? 'client' : entityType === 'account' ? 'account' : 'project');
       }
     }
   }, [searchParams, hierarchy]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyboard = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'k':
+            e.preventDefault();
+            document.getElementById('global-search')?.focus();
+            break;
+        }
+      } else {
+        switch (e.key) {
+          case '/':
+            e.preventDefault();
+            document.getElementById('global-search')?.focus();
+            break;
+          case 'n':
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+            e.preventDefault();
+            setShowCreateClient(true);
+            break;
+          case 'e':
+            if (!selectedNode || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+            e.preventDefault();
+            setActiveTab('details');
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyboard);
+    return () => document.removeEventListener('keydown', handleKeyboard);
+  }, [selectedNode]);
 
   const loadData = async () => {
     try {
@@ -94,7 +194,7 @@ export function ClientDeskPage() {
         CrmService.getClients(),
         CrmService.getAccounts(),
         CrmService.getProjects(),
-        CrmService.getAllSpocs() // Get all SPOCs
+        CrmService.getAllSpocs()
       ]);
 
       setClients(clientsData);
@@ -102,7 +202,6 @@ export function ClientDeskPage() {
       setProjects(projectsData);
       setSpocs(spocsData);
 
-      // Build hierarchy
       buildHierarchy(clientsData, accountsData, projectsData, spocsData);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -128,7 +227,8 @@ export function ClientDeskPage() {
         status: client.status,
         children: [],
         spocs: spocs.filter(s => s.client_id === client.id && !s.account_id),
-        data: client
+        data: client,
+        updated_at: client.updated_at
       };
     });
 
@@ -138,16 +238,16 @@ export function ClientDeskPage() {
         id: `account-${account.id}`,
         type: 'account',
         name: account.name,
-        status: 'Active', // Accounts don't have status in current schema
+        status: 'Active',
         parent: `client-${account.client_id}`,
         children: [],
         spocs: spocs.filter(s => s.account_id === account.id),
-        data: account
+        data: account,
+        updated_at: account.updated_at
       };
       
       hierarchyMap[`account-${account.id}`] = accountNode;
       
-      // Add to parent client
       const parentClient = hierarchyMap[`client-${account.client_id}`];
       if (parentClient) {
         parentClient.children.push(accountNode);
@@ -160,17 +260,17 @@ export function ClientDeskPage() {
         id: `project-${project.id}`,
         type: 'project',
         name: project.name,
-        code: `#${project.id.slice(0, 8)}`, // Mock project code
+        code: `#${project.id.slice(0, 8)}`,
         status: project.status || 'Planned',
         parent: project.account_id ? `account-${project.account_id}` : `client-${project.client_id}`,
         children: [],
-        spocs: spocs.filter(s => s.client_id === project.client_id), // Inherit + project-specific
-        data: project
+        spocs: spocs.filter(s => s.client_id === project.client_id),
+        data: project,
+        updated_at: project.updated_at
       };
 
       hierarchyMap[`project-${project.id}`] = projectNode;
 
-      // Add to parent account or client
       const parentAccount = project.account_id ? hierarchyMap[`account-${project.account_id}`] : null;
       const parentClient = hierarchyMap[`client-${project.client_id}`];
       
@@ -185,13 +285,39 @@ export function ClientDeskPage() {
     setHierarchy(rootNodes);
   };
 
-  const findNodeById = (id: string, nodes: HierarchyNode[]): HierarchyNode | null => {
+  const findNodeById = (id: string, nodes: HierarchyNode[], exactMatch = false): HierarchyNode | null => {
     for (const node of nodes) {
-      if (node.id.endsWith(id)) return node;
-      const found = findNodeById(id, node.children);
+      if (exactMatch ? node.id === id : node.id.endsWith(id)) return node;
+      const found = findNodeById(id, node.children, exactMatch);
       if (found) return found;
     }
     return null;
+  };
+
+  const addToRecents = (node: HierarchyNode) => {
+    setRecentEntities(prev => {
+      const filtered = prev.filter(r => r.id !== node.id);
+      return [node, ...filtered].slice(0, 10);
+    });
+  };
+
+  const handleSelectNode = (node: HierarchyNode) => {
+    setSelectedNode(node);
+    setActiveTab('overview');
+    addToRecents(node);
+    
+    // Auto-expand parents
+    let current = node.parent;
+    while (current) {
+      setExpandedNodes(prev => new Set(prev).add(current!));
+      const parentNode = findNodeById(current.replace(/^(client|account|project)-/, ''), hierarchy, true);
+      current = parentNode?.parent;
+    }
+  };
+
+  const handleInspect = (entity: any, type: string) => {
+    setInspectorEntity({ ...entity, type });
+    setShowInspector(true);
   };
 
   const toggleNode = (nodeId: string) => {
@@ -206,35 +332,39 @@ export function ClientDeskPage() {
     });
   };
 
-  const handleSelectNode = (node: HierarchyNode) => {
-    setSelectedNode(node);
-    setActiveTab(node.type);
-    setShowRightDrawer(false);
-  };
-
-  const handleRowClick = (entity: any, type: string) => {
-    setContextEntity({ ...entity, type });
-    setShowRightDrawer(true);
-  };
-
   const handleCreateSuccess = () => {
     loadData();
     setShowCreateClient(false);
     setShowCreateAccount(false);
     setShowCreateProject(false);
     setShowCreateSpoc(false);
-    setEditingEntity(null);
+    setShowLinkSpoc(false);
+    setParentContext(null);
+    toast({
+      title: "Success",
+      description: "Entity created successfully",
+    });
   };
 
-  const filteredHierarchy = hierarchy.filter(node => {
-    if (searchQuery && !node.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+  // Get filtered nodes based on smart list and search
+  const getFilteredNodes = () => {
+    const smartList = smartLists.find(s => s.id === selectedSmartList);
+    let nodes = smartList ? smartList.filter(hierarchy) : hierarchy;
+    
+    if (railSearch) {
+      nodes = nodes.filter(node => 
+        node.name.toLowerCase().includes(railSearch.toLowerCase()) ||
+        node.children.some(child => 
+          child.name.toLowerCase().includes(railSearch.toLowerCase()) ||
+          child.children.some(grandchild => 
+            grandchild.name.toLowerCase().includes(railSearch.toLowerCase())
+          )
+        )
+      );
     }
-    if (statusFilter !== 'all' && node.status !== statusFilter) {
-      return false;
-    }
-    return true;
-  });
+    
+    return nodes;
+  };
 
   const renderHierarchyNode = (node: HierarchyNode, level = 0) => {
     const isExpanded = expandedNodes.has(node.id);
@@ -242,13 +372,13 @@ export function ClientDeskPage() {
     const isSelected = selectedNode?.id === node.id;
 
     return (
-      <div key={node.id} className="select-none">
+      <div key={node.id}>
         <div
           className={cn(
             "flex items-center gap-2 py-2 px-3 rounded-md cursor-pointer group transition-colors",
             "hover:bg-muted/50",
             isSelected && "bg-primary/10 border border-primary/20",
-            level > 0 && "ml-6"
+            level > 0 && "ml-4"
           )}
           onClick={() => handleSelectNode(node)}
         >
@@ -272,53 +402,49 @@ export function ClientDeskPage() {
           {node.type === 'account' && <Users className="h-4 w-4 text-green-500" />}
           {node.type === 'project' && <FolderOpen className="h-4 w-4 text-purple-500" />}
           
-          <span className="flex-1 text-sm font-medium">{node.name}</span>
+          <span className="flex-1 text-sm font-medium truncate">{node.name}</span>
           {node.code && <span className="text-xs text-muted-foreground">{node.code}</span>}
           
-          <Badge variant={node.status === 'Active' ? 'default' : 'secondary'} className="text-xs">
+          <Badge 
+            variant={node.status === 'Active' || node.status === 'In-flight' ? 'default' : 'secondary'} 
+            className="text-xs"
+          >
             {node.status}
           </Badge>
           
           {node.spocs.length > 0 && (
             <div className="flex gap-1">
-              {node.spocs.slice(0, 3).map((spoc, i) => (
+              {node.spocs.slice(0, 2).map((spoc, i) => (
                 <Badge key={i} variant="outline" className="text-xs px-1">
                   {spoc.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </Badge>
               ))}
-              {node.spocs.length > 3 && (
-                <Badge variant="outline" className="text-xs px-1">+{node.spocs.length - 3}</Badge>
+              {node.spocs.length > 2 && (
+                <Badge variant="outline" className="text-xs px-1">+{node.spocs.length - 2}</Badge>
               )}
             </div>
           )}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleInspect(node.data, node.type);
+            }}
+          >
+            <Eye className="h-3 w-3" />
+          </Button>
         </div>
         
         {hasChildren && isExpanded && (
-          <div className="ml-4">
+          <div>
             {node.children.map(child => renderHierarchyNode(child, level + 1))}
           </div>
         )}
       </div>
     );
-  };
-
-  const getTabsForNode = (node: HierarchyNode | null) => {
-    if (!node) return ['overview'];
-    return ['overview', node.type, 'spocs'];
-  };
-
-  const renderEntityForm = (entity: any, type: string) => {
-    if (type === 'client') {
-      return (
-        <CreateClientForm
-          mode="edit"
-          initialData={entity}
-          onSuccess={handleCreateSuccess}
-        />
-      );
-    }
-    // Add other entity forms as needed
-    return <div>Form for {type} not implemented yet</div>;
   };
 
   if (loading) {
@@ -334,367 +460,549 @@ export function ClientDeskPage() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background">
-      {/* Left Pane - Hierarchy */}
-      <div className="w-80 border-r bg-card flex flex-col">
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold">Client Desk</h1>
-            {canWrite && (
-              <Dialog open={showCreateClient} onOpenChange={setShowCreateClient}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-1" />
-                    New Client
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create New Client</DialogTitle>
-                  </DialogHeader>
-                  <CreateClientForm onSuccess={handleCreateSuccess} />
-                </DialogContent>
-              </Dialog>
+      {/* TOP BAR */}
+      <div className="fixed top-16 left-0 right-0 h-14 bg-background border-b z-50 flex items-center px-6 gap-4">
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 flex-1">
+          <Home className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Client Desk</span>
+          {getBreadcrumbs().map((crumb, i) => (
+            <React.Fragment key={crumb.id}>
+              <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-sm"
+                onClick={() => {
+                  const node = findNodeById(crumb.id, hierarchy, true);
+                  if (node) handleSelectNode(node);
+                }}
+              >
+                {crumb.name}
+              </Button>
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Global Search */}
+        <div className="relative w-80">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="global-search"
+            placeholder="Search across clients, accounts, projects, SPOCs... (/ or Ctrl+K)"
+            value={globalSearch}
+            onChange={(e) => setGlobalSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* New Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-1" />
+              New
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => setShowCreateClient(true)}>
+              <Building className="h-4 w-4 mr-2" />
+              New Client
+            </DropdownMenuItem>
+            {selectedNode?.type === 'client' && (
+              <DropdownMenuItem onClick={() => {
+                setParentContext({ type: 'client', id: selectedNode.data.id });
+                setShowCreateAccount(true);
+              }}>
+                <Users className="h-4 w-4 mr-2" />
+                New Account
+              </DropdownMenuItem>
             )}
+            {(selectedNode?.type === 'account' || selectedNode?.type === 'client') && (
+              <DropdownMenuItem onClick={() => {
+                setParentContext({ 
+                  type: selectedNode.type, 
+                  id: selectedNode.data.id 
+                });
+                setShowCreateProject(true);
+              }}>
+                <FolderOpen className="h-4 w-4 mr-2" />
+                New Project
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setShowLinkSpoc(true)}>
+              <Users className="h-4 w-4 mr-2" />
+              Link SPOC
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Help */}
+        <Button variant="ghost" size="sm">
+          <Command className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* MAIN LAYOUT - ADJUSTED FOR TOP BAR */}
+      <div className="flex w-full pt-14">
+        {/* LEFT RAIL */}
+        <div className="w-80 border-r bg-card flex flex-col">
+          {/* Smart Lists */}
+          <div className="p-4 border-b">
+            <Label className="text-xs font-medium text-muted-foreground uppercase">Smart Lists</Label>
+            <div className="mt-2 space-y-1">
+              {smartLists.map(list => (
+                <Button
+                  key={list.id}
+                  variant={selectedSmartList === list.id ? "secondary" : "ghost"}
+                  className="w-full justify-start h-8"
+                  onClick={() => setSelectedSmartList(list.id)}
+                >
+                  <list.icon className="h-4 w-4 mr-2" />
+                  <span className="flex-1 text-left">{list.name}</span>
+                  <Badge variant="outline" className="text-xs">{list.count}</Badge>
+                </Button>
+              ))}
+            </div>
           </div>
-          
-          {/* Filters */}
-          <div className="space-y-2">
+
+          {/* Search & Filters */}
+          <div className="p-4 border-b">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                placeholder="Filter current view..."
+                value={railSearch}
+                onChange={(e) => setRailSearch(e.target.value)}
+                className="pl-10 h-8"
               />
             </div>
-            
-            <div className="flex gap-2">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="client">Clients</SelectItem>
-                  <SelectItem value="account">Accounts</SelectItem>
-                  <SelectItem value="project">Projects</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                  <SelectItem value="Planned">Planned</SelectItem>
-                  <SelectItem value="Closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+
+          {/* Hierarchy */}
+          <div className="flex-1 overflow-y-auto p-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase mb-2 block">
+              {selectedSmartList === 'recents' ? 'Recent Entities' : 'Client Hierarchy'}
+            </Label>
+            {getFilteredNodes().map(node => renderHierarchyNode(node))}
           </div>
         </div>
-        
-        {/* Hierarchy Tree */}
-        <div className="flex-1 overflow-y-auto p-2">
-          {filteredHierarchy.map(node => renderHierarchyNode(node))}
-        </div>
-      </div>
 
-      {/* Main Pane - Tabs */}
-      <div className="flex-1 flex flex-col">
-        {selectedNode ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <div className="border-b p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  {selectedNode.type === 'client' && <Building className="h-5 w-5 text-blue-500" />}
-                  {selectedNode.type === 'account' && <Users className="h-5 w-5 text-green-500" />}
-                  {selectedNode.type === 'project' && <FolderOpen className="h-5 w-5 text-purple-500" />}
-                  <h2 className="text-lg font-semibold">{selectedNode.name}</h2>
-                  {selectedNode.code && <span className="text-sm text-muted-foreground">{selectedNode.code}</span>}
+        {/* CENTER WORKBENCH */}
+        <div className="flex-1 flex flex-col">
+          {selectedNode ? (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+              <div className="border-b p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    {selectedNode.type === 'client' && <Building className="h-6 w-6 text-blue-500" />}
+                    {selectedNode.type === 'account' && <Users className="h-6 w-6 text-green-500" />}
+                    {selectedNode.type === 'project' && <FolderOpen className="h-6 w-6 text-purple-500" />}
+                    <div>
+                      <h2 className="text-xl font-semibold">{selectedNode.name}</h2>
+                      {selectedNode.code && <p className="text-sm text-muted-foreground">{selectedNode.code}</p>}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {selectedNode.type === 'project' && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => navigate(`/Projects/Board?projectId=${selectedNode.data.id}`)}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open in Project Board
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  {selectedNode.type === 'project' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => navigate(`/Projects/Board?projectId=${selectedNode.data.id}`)}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Open in Project Board
-                    </Button>
-                  )}
-                  
-                  {canWrite && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => setEditingEntity(selectedNode.data)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Archive className="h-4 w-4 mr-2" />
-                          Archive
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
+                <TabsList className="grid w-full max-w-md grid-cols-5">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="spocs">SPOCs</TabsTrigger>
+                  <TabsTrigger value="files">Files</TabsTrigger>
+                  <TabsTrigger value="activity">Activity</TabsTrigger>
+                </TabsList>
               </div>
               
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value={selectedNode.type} className="capitalize">{selectedNode.type}</TabsTrigger>
-                <TabsTrigger value="spocs">SPOCs</TabsTrigger>
-                <TabsTrigger value="actions">Actions</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              <TabsContent value="overview" className="p-4">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Quick Stats</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Status:</span>
-                          <Badge variant="outline">{selectedNode.status}</Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>SPOCs:</span>
-                          <span>{selectedNode.spocs.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Children:</span>
-                          <span>{selectedNode.children.length}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">No recent activity</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Quick Links</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {selectedNode.type === 'project' && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full justify-start"
-                            onClick={() => navigate(`/Projects/Board?projectId=${selectedNode.data.id}`)}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Project Board
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          SharePoint
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value={selectedNode.type} className="p-4">
-                {editingEntity && editingEntity.id === selectedNode.data.id ? (
-                  renderEntityForm(editingEntity, selectedNode.type)
-                ) : (
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium capitalize">{selectedNode.type} Details</h3>
-                      {canWrite && (
-                        <Button onClick={() => setEditingEntity(selectedNode.data)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                      )}
-                    </div>
+              <div className="flex-1 overflow-y-auto">
+                <TabsContent value="overview" className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Accounts</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">{selectedNode.children.filter(c => c.type === 'account').length}</p>
+                        <p className="text-xs text-muted-foreground">Active accounts</p>
+                      </CardContent>
+                    </Card>
                     
                     <Card>
-                      <CardContent className="pt-6">
-                        <pre className="text-sm whitespace-pre-wrap">
-                          {JSON.stringify(selectedNode.data, null, 2)}
-                        </pre>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Projects</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">
+                          {selectedNode.children.reduce((sum, acc) => sum + acc.children.length, 0)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Total projects</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">SPOCs</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">{selectedNode.spocs.length}</p>
+                        <p className="text-xs text-muted-foreground">Contact points</p>
                       </CardContent>
                     </Card>
                   </div>
-                )}
-              </TabsContent>
 
-              <TabsContent value="spocs" className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">SPOCs</h3>
-                  {canWrite && (
-                    <Dialog open={showCreateSpoc} onOpenChange={setShowCreateSpoc}>
-                      <DialogTrigger asChild>
-                        <Button>
+                  {/* People Panel */}
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">People</CardTitle>
+                        <Button size="sm" onClick={() => setShowLinkSpoc(true)}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Link SPOC
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedNode.spocs.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedNode.spocs.slice(0, 6).map(spoc => (
+                            <div key={spoc.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                <span className="text-sm font-medium">
+                                  {spoc.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium">{spoc.name}</p>
+                                <p className="text-sm text-muted-foreground">{spoc.email}</p>
+                              </div>
+                              <div className="flex gap-1">
+                                <Badge variant="outline" className="text-xs">Finance</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No SPOCs linked</p>
+                          <Button size="sm" className="mt-2" onClick={() => setShowLinkSpoc(true)}>
+                            Link First SPOC
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Actions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {selectedNode.type === 'client' && (
+                          <Button 
+                            variant="outline" 
+                            className="h-16 flex-col gap-2"
+                            onClick={() => {
+                              setParentContext({ type: 'client', id: selectedNode.data.id });
+                              setShowCreateAccount(true);
+                            }}
+                          >
+                            <Plus className="h-5 w-5" />
+                            Add Account
+                          </Button>
+                        )}
+                        {(selectedNode.type === 'account' || selectedNode.type === 'client') && (
+                          <Button 
+                            variant="outline" 
+                            className="h-16 flex-col gap-2"
+                            onClick={() => {
+                              setParentContext({ type: selectedNode.type, id: selectedNode.data.id });
+                              setShowCreateProject(true);
+                            }}
+                          >
+                            <Plus className="h-5 w-5" />
+                            Add Project
+                          </Button>
+                        )}
+                        <Button variant="outline" className="h-16 flex-col gap-2">
+                          <FileText className="h-5 w-5" />
+                          View Files
+                        </Button>
+                        <Button variant="outline" className="h-16 flex-col gap-2">
+                          <Activity className="h-5 w-5" />
+                          View Activity
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="details" className="p-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Entity Details</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Name</Label>
+                          <Input value={selectedNode.name} className="mt-1" />
+                        </div>
+                        <div>
+                          <Label>Status</Label>
+                          <Select value={selectedNode.status}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Active">Active</SelectItem>
+                              <SelectItem value="Inactive">Inactive</SelectItem>
+                              <SelectItem value="Planned">Planned</SelectItem>
+                              <SelectItem value="Closed">Closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {selectedNode.type === 'client' && (
+                          <>
+                            <div>
+                              <Label>Industry</Label>
+                              <Input value={(selectedNode.data as CrmClient).industry || ''} className="mt-1" />
+                            </div>
+                            <div>
+                              <Label>Location</Label>
+                              <Input value={(selectedNode.data as CrmClient).location || ''} className="mt-1" />
+                            </div>
+                          </>
+                        )}
+                        <Button>Save Changes</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="spocs" className="p-6">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>SPOCs</CardTitle>
+                        <Button onClick={() => setShowLinkSpoc(true)}>
                           <Plus className="h-4 w-4 mr-2" />
                           Link SPOC
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Link SPOC</DialogTitle>
-                        </DialogHeader>
-                        <CreateSpocForm
-                          clientId={selectedNode.type === 'client' ? selectedNode.data.id : undefined}
-                          accountId={selectedNode.type === 'account' ? selectedNode.data.id : undefined}
-                          onSuccess={handleCreateSuccess}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </div>
-                
-                <div className="grid gap-4">
-                  {selectedNode.spocs.map(spoc => (
-                    <Card key={spoc.id} className="cursor-pointer" onClick={() => handleRowClick(spoc, 'spoc')}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium">{spoc.name}</h4>
-                            <p className="text-sm text-muted-foreground">{spoc.email}</p>
-                            <p className="text-sm text-muted-foreground">{spoc.role}</p>
-                          </div>
-                          <div className="flex gap-1">
-                            {spoc.is_primary && <Badge variant="default">Primary</Badge>}
-                            <Badge variant="outline">Active</Badge>
-                          </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedNode.spocs.length > 0 ? (
+                        <div className="space-y-4">
+                          {selectedNode.spocs.map(spoc => (
+                            <div key={spoc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                                  <span className="font-medium">
+                                    {spoc.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="font-medium">{spoc.name}</p>
+                                  <p className="text-sm text-muted-foreground">{spoc.email}</p>
+                                  <p className="text-sm text-muted-foreground">{spoc.phone}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex gap-1">
+                                  <Badge variant="outline">Finance</Badge>
+                                  <Badge variant="outline">Project</Badge>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="sm">
+                                    <Phone className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm">
+                                    <Mail className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
+                      ) : (
+                        <div className="text-center py-12">
+                          <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-medium mb-2">No SPOCs linked</h3>
+                          <p className="text-muted-foreground mb-4">Link contacts to manage communication</p>
+                          <Button onClick={() => setShowLinkSpoc(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Link First SPOC
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <TabsContent value="actions" className="p-4">
-                <div className="space-y-4">
-                  {selectedNode.type === 'client' && canWrite && (
-                    <Dialog open={showCreateAccount} onOpenChange={setShowCreateAccount}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full justify-start">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Account
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Create Account</DialogTitle>
-                        </DialogHeader>
-                        <CreateAccountForm
-                          clientId={selectedNode.data.id}
-                          spocs={selectedNode.spocs}
-                          onSuccess={handleCreateSuccess}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                  
-                  {selectedNode.type === 'account' && canWriteProjects && (
-                    <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full justify-start">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Project
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-3xl">
-                        <DialogHeader>
-                          <DialogTitle>Create Project</DialogTitle>
-                        </DialogHeader>
-                        <CreateProjectForm
-                          clientId={(selectedNode.data as CrmAccount).client_id}
-                          accounts={[selectedNode.data as CrmAccount]}
-                          spocs={selectedNode.spocs}
-                          onSuccess={handleCreateSuccess}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </div>
-              </TabsContent>
+                <TabsContent value="files" className="p-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Files & Documents</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No files uploaded</h3>
+                        <p className="text-muted-foreground">Upload documents and files for this {selectedNode.type}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="activity" className="p-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Activity Timeline</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <Activity className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No activity yet</h3>
+                        <p className="text-muted-foreground">Activity timeline will appear here</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </div>
+            </Tabs>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <Building className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h2 className="text-2xl font-semibold mb-2">Welcome to Client Desk</h2>
+                <p className="text-muted-foreground mb-6">Select a client, account, or project to get started</p>
+                <Button onClick={() => setShowCreateClient(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Your First Client
+                </Button>
+              </div>
             </div>
-          </Tabs>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Select an Entity</h3>
-              <p className="text-muted-foreground">Choose a client, account, or project from the hierarchy to view details.</p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Right Drawer - Context */}
-      <Sheet open={showRightDrawer} onOpenChange={setShowRightDrawer}>
-        <SheetContent side="right" className="w-96">
+      {/* RIGHT INSPECTOR */}
+      <Sheet open={showInspector} onOpenChange={setShowInspector}>
+        <SheetContent className="w-96">
           <SheetHeader>
-            <SheetTitle>
-              {contextEntity?.type && (
-                <div className="flex items-center gap-2">
-                  {contextEntity.type === 'client' && <Building className="h-5 w-5" />}
-                  {contextEntity.type === 'account' && <Users className="h-5 w-5" />}
-                  {contextEntity.type === 'project' && <FolderOpen className="h-5 w-5" />}
-                  {contextEntity?.name}
-                </div>
-              )}
-            </SheetTitle>
+            <SheetTitle>Inspector</SheetTitle>
           </SheetHeader>
-          
-          {contextEntity && (
-            <div className="mt-6 space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="text-xs whitespace-pre-wrap">
-                    {JSON.stringify(contextEntity, null, 2)}
-                  </pre>
-                </CardContent>
-              </Card>
-              
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Eye className="h-4 w-4 mr-1" />
-                  View
-                </Button>
+          {inspectorEntity && (
+            <div className="mt-6 space-y-6">
+              {/* Parent Chain */}
+              <div>
+                <Label className="text-sm font-medium">Parent Chain</Label>
+                <div className="mt-2 p-3 bg-muted rounded-lg">
+                  <p className="text-sm">Client → Account → Project</p>
+                </div>
+              </div>
+
+              {/* Key Fields */}
+              <div>
+                <Label className="text-sm font-medium">Key Information</Label>
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <Badge variant="default">{inspectorEntity.status || 'Active'}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Type</span>
+                    <span className="text-sm capitalize">{inspectorEntity.type}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div>
+                <Label className="text-sm font-medium">Quick Actions</Label>
+                <div className="mt-2 space-y-2">
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open in Project Board
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Globe className="h-4 w-4 mr-2" />
+                    Open SharePoint
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Details
+                  </Button>
+                </div>
               </div>
             </div>
           )}
         </SheetContent>
       </Sheet>
+
+      {/* CREATE DIALOGS */}
+      <Dialog open={showCreateClient} onOpenChange={setShowCreateClient}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Client</DialogTitle>
+          </DialogHeader>
+          <CreateClientForm onSuccess={handleCreateSuccess} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateAccount} onOpenChange={setShowCreateAccount}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Account</DialogTitle>
+          </DialogHeader>
+          <CreateAccountForm 
+            clientId={parentContext?.type === 'client' ? parentContext.id : ''}
+            spocs={spocs}
+            onSuccess={handleCreateSuccess} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+          </DialogHeader>
+          <CreateProjectForm 
+            clientId={parentContext?.type === 'client' ? parentContext.id : 
+                     (parentContext?.type === 'account' ? 
+                       accounts.find(a => a.id === parentContext.id)?.client_id || '' : '')}
+            accounts={accounts}
+            spocs={spocs}
+            onSuccess={handleCreateSuccess} 
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showLinkSpoc} onOpenChange={setShowLinkSpoc}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Link SPOC</DialogTitle>
+          </DialogHeader>
+          <CreateSpocForm onSuccess={handleCreateSuccess} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
