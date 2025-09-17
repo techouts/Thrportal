@@ -19,6 +19,7 @@ import { OneOnOnesTab } from '@/features/performance/components/employee/OneOnOn
 import { ReviewsTab } from '@/features/performance/components/employee/ReviewsTab'
 import { FeedbackTab } from '@/features/performance/components/employee/FeedbackTab'
 import { PIPTab } from '@/features/performance/components/employee/PIPTab'
+import LeavePage from '@/pages/Me/LeavePage'
 import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star, FileText, AlertTriangle } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
@@ -382,7 +383,7 @@ export default function MePage({ defaultTab }: MePageProps) {
       case 'Attendance':
         return renderAttendance()
       case 'Leave':
-        return renderGenericTab('Leave', ['Apply', 'Balance', 'History'])
+        return <LeavePage />
       case 'Timesheet':
         return (
           <div className="min-h-screen">

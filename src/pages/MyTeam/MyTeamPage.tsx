@@ -8,6 +8,7 @@ import { TeamGoalsTab } from '@/features/performance/components/manager/TeamGoal
 import { TeamReviewsTab } from '@/features/performance/components/manager/TeamReviewsTab'
 import { PeerFeedbackTab } from '@/features/performance/components/manager/PeerFeedbackTab'
 import { TeamPIPTab } from '@/features/performance/components/manager/TeamPIPTab'
+import MyTeamLeavePage from '@/pages/MyTeam/LeavePage'
 // Import My Team Components
 import { DashboardMetrics } from '@/components/myteam/DashboardMetrics'
 import { ExpensesDashboard } from '@/components/myteam/ExpensesDashboard'
@@ -329,6 +330,10 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
       );
     }
     
+    if (defaultTab === 'Leave') {
+      return <MyTeamLeavePage />;
+    }
+
     return (
       <Card>
         <CardHeader>
