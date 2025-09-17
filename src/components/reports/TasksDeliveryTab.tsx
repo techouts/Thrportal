@@ -133,7 +133,7 @@ export function TasksDeliveryTab() {
           icon={<Clock className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 3.2,
+            value: '3.2',
             label: 'vs last month'
           }}
           badge={{
@@ -148,7 +148,7 @@ export function TasksDeliveryTab() {
           icon={<CheckCircle className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 12.1,
+            value: '12.1',
             label: 'vs last month'
           }}
         />
@@ -159,7 +159,7 @@ export function TasksDeliveryTab() {
           icon={<TrendingUp className="h-4 w-4" />}
           trend={{
             direction: 'down',
-            value: 4.5,
+            value: '4.5',
             label: 'vs last month'
           }}
           badge={{
@@ -174,7 +174,7 @@ export function TasksDeliveryTab() {
           icon={<Calendar className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 1.8,
+            value: '1.8',
             label: 'vs last month'
           }}
         />

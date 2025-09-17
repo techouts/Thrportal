@@ -101,7 +101,7 @@ export function UtilizationTab() {
           icon={<Target className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 2.3,
+            value: '2.3',
             label: 'vs last month'
           }}
           badge={{
@@ -116,7 +116,7 @@ export function UtilizationTab() {
           icon={<TrendingUp className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 1.8,
+            value: '1.8',
             label: 'vs last month'
           }}
         />

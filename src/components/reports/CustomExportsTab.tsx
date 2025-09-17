@@ -270,7 +270,7 @@ export function CustomExportsTab() {
                 <Checkbox
                   id="include-shadow"
                   checked={includeShadow}
-                  onCheckedChange={setIncludeShadow}
+                  onCheckedChange={(checked) => setIncludeShadow(checked === true)}
                 />
                 <Label htmlFor="include-shadow">Include Shadow allocations</Label>
               </div>

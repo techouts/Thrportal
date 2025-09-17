@@ -98,7 +98,7 @@ export function FinancialsTab() {
           icon={<TrendingDown className="h-4 w-4" />}
           trend={{
             direction: 'down',
-            value: 7.0,
+            value: '7.0',
             label: 'vs planned'
           }}
           badge={{
@@ -113,7 +113,7 @@ export function FinancialsTab() {
           icon={<DollarSign className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 12.5,
+            value: '12.5',
             label: 'vs last quarter'
           }}
         />
@@ -124,7 +124,7 @@ export function FinancialsTab() {
           icon={<AlertCircle className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 8.3,
+            value: '8.3',
             label: 'vs last quarter'
           }}
         />
@@ -135,7 +135,7 @@ export function FinancialsTab() {
           icon={<TrendingUp className="h-4 w-4" />}
           trend={{
             direction: 'down',
-            value: 2.1,
+            value: '2.1',
             label: 'vs last quarter'
           }}
         />

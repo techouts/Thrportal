@@ -111,7 +111,7 @@ export function ResourceBurnTab() {
           icon={<Clock className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 2.1,
+            value: '2.1',
             label: 'vs last week'
           }}
         />
@@ -122,7 +122,7 @@ export function ResourceBurnTab() {
           icon={<CheckCircle className="h-4 w-4" />}
           trend={{
             direction: 'down',
-            value: 1.3,
+            value: '1.3',
             label: 'vs last week'
           }}
           badge={{

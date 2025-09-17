@@ -64,7 +64,7 @@ export function ScorecardPanel({ type, data }: ScorecardPanelProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-red-500" />
-              <span className="text-sm">Overallocated (>100%)</span>
+              <span className="text-sm">Overallocated (&gt;100%)</span>
             </div>
             <Badge variant={data.overAllocated > 0 ? "destructive" : "secondary"}>
               {data.overAllocated}

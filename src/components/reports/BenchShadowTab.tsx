@@ -103,7 +103,7 @@ export function BenchShadowTab() {
           icon={<Users className="h-4 w-4" />}
           trend={{
             direction: 'down',
-            value: 12.5,
+            value: '12.5',
             label: 'vs last month'
           }}
           badge={{
@@ -118,7 +118,7 @@ export function BenchShadowTab() {
           icon={<Clock className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 3.2,
+            value: '3.2',
             label: 'vs last month'
           }}
           badge={{
@@ -133,7 +133,7 @@ export function BenchShadowTab() {
           icon={<DollarSign className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 8.5,
+            value: '8.5',
             label: 'vs last month'
           }}
         />
@@ -144,7 +144,7 @@ export function BenchShadowTab() {
           icon={<TrendingUp className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 2.1,
+            value: '2.1',
             label: 'vs last month'
           }}
         />
@@ -155,7 +155,7 @@ export function BenchShadowTab() {
           icon={<Calendar className="h-4 w-4" />}
           trend={{
             direction: 'up',
-            value: 5.3,
+            value: '5.3',
             label: 'vs last month'
           }}
           badge={{
