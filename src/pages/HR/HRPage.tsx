@@ -8,6 +8,8 @@ import { CompanyGoalsTab } from '@/features/performance/components/hr/CompanyGoa
 import { DepartmentGoalsTab } from '@/features/performance/components/hr/DepartmentGoalsTab'
 import { PeriodsTab } from '@/features/performance/components/hr/PeriodsTab'
 import { HRReviewsTab } from '@/features/performance/components/hr/HRReviewsTab'
+import HRLearningPage from '@/pages/HR/LearningPage'
+import HRRecognitionPage from '@/pages/HR/RecognitionPage'
 import { Building, Building2, Calendar, BarChart3 } from "lucide-react"
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
@@ -156,6 +158,14 @@ export default function HRPage({ defaultTab }: HRPageProps) {
   const renderContent = () => {
     if (defaultTab === 'Performance') {
       return renderPerformance();
+    }
+
+    if (defaultTab === 'Learning') {
+      return <HRLearningPage />;
+    }
+
+    if (defaultTab === 'Recognition') {
+      return <HRRecognitionPage />;
     }
     
     return (

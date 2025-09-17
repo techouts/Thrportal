@@ -20,7 +20,10 @@ import { ReviewsTab } from '@/features/performance/components/employee/ReviewsTa
 import { FeedbackTab } from '@/features/performance/components/employee/FeedbackTab'
 import { PIPTab } from '@/features/performance/components/employee/PIPTab'
 import LeavePage from '@/pages/Me/LeavePage'
-import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star, FileText, AlertTriangle } from 'lucide-react'
+import LearningPage from '@/pages/Me/LearningPage'
+import RecognitionPage from '@/pages/Me/RecognitionPage'
+import FinancePage from '@/pages/Me/FinancePage'
+import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star, FileText, AlertTriangle, HelpCircle, Briefcase } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
 
@@ -36,10 +39,12 @@ const tabConfig = {
   Timesheet: { icon: Clock, description: 'Time logging and reports' },
   Expenses: { icon: DollarSign, description: 'Expense management' },
   Performance: { icon: Target, description: 'Goals and reviews' },
-  IJP: { icon: TrendingUp, description: 'Internal job postings' },
+  IJP: { icon: Briefcase, description: 'Internal job postings' },
   Referrals: { icon: Users, description: 'Employee referrals' },
   Learning: { icon: Lightbulb, description: 'Training and development' },
-  Helpdesk: { icon: MessageSquare, description: 'Support tickets' }
+  Recognition: { icon: Star, description: 'Employee recognition' },
+  Finance: { icon: DollarSign, description: 'Payroll and tax management' },
+  Helpdesk: { icon: HelpCircle, description: 'Support tickets' }
 }
 
 export default function MePage({ defaultTab }: MePageProps) {
@@ -390,16 +395,20 @@ export default function MePage({ defaultTab }: MePageProps) {
             <TimesheetModule employeeId="demo-user" />
           </div>
         )
-      case 'Expenses':
-        return renderGenericTab('Expenses', ['Submit', 'Imports', 'History'])
       case 'Performance':
         return renderPerformance()
+      case 'Learning':
+        return <LearningPage />
+      case 'Recognition':
+        return <RecognitionPage />
+      case 'Finance':
+        return <FinancePage />
+      case 'Expenses':
+        return renderGenericTab('Expenses', ['Submit', 'Imports', 'History'])
       case 'IJP':
         return renderGenericTab('IJP', ['Browse', 'My Applications'])
       case 'Referrals':
         return renderGenericTab('Referrals', ['Refer', 'Status'])
-      case 'Learning':
-        return renderGenericTab('Learning', ['Requests', 'Assigned', 'Completed'])
       case 'Helpdesk':
         return renderGenericTab('Helpdesk', ['New Ticket', 'My Tickets', 'FAQs'])
       default:

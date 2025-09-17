@@ -5,6 +5,14 @@ interface ModuleSpec {
   promptStatus: 'pending' | 'processing' | 'completed' | 'failed'
   lastUpdated: string
   description?: string
+  // Integration tracking
+  isIntegrated?: boolean
+  integrationStatus?: 'not-started' | 'in-progress' | 'completed' | 'verified'
+  integrationNotes?: string
+  // Component tracking
+  hasPageComponent?: boolean
+  hasServiceLayer?: boolean
+  followsServicePattern?: boolean
 }
 
 class ModuleRegistry {
