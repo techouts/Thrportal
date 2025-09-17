@@ -23,6 +23,10 @@ import LeavePage from '@/pages/Me/LeavePage'
 import LearningPage from '@/pages/Me/LearningPage'
 import RecognitionPage from '@/pages/Me/RecognitionPage'
 import FinancePage from '@/pages/Me/FinancePage'
+import ExpensesPage from '@/pages/Me/ExpensesPage'
+import IJPPage from '@/pages/Me/IJPPage'
+import ReferralsPage from '@/pages/Me/ReferralsPage'
+import HelpdeskPage from '@/pages/Me/HelpdeskPage'
 import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star, FileText, AlertTriangle, HelpCircle, Briefcase } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
@@ -409,13 +413,13 @@ export default function MePage({ defaultTab }: MePageProps) {
       case 'Finance':
         return <FinancePage />
       case 'Expenses':
-        return renderGenericTab('Expenses', ['Submit', 'Imports', 'History'])
+        return <ExpensesPage />
       case 'IJP':
-        return renderGenericTab('IJP', ['Browse', 'My Applications'])
+        return <IJPPage />
       case 'Referrals':
-        return renderGenericTab('Referrals', ['Refer', 'Status'])
+        return <ReferralsPage />
       case 'Helpdesk':
-        return renderGenericTab('Helpdesk', ['New Ticket', 'My Tickets', 'FAQs'])
+        return <HelpdeskPage />
       default:
         return renderDashboard()
     }

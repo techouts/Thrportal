@@ -11,6 +11,8 @@ import { TeamPIPTab } from '@/features/performance/components/manager/TeamPIPTab
 import MyTeamLeavePage from '@/pages/MyTeam/LeavePage'
 import MyTeamLearningPage from '@/pages/MyTeam/LearningPage'
 import MyTeamRecognitionPage from '@/pages/MyTeam/RecognitionPage'
+import TeamExpensesPage from '@/pages/MyTeam/ExpensesPage'
+import MyTeamIJPPage from '@/pages/MyTeam/IJPPage'
 // Import My Team Components
 import { DashboardMetrics } from '@/components/myteam/DashboardMetrics'
 import { ExpensesDashboard } from '@/components/myteam/ExpensesDashboard'
@@ -266,27 +268,7 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
     }
 
     if (defaultTab === 'Expenses') {
-      return (
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="approvals">Approvals</TabsTrigger>
-          </TabsList>
-          <TabsContent value="dashboard">
-            <ExpensesDashboard metrics={metrics} loading={loading} />
-          </TabsContent>
-          <TabsContent value="approvals">
-            <ApprovalQueues 
-              approvals={approvals.filter(a => a.type === 'expense')}
-              loading={loading}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onBulkApprove={handleBulkApprove}
-              onBulkReject={handleBulkReject}
-            />
-          </TabsContent>
-        </Tabs>
-      );
+      return <TeamExpensesPage />;
     }
 
     if (defaultTab === 'Timesheet') {
@@ -345,8 +327,9 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
       return <MyTeamLearningPage />;
     }
 
-    if (defaultTab === 'Recognition') {
-      return <MyTeamRecognitionPage />;
+    
+    if (defaultTab === 'IJP') {
+      return <MyTeamIJPPage />;
     }
 
     return (

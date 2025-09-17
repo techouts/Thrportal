@@ -10,6 +10,9 @@ import { PeriodsTab } from '@/features/performance/components/hr/PeriodsTab'
 import { HRReviewsTab } from '@/features/performance/components/hr/HRReviewsTab'
 import HRLearningPage from '@/pages/HR/LearningPage'
 import HRRecognitionPage from '@/pages/HR/RecognitionPage'
+import HRExpensesPage from '@/pages/HR/ExpensesPage'
+import HRIJPPage from '@/pages/HR/IJPPage'
+import HRHelpdeskPage from '@/pages/HR/HelpdeskPage'
 import { Building, Building2, Calendar, BarChart3 } from "lucide-react"
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
@@ -171,6 +174,18 @@ export default function HRPage({ defaultTab }: HRPageProps) {
 
     if (defaultTab === 'Recognition') {
       return <HRRecognitionPage />;
+    }
+
+    if (defaultTab === 'Expenses') {
+      return <HRExpensesPage />;
+    }
+
+    if (defaultTab === 'IJP') {
+      return <HRIJPPage />;
+    }
+
+    if (defaultTab === 'Helpdesk') {
+      return <HRHelpdeskPage />;
     }
     
     return (
