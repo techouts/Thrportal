@@ -154,6 +154,36 @@ export function HRSidebar() {
           if (!sectionVisibility?.visible) return null
 
           const SectionIcon = getIconForSection(section.label)
+          
+          // Handle direct navigation sections (like Home)
+          if (section.route && !section.items) {
+            const isActive = isRouteActive(section.route)
+
+            return (
+              <SidebarGroup key={section.label}>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={section.route}
+                          className={cn(
+                            "flex h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent",
+                            isActive && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+                          )}
+                        >
+                          <SectionIcon className="h-4 w-4" />
+                          {!collapsed && <span>{section.label}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )
+          }
+
+          // Handle sections with items (collapsible)
           const isExpanded = expandedSections[section.label]
           const hasActiveRoute = section.items?.some(item => 
             isRouteActive(item.route)

@@ -7,15 +7,14 @@ export type MenuItem = {
 export type MenuSection = { 
   label: string; 
   requiresAny?: string[]; 
-  items?: MenuItem[] 
+  items?: MenuItem[];
+  route?: string;
 };
 
 export const MENU: MenuSection[] = [
   { 
     label: "Home", 
-    items: [ 
-      { label: "Home", route: "/Home" } 
-    ] 
+    route: "/Home"
   },
   { 
     label: "Me", 
