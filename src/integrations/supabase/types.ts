@@ -734,6 +734,63 @@ export type Database = {
           },
         ]
       }
+      interview_slots: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string
+          date: string
+          from_time: string
+          id: string
+          invite_id: string | null
+          jd_id: string | null
+          mode: Database["public"]["Enums"]["interview_mode"]
+          notes: string | null
+          panel_text: string | null
+          project_id: string
+          status: Database["public"]["Enums"]["slot_status"]
+          to_time: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by: string
+          date: string
+          from_time: string
+          id?: string
+          invite_id?: string | null
+          jd_id?: string | null
+          mode?: Database["public"]["Enums"]["interview_mode"]
+          notes?: string | null
+          panel_text?: string | null
+          project_id: string
+          status?: Database["public"]["Enums"]["slot_status"]
+          to_time: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          date?: string
+          from_time?: string
+          id?: string
+          invite_id?: string | null
+          jd_id?: string | null
+          mode?: Database["public"]["Enums"]["interview_mode"]
+          notes?: string | null
+          panel_text?: string | null
+          project_id?: string
+          status?: Database["public"]["Enums"]["slot_status"]
+          to_time?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       invoice_lines: {
         Row: {
           amount: number
@@ -1329,6 +1386,94 @@ export type Database = {
         }
         Relationships: []
       }
+      slot_assignments: {
+        Row: {
+          booked_at: string
+          candidate_email: string | null
+          candidate_name: string
+          candidate_phone: string | null
+          id: string
+          notes: string | null
+          panel_text: string | null
+          recruiter_id: string
+          slot_id: string
+        }
+        Insert: {
+          booked_at?: string
+          candidate_email?: string | null
+          candidate_name: string
+          candidate_phone?: string | null
+          id?: string
+          notes?: string | null
+          panel_text?: string | null
+          recruiter_id: string
+          slot_id: string
+        }
+        Update: {
+          booked_at?: string
+          candidate_email?: string | null
+          candidate_name?: string
+          candidate_phone?: string | null
+          id?: string
+          notes?: string | null
+          panel_text?: string | null
+          recruiter_id?: string
+          slot_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slot_assignments_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: true
+            referencedRelation: "interview_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      slot_change_log: {
+        Row: {
+          action: Database["public"]["Enums"]["slot_action"]
+          actor_id: string
+          details: Json | null
+          id: string
+          no_show_type: Database["public"]["Enums"]["no_show_type"] | null
+          reason_code: string | null
+          reason_text: string | null
+          slot_id: string
+          timestamp: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["slot_action"]
+          actor_id: string
+          details?: Json | null
+          id?: string
+          no_show_type?: Database["public"]["Enums"]["no_show_type"] | null
+          reason_code?: string | null
+          reason_text?: string | null
+          slot_id: string
+          timestamp?: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["slot_action"]
+          actor_id?: string
+          details?: Json | null
+          id?: string
+          no_show_type?: Database["public"]["Enums"]["no_show_type"] | null
+          reason_code?: string | null
+          reason_text?: string | null
+          slot_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slot_change_log_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "interview_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sow_po_allocations: {
         Row: {
           allocated_amount: number
@@ -1474,6 +1619,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_expire_slots: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1495,8 +1644,20 @@ export type Database = {
         | "changes_requested"
         | "skipped"
       contract_status: "draft" | "active" | "expired" | "terminated"
+      interview_mode: "virtual" | "onsite"
       invoice_status: "draft" | "submitted" | "approved" | "paid" | "rejected"
+      no_show_type: "candidate" | "panel" | "both"
       parser_status: "pending" | "success" | "failed" | "manual"
+      slot_action:
+        | "created"
+        | "assigned"
+        | "used"
+        | "no_show"
+        | "rescheduled"
+        | "expired"
+        | "cancelled"
+        | "edited"
+      slot_status: "available" | "booked" | "used" | "expired" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1641,8 +1802,21 @@ export const Constants = {
         "skipped",
       ],
       contract_status: ["draft", "active", "expired", "terminated"],
+      interview_mode: ["virtual", "onsite"],
       invoice_status: ["draft", "submitted", "approved", "paid", "rejected"],
+      no_show_type: ["candidate", "panel", "both"],
       parser_status: ["pending", "success", "failed", "manual"],
+      slot_action: [
+        "created",
+        "assigned",
+        "used",
+        "no_show",
+        "rescheduled",
+        "expired",
+        "cancelled",
+        "edited",
+      ],
+      slot_status: ["available", "booked", "used", "expired", "cancelled"],
     },
   },
 } as const
