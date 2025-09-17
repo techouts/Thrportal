@@ -26,7 +26,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
 import type { CrmClient, CrmAccount, CrmProject, CrmSpoc } from '@/types/crm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AuthChecker } from '@/components/auth/AuthChecker';
+
 
 interface HierarchyNode {
   id: string;
@@ -83,8 +83,8 @@ export function ClientDeskPage() {
   const [showLinkSpoc, setShowLinkSpoc] = useState(false);
   const [parentContext, setParentContext] = useState<{ type: string; id: string } | null>(null);
 
-  // Permissions
-  const canWrite = true; // TODO: Implement proper permission checking
+  // Permissions - Check if user has CRM access
+  const canWrite = user && ['ADMIN', 'FINANCE_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'STAFFING_MANAGER'].includes(user.role);
 
   // Smart lists configuration
   const smartLists: SmartList[] = [
@@ -460,8 +460,7 @@ export function ClientDeskPage() {
   }
 
   return (
-    <AuthChecker>
-      <div className="flex flex-col bg-background">
+    <div className="flex flex-col bg-background">
       {/* PAGE HEADER */}
       <div className="border-b bg-background px-6 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -1010,6 +1009,5 @@ export function ClientDeskPage() {
         </DialogContent>
       </Dialog>
       </div>
-    </AuthChecker>
   );
 }
