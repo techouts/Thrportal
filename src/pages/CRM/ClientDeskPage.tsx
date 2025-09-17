@@ -26,6 +26,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
 import type { CrmClient, CrmAccount, CrmProject, CrmSpoc } from '@/types/crm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AuthChecker } from '@/components/auth/AuthChecker';
 
 interface HierarchyNode {
   id: string;
@@ -459,7 +460,8 @@ export function ClientDeskPage() {
   }
 
   return (
-    <div className="flex flex-col bg-background">
+    <AuthChecker>
+      <div className="flex flex-col bg-background">
       {/* PAGE HEADER */}
       <div className="border-b bg-background px-6 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -1007,6 +1009,7 @@ export function ClientDeskPage() {
           <CreateSpocForm onSuccess={handleCreateSuccess} />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </AuthChecker>
   );
 }
