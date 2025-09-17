@@ -23,7 +23,7 @@ export const approvalsService = {
       throw error;
     }
 
-    return data;
+    return data as JDApproval;
   },
 
   async createJDApproval(approval: CreateJDApproval): Promise<JDApproval> {
@@ -54,7 +54,7 @@ export const approvalsService = {
       throw error;
     }
 
-    return data;
+    return data as JDApproval;
   },
 
   // Approval Steps
@@ -160,11 +160,11 @@ export const approvalsService = {
   },
 
   // Get approvals by status
-  async getApprovalsByStatus(status: ('draft' | 'submitted' | 'approved' | 'rejected' | 'on_hold' | 'changes_requested')[]): Promise<JDApproval[]> {
-    const { data, error } = await supabase
+  async getApprovalsByStatus(statusList: string[]): Promise<JDApproval[]> {
+    const { data, error }: { data: any[] | null; error: any } = await supabase
       .from('jd_approvals')
       .select('*')
-      .in('status', status)
+      .in('status', statusList)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -172,7 +172,7 @@ export const approvalsService = {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as JDApproval[];
   },
 
   // Get pending approvals for current user role
@@ -306,7 +306,7 @@ export const approvalsService = {
     // Update overall approval status
     const { error } = await supabase
       .from('jd_approvals')
-      .update({ status: 'rejected' })
+      .update({ status: 'rejected' } as any)
       .eq('id', step.jd_approval_id);
 
     if (error) {
