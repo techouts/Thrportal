@@ -123,7 +123,7 @@ export function CreateAccountForm({ clientId, spocs, onSuccess }: CreateAccountF
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No primary SPOC</SelectItem>
+                  <SelectItem value="none">No primary SPOC</SelectItem>
                   {spocs.map(spoc => (
                     <SelectItem key={spoc.id} value={spoc.id}>
                       {spoc.name} {spoc.role && `- ${spoc.role}`}

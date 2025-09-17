@@ -125,7 +125,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess }: Crea
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No specific account</SelectItem>
+                    <SelectItem value="none">No specific account</SelectItem>
                     {accounts.map(account => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
@@ -151,7 +151,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess }: Crea
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No primary SPOC</SelectItem>
+                    <SelectItem value="none">No primary SPOC</SelectItem>
                     {spocs.map(spoc => (
                       <SelectItem key={spoc.id} value={spoc.id}>
                         {spoc.name} {spoc.role && `- ${spoc.role}`}

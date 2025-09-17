@@ -154,7 +154,7 @@ export function CreateDocumentForm({ clientId, accounts, projects, onSuccess }: 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No specific account</SelectItem>
+                    <SelectItem value="none">No specific account</SelectItem>
                     {accounts.map(account => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
@@ -180,7 +180,7 @@ export function CreateDocumentForm({ clientId, accounts, projects, onSuccess }: 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No specific project</SelectItem>
+                    <SelectItem value="none">No specific project</SelectItem>
                     {projects.map(project => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}

@@ -224,7 +224,7 @@ export function ClientDeskPage() {
         id: `client-${client.id}`,
         type: 'client',
         name: client.name,
-        status: client.status,
+        status: client.status || 'Active',
         children: [],
         spocs: spocs.filter(s => s.client_id === client.id && !s.account_id),
         data: client,
@@ -765,7 +765,7 @@ export function ClientDeskPage() {
                         </div>
                         <div>
                           <Label>Status</Label>
-                          <Select value={selectedNode.status}>
+                          <Select value={selectedNode.status || 'Active'}>
                             <SelectTrigger className="mt-1">
                               <SelectValue />
                             </SelectTrigger>
