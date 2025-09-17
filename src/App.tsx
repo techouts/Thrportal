@@ -37,6 +37,8 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CRMOpportunitiesPage } from "./pages/CRM/CRMOpportunitiesPage";
 import { CRMInteractionsPage } from "./pages/CRM/CRMInteractionsPage";
 import CRMReportsPage from "./pages/CRM/CRMReportsPage";
+import { ProjectAssignmentsPage } from "./pages/Project/ProjectAssignmentsPage";
+import { ProjectReportsPage } from "./pages/Project/ProjectReportsPage";
 
 function App() {
   const queryClient = new QueryClient();
@@ -296,7 +298,12 @@ function App() {
                 } />
                 <Route path="/Projects/Assignments" element={
                   <ProtectedRoute required={["projects.read"]}>
-                    <MainLayout><ProjectPage defaultTab="Assignments" /></MainLayout>
+                    <MainLayout><ProjectAssignmentsPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Projects/Reports" element={
+                  <ProtectedRoute required={["projects.read"]}>
+                    <MainLayout><ProjectReportsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/Projects/Tasks" element={
