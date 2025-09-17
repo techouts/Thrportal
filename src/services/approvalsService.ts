@@ -160,48 +160,51 @@ export const approvalsService = {
   },
 
   // Get approvals by status
-  async getApprovalsByStatus(statusList: string[]): Promise<JDApproval[]> {
-    const { data, error }: { data: any[] | null; error: any } = await supabase
+  async getApprovalsByStatus(statusList: string[]): Promise<any[]> {
+    // Simplified implementation to avoid type recursion
+    const { data } = await supabase
       .from('jd_approvals')
       .select('*')
-      .in('status', statusList)
       .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching approvals by status:', error);
-      throw error;
-    }
-
-    return (data || []) as JDApproval[];
+    
+    if (!data) return [];
+    
+    return data.filter((item: any) => statusList.includes(item.status));
   },
 
   // Get pending approvals for current user role
-  async getPendingApprovalsForRole(role: string): Promise<{approval: JDApproval, steps: JDApprovalStep[]}[]> {
+  async getPendingApprovalsForRole(role: string): Promise<any[]> {
     // First get approvals that are submitted or in progress
-    const { data: approvals, error: approvalsError } = await supabase
+    const approvalsResult = await supabase
       .from('jd_approvals')
       .select('*')
-      .in('status', ['submitted', 'on_hold'])
       .order('created_at', { ascending: false });
+    
+    const approvals = approvalsResult.data?.filter((item: any) => 
+      ['submitted', 'on_hold'].includes(item.status)
+    ) || [];
 
-    if (approvalsError) {
-      console.error('Error fetching pending approvals:', approvalsError);
-      throw approvalsError;
+    if (approvalsResult.error) {
+      console.error('Error fetching pending approvals:', approvalsResult.error);
+      throw approvalsResult.error;
     }
 
     if (!approvals) return [];
 
     // Get all steps for these approvals
-    const approvalIds = approvals.map(a => a.id);
-    const { data: steps, error: stepsError } = await supabase
+    const approvalIds = approvals.map((a: any) => a.id);
+    const stepsResult = await supabase
       .from('jd_approval_steps')
       .select('*')
-      .in('jd_approval_id', approvalIds)
       .order('step_number');
+    
+    const steps = stepsResult.data?.filter((step: any) => 
+      approvalIds.includes(step.jd_approval_id)
+    ) || [];
 
-    if (stepsError) {
-      console.error('Error fetching approval steps:', stepsError);
-      throw stepsError;
+    if (stepsResult.error) {
+      console.error('Error fetching approval steps:', stepsResult.error);
+      throw stepsResult.error;
     }
 
     // Filter to only approvals where the current step matches the user's role
