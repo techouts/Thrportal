@@ -459,93 +459,97 @@ export function ClientDeskPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background">
-      {/* TOP BAR */}
-      <div className="fixed top-16 left-0 right-0 h-14 bg-background border-b z-50 flex items-center px-6 gap-4">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 flex-1">
-          <Home className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Client Desk</span>
-          {getBreadcrumbs().map((crumb, i) => (
-            <React.Fragment key={crumb.id}>
-              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-sm"
-                onClick={() => {
-                  const node = findNodeById(crumb.id, hierarchy, true);
-                  if (node) handleSelectNode(node);
-                }}
-              >
-                {crumb.name}
-              </Button>
-            </React.Fragment>
-          ))}
-        </div>
+    <div className="flex flex-col bg-background">
+      {/* PAGE HEADER */}
+      <div className="border-b bg-background px-6 py-4">
+        <div className="flex items-center justify-between gap-4">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 flex-1">
+            <Home className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Client Desk</span>
+            {getBreadcrumbs().map((crumb, i) => (
+              <React.Fragment key={crumb.id}>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-sm"
+                  onClick={() => {
+                    const node = findNodeById(crumb.id, hierarchy, true);
+                    if (node) handleSelectNode(node);
+                  }}
+                >
+                  {crumb.name}
+                </Button>
+              </React.Fragment>
+            ))}
+          </div>
 
-        {/* Global Search */}
-        <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="global-search"
-            placeholder="Search across clients, accounts, projects, SPOCs... (/ or Ctrl+K)"
-            value={globalSearch}
-            onChange={(e) => setGlobalSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+          <div className="flex items-center gap-3">
+            {/* Global Search */}
+            <div className="relative w-80">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="global-search"
+                placeholder="Search across clients, accounts, projects, SPOCs... (/ or Ctrl+K)"
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
 
-        {/* New Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-1" />
-              New
+            {/* New Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-1" />
+                  New
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setShowCreateClient(true)}>
+                  <Building className="h-4 w-4 mr-2" />
+                  New Client
+                </DropdownMenuItem>
+                {selectedNode?.type === 'client' && (
+                  <DropdownMenuItem onClick={() => {
+                    setParentContext({ type: 'client', id: selectedNode.data.id });
+                    setShowCreateAccount(true);
+                  }}>
+                    <Users className="h-4 w-4 mr-2" />
+                    New Account
+                  </DropdownMenuItem>
+                )}
+                {(selectedNode?.type === 'account' || selectedNode?.type === 'client') && (
+                  <DropdownMenuItem onClick={() => {
+                    setParentContext({ 
+                      type: selectedNode.type, 
+                      id: selectedNode.data.id 
+                    });
+                    setShowCreateProject(true);
+                  }}>
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    New Project
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowLinkSpoc(true)}>
+                  <Users className="h-4 w-4 mr-2" />
+                  Link SPOC
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Help */}
+            <Button variant="ghost" size="sm">
+              <Command className="h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => setShowCreateClient(true)}>
-              <Building className="h-4 w-4 mr-2" />
-              New Client
-            </DropdownMenuItem>
-            {selectedNode?.type === 'client' && (
-              <DropdownMenuItem onClick={() => {
-                setParentContext({ type: 'client', id: selectedNode.data.id });
-                setShowCreateAccount(true);
-              }}>
-                <Users className="h-4 w-4 mr-2" />
-                New Account
-              </DropdownMenuItem>
-            )}
-            {(selectedNode?.type === 'account' || selectedNode?.type === 'client') && (
-              <DropdownMenuItem onClick={() => {
-                setParentContext({ 
-                  type: selectedNode.type, 
-                  id: selectedNode.data.id 
-                });
-                setShowCreateProject(true);
-              }}>
-                <FolderOpen className="h-4 w-4 mr-2" />
-                New Project
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowLinkSpoc(true)}>
-              <Users className="h-4 w-4 mr-2" />
-              Link SPOC
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Help */}
-        <Button variant="ghost" size="sm">
-          <Command className="h-4 w-4" />
-        </Button>
+          </div>
+        </div>
       </div>
 
-      {/* MAIN LAYOUT - ADJUSTED FOR TOP BAR */}
-      <div className="flex w-full pt-14">
+      {/* MAIN LAYOUT */}
+      <div className="flex h-[calc(100vh-8rem)]">
         {/* LEFT RAIL */}
         <div className="w-80 border-r bg-card flex flex-col">
           {/* Smart Lists */}
