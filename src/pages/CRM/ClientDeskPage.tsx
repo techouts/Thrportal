@@ -135,7 +135,7 @@ export function ClientDeskPage() {
     return breadcrumbs;
   };
 
-  // Load CRM data - only when user is authenticated and has access
+  // Load CRM data - Development mode with public access
   const loadData = async () => {
     // Debug logging
     console.log('🔍 CRM LoadData Debug:', {
@@ -149,11 +149,8 @@ export function ClientDeskPage() {
       DEV_AUTH_MODE: true
     });
 
-    if (!user || !canWrite) {
-      console.log('❌ Skipping data load - no user or no write access');
-      setLoading(false);
-      return;
-    }
+    // Temporarily bypass auth check for development - public policies in place
+    console.log('🚀 Loading CRM data with public access policies...');
 
     try {
       setLoading(true);
