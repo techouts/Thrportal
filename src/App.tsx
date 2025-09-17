@@ -42,6 +42,8 @@ import { ProjectReportsPage } from "./pages/Project/ProjectReportsPage";
 import { CRMContractsPage } from "./pages/CRM/CRMContractsPage";
 import { ProjectContractsPage } from "./pages/Project/ProjectContractsPage";
 import { FinanceInvoicesPage } from "./pages/Finance/FinanceInvoicesPage";
+import { ClientDeskPage } from "./pages/CRM/ClientDeskPage";
+import { ProjectBoardPage } from "./pages/Project/ProjectBoardPage";
 
 function App() {
   const queryClient = new QueryClient();
@@ -276,11 +278,23 @@ function App() {
                 } />
 
                 {/* CRM Section */}
+                <Route path="/CRM/ClientDesk" element={
+                  <ProtectedRoute required={["crm.read"]}>
+                    <MainLayout><ClientDeskPage /></MainLayout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/CRM/Contracts" element={
                   <ProtectedRoute required={["contracts.*"]}>
                     <MainLayout><CRMContractsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
+                
+                {/* Legacy CRM redirects to Client Desk */}
+                <Route path="/CRM/Clients" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/CRM/Accounts" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/CRM/Projects" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/CRM/SPOCs" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                
                 <Route path="/CRM/*" element={
                   <ProtectedRoute required={["crm.read"]}>
                     <MainLayout><CRMHomePage /></MainLayout>
@@ -288,20 +302,10 @@ function App() {
                 } />
 
                 {/* Projects */}
-                <Route path="/Projects" element={<Navigate to="/Projects/Dashboard" replace />} />
-                <Route path="/Projects/Dashboard" element={
+                <Route path="/Projects" element={<Navigate to="/Projects/Board" replace />} />
+                <Route path="/Projects/Board" element={
                   <ProtectedRoute required={["projects.read"]}>
-                    <MainLayout><ProjectPage defaultTab="Dashboard" /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/Projects/Clients" element={
-                  <ProtectedRoute required={["projects.read"]}>
-                    <MainLayout><ProjectPage defaultTab="Clients" /></MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/Projects/Projects" element={
-                  <ProtectedRoute required={["projects.read"]}>
-                    <MainLayout><ProjectPage defaultTab="Projects" /></MainLayout>
+                    <MainLayout><ProjectBoardPage /></MainLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/Projects/Contracts" element={
@@ -309,6 +313,11 @@ function App() {
                     <MainLayout><ProjectContractsPage /></MainLayout>
                   </ProtectedRoute>
                 } />
+                
+                {/* Legacy Projects redirects to Client Desk */}
+                <Route path="/Projects/Dashboard" element={<Navigate to="/Projects/Board" replace />} />
+                <Route path="/Projects/Clients" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/Projects/Projects" element={<Navigate to="/CRM/ClientDesk" replace />} />
                 <Route path="/Projects/Assignments" element={
                   <ProtectedRoute required={["projects.read"]}>
                     <MainLayout><ProjectAssignmentsPage /></MainLayout>
@@ -434,6 +443,12 @@ function App() {
                     <MainLayout><AdminPage defaultTab="Tenant" /></MainLayout>
                   </ProtectedRoute>
                 } />
+
+                {/* Global wildcard redirects for legacy maintenance routes */}
+                <Route path="/*/Clients" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/*/Accounts" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/*/Projects" element={<Navigate to="/CRM/ClientDesk" replace />} />
+                <Route path="/*/SPOCs" element={<Navigate to="/CRM/ClientDesk" replace />} />
 
                 {/* Catch all for 404 */}
                 <Route path="*" element={<Navigate to="/403" replace />} />

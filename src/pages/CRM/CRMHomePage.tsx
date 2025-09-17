@@ -1,9 +1,6 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import CRMDashboardPage from './CRMDashboardPage';
-import CRMClientsPage from './CRMClientsPage';
-import { CRMAccountsPage } from './CRMAccountsPage';
-import { CRMProjectsPage } from './CRMProjectsPage';
 import { CRMOpportunitiesPage } from './CRMOpportunitiesPage';
 import { CRMInteractionsPage } from './CRMInteractionsPage';
 import CRMReportsPage from './CRMReportsPage';
@@ -15,10 +12,13 @@ export default function CRMHomePage() {
   return (
     <Routes>
       <Route path="Home" element={<CRMDashboardPage />} />
-      <Route path="Clients" element={<CRMClientsPage />} />
       <Route path="Client/:clientId" element={<ClientDetailPage />} />
-      <Route path="Accounts" element={<CRMAccountsPage />} />
-      <Route path="Projects" element={<CRMProjectsPage />} />
+      
+      {/* Legacy redirects to Client Desk */}
+      <Route path="Clients" element={<Navigate to="/CRM/ClientDesk" replace />} />
+      <Route path="Accounts" element={<Navigate to="/CRM/ClientDesk" replace />} />
+      <Route path="Projects" element={<Navigate to="/CRM/ClientDesk" replace />} />
+      
       <Route path="Opportunities" element={<CRMOpportunitiesPage />} />
       <Route path="Interactions" element={<CRMInteractionsPage />} />
       <Route path="Reports" element={<CRMReportsPage />} />
