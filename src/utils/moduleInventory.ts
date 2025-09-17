@@ -41,7 +41,7 @@ export const MODULE_INVENTORY: ModuleInventory[] = [
     route: '/Leave',
     pageComponent: 'LeavePage.tsx',
     serviceComponent: 'leaveService.ts',
-    integratedIn: { mePage: true, myTeamPage: true, hrPage: false },
+    integratedIn: { mePage: true, myTeamPage: true, hrPage: true },
     status: 'active',
     description: 'Leave management system'
   },
@@ -122,13 +122,13 @@ export const MODULE_INVENTORY: ModuleInventory[] = [
     description: 'IT support and ticketing system'
   },
 
-  // Modules Still Missing Implementation
+  // Recently Fixed Attendance Module
   {
     module: 'Attendance',
     route: '/Attendance',
-    pageComponent: 'AttendancePage.tsx (needed)',
-    integratedIn: { mePage: false, myTeamPage: false, hrPage: false },
-    status: 'missing-integration',
+    pageComponent: 'AttendancePage.tsx',
+    integratedIn: { mePage: true, myTeamPage: true, hrPage: true },
+    status: 'active',
     description: 'Attendance tracking and management'
   }
 ]

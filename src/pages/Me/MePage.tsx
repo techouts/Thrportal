@@ -27,6 +27,7 @@ import ExpensesPage from '@/pages/Me/ExpensesPage'
 import IJPPage from '@/pages/Me/IJPPage'
 import ReferralsPage from '@/pages/Me/ReferralsPage'
 import HelpdeskPage from '@/pages/Me/HelpdeskPage'
+import AttendancePage from '@/pages/Me/AttendancePage'
 import { Clock, Calendar, DollarSign, Target, Users, Lightbulb, MessageSquare, CheckSquare, TrendingUp, Star, FileText, AlertTriangle, HelpCircle, Briefcase } from 'lucide-react'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { z } from 'zod'
@@ -395,7 +396,7 @@ export default function MePage({ defaultTab }: MePageProps) {
       case 'Profile':
         return renderProfile()
       case 'Attendance':
-        return renderAttendance()
+        return <AttendancePage />
       case 'Leave':
         return <LeavePage />
       case 'Timesheet':

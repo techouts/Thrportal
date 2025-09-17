@@ -13,6 +13,8 @@ import HRRecognitionPage from '@/pages/HR/RecognitionPage'
 import HRExpensesPage from '@/pages/HR/ExpensesPage'
 import HRIJPPage from '@/pages/HR/IJPPage'
 import HRHelpdeskPage from '@/pages/HR/HelpdeskPage'
+import HRAttendancePage from '@/pages/HR/AttendancePage'
+import HRLeavePage from '@/pages/HR/LeavePage'
 import { Building, Building2, Calendar, BarChart3 } from "lucide-react"
 import { moduleRegistry } from '@/lib/moduleRegistry'
 
@@ -186,6 +188,14 @@ export default function HRPage({ defaultTab }: HRPageProps) {
 
     if (defaultTab === 'Helpdesk') {
       return <HRHelpdeskPage />;
+    }
+
+    if (defaultTab === 'Attendance') {
+      return <HRAttendancePage />;
+    }
+
+    if (defaultTab === 'Leave') {
+      return <HRLeavePage />;
     }
     
     return (

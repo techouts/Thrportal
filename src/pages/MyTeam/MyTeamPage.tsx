@@ -13,6 +13,7 @@ import MyTeamLearningPage from '@/pages/MyTeam/LearningPage'
 import MyTeamRecognitionPage from '@/pages/MyTeam/RecognitionPage'
 import TeamExpensesPage from '@/pages/MyTeam/ExpensesPage'
 import MyTeamIJPPage from '@/pages/MyTeam/IJPPage'
+import MyTeamAttendancePage from '@/pages/MyTeam/AttendancePage'
 // Import My Team Components
 import { DashboardMetrics } from '@/components/myteam/DashboardMetrics'
 import { ExpensesDashboard } from '@/components/myteam/ExpensesDashboard'
@@ -330,6 +331,10 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
     
     if (defaultTab === 'IJP') {
       return <MyTeamIJPPage />;
+    }
+
+    if (defaultTab === 'Attendance') {
+      return <MyTeamAttendancePage />;
     }
 
     return (
