@@ -135,10 +135,46 @@ export function ClientDeskPage() {
     return breadcrumbs;
   };
 
-  // Load data
+  // Load CRM data - only when user is authenticated and has access
+  const loadData = async () => {
+    if (!user || !canWrite) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const [clientsData, accountsData, projectsData, spocsData] = await Promise.all([
+        CrmService.getClients(),
+        CrmService.getAccounts(),
+        CrmService.getProjects(),
+        CrmService.getAllSpocs()
+      ]);
+
+      setClients(clientsData);
+      setAccounts(accountsData);
+      setProjects(projectsData);
+      setSpocs(spocsData);
+
+      buildHierarchy(clientsData, accountsData, projectsData, spocsData);
+    } catch (error) {
+      console.error('Error loading CRM data:', error);
+      toast({
+        title: "Data Loading Error",
+        description: "Failed to load CRM data. Please check your permissions and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load initial data when user authentication is established
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user !== undefined) { // Wait for auth to be determined
+      loadData();
+    }
+  }, [user, canWrite]);
 
   // Handle deep linking
   useEffect(() => {
@@ -187,34 +223,6 @@ export function ClientDeskPage() {
     document.addEventListener('keydown', handleKeyboard);
     return () => document.removeEventListener('keydown', handleKeyboard);
   }, [selectedNode]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [clientsData, accountsData, projectsData, spocsData] = await Promise.all([
-        CrmService.getClients(),
-        CrmService.getAccounts(),
-        CrmService.getProjects(),
-        CrmService.getAllSpocs()
-      ]);
-
-      setClients(clientsData);
-      setAccounts(accountsData);
-      setProjects(projectsData);
-      setSpocs(spocsData);
-
-      buildHierarchy(clientsData, accountsData, projectsData, spocsData);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const buildHierarchy = (clients: CrmClient[], accounts: CrmAccount[], projects: CrmProject[], spocs: CrmSpoc[]) => {
     const hierarchyMap: { [key: string]: HierarchyNode } = {};
@@ -454,6 +462,26 @@ export function ClientDeskPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <p className="mt-2 text-sm text-muted-foreground">Loading Client Desk...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access message for users without CRM permissions
+  if (!user || !canWrite) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center max-w-md">
+          <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">CRM Access Required</h2>
+          <p className="text-muted-foreground mb-4">
+            You need CRM access permissions to view client data. Please sign in with an account that has Admin, Finance Manager, HR Manager, Management, or Staffing Manager role.
+          </p>
+          {!user && (
+            <Button onClick={() => navigate('/auth')} className="mt-4">
+              Sign In to Access CRM
+            </Button>
+          )}
         </div>
       </div>
     );
