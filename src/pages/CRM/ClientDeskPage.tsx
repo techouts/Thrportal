@@ -94,7 +94,7 @@ export function ClientDeskPage() {
         CrmService.getClients(),
         CrmService.getAccounts(),
         CrmService.getProjects(),
-        CrmService.getSpocsByClient('') // Get all SPOCs
+        CrmService.getAllSpocs() // Get all SPOCs
       ]);
 
       setClients(clientsData);

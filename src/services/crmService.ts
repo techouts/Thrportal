@@ -88,12 +88,12 @@ export class CrmService {
       .select(`
         *,
         client:crm_clients(*),
-        primary_spoc:crm_spocs(*)
+        primary_spoc:crm_spocs!fk_crm_accounts_primary_spoc(*)
       `)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as CrmAccount[];
+    return data as any[];
   }
 
   static async getAccountsByClient(clientId: string) {
@@ -102,7 +102,7 @@ export class CrmService {
       .select(`
         *,
         client:crm_clients(*),
-        primary_spoc:crm_spocs(*)
+        primary_spoc:crm_spocs!fk_crm_accounts_primary_spoc(*)
       `)
       .eq('client_id', clientId)
       .order('created_at', { ascending: false });
@@ -128,6 +128,16 @@ export class CrmService {
       .from('crm_spocs')
       .select('*')
       .eq('client_id', clientId)
+      .order('is_primary', { ascending: false });
+
+    if (error) throw error;
+    return data as CrmSpoc[];
+  }
+
+  static async getAllSpocs() {
+    const { data, error } = await supabase
+      .from('crm_spocs')
+      .select('*')
       .order('is_primary', { ascending: false });
 
     if (error) throw error;
