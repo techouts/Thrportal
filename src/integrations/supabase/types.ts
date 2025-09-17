@@ -81,6 +81,45 @@ export type Database = {
           },
         ]
       }
+      approval_logs: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          justification: string | null
+          reason: string
+          requested_by: string | null
+          status: Database["public"]["Enums"]["approval_status"]
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          justification?: string | null
+          reason: string
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          justification?: string | null
+          reason?: string
+          requested_by?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+        }
+        Relationships: []
+      }
       approval_rules: {
         Row: {
           approval_chain: Json
@@ -121,6 +160,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contract_assignments: {
+        Row: {
+          allocation_pct: number | null
+          bill_rate: number | null
+          billable_flag: boolean | null
+          client_approval_flag: boolean | null
+          cost_rate: number | null
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+          location_type: string | null
+          project_id: string
+          role: string
+          shadow_flag: boolean | null
+          sow_id: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          allocation_pct?: number | null
+          bill_rate?: number | null
+          billable_flag?: boolean | null
+          client_approval_flag?: boolean | null
+          cost_rate?: number | null
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          location_type?: string | null
+          project_id: string
+          role: string
+          shadow_flag?: boolean | null
+          sow_id?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          allocation_pct?: number | null
+          bill_rate?: number | null
+          billable_flag?: boolean | null
+          client_approval_flag?: boolean | null
+          cost_rate?: number | null
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          location_type?: string | null
+          project_id?: string
+          role?: string
+          shadow_flag?: boolean | null
+          sow_id?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       crm_accounts: {
         Row: {
@@ -635,6 +734,102 @@ export type Database = {
           },
         ]
       }
+      invoice_lines: {
+        Row: {
+          amount: number
+          created_at: string
+          employee_id: string | null
+          hours: number | null
+          id: string
+          invoice_id: string
+          po_id: string | null
+          role: string | null
+          sow_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          employee_id?: string | null
+          hours?: number | null
+          id?: string
+          invoice_id: string
+          po_id?: string | null
+          role?: string | null
+          sow_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          employee_id?: string | null
+          hours?: number | null
+          id?: string
+          invoice_id?: string
+          po_id?: string | null
+          role?: string | null
+          sow_id?: string | null
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          file_link: string | null
+          id: string
+          invoice_number: string | null
+          parsed_data: Json | null
+          parser_status: Database["public"]["Enums"]["parser_status"] | null
+          period_end: string
+          period_start: string
+          po_id: string | null
+          project_id: string | null
+          sow_id: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          file_link?: string | null
+          id?: string
+          invoice_number?: string | null
+          parsed_data?: Json | null
+          parser_status?: Database["public"]["Enums"]["parser_status"] | null
+          period_end: string
+          period_start: string
+          po_id?: string | null
+          project_id?: string | null
+          sow_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          file_link?: string | null
+          id?: string
+          invoice_number?: string | null
+          parsed_data?: Json | null
+          parser_status?: Database["public"]["Enums"]["parser_status"] | null
+          period_end?: string
+          period_start?: string
+          po_id?: string | null
+          project_id?: string | null
+          sow_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       jd_approval_steps: {
         Row: {
           approver_id: string | null
@@ -727,7 +922,6 @@ export type Database = {
           replacement_for: string | null
           salary_band_max: number | null
           salary_band_min: number | null
-          status: Database["public"]["Enums"]["approval_status"]
           submitted_at: string | null
           submitted_by: string | null
           target_doj: string | null
@@ -752,7 +946,6 @@ export type Database = {
           replacement_for?: string | null
           salary_band_max?: number | null
           salary_band_min?: number | null
-          status?: Database["public"]["Enums"]["approval_status"]
           submitted_at?: string | null
           submitted_by?: string | null
           target_doj?: string | null
@@ -777,7 +970,6 @@ export type Database = {
           replacement_for?: string | null
           salary_band_max?: number | null
           salary_band_min?: number | null
-          status?: Database["public"]["Enums"]["approval_status"]
           submitted_at?: string | null
           submitted_by?: string | null
           target_doj?: string | null
@@ -855,6 +1047,45 @@ export type Database = {
           },
         ]
       }
+      msas: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          doc_link: string | null
+          id: string
+          status: Database["public"]["Enums"]["contract_status"]
+          title: string
+          updated_at: string
+          valid_from: string
+          valid_to: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          doc_link?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          title: string
+          updated_at?: string
+          valid_from: string
+          valid_to: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          doc_link?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          title?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -900,6 +1131,27 @@ export type Database = {
           phone?: string | null
           role?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      project_sow_links: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          sow_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          sow_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          sow_id?: string
         }
         Relationships: []
       }
@@ -1005,6 +1257,54 @@ export type Database = {
           },
         ]
       }
+      purchase_orders: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          doc_link: string | null
+          id: string
+          po_number: string
+          remaining_amount: number
+          status: Database["public"]["Enums"]["contract_status"]
+          total_amount: number
+          updated_at: string
+          valid_from: string
+          valid_to: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          doc_link?: string | null
+          id?: string
+          po_number: string
+          remaining_amount: number
+          status?: Database["public"]["Enums"]["contract_status"]
+          total_amount: number
+          updated_at?: string
+          valid_from: string
+          valid_to: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          doc_link?: string | null
+          id?: string
+          po_number?: string
+          remaining_amount?: number
+          status?: Database["public"]["Enums"]["contract_status"]
+          total_amount?: number
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string
+        }
+        Relationships: []
+      }
       roles_catalog: {
         Row: {
           created_at: string
@@ -1026,6 +1326,84 @@ export type Database = {
           name?: string
           standard_rate?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      sow_po_allocations: {
+        Row: {
+          allocated_amount: number
+          created_at: string
+          id: string
+          po_id: string
+          priority_order: number
+          sow_id: string
+        }
+        Insert: {
+          allocated_amount: number
+          created_at?: string
+          id?: string
+          po_id: string
+          priority_order?: number
+          sow_id: string
+        }
+        Update: {
+          allocated_amount?: number
+          created_at?: string
+          id?: string
+          po_id?: string
+          priority_order?: number
+          sow_id?: string
+        }
+        Relationships: []
+      }
+      sows: {
+        Row: {
+          amount_cap: number | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          doc_link: string | null
+          id: string
+          msa_id: string
+          rate_cards: Json | null
+          role_caps: Json | null
+          status: Database["public"]["Enums"]["contract_status"]
+          title: string
+          updated_at: string
+          valid_from: string
+          valid_to: string
+        }
+        Insert: {
+          amount_cap?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          doc_link?: string | null
+          id?: string
+          msa_id: string
+          rate_cards?: Json | null
+          role_caps?: Json | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          title: string
+          updated_at?: string
+          valid_from: string
+          valid_to: string
+        }
+        Update: {
+          amount_cap?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          doc_link?: string | null
+          id?: string
+          msa_id?: string
+          rate_cards?: Json | null
+          role_caps?: Json | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          title?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string
         }
         Relationships: []
       }
@@ -1109,19 +1487,16 @@ export type Database = {
         | "request_changes"
         | "reassign"
         | "override"
-      approval_status:
-        | "draft"
-        | "submitted"
-        | "approved"
-        | "rejected"
-        | "on_hold"
-        | "changes_requested"
+      approval_status: "pending" | "approved" | "rejected"
       approval_step_status:
         | "pending"
         | "approved"
         | "rejected"
         | "changes_requested"
         | "skipped"
+      contract_status: "draft" | "active" | "expired" | "terminated"
+      invoice_status: "draft" | "submitted" | "approved" | "paid" | "rejected"
+      parser_status: "pending" | "success" | "failed" | "manual"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1257,14 +1632,7 @@ export const Constants = {
         "reassign",
         "override",
       ],
-      approval_status: [
-        "draft",
-        "submitted",
-        "approved",
-        "rejected",
-        "on_hold",
-        "changes_requested",
-      ],
+      approval_status: ["pending", "approved", "rejected"],
       approval_step_status: [
         "pending",
         "approved",
@@ -1272,6 +1640,9 @@ export const Constants = {
         "changes_requested",
         "skipped",
       ],
+      contract_status: ["draft", "active", "expired", "terminated"],
+      invoice_status: ["draft", "submitted", "approved", "paid", "rejected"],
+      parser_status: ["pending", "success", "failed", "manual"],
     },
   },
 } as const
