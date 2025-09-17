@@ -34,8 +34,8 @@ interface Employee {
 export function AssignmentEmployeeSection() {
   const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState<string>('sarah-chen');
-  const [selectedRole, setSelectedRole] = useState<string>('');
-  const [selectedDept, setSelectedDept] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
+  const [selectedDept, setSelectedDept] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Mock data - replace with real service calls
@@ -171,7 +171,7 @@ export function AssignmentEmployeeSection() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="Frontend Developer">Frontend Developer</SelectItem>
                   <SelectItem value="Backend Developer">Backend Developer</SelectItem>
                 </SelectContent>
@@ -181,7 +181,7 @@ export function AssignmentEmployeeSection() {
                   <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Departments</SelectItem>
+                  <SelectItem value="all">All Departments</SelectItem>
                   <SelectItem value="Engineering">Engineering</SelectItem>
                   <SelectItem value="Design">Design</SelectItem>
                 </SelectContent>

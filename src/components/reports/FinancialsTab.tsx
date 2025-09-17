@@ -10,7 +10,7 @@ import { DollarSign, TrendingUp, TrendingDown, AlertCircle, Download } from 'luc
 
 export function FinancialsTab() {
   const [includeShadow, setIncludeShadow] = useState(false);
-  const [selectedClient, setSelectedClient] = useState('');
+  const [selectedClient, setSelectedClient] = useState('all');
   const [dateRange, setDateRange] = useState('this-quarter');
 
   // Mock data
@@ -59,7 +59,7 @@ export function FinancialsTab() {
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="tech-corp">Tech Corp</SelectItem>
                   <SelectItem value="startup-inc">Startup Inc</SelectItem>
                 </SelectContent>

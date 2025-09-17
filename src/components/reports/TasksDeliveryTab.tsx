@@ -8,8 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Clock, AlertTriangle, CheckCircle, TrendingUp, Download, Calendar } from 'lucide-react';
 
 export function TasksDeliveryTab() {
-  const [selectedClient, setSelectedClient] = useState('');
-  const [selectedProject, setSelectedProject] = useState('');
+  const [selectedClient, setSelectedClient] = useState('all');
+  const [selectedProject, setSelectedProject] = useState('all');
   const [dateRange, setDateRange] = useState('this-quarter');
 
   // Mock data
@@ -90,7 +90,7 @@ export function TasksDeliveryTab() {
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="tech-corp">Tech Corp</SelectItem>
                   <SelectItem value="startup-inc">Startup Inc</SelectItem>
                 </SelectContent>
@@ -100,7 +100,7 @@ export function TasksDeliveryTab() {
                   <SelectValue placeholder="All Projects" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Projects</SelectItem>
+                  <SelectItem value="all">All Projects</SelectItem>
                   <SelectItem value="ecommerce">E-commerce Platform</SelectItem>
                   <SelectItem value="mobile">Mobile App</SelectItem>
                 </SelectContent>

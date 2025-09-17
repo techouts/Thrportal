@@ -8,8 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Clock, CheckCircle, AlertTriangle, TrendingUp, Download, User } from 'lucide-react';
 
 export function ResourceBurnTab() {
-  const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [selectedRole, setSelectedRole] = useState('all');
   const [dateRange, setDateRange] = useState('this-month');
 
   // Mock data
@@ -67,7 +67,7 @@ export function ResourceBurnTab() {
                   <SelectValue placeholder="All Employees" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Employees</SelectItem>
+                  <SelectItem value="all">All Employees</SelectItem>
                   <SelectItem value="sarah-c">Sarah Chen</SelectItem>
                   <SelectItem value="mike-j">Mike Johnson</SelectItem>
                 </SelectContent>
@@ -77,7 +77,7 @@ export function ResourceBurnTab() {
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="frontend">Frontend Developer</SelectItem>
                   <SelectItem value="backend">Backend Developer</SelectItem>
                   <SelectItem value="qa">QA Engineer</SelectItem>

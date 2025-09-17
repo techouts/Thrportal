@@ -7,8 +7,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, TrendingUp, AlertTriangle, Target, Download } from 'lucide-react';
 
 export function UtilizationTab() {
-  const [selectedClient, setSelectedClient] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedClient, setSelectedClient] = useState('all');
+  const [selectedRole, setSelectedRole] = useState('all');
   const [dateRange, setDateRange] = useState('this-quarter');
 
   // Mock data
@@ -57,7 +57,7 @@ export function UtilizationTab() {
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="tech-corp">Tech Corp</SelectItem>
                   <SelectItem value="startup-inc">Startup Inc</SelectItem>
                 </SelectContent>
@@ -67,7 +67,7 @@ export function UtilizationTab() {
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="frontend">Frontend Developer</SelectItem>
                   <SelectItem value="backend">Backend Developer</SelectItem>
                   <SelectItem value="qa">QA Engineer</SelectItem>

@@ -8,7 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Users, Clock, DollarSign, TrendingUp, Download, Calendar } from 'lucide-react';
 
 export function BenchShadowTab() {
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState('all');
   const [dateRange, setDateRange] = useState('this-quarter');
 
   // Mock data
@@ -69,7 +69,7 @@ export function BenchShadowTab() {
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="frontend">Frontend Developer</SelectItem>
                   <SelectItem value="backend">Backend Developer</SelectItem>
                   <SelectItem value="qa">QA Engineer</SelectItem>

@@ -26,10 +26,10 @@ interface ProjectAllocation {
 
 export function AssignmentProjectSection() {
   const { toast } = useToast();
-  const [selectedClient, setSelectedClient] = useState<string>('');
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
-  const [selectedProject, setSelectedProject] = useState<string>('');
-  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedClient, setSelectedClient] = useState<string>('all');
+  const [selectedAccount, setSelectedAccount] = useState<string>('all');
+  const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAllocation, setEditingAllocation] = useState<string | null>(null);
 
@@ -75,7 +75,7 @@ export function AssignmentProjectSection() {
       const matchesSearch = searchTerm === '' || 
         allocation.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         allocation.role.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRole = selectedRole === '' || allocation.role === selectedRole;
+      const matchesRole = selectedRole === 'all' || allocation.role === selectedRole;
       return matchesSearch && matchesRole;
     });
   }, [allocations, searchTerm, selectedRole]);
@@ -166,7 +166,7 @@ export function AssignmentProjectSection() {
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="Frontend Developer">Frontend Developer</SelectItem>
                   <SelectItem value="Backend Developer">Backend Developer</SelectItem>
                   <SelectItem value="QA Engineer">QA Engineer</SelectItem>

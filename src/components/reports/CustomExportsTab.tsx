@@ -16,11 +16,11 @@ export function CustomExportsTab() {
   const { toast } = useToast();
   const [reportName, setReportName] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
-    client: '',
-    account: '',
-    project: '',
-    employee: '',
-    skill: '',
+    client: 'all',
+    account: 'all',
+    project: 'all',
+    employee: 'all',
+    skill: 'all',
     dateFrom: null as Date | null,
     dateTo: null as Date | null
   });
@@ -107,7 +107,7 @@ export function CustomExportsTab() {
   };
 
   const getSelectedFiltersCount = () => {
-    return Object.values(selectedFilters).filter(value => value !== '' && value !== null).length;
+    return Object.values(selectedFilters).filter(value => value !== 'all' && value !== null).length;
   };
 
   const getSelectedMetricsCount = () => {
@@ -146,7 +146,7 @@ export function CustomExportsTab() {
                   <SelectValue placeholder="Client" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="tech-corp">Tech Corp</SelectItem>
                   <SelectItem value="startup-inc">Startup Inc</SelectItem>
                 </SelectContent>
@@ -157,7 +157,7 @@ export function CustomExportsTab() {
                   <SelectValue placeholder="Account" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Accounts</SelectItem>
+                  <SelectItem value="all">All Accounts</SelectItem>
                   <SelectItem value="acc-1">Account 1</SelectItem>
                   <SelectItem value="acc-2">Account 2</SelectItem>
                 </SelectContent>
@@ -168,7 +168,7 @@ export function CustomExportsTab() {
                   <SelectValue placeholder="Project" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Projects</SelectItem>
+                  <SelectItem value="all">All Projects</SelectItem>
                   <SelectItem value="ecommerce">E-commerce Platform</SelectItem>
                   <SelectItem value="mobile">Mobile App</SelectItem>
                 </SelectContent>
@@ -179,7 +179,7 @@ export function CustomExportsTab() {
                   <SelectValue placeholder="Employee" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Employees</SelectItem>
+                  <SelectItem value="all">All Employees</SelectItem>
                   <SelectItem value="sarah-c">Sarah Chen</SelectItem>
                   <SelectItem value="mike-j">Mike Johnson</SelectItem>
                 </SelectContent>
@@ -190,7 +190,7 @@ export function CustomExportsTab() {
                   <SelectValue placeholder="Skill" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Skills</SelectItem>
+                  <SelectItem value="all">All Skills</SelectItem>
                   <SelectItem value="react">React</SelectItem>
                   <SelectItem value="nodejs">Node.js</SelectItem>
                   <SelectItem value="python">Python</SelectItem>
