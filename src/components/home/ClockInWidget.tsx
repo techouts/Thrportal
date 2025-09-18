@@ -30,12 +30,17 @@ export function ClockInWidget({ onClockIn, lastClockIn }: ClockInWidgetProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="text-center">
-          <div className="text-2xl font-bold text-primary">{currentTime}</div>
-          {lastClockIn && (
-            <div className="text-xs text-muted-foreground">
-              Last: {lastClockIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          )}
+          <div className="text-4xl font-bold text-primary mb-1">{currentTime}</div>
+          <div className="flex items-center justify-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {selectedMode}
+            </Badge>
+            {lastClockIn && (
+              <Badge variant="outline" className="text-xs">
+                Last: {lastClockIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Badge>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-3 gap-1">

@@ -41,13 +41,13 @@ export function MetricsWidget({ metrics }: MetricsWidgetProps) {
                   <span className="text-xs text-muted-foreground">{metric.label}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="font-semibold">{metric.value}</span>
+                  <span className="text-lg font-bold">{metric.value}</span>
                   {metric.change && (
                     <Badge 
                       variant="secondary" 
                       className={`text-xs h-4 ${
-                        metric.trend === 'up' ? 'text-green-600' : 
-                        metric.trend === 'down' ? 'text-red-600' : 
+                        metric.trend === 'up' ? 'text-green-600 bg-green-50' : 
+                        metric.trend === 'down' ? 'text-red-600 bg-red-50' : 
                         'text-muted-foreground'
                       }`}
                     >

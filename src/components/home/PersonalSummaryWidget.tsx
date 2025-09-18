@@ -61,11 +61,11 @@ export function PersonalSummaryWidget({
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-2 pt-2 border-t">
           <div className="text-center">
-            <div className="text-sm font-semibold text-green-600">9:15</div>
+            <div className="text-lg font-bold text-green-600">9:15</div>
             <div className="text-xs text-muted-foreground">Avg Check-in</div>
           </div>
           <div className="text-center">
-            <div className="text-sm font-semibold text-blue-600">95%</div>
+            <div className="text-lg font-bold text-primary">95%</div>
             <div className="text-xs text-muted-foreground">Attendance</div>
           </div>
         </div>

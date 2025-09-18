@@ -54,14 +54,14 @@
     /* Border radius */
     --radius: 0.5rem;
 
-    /* Sidebar styling - Dark charcoal with teal accents */
-    --sidebar-background: 210 25% 8%;
-    --sidebar-foreground: 171 20% 88%;
+    /* Sidebar styling - Light professional theme */
+    --sidebar-background: 210 10% 97%;
+    --sidebar-foreground: 210 15% 25%;
     --sidebar-primary: 171 76% 41%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 210 20% 15%;
-    --sidebar-accent-foreground: 171 20% 88%;
-    --sidebar-border: 210 15% 18%;
+    --sidebar-accent: 210 10% 92%;
+    --sidebar-accent-foreground: 210 15% 25%;
+    --sidebar-border: 210 15% 88%;
     --sidebar-ring: 171 76% 48%;
 
     /* HR specific colors */
@@ -184,14 +184,31 @@
     @apply bg-sidebar text-sidebar-foreground;
     box-shadow: var(--shadow-sidebar);
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
+  /* Enhanced card styling for professional look */
+  .card-enhanced {
+    @apply bg-card border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  /* Typography hierarchy for dashboard */
+  .dashboard-metric {
+    @apply text-2xl font-bold leading-tight tracking-tight;
+  }
+
+  .dashboard-label {
+    @apply text-xs font-medium text-muted-foreground uppercase tracking-wide;
+  }
+
+  /* Status indicators with semantic colors */
+  .status-indicator-positive {
+    @apply bg-green-50 text-green-700 border border-green-200;
+  }
+
+  .status-indicator-negative {
+    @apply bg-red-50 text-red-700 border border-red-200;
+  }
+
+  .status-indicator-neutral {
+    @apply bg-blue-50 text-blue-700 border border-blue-200;
   }
 }

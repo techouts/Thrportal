@@ -33,20 +33,20 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <input
                     type="text"
                     placeholder="Search employees, documents..."
-                    className="pl-10 pr-4 py-2 w-64 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="pl-10 pr-4 py-2 w-80 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
                   />
                 </div>
 
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-4 w-4" />
-                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-destructive rounded-full" />
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-white rounded-full text-xs flex items-center justify-center font-medium">3</span>
                 </Button>
 
                 {/* User Menu */}
-                <Button variant="ghost" size="icon">
-                  <User className="h-4 w-4" />
-                </Button>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-primary-foreground" />
+                </div>
               </div>
             </div>
           </header>

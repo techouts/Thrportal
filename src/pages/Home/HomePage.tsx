@@ -120,7 +120,7 @@ export default function HomePage() {
   return (
     <div className="space-y-4">
       <PageHeader 
-        title="Home"
+        title={`Welcome ${currentUser?.display_name || 'back'}`}
         description="Your personalized HRMS dashboard"
         breadcrumbs={[
           { label: 'Home', href: '/Home' }
@@ -197,7 +197,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           <ClockInWidget onClockIn={handleClockIn} lastClockIn={lastClockIn} />
           <MetricsWidget />
@@ -210,7 +210,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <OrgPulseWidget onVote={handleVoteOnPoll} />
           {isManager && <TeamStatusWidget isManager={isManager} />}

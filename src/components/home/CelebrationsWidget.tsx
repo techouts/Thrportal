@@ -68,8 +68,8 @@ export function CelebrationsWidget({ celebrations = [] }: CelebrationsWidgetProp
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Gift className="h-4 w-4" />
-            Celebrations
+            <Star className="h-4 w-4 text-yellow-500" />
+            Team Events
           </div>
           <Badge variant="secondary" className="text-xs">
             {displayCelebrations.length}
