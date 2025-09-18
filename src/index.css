@@ -13,27 +13,27 @@
     /* Card and surface colors */
     --card: 0 0% 100%;
     --card-foreground: 210 20% 20%;
-    --card-elevated: 174 30% 98%;
+    --card-elevated: 171 30% 98%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 210 20% 20%;
 
     /* Primary brand - Vibrant Teal-Green */
-    --primary: 174 84% 38%;
+    --primary: 171 76% 41%;
     --primary-foreground: 0 0% 98%;
-    --primary-light: 174 74% 48%;
-    --primary-lighter: 174 64% 58%;
+    --primary-light: 171 75% 48%;
+    --primary-lighter: 171 65% 58%;
 
     /* Secondary colors - Light Teal */
-    --secondary: 174 35% 94%;
+    --secondary: 171 35% 94%;
     --secondary-foreground: 210 20% 20%;
 
     /* Muted colors for less prominent content */
-    --muted: 174 35% 94%;
-    --muted-foreground: 174 15% 45%;
+    --muted: 171 35% 94%;
+    --muted-foreground: 171 15% 45%;
 
     /* Accent colors - Bright Teal */
-    --accent: 174 35% 94%;
+    --accent: 171 35% 94%;
     --accent-foreground: 210 20% 20%;
 
     /* Status colors for modern operations */
@@ -43,37 +43,37 @@
     --warning-foreground: 0 0% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --info: 174 84% 48%;
+    --info: 171 76% 48%;
     --info-foreground: 0 0% 98%;
 
     /* Border and input styling */
-    --border: 174 25% 85%;
-    --input: 174 25% 85%;
-    --ring: 174 84% 38%;
+    --border: 171 25% 85%;
+    --input: 171 25% 85%;
+    --ring: 171 76% 41%;
 
     /* Border radius */
     --radius: 0.5rem;
 
     /* Sidebar styling - Dark charcoal with teal accents */
     --sidebar-background: 210 25% 8%;
-    --sidebar-foreground: 174 20% 88%;
-    --sidebar-primary: 174 84% 38%;
+    --sidebar-foreground: 171 20% 88%;
+    --sidebar-primary: 171 76% 41%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 210 20% 15%;
-    --sidebar-accent-foreground: 174 20% 88%;
+    --sidebar-accent-foreground: 171 20% 88%;
     --sidebar-border: 210 15% 18%;
-    --sidebar-ring: 174 84% 48%;
+    --sidebar-ring: 171 76% 48%;
 
     /* HR specific colors */
     --hr-approved: 160 84% 35%;
     --hr-pending: 38 92% 50%;
     --hr-rejected: 0 84% 60%;
-    --hr-draft: 174 15% 45%;
+    --hr-draft: 171 15% 45%;
 
     /* Dashboard metrics colors */
     --metric-positive: 160 84% 35%;
     --metric-negative: 0 84% 60%;
-    --metric-neutral: 174 84% 48%;
+    --metric-neutral: 171 76% 48%;
 
     /* Gradients for modern teal look */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
@@ -92,41 +92,41 @@
 
   .dark {
     --background: 210 25% 8%;
-    --foreground: 174 20% 88%;
+    --foreground: 171 20% 88%;
 
     --card: 210 25% 10%;
-    --card-foreground: 174 20% 88%;
+    --card-foreground: 171 20% 88%;
     --card-elevated: 210 20% 12%;
 
     --popover: 210 25% 10%;
-    --popover-foreground: 174 20% 88%;
+    --popover-foreground: 171 20% 88%;
 
-    --primary: 174 84% 48%;
+    --primary: 171 76% 48%;
     --primary-foreground: 210 25% 8%;
-    --primary-light: 174 74% 58%;
-    --primary-lighter: 174 64% 68%;
+    --primary-light: 171 75% 58%;
+    --primary-lighter: 171 65% 68%;
 
     --secondary: 210 15% 15%;
-    --secondary-foreground: 174 20% 88%;
+    --secondary-foreground: 171 20% 88%;
 
     --muted: 210 15% 15%;
-    --muted-foreground: 174 15% 60%;
+    --muted-foreground: 171 15% 60%;
 
     --accent: 210 15% 15%;
-    --accent-foreground: 174 20% 88%;
+    --accent-foreground: 171 20% 88%;
 
     --border: 210 15% 18%;
     --input: 210 15% 18%;
-    --ring: 174 84% 48%;
+    --ring: 171 76% 48%;
 
     --sidebar-background: 210 30% 5%;
-    --sidebar-foreground: 174 20% 85%;
-    --sidebar-primary: 174 84% 48%;
+    --sidebar-foreground: 171 20% 85%;
+    --sidebar-primary: 171 76% 48%;
     --sidebar-primary-foreground: 210 25% 8%;
     --sidebar-accent: 210 20% 12%;
-    --sidebar-accent-foreground: 174 20% 85%;
+    --sidebar-accent-foreground: 171 20% 85%;
     --sidebar-border: 210 15% 12%;
-    --sidebar-ring: 174 84% 48%;
+    --sidebar-ring: 171 76% 48%;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
