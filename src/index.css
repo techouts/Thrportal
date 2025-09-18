@@ -6,84 +6,84 @@
 
 @layer base {
   :root {
-    /* Base colors - Ocean Professional theme */
+    /* Base colors - Modern Teal Professional theme */
     --background: 0 0% 100%;
-    --foreground: 200 25% 15%;
+    --foreground: 210 20% 20%;
 
     /* Card and surface colors */
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 15%;
-    --card-elevated: 180 30% 98%;
+    --card-foreground: 210 20% 20%;
+    --card-elevated: 174 30% 98%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 15%;
+    --popover-foreground: 210 20% 20%;
 
-    /* Primary brand - Ocean Teal */
-    --primary: 180 84% 25%;
+    /* Primary brand - Vibrant Teal-Green */
+    --primary: 174 84% 38%;
     --primary-foreground: 0 0% 98%;
-    --primary-light: 180 74% 35%;
-    --primary-lighter: 180 64% 45%;
+    --primary-light: 174 74% 48%;
+    --primary-lighter: 174 64% 58%;
 
-    /* Secondary colors - Seafoam */
-    --secondary: 165 45% 92%;
-    --secondary-foreground: 200 25% 15%;
+    /* Secondary colors - Light Teal */
+    --secondary: 174 35% 94%;
+    --secondary-foreground: 210 20% 20%;
 
     /* Muted colors for less prominent content */
-    --muted: 165 45% 92%;
-    --muted-foreground: 180 15% 50%;
+    --muted: 174 35% 94%;
+    --muted-foreground: 174 15% 45%;
 
     /* Accent colors - Bright Teal */
-    --accent: 165 45% 92%;
-    --accent-foreground: 200 25% 15%;
+    --accent: 174 35% 94%;
+    --accent-foreground: 210 20% 20%;
 
-    /* Status colors for HR operations */
-    --success: 150 75% 40%;
+    /* Status colors for modern operations */
+    --success: 160 84% 35%;
     --success-foreground: 0 0% 98%;
-    --warning: 45 95% 55%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --info: 180 84% 55%;
+    --info: 174 84% 48%;
     --info-foreground: 0 0% 98%;
 
     /* Border and input styling */
-    --border: 165 25% 88%;
-    --input: 165 25% 88%;
-    --ring: 180 84% 25%;
+    --border: 174 25% 85%;
+    --input: 174 25% 85%;
+    --ring: 174 84% 38%;
 
     /* Border radius */
     --radius: 0.5rem;
 
-    /* Sidebar styling - Ocean depths */
-    --sidebar-background: 200 35% 12%;
-    --sidebar-foreground: 180 20% 92%;
-    --sidebar-primary: 180 84% 25%;
+    /* Sidebar styling - Dark charcoal with teal accents */
+    --sidebar-background: 210 25% 8%;
+    --sidebar-foreground: 174 20% 88%;
+    --sidebar-primary: 174 84% 38%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 200 25% 18%;
-    --sidebar-accent-foreground: 180 20% 92%;
-    --sidebar-border: 200 20% 20%;
-    --sidebar-ring: 180 84% 55%;
+    --sidebar-accent: 210 20% 15%;
+    --sidebar-accent-foreground: 174 20% 88%;
+    --sidebar-border: 210 15% 18%;
+    --sidebar-ring: 174 84% 48%;
 
     /* HR specific colors */
-    --hr-approved: 150 75% 40%;
-    --hr-pending: 45 95% 55%;
+    --hr-approved: 160 84% 35%;
+    --hr-pending: 38 92% 50%;
     --hr-rejected: 0 84% 60%;
-    --hr-draft: 180 15% 50%;
+    --hr-draft: 174 15% 45%;
 
     /* Dashboard metrics colors */
-    --metric-positive: 150 75% 40%;
+    --metric-positive: 160 84% 35%;
     --metric-negative: 0 84% 60%;
-    --metric-neutral: 180 84% 55%;
+    --metric-neutral: 174 84% 48%;
 
-    /* Gradients for modern ocean look */
+    /* Gradients for modern teal look */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
     --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card-elevated)));
 
-    /* Shadows with ocean tint */
-    --shadow-card: 0 2px 8px -2px hsl(var(--primary) / 0.1);
-    --shadow-elevated: 0 8px 32px -8px hsl(var(--primary) / 0.15);
-    --shadow-sidebar: 2px 0 8px -2px hsl(var(--primary) / 0.1);
+    /* Shadows with teal tint */
+    --shadow-card: 0 2px 8px -2px hsl(var(--primary) / 0.08);
+    --shadow-elevated: 0 8px 32px -8px hsl(var(--primary) / 0.12);
+    --shadow-sidebar: 2px 0 8px -2px hsl(var(--primary) / 0.08);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -91,42 +91,42 @@
   }
 
   .dark {
-    --background: 200 30% 8%;
-    --foreground: 180 20% 92%;
+    --background: 210 25% 8%;
+    --foreground: 174 20% 88%;
 
-    --card: 200 30% 10%;
-    --card-foreground: 180 20% 92%;
-    --card-elevated: 200 25% 12%;
+    --card: 210 25% 10%;
+    --card-foreground: 174 20% 88%;
+    --card-elevated: 210 20% 12%;
 
-    --popover: 200 30% 10%;
-    --popover-foreground: 180 20% 92%;
+    --popover: 210 25% 10%;
+    --popover-foreground: 174 20% 88%;
 
-    --primary: 180 84% 55%;
-    --primary-foreground: 200 30% 8%;
-    --primary-light: 180 74% 65%;
-    --primary-lighter: 180 64% 75%;
+    --primary: 174 84% 48%;
+    --primary-foreground: 210 25% 8%;
+    --primary-light: 174 74% 58%;
+    --primary-lighter: 174 64% 68%;
 
-    --secondary: 200 20% 15%;
-    --secondary-foreground: 180 20% 92%;
+    --secondary: 210 15% 15%;
+    --secondary-foreground: 174 20% 88%;
 
-    --muted: 200 20% 15%;
-    --muted-foreground: 180 15% 65%;
+    --muted: 210 15% 15%;
+    --muted-foreground: 174 15% 60%;
 
-    --accent: 200 20% 15%;
-    --accent-foreground: 180 20% 92%;
+    --accent: 210 15% 15%;
+    --accent-foreground: 174 20% 88%;
 
-    --border: 200 20% 18%;
-    --input: 200 20% 18%;
-    --ring: 180 84% 55%;
+    --border: 210 15% 18%;
+    --input: 210 15% 18%;
+    --ring: 174 84% 48%;
 
-    --sidebar-background: 200 35% 5%;
-    --sidebar-foreground: 180 20% 90%;
-    --sidebar-primary: 180 84% 55%;
-    --sidebar-primary-foreground: 200 30% 8%;
-    --sidebar-accent: 200 25% 12%;
-    --sidebar-accent-foreground: 180 20% 90%;
-    --sidebar-border: 200 20% 12%;
-    --sidebar-ring: 180 84% 55%;
+    --sidebar-background: 210 30% 5%;
+    --sidebar-foreground: 174 20% 85%;
+    --sidebar-primary: 174 84% 48%;
+    --sidebar-primary-foreground: 210 25% 8%;
+    --sidebar-accent: 210 20% 12%;
+    --sidebar-accent-foreground: 174 20% 85%;
+    --sidebar-border: 210 15% 12%;
+    --sidebar-ring: 174 84% 48%;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
