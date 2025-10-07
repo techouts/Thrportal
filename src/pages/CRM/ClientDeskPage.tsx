@@ -539,19 +539,7 @@ export function ClientDeskPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Global Search */}
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="global-search"
-                placeholder="Search across clients, accounts, projects, SPOCs... (/ or Ctrl+K)"
-                value={globalSearch}
-                onChange={(e) => setGlobalSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* New Dropdown */}
+            {/* New Dropdown - Only shows New Client */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button>
@@ -564,39 +552,8 @@ export function ClientDeskPage() {
                   <Building className="h-4 w-4 mr-2" />
                   New Client
                 </DropdownMenuItem>
-                {selectedNode?.type === 'client' && (
-                  <DropdownMenuItem onClick={() => {
-                    setParentContext({ type: 'client', id: selectedNode.data.id });
-                    setShowCreateAccount(true);
-                  }}>
-                    <Users className="h-4 w-4 mr-2" />
-                    New Account
-                  </DropdownMenuItem>
-                )}
-                {(selectedNode?.type === 'account' || selectedNode?.type === 'client') && (
-                  <DropdownMenuItem onClick={() => {
-                    setParentContext({ 
-                      type: selectedNode.type, 
-                      id: selectedNode.data.id 
-                    });
-                    setShowCreateProject(true);
-                  }}>
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    New Project
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowLinkSpoc(true)}>
-                  <Users className="h-4 w-4 mr-2" />
-                  Link SPOC
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Help */}
-            <Button variant="ghost" size="sm">
-              <Command className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
@@ -675,50 +632,51 @@ export function ClientDeskPage() {
                   </div>
                 </div>
                 
-                <TabsList className="grid w-full max-w-md grid-cols-5">
+                <TabsList className="grid w-full max-w-md grid-cols-3">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="spocs">SPOCs</TabsTrigger>
-                  <TabsTrigger value="files">Files</TabsTrigger>
-                  <TabsTrigger value="activity">Activity</TabsTrigger>
                 </TabsList>
               </div>
               
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="overview" className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Accounts</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-2xl font-bold">{selectedNode.children.filter(c => c.type === 'account').length}</p>
-                        <p className="text-xs text-muted-foreground">Active accounts</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Projects</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-2xl font-bold">
-                          {selectedNode.children.reduce((sum, acc) => sum + acc.children.length, 0)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Total projects</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">SPOCs</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-2xl font-bold">{selectedNode.spocs.length}</p>
-                        <p className="text-xs text-muted-foreground">Contact points</p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  {/* Metrics for Client level only */}
+                  {selectedNode.type === 'client' && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Accounts</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-2xl font-bold">{selectedNode.children.filter(c => c.type === 'account').length}</p>
+                          <p className="text-xs text-muted-foreground">Active accounts</p>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Projects</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-2xl font-bold">
+                            {selectedNode.children.reduce((sum, acc) => sum + acc.children.length, 0)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Total projects</p>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">SPOCs</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-2xl font-bold">{selectedNode.spocs.length}</p>
+                          <p className="text-xs text-muted-foreground">Contact points</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
 
                   {/* People Panel */}
                   <Card className="mb-6">
@@ -763,50 +721,57 @@ export function ClientDeskPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Quick Actions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Quick Actions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {selectedNode.type === 'client' && (
-                          <Button 
-                            variant="outline" 
-                            className="h-16 flex-col gap-2"
-                            onClick={() => {
-                              setParentContext({ type: 'client', id: selectedNode.data.id });
-                              setShowCreateAccount(true);
-                            }}
-                          >
-                            <Plus className="h-5 w-5" />
-                            Add Account
-                          </Button>
-                        )}
-                        {(selectedNode.type === 'account' || selectedNode.type === 'client') && (
-                          <Button 
-                            variant="outline" 
-                            className="h-16 flex-col gap-2"
-                            onClick={() => {
-                              setParentContext({ type: selectedNode.type, id: selectedNode.data.id });
-                              setShowCreateProject(true);
-                            }}
-                          >
-                            <Plus className="h-5 w-5" />
-                            Add Project
-                          </Button>
-                        )}
-                        <Button variant="outline" className="h-16 flex-col gap-2">
-                          <FileText className="h-5 w-5" />
-                          View Files
-                        </Button>
-                        <Button variant="outline" className="h-16 flex-col gap-2">
-                          <Activity className="h-5 w-5" />
-                          View Activity
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {/* Quick Actions - Different for each level */}
+                  {selectedNode.type !== 'project' && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Quick Actions</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {selectedNode.type === 'client' && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                className="h-16 flex-col gap-2"
+                                onClick={() => {
+                                  setParentContext({ type: 'client', id: selectedNode.data.id });
+                                  setShowCreateAccount(true);
+                                }}
+                              >
+                                <Plus className="h-5 w-5" />
+                                Add Account
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="h-16 flex-col gap-2"
+                                onClick={() => {
+                                  setParentContext({ type: 'client', id: selectedNode.data.id });
+                                  setShowCreateProject(true);
+                                }}
+                              >
+                                <Plus className="h-5 w-5" />
+                                Add Project
+                              </Button>
+                            </>
+                          )}
+                          {selectedNode.type === 'account' && (
+                            <Button 
+                              variant="outline" 
+                              className="h-16 flex-col gap-2"
+                              onClick={() => {
+                                setParentContext({ type: 'account', id: selectedNode.data.id });
+                                setShowCreateProject(true);
+                              }}
+                            >
+                              <Plus className="h-5 w-5" />
+                              Add Project
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="details" className="p-6">
@@ -820,20 +785,26 @@ export function ClientDeskPage() {
                           <Label>Name</Label>
                           <Input value={selectedNode.name} className="mt-1" />
                         </div>
-                        <div>
-                          <Label>Status</Label>
-                          <Select value={selectedNode.status || 'Active'}>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Active">Active</SelectItem>
-                              <SelectItem value="Inactive">Inactive</SelectItem>
-                              <SelectItem value="Planned">Planned</SelectItem>
-                              <SelectItem value="Closed">Closed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {selectedNode.type !== 'project' && (
+                          <div>
+                            <Label>Status</Label>
+                            <Select value={selectedNode.status || 'Active'}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Active">Active</SelectItem>
+                                <SelectItem value="Inactive">Inactive</SelectItem>
+                                {selectedNode.type === 'project' && (
+                                  <>
+                                    <SelectItem value="Planned">Planned</SelectItem>
+                                    <SelectItem value="Closed">Closed</SelectItem>
+                                  </>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                         {selectedNode.type === 'client' && (
                           <>
                             <div>
@@ -912,35 +883,6 @@ export function ClientDeskPage() {
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="files" className="p-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Files & Documents</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-12">
-                        <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No files uploaded</h3>
-                        <p className="text-muted-foreground">Upload documents and files for this {selectedNode.type}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="activity" className="p-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Activity Timeline</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-12">
-                        <Activity className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No activity yet</h3>
-                        <p className="text-muted-foreground">Activity timeline will appear here</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
               </div>
             </Tabs>
           ) : (
