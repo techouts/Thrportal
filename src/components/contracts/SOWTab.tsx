@@ -33,9 +33,8 @@ export function SOWTab() {
       setLoading(true);
       const data = await CrmService.getSOWs({
         search: searchTerm,
-        client_id: selectedClient !== 'all' ? selectedClient : undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined
-      });
+      }) as any;
       setSows(data);
     } catch (error) {
       toast({

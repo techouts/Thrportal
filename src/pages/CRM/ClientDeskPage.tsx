@@ -20,7 +20,7 @@ import { CrmService } from '@/services/crmService';
 import { CreateClientForm } from '@/components/crm/forms/CreateClientForm';
 import { CreateAccountForm } from '@/components/crm/forms/CreateAccountForm';
 import { CreateProjectForm } from '@/components/crm/forms/CreateProjectForm';
-import { CreateSpocForm } from '@/components/crm/forms/CreateSpocForm';
+import { LinkSpocForm } from '@/components/crm/forms/LinkSpocForm';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
@@ -795,7 +795,7 @@ export function ClientDeskPage() {
                               <SelectContent>
                                 <SelectItem value="Active">Active</SelectItem>
                                 <SelectItem value="Inactive">Inactive</SelectItem>
-                                {selectedNode.type === 'project' && (
+                                {selectedNode.type !== 'client' && selectedNode.type !== 'account' && (
                                   <>
                                     <SelectItem value="Planned">Planned</SelectItem>
                                     <SelectItem value="Closed">Closed</SelectItem>
@@ -817,7 +817,22 @@ export function ClientDeskPage() {
                             </div>
                           </>
                         )}
-                        <Button>Save Changes</Button>
+                        <Button onClick={async () => {
+                          if (!selectedNode) return;
+                          try {
+                            if (selectedNode.type === 'client') {
+                              await CrmService.updateClient(selectedNode.data.id, selectedNode.data as Partial<CrmClient>);
+                            } else if (selectedNode.type === 'account') {
+                              await CrmService.updateAccount(selectedNode.data.id, selectedNode.data as Partial<CrmAccount>);
+                            } else if (selectedNode.type === 'project') {
+                              await CrmService.updateProject(selectedNode.data.id, selectedNode.data as Partial<CrmProject>);
+                            }
+                            toast({ title: 'Success', description: 'Changes saved successfully' });
+                            loadData();
+                          } catch (error) {
+                            toast({ title: 'Error', description: 'Failed to save changes', variant: 'destructive' });
+                          }
+                        }}>Save Changes</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -999,7 +1014,12 @@ export function ClientDeskPage() {
           <DialogHeader>
             <DialogTitle>Link SPOC</DialogTitle>
           </DialogHeader>
-          <CreateSpocForm onSuccess={handleCreateSuccess} />
+          <LinkSpocForm 
+            clientId={selectedNode?.type === 'client' ? selectedNode.id : undefined}
+            accountId={selectedNode?.type === 'account' ? selectedNode.id : undefined}
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setShowLinkSpoc(false)}
+          />
         </DialogContent>
       </Dialog>
       </div>

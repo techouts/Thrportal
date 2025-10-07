@@ -356,4 +356,242 @@ export class CrmService {
       }
     };
   }
+
+  // Additional CRUD methods
+  static async updateAccount(id: string, updates: Partial<CrmAccount>) {
+    const { data, error } = await supabase
+      .from('crm_accounts')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CrmAccount;
+  }
+
+  static async updateProject(id: string, updates: Partial<CrmProject>) {
+    const { data, error } = await supabase
+      .from('crm_projects')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CrmProject;
+  }
+
+  static async updateOpportunity(id: string, updates: Partial<CrmOpportunity>) {
+    const { data, error } = await supabase
+      .from('crm_opportunities')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CrmOpportunity;
+  }
+
+  static async deleteOpportunity(id: string) {
+    const { error } = await supabase
+      .from('crm_opportunities')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  static async deleteInteraction(id: string) {
+    const { error } = await supabase
+      .from('crm_interactions')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  static async deleteSpoc(id: string) {
+    const { error } = await supabase
+      .from('crm_spocs')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  // MSA Methods
+  static async getMSAs(filters?: { client_id?: string; status?: string; search?: string }) {
+    let query = supabase
+      .from('msas')
+      .select(`
+        *,
+        client:crm_clients(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters?.client_id) {
+      query = query.eq('client_id', filters.client_id);
+    }
+    if (filters?.status) {
+      query = query.eq('status', filters.status as any);
+    }
+    if (filters?.search) {
+      query = query.ilike('title', `%${filters.search}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async createMSA(msa: any) {
+    const { data, error } = await supabase
+      .from('msas')
+      .insert(msa)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateMSA(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('msas')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteMSA(id: string) {
+    const { error } = await supabase
+      .from('msas')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  // SOW Methods
+  static async getSOWs(filters?: { msa_id?: string; status?: string; search?: string }) {
+    let query = supabase
+      .from('sows')
+      .select(`
+        *,
+        msa:msas(
+          *,
+          client:crm_clients(*)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters?.msa_id) {
+      query = query.eq('msa_id', filters.msa_id);
+    }
+    if (filters?.status) {
+      query = query.eq('status', filters.status as any);
+    }
+    if (filters?.search) {
+      query = query.ilike('title', `%${filters.search}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async createSOW(sow: any) {
+    const { data, error } = await supabase
+      .from('sows')
+      .insert(sow)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateSOW(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('sows')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteSOW(id: string) {
+    const { error } = await supabase
+      .from('sows')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  // Purchase Order Methods
+  static async getPOs(filters?: { client_id?: string; status?: string; search?: string }) {
+    let query = supabase
+      .from('purchase_orders')
+      .select(`
+        *,
+        client:crm_clients(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters?.client_id) {
+      query = query.eq('client_id', filters.client_id);
+    }
+    if (filters?.status) {
+      query = query.eq('status', filters.status as any);
+    }
+    if (filters?.search) {
+      query = query.ilike('po_number', `%${filters.search}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async createPO(po: any) {
+    const { data, error } = await supabase
+      .from('purchase_orders')
+      .insert(po)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updatePO(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('purchase_orders')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async deletePO(id: string) {
+    const { error } = await supabase
+      .from('purchase_orders')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
 }
