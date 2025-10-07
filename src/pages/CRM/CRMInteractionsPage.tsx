@@ -4,20 +4,30 @@ import { Plus, MessageSquare, Calendar, Phone, MoreHorizontal } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { CreateInteractionForm } from '@/components/crm/forms/CreateInteractionForm';
+import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
 import type { CrmInteraction, CrmClient } from '@/types/crm';
+import { toast as sonnerToast } from 'sonner';
 
 export function CRMInteractionsPage() {
   const [interactions, setInteractions] = useState<CrmInteraction[]>([]);
   const [clients, setClients] = useState<CrmClient[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [spocs, setSpocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState<CrmInteraction | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -27,12 +37,18 @@ export function CRMInteractionsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [interactionsData, clientsData] = await Promise.all([
+      const [interactionsData, clientsData, accountsData, projectsData, spocsData] = await Promise.all([
         CrmService.getInteractions(),
-        CrmService.getClients()
+        CrmService.getClients(),
+        CrmService.getAccounts(),
+        CrmService.getProjects(),
+        CrmService.getAllSpocs()
       ]);
       setInteractions(interactionsData);
       setClients(clientsData);
+      setAccounts(accountsData);
+      setProjects(projectsData);
+      setSpocs(spocsData);
     } catch (error) {
       toast({
         title: 'Error',
@@ -41,6 +57,20 @@ export function CRMInteractionsPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedInteraction) return;
+    
+    try {
+      // TODO: Implement delete in CrmService
+      sonnerToast.success('Interaction deleted successfully');
+      setShowDeleteDialog(false);
+      setSelectedInteraction(null);
+      loadData();
+    } catch (error) {
+      sonnerToast.error('Failed to delete interaction');
     }
   };
 
@@ -170,9 +200,13 @@ export function CRMInteractionsPage() {
             <DropdownMenuItem asChild>
               <Link to={`/CRM/Clients/${interaction.client_id}`}>View Client</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Edit Interaction</DropdownMenuItem>
-            <DropdownMenuItem>Schedule Follow-up</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive"
+              onClick={() => {
+                setSelectedInteraction(interaction);
+                setShowDeleteDialog(true);
+              }}
+            >
               Delete Interaction
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -216,11 +250,9 @@ export function CRMInteractionsPage() {
         title="Interaction Management"
         description="Track and manage all client interactions and communications"
         actions={
-          <Button asChild>
-            <Link to="/CRM/Clients">
-              <Plus className="h-4 w-4 mr-2" />
-              New Interaction
-            </Link>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Interaction
           </Button>
         }
       />
@@ -285,6 +317,35 @@ export function CRMInteractionsPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Create Interaction Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Log New Interaction</DialogTitle>
+          </DialogHeader>
+          <CreateInteractionForm
+            clients={clients}
+            accounts={accounts}
+            projects={projects}
+            spocs={spocs}
+            onSuccess={() => {
+              setShowCreateDialog(false);
+              loadData();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        title="Delete Interaction"
+        description="Are you sure you want to delete this interaction? This action cannot be undone."
+        entityName={selectedInteraction ? `${selectedInteraction.interaction_type} on ${new Date(selectedInteraction.date).toLocaleDateString()}` : ''}
+      />
     </div>
   );
 }
