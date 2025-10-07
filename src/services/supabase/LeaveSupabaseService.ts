@@ -10,7 +10,7 @@ export class LeaveSupabaseService extends BaseSupabaseService<LeaveRequest> {
       const targetYear = year || new Date().getFullYear();
       
       const { data, error } = await supabase
-        .from('leave_balances')
+        .from('leave_balances' as any)
         .select('*')
         .eq('employee_id', employeeId)
         .eq('year', targetYear);
@@ -27,8 +27,8 @@ export class LeaveSupabaseService extends BaseSupabaseService<LeaveRequest> {
   async submitLeaveRequest(leaveRequest: Partial<LeaveRequest>) {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
-        .insert(leaveRequest)
+        .from(this.tableName as any)
+        .insert(leaveRequest as any)
         .select()
         .single();
 
@@ -44,12 +44,12 @@ export class LeaveSupabaseService extends BaseSupabaseService<LeaveRequest> {
   async approveLeaveRequest(requestId: string, approverId: string) {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .update({
           status: 'APPROVED',
           approved_by: approverId,
           approved_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', requestId)
         .select()
         .single();
@@ -66,12 +66,12 @@ export class LeaveSupabaseService extends BaseSupabaseService<LeaveRequest> {
   async rejectLeaveRequest(requestId: string, approverId: string) {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .update({
           status: 'REJECTED',
           approved_by: approverId,
           approved_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', requestId)
         .select()
         .single();
@@ -88,7 +88,7 @@ export class LeaveSupabaseService extends BaseSupabaseService<LeaveRequest> {
   async getLeavesByEmployee(employeeId: string) {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .select('*')
         .eq('employee_id', employeeId)
         .order('applied_date', { ascending: false });

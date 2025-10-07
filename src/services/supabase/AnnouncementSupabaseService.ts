@@ -36,7 +36,7 @@ export class AnnouncementSupabaseService extends BaseSupabaseService<Announcemen
       if (error) this.handleSupabaseError(error);
 
       // Filter by target audience if provided
-      let filteredData = data as Announcement[] || [];
+      let filteredData = (data || []) as any;
       if (targetAudience && targetAudience.length > 0) {
         filteredData = filteredData.filter(announcement => 
           announcement.target_audience.includes('ALL') ||
@@ -61,7 +61,7 @@ export class AnnouncementSupabaseService extends BaseSupabaseService<Announcemen
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Announcement, 'Announcement created successfully');
+      return this.createSuccessResponse(data as any, 'Announcement created successfully');
     } catch (error) {
       console.error('Error creating announcement:', error);
       throw error;
@@ -82,7 +82,7 @@ export class AnnouncementSupabaseService extends BaseSupabaseService<Announcemen
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Announcement, 'Announcement published successfully');
+      return this.createSuccessResponse(data as any, 'Announcement published successfully');
     } catch (error) {
       console.error('Error publishing announcement:', error);
       throw error;
@@ -100,7 +100,7 @@ export class AnnouncementSupabaseService extends BaseSupabaseService<Announcemen
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Announcement[] || []);
+      return this.createSuccessResponse((data || []) as any);
     } catch (error) {
       console.error('Error fetching announcements by type:', error);
       throw error;
@@ -118,7 +118,7 @@ export class AnnouncementSupabaseService extends BaseSupabaseService<Announcemen
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Announcement[] || []);
+      return this.createSuccessResponse((data || []) as any);
     } catch (error) {
       console.error('Error fetching announcements by priority:', error);
       throw error;
@@ -136,7 +136,7 @@ export class AnnouncementSupabaseService extends BaseSupabaseService<Announcemen
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Announcement, 'Announcement updated successfully');
+      return this.createSuccessResponse(data as any, 'Announcement updated successfully');
     } catch (error) {
       console.error('Error updating announcement:', error);
       throw error;

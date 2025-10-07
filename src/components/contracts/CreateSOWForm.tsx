@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { CrmService } from '@/services/crmService';
 
 interface CreateSOWFormProps {
   onSuccess: () => void;
@@ -29,7 +30,16 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
     setLoading(true);
 
     try {
-      // TODO: Create SOW via service
+      await CrmService.createSOW({
+        title: formData.title,
+        msa_id: formData.msa_id,
+        valid_from: formData.valid_from,
+        valid_to: formData.valid_to,
+        amount_cap: parseFloat(formData.amount_cap),
+        currency: formData.currency,
+        status: formData.status
+      });
+      
       toast({
         title: "Success",
         description: "SOW created successfully",

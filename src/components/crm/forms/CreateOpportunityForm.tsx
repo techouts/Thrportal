@@ -28,9 +28,10 @@ interface CreateOpportunityFormProps {
   accounts: CrmAccount[];
   projects: CrmProject[];
   onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess }: CreateOpportunityFormProps) {
+export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess, onCancel }: CreateOpportunityFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -239,7 +240,7 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess 
         />
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>

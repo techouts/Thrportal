@@ -575,6 +575,7 @@ export default function ClientDetailPage() {
                         setShowOpportunityForm(false);
                         loadClientDetails();
                       }}
+                      onCancel={() => setShowOpportunityForm(false)}
                     />
                   </DialogContent>
                 </Dialog>

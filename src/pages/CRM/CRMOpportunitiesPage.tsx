@@ -11,6 +11,8 @@ import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
 import type { CrmOpportunity, CrmClient } from '@/types/crm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CreateOpportunityForm } from '@/components/crm/forms/CreateOpportunityForm';
 
 export function CRMOpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<CrmOpportunity[]>([]);
@@ -70,7 +72,9 @@ export function CRMOpportunitiesPage() {
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<CrmOpportunity | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
 
   const handleDelete = async () => {
     // TODO: Implement delete functionality
@@ -241,11 +245,9 @@ export function CRMOpportunitiesPage() {
         title="Opportunity Management"
         description="Track and manage business opportunities and requirements"
         actions={
-          <Button asChild>
-            <Link to="/CRM/Clients">
-              <Plus className="h-4 w-4 mr-2" />
-              New Opportunity
-            </Link>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Opportunity
           </Button>
         }
       />
@@ -308,6 +310,48 @@ export function CRMOpportunitiesPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Create Opportunity Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Opportunity</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Select Client</label>
+              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedClientId && (
+              <CreateOpportunityForm
+                clientId={selectedClientId}
+                accounts={[]}
+                projects={[]}
+                onSuccess={() => {
+                  setShowCreateDialog(false);
+                  setSelectedClientId('');
+                  loadData();
+                }}
+                onCancel={() => {
+                  setShowCreateDialog(false);
+                  setSelectedClientId('');
+                }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

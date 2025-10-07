@@ -11,13 +11,13 @@ export class AttendanceSupabaseService extends BaseSupabaseService<Attendance> {
       const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
 
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .upsert({
           employee_id: employeeId,
           date: today,
           clock_in: currentTime,
           status: 'PRESENT'
-        }, {
+        } as any, {
           onConflict: 'employee_id,date'
         })
         .select()
@@ -38,11 +38,11 @@ export class AttendanceSupabaseService extends BaseSupabaseService<Attendance> {
       const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
 
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .update({
           clock_out: currentTime,
           // Calculate total hours if clock_in exists
-        })
+        } as any)
         .eq('employee_id', employeeId)
         .eq('date', today)
         .select()
@@ -60,7 +60,7 @@ export class AttendanceSupabaseService extends BaseSupabaseService<Attendance> {
   async getAttendanceByEmployee(employeeId: string, startDate?: string, endDate?: string) {
     try {
       let query = supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .select('*')
         .eq('employee_id', employeeId)
         .order('date', { ascending: false });

@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { CrmService } from '@/services/crmService';
 
 const msaSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -48,7 +49,15 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
     try {
       setLoading(true);
       
-      // TODO: Integrate with Supabase msas table
+      await CrmService.createMSA({
+        title: data.title,
+        client_id: data.client_id,
+        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
+        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
+        status: data.status,
+        doc_link: data.doc_link || undefined
+      });
+      
       toast({
         title: 'Success',
         description: 'MSA created successfully.'

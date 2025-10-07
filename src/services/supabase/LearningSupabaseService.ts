@@ -47,7 +47,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Course[] || []);
+      return this.createSuccessResponse((data || []) as any);
     } catch (error) {
       console.error('Error fetching available courses:', error);
       throw error;
@@ -65,7 +65,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Course[] || []);
+      return this.createSuccessResponse((data || []) as any);
     } catch (error) {
       console.error('Error fetching courses by category:', error);
       throw error;
@@ -86,7 +86,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Enrollment, 'Successfully enrolled in course');
+      return this.createSuccessResponse(data as any, 'Successfully enrolled in course');
     } catch (error) {
       console.error('Error enrolling in course:', error);
       throw error;
@@ -139,7 +139,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
           .eq('id', enrollmentId)
           .single();
 
-        if (!currentEnrollment?.started_at) {
+        if (!(currentEnrollment as any)?.started_at) {
           updates.started_at = new Date().toISOString();
         }
       }
@@ -153,7 +153,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Enrollment, 'Progress updated successfully');
+      return this.createSuccessResponse(data as any, 'Progress updated successfully');
     } catch (error) {
       console.error('Error updating enrollment progress:', error);
       throw error;
@@ -198,7 +198,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Course, 'Course created successfully');
+      return this.createSuccessResponse(data as any, 'Course created successfully');
     } catch (error) {
       console.error('Error creating course:', error);
       throw error;
@@ -235,7 +235,7 @@ export class LearningSupabaseService extends BaseSupabaseService<Course> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Course[] || []);
+      return this.createSuccessResponse((data || []) as any);
     } catch (error) {
       console.error('Error searching courses:', error);
       throw error;

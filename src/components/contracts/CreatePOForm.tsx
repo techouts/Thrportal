@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { CrmService } from '@/services/crmService';
 
 interface CreatePOFormProps {
   onSuccess: () => void;
@@ -29,7 +30,18 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
     setLoading(true);
 
     try {
-      // TODO: Create PO via service
+      await CrmService.createPO({
+        po_number: formData.po_number,
+        client_id: formData.client_id,
+        valid_from: formData.valid_from,
+        valid_to: formData.valid_to,
+        total_amount: parseFloat(formData.total_amount),
+        remaining_amount: parseFloat(formData.total_amount),
+        currency: formData.currency,
+        status: formData.status,
+        doc_link: formData.doc_link || undefined
+      });
+      
       toast({
         title: "Success",
         description: "Purchase Order created successfully",

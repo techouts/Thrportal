@@ -58,7 +58,7 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
         this.handleSupabaseError(error);
       }
 
-      return this.createSuccessResponse(data as Timesheet);
+      return this.createSuccessResponse(data as any);
     } catch (error) {
       console.error('Error fetching timesheet:', error);
       throw error;
@@ -82,7 +82,7 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Timesheet);
+      return this.createSuccessResponse(data as any);
     } catch (error) {
       console.error('Error creating/updating timesheet:', error);
       throw error;
@@ -102,7 +102,7 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
       // Update timesheet totals
       await this.updateTimesheetTotals(entry.timesheet_id);
 
-      return this.createSuccessResponse(data as TimesheetEntry);
+      return this.createSuccessResponse(data as any);
     } catch (error) {
       console.error('Error adding timesheet entry:', error);
       throw error;
@@ -121,9 +121,9 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
       if (error) this.handleSupabaseError(error);
 
       // Update timesheet totals
-      await this.updateTimesheetTotals(data.timesheet_id);
+      await this.updateTimesheetTotals((data as any).timesheet_id);
 
-      return this.createSuccessResponse(data as TimesheetEntry);
+      return this.createSuccessResponse(data as any);
     } catch (error) {
       console.error('Error updating timesheet entry:', error);
       throw error;
@@ -147,8 +147,8 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
       if (error) this.handleSupabaseError(error);
 
       // Update timesheet totals
-      if (entryData?.timesheet_id) {
-        await this.updateTimesheetTotals(entryData.timesheet_id);
+      if ((entryData as any)?.timesheet_id) {
+        await this.updateTimesheetTotals((entryData as any).timesheet_id);
       }
 
       return this.createSuccessResponse(undefined, 'Entry deleted successfully');
@@ -172,7 +172,7 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Timesheet, 'Timesheet submitted successfully');
+      return this.createSuccessResponse(data as any, 'Timesheet submitted successfully');
     } catch (error) {
       console.error('Error submitting timesheet:', error);
       throw error;
@@ -214,7 +214,7 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
         hasPrev: page > 1
       };
 
-      return this.createPaginatedResponse(data as Timesheet[] || [], pagination);
+      return this.createPaginatedResponse((data || []) as any, pagination);
     } catch (error) {
       console.error('Error fetching timesheet history:', error);
       throw error;
@@ -236,7 +236,7 @@ export class TimesheetSupabaseService extends BaseSupabaseService<Timesheet> {
 
       if (error) this.handleSupabaseError(error);
 
-      return this.createSuccessResponse(data as Timesheet, 'Timesheet approved successfully');
+      return this.createSuccessResponse(data as any, 'Timesheet approved successfully');
     } catch (error) {
       console.error('Error approving timesheet:', error);
       throw error;

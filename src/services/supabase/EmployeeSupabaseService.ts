@@ -8,7 +8,7 @@ export class EmployeeSupabaseService extends BaseSupabaseService<Employee> {
   async getCurrentEmployee(): Promise<Employee | null> {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .select('*')
         .eq('user_id', (await this.getCurrentUserId()))
         .single();
@@ -17,7 +17,7 @@ export class EmployeeSupabaseService extends BaseSupabaseService<Employee> {
         this.handleSupabaseError(error);
       }
 
-      return data || null;
+      return (data as any) || null;
     } catch (error) {
       console.error('Error fetching current employee:', error);
       return null;
@@ -27,7 +27,7 @@ export class EmployeeSupabaseService extends BaseSupabaseService<Employee> {
   async getByDepartment(department: string) {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .select('*')
         .eq('department', department)
         .eq('status', 'ACTIVE');
@@ -44,7 +44,7 @@ export class EmployeeSupabaseService extends BaseSupabaseService<Employee> {
   async getManagers() {
     try {
       const { data, error } = await supabase
-        .from(this.tableName)
+        .from(this.tableName as any)
         .select('*')
         .not('manager_id', 'is', null)
         .eq('status', 'ACTIVE');
