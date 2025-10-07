@@ -243,9 +243,19 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
             name="sla_reference"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>SLA Reference (File Upload)</FormLabel>
+                <FormLabel>SLA Reference (Optional)</FormLabel>
                 <FormControl>
-                  <Input {...field} type="file" accept=".pdf,.doc,.docx" />
+                  <Input 
+                    type="file" 
+                    accept=".pdf,.doc,.docx" 
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // TODO: Upload to Supabase Storage and set URL
+                        field.onChange(file.name);
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

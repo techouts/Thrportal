@@ -1,77 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, DollarSign, Calendar, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Plus, Search, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface PurchaseOrderData {
-  id: string;
-  poNumber: string;
-  client: string;
-  validFrom: string;
-  validTo: string;
-  totalAmount: number;
-  remainingAmount: number;
-  currency: string;
-  status: 'draft' | 'active' | 'expired' | 'terminated';
-  utilization: number;
-  linkedSOWs: string[];
-  docLink?: string;
-}
+import { CrmService } from '@/services/crmService';
+import { CreatePOForm } from './CreatePOForm';
+import { EditPOForm } from './EditPOForm';
+import type { PurchaseOrder } from '@/types/contracts';
 
 export function PurchaseOrderTab() {
   const { toast } = useToast();
+  const [pos, setPos] = useState<PurchaseOrder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingPO, setEditingPO] = useState<PurchaseOrder | null>(null);
+  const [clients, setClients] = useState<any[]>([]);
 
-  const purchaseOrders: PurchaseOrderData[] = [
-    {
-      id: '1',
-      poNumber: 'PO-2024-0001',
-      client: 'TechCorp Inc',
-      validFrom: '2024-02-01',
-      validTo: '2024-06-30',
-      totalAmount: 250000,
-      remainingAmount: 62500,
-      currency: 'USD',
-      status: 'active',
-      utilization: 75,
-      linkedSOWs: ['SOW-ECOMMERCE-001'],
-      docLink: '#'
-    },
-    {
-      id: '2',
-      poNumber: 'PO-2024-0002',
-      client: 'StartupInc',
-      validFrom: '2024-03-01',
-      validTo: '2024-09-30',
-      totalAmount: 180000,
-      remainingAmount: 108000,
-      currency: 'USD',
-      status: 'active',
-      utilization: 40,
-      linkedSOWs: ['SOW-MOBILE-001'],
-      docLink: '#'
-    },
-    {
-      id: '3',
-      poNumber: 'PO-2024-0003',
-      client: 'RetailCorp',
-      validFrom: '2024-01-15',
-      validTo: '2024-05-15',
-      totalAmount: 200000,
-      remainingAmount: 10000,
-      currency: 'USD',
-      status: 'active',
-      utilization: 95,
-      linkedSOWs: ['SOW-ANALYTICS-001']
+  useEffect(() => {
+    loadPOs();
+    loadClients();
+  }, [searchTerm, selectedClient, selectedStatus]);
+
+  const loadPOs = async () => {
+    try {
+      setLoading(true);
+      const data = await CrmService.getPOs({
+        search: searchTerm,
+        client_id: selectedClient !== 'all' ? selectedClient : undefined,
+        status: selectedStatus !== 'all' ? selectedStatus : undefined
+      });
+      setPos(data);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load Purchase Orders',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const loadClients = async () => {
+    try {
+      const data = await CrmService.getClients();
+      setClients(data);
+    } catch (error) {
+      console.error('Failed to load clients', error);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -88,48 +72,38 @@ export function PurchaseOrderTab() {
     }
   };
 
-  const getUtilizationColor = (utilization: number) => {
-    if (utilization >= 90) return 'text-red-600';
-    if (utilization >= 75) return 'text-orange-600';
-    return 'text-green-600';
-  };
-
-  const handleCreatePO = () => {
-    toast({
-      title: "Create Purchase Order",
-      description: "Purchase Order creation dialog would open here",
-    });
-  };
-
-  const handleEditPO = (id: string) => {
-    toast({
-      title: "Edit Purchase Order",
-      description: `Editing PO ${id}`,
-    });
-  };
-
-  const handleDeletePO = (id: string) => {
-    toast({
-      title: "Delete Purchase Order",
-      description: `PO ${id} deletion confirmation would appear`,
-    });
+  const handleDeletePO = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this Purchase Order?')) return;
+    
+    try {
+      await CrmService.deletePO(id);
+      toast({
+        title: 'Success',
+        description: 'Purchase Order deleted successfully'
+      });
+      loadPOs();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete Purchase Order',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header and Create Button */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold">Purchase Orders</h2>
           <p className="text-muted-foreground">Track client purchase orders and budget utilization</p>
         </div>
-        <Button onClick={handleCreatePO} className="flex items-center gap-2">
+        <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Create PO
         </Button>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4">
@@ -150,9 +124,9 @@ export function PurchaseOrderTab() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Clients</SelectItem>
-                <SelectItem value="techcorp">TechCorp Inc</SelectItem>
-                <SelectItem value="startup">StartupInc</SelectItem>
-                <SelectItem value="retail">RetailCorp</SelectItem>
+                {clients.map(client => (
+                  <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -170,101 +144,95 @@ export function PurchaseOrderTab() {
         </CardContent>
       </Card>
 
-      {/* Purchase Orders List */}
       <Card>
         <CardHeader>
-          <CardTitle>Purchase Order Registry ({purchaseOrders.length})</CardTitle>
+          <CardTitle>Purchase Order Registry ({pos.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {purchaseOrders.map((po) => (
-              <div key={po.id} className="p-4 border rounded-lg">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-medium">{po.poNumber}</h3>
-                      {getStatusBadge(po.status)}
-                    </div>
-                    <div className="text-sm text-muted-foreground mb-3">
-                      <p>Client: {po.client}</p>
-                      <p>Valid: {po.validFrom} - {po.validTo}</p>
-                      <p>Linked SOWs: {po.linkedSOWs.join(', ')}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {po.docLink && (
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditPO(po.id)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePO(po.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Total Amount */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      <span className="font-medium">Total Amount</span>
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold">
-                        {po.totalAmount.toLocaleString()} {po.currency}
-                      </p>
-                      <p className="text-xs text-muted-foreground">authorized</p>
-                    </div>
-                  </div>
-
-                  {/* Remaining Amount */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span className="font-medium">Remaining</span>
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold">
-                        {po.remainingAmount.toLocaleString()} {po.currency}
-                      </p>
-                      <p className="text-xs text-muted-foreground">available</p>
-                    </div>
-                  </div>
-
-                  {/* Utilization */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Utilization</span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Progress value={po.utilization} className="flex-1" />
-                        <span className={`text-sm font-medium ${getUtilizationColor(po.utilization)}`}>
-                          {po.utilization}%
-                        </span>
+          {loading ? (
+            <div className="text-center py-8">Loading...</div>
+          ) : pos.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No Purchase Orders found</div>
+          ) : (
+            <div className="space-y-4">
+              {pos.map((po) => (
+                <div key={po.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-medium">{po.po_number}</h3>
+                        {getStatusBadge(po.status)}
                       </div>
-                      <p className="text-xs text-muted-foreground">budget consumed</p>
+                      <div className="text-sm text-muted-foreground mb-3">
+                        <p>Valid: {po.valid_from} - {po.valid_to}</p>
+                        <p>Total: {po.total_amount} {po.currency}</p>
+                        <p>Remaining: {po.remaining_amount} {po.currency}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {po.doc_link && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={po.doc_link} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingPO(po)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeletePO(po.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create Purchase Order</DialogTitle>
+          </DialogHeader>
+          <CreatePOForm 
+            onSuccess={() => {
+              setShowCreateDialog(false);
+              loadPOs();
+            }}
+            onCancel={() => setShowCreateDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingPO} onOpenChange={(open) => !open && setEditingPO(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Purchase Order</DialogTitle>
+          </DialogHeader>
+          {editingPO && (
+            <EditPOForm 
+              po={editingPO}
+              onSuccess={() => {
+                setEditingPO(null);
+                loadPOs();
+              }}
+              onCancel={() => setEditingPO(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
