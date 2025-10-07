@@ -71,7 +71,16 @@ export function CreateInteractionForm({
     try {
       setLoading(true);
       await CrmService.createInteraction({
-        ...data,
+        client_id: data.client_id,
+        account_id: data.account_id || undefined,
+        project_id: data.project_id || undefined,
+        spoc_id: data.spoc_id || undefined,
+        interaction_type: data.interaction_type,
+        date: data.date,
+        notes: data.notes || undefined,
+        outcome: data.outcome || undefined,
+        next_step: data.next_step || undefined,
+        engagement_score: data.engagement_score,
         is_synced: false,
       });
       toast.success('Interaction logged successfully');
