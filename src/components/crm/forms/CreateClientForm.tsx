@@ -15,14 +15,13 @@ import type { CrmClient } from '@/types/crm';
 const clientSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
   industry: z.string().optional(),
-  location: z.string().optional(),
+  region: z.string().optional(),
   status: z.enum(['Active', 'Inactive', 'Prospect']).default('Prospect'),
-  billing_model: z.string().optional(),
   contract_type: z.string().optional(),
   sla_reference: z.string().optional(),
   domain: z.string().optional(),
   gst_vat: z.string().optional(),
-  health_score: z.number().min(0).max(100).default(50)
+  owner_id: z.string().optional()
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -42,14 +41,13 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
     defaultValues: {
       name: initialData?.name || '',
       industry: initialData?.industry || '',
-      location: initialData?.location || '',
+      region: initialData?.location || '',
       status: initialData?.status || 'Prospect',
-      billing_model: initialData?.billing_model || '',
       contract_type: initialData?.contract_type || '',
       sla_reference: initialData?.sla_reference || '',
       domain: initialData?.domain || '',
       gst_vat: initialData?.gst_vat || '',
-      health_score: initialData?.health_score || 50
+      owner_id: initialData?.created_by || ''
     }
   });
 
@@ -85,8 +83,8 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
 
   const statusOptions = ['Active', 'Inactive', 'Prospect'];
   const industryOptions = ['Technology', 'Finance', 'Healthcare', 'Manufacturing', 'Retail', 'Consulting'];
-  const billingModelOptions = ['Fixed Price', 'Time & Material', 'Milestone Based', 'Retainer'];
-  const contractTypeOptions = ['Direct', 'MSA', 'SOW', 'Purchase Order'];
+  const regionOptions = ['North America', 'Europe', 'Asia Pacific', 'Middle East', 'Latin America', 'Africa'];
+  const contractTypeOptions = ['MSA'];
 
   return (
     <Form {...form}>
@@ -145,13 +143,22 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
 
           <FormField
             control={form.control}
-            name="location"
+            name="region"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="City, Country" />
-                </FormControl>
+                <FormLabel>Region</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {regionOptions.map(option => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -196,22 +203,13 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
 
           <FormField
             control={form.control}
-            name="billing_model"
+            name="owner_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Billing Model</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select billing model" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {billingModelOptions.map(option => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Owner</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Owner ID or name" />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -245,29 +243,9 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
             name="sla_reference"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>SLA Reference</FormLabel>
+                <FormLabel>SLA Reference (File Upload)</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="SLA document reference or link" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="health_score"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Initial Health Score (0-100)</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
-                    min="0" 
-                    max="100"
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
+                  <Input {...field} type="file" accept=".pdf,.doc,.docx" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

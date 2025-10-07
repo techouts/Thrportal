@@ -98,6 +98,8 @@ export function CRMInteractionsPage() {
     }
   };
 
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   const columns: Column<CrmInteraction>[] = [
     {
       id: 'client_spoc',
@@ -118,6 +120,16 @@ export function CRMInteractionsPage() {
               SPOC: {interaction.spoc.name}
             </div>
           )}
+        </div>
+      )
+    },
+    {
+      id: 'employee',
+      header: 'Employee',
+      accessor: (interaction: CrmInteraction) => interaction.created_by || '',
+      cell: (interaction: CrmInteraction) => (
+        <div className="text-sm">
+          {interaction.created_by || 'System'}
         </div>
       )
     },
@@ -197,8 +209,11 @@ export function CRMInteractionsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/CRM/Clients/${interaction.client_id}`}>View Client</Link>
+            <DropdownMenuItem onClick={() => {
+              setSelectedInteraction(interaction);
+              setShowEditDialog(true);
+            }}>
+              Edit Interaction
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="text-destructive"

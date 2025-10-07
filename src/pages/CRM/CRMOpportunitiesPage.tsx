@@ -54,6 +54,31 @@ export function CRMOpportunitiesPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const getOpportunityLevel = (opportunity: CrmOpportunity): string => {
+    const total = opportunity.ft_count + opportunity.contract_count;
+    if (total >= 10) return 'Enterprise';
+    if (total >= 5) return 'Medium';
+    return 'Small';
+  };
+
+  const getAgingDays = (createdAt: string): number => {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diff = now.getTime() - created.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<CrmOpportunity | null>(null);
+
+  const handleDelete = async () => {
+    // TODO: Implement delete functionality
+    setShowDeleteDialog(false);
+    setSelectedOpportunity(null);
+    toast({ title: 'Opportunity deleted successfully' });
+  };
+
   const columns: Column<CrmOpportunity>[] = [
     {
       id: 'client',
@@ -90,6 +115,19 @@ export function CRMOpportunitiesPage() {
       )
     },
     {
+      id: 'level',
+      header: 'Level',
+      accessor: (opportunity: CrmOpportunity) => getOpportunityLevel(opportunity),
+      cell: (opportunity: CrmOpportunity) => (
+        <Badge variant={
+          getOpportunityLevel(opportunity) === 'Enterprise' ? 'default' :
+          getOpportunityLevel(opportunity) === 'Medium' ? 'secondary' : 'outline'
+        }>
+          {getOpportunityLevel(opportunity)}
+        </Badge>
+      )
+    },
+    {
       id: 'status',
       header: 'Status',
       accessor: (opportunity: CrmOpportunity) => opportunity.status || '',
@@ -104,6 +142,21 @@ export function CRMOpportunitiesPage() {
       )
     },
     {
+      id: 'aging',
+      header: 'Aging',
+      accessor: (opportunity: CrmOpportunity) => getAgingDays(opportunity.created_at),
+      cell: (opportunity: CrmOpportunity) => {
+        const days = getAgingDays(opportunity.created_at);
+        return (
+          <div className="text-sm">
+            <div className={days > 30 ? 'text-orange-600' : ''}>
+              {days} days
+            </div>
+          </div>
+        );
+      }
+    },
+    {
       id: 'potential_value',
       header: 'Potential Value',
       accessor: (opportunity: CrmOpportunity) => opportunity.ft_count + opportunity.contract_count,
@@ -111,9 +164,6 @@ export function CRMOpportunitiesPage() {
         <div className="text-sm">
           <div className="font-medium">
             {opportunity.ft_count + opportunity.contract_count} Hires
-          </div>
-          <div className="text-muted-foreground">
-            Total placements
           </div>
         </div>
       )
@@ -129,12 +179,6 @@ export function CRMOpportunitiesPage() {
       )
     },
     {
-      id: 'created_at',
-      header: 'Created',
-      accessor: 'created_at',
-      cell: (opportunity: CrmOpportunity) => new Date(opportunity.created_at).toLocaleDateString()
-    },
-    {
       id: 'actions',
       header: 'Actions',
       accessor: (opportunity: CrmOpportunity) => opportunity.id,
@@ -146,12 +190,19 @@ export function CRMOpportunitiesPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/CRM/Clients/${opportunity.client_id}`}>View Client</Link>
+            <DropdownMenuItem onClick={() => {
+              setSelectedOpportunity(opportunity);
+              setShowEditDialog(true);
+            }}>
+              Edit Opportunity
             </DropdownMenuItem>
-            <DropdownMenuItem>Edit Opportunity</DropdownMenuItem>
-            <DropdownMenuItem>Convert to JDs</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive"
+              onClick={() => {
+                setSelectedOpportunity(opportunity);
+                setShowDeleteDialog(true);
+              }}
+            >
               Delete Opportunity
             </DropdownMenuItem>
           </DropdownMenuContent>
