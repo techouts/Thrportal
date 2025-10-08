@@ -364,6 +364,7 @@ export default function ClientDetailPage() {
                     initialData={client}
                     onSuccess={async () => {
                       await loadClientDetails();
+                      await new Promise(r => setTimeout(r, 100));
                       setShowEditForm(false);
                     }}
                     onCancel={() => setShowEditForm(false)}
@@ -464,6 +465,7 @@ export default function ClientDetailPage() {
                       clientId={client.id}
                       onSuccess={async () => {
                         await loadClientDetails();
+                        await new Promise(r => setTimeout(r, 100));
                         setShowSpocForm(false);
                       }}
                     />

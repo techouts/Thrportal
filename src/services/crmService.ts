@@ -210,14 +210,35 @@ export class CrmService {
   }
 
   static async createSpoc(spoc: Omit<CrmSpoc, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
+    // Create the SPOC record
+    const { data: spocData, error: spocError } = await supabase
       .from('crm_spocs')
       .insert(spoc)
       .select()
       .single();
 
-    if (error) throw error;
-    return data as CrmSpoc;
+    if (spocError) throw spocError;
+
+    // Create the link in crm_spoc_links if client_id or account_id is provided
+    if (spoc.client_id || spoc.account_id) {
+      const linkData = {
+        spoc_id: spocData.id,
+        entity_type: spoc.client_id ? 'client' : 'account',
+        entity_id: spoc.client_id || spoc.account_id,
+        role: spoc.role || 'Contact'
+      };
+
+      const { error: linkError } = await supabase
+        .from('crm_spoc_links')
+        .insert(linkData);
+
+      if (linkError) {
+        console.error('Failed to create SPOC link:', linkError);
+        // Don't throw - the SPOC was created, just the link failed
+      }
+    }
+
+    return spocData as CrmSpoc;
   }
 
   static async updateSpoc(id: string, updates: Partial<CrmSpoc>) {
