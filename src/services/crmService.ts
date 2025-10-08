@@ -68,12 +68,16 @@ export class CrmService {
 
     if (spocError) throw spocError;
 
-    // Transform spoc links to match the expected format
-    const spocs = (spocLinks || []).map(link => ({
-      ...link.spoc,
-      link_id: link.id,
-      link_role: link.role
-    }));
+    // Transform spoc links to match the expected format with null checking
+    const spocs = (spocLinks || [])
+      .filter(link => link.spoc != null)
+      .map(link => ({
+        ...(link.spoc as any),
+        link_id: link.id,
+        link_role: link.role
+      }));
+
+    console.log('🔍 Fetched SPOCs for client:', { clientId: id, spocCount: spocs.length, spocs });
 
     return {
       ...data,
@@ -159,12 +163,18 @@ export class CrmService {
 
     if (error) throw error;
     
-    // Transform to match expected format
-    return (data || []).map(link => ({
-      ...link.spoc,
-      link_id: link.id,
-      link_role: link.role
-    })) as CrmSpoc[];
+    // Transform to match expected format with null checking
+    const spocs = (data || [])
+      .filter(link => link.spoc != null)
+      .map(link => ({
+        ...(link.spoc as any),
+        link_id: link.id,
+        link_role: link.role
+      })) as CrmSpoc[];
+
+    console.log('🔍 Fetched SPOCs by client:', { clientId, spocCount: spocs.length });
+    
+    return spocs;
   }
 
   static async getAllSpocs() {
