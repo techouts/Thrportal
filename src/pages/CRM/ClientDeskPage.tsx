@@ -417,6 +417,14 @@ export function ClientDeskPage() {
     const smartList = smartLists.find(s => s.id === selectedSmartList);
     let nodes = smartList ? smartList.filter(hierarchy) : hierarchy;
     
+    console.log('🔍 Filtering nodes:', {
+      selectedSmartList,
+      smartListName: smartList?.name,
+      inputHierarchy: hierarchy.length,
+      afterSmartListFilter: nodes.length,
+      railSearch
+    });
+    
     if (railSearch) {
       nodes = nodes.filter(node => 
         node.name.toLowerCase().includes(railSearch.toLowerCase()) ||
@@ -429,6 +437,7 @@ export function ClientDeskPage() {
       );
     }
     
+    console.log('✅ Final filtered nodes:', nodes.length);
     return nodes;
   };
 
