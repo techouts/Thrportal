@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CrmService } from '@/services/crmService';
+import { CrmSpocLinkService } from '@/services/crmSpocLinkService';
 import { CreateClientForm } from '@/components/crm/forms/CreateClientForm';
 import { CreateAccountForm } from '@/components/crm/forms/CreateAccountForm';
 import { CreateProjectForm } from '@/components/crm/forms/CreateProjectForm';
@@ -157,18 +158,20 @@ export function ClientDeskPage() {
       setLoading(true);
       console.log('🚀 Starting CRM data fetch...');
       
-      const [clientsData, accountsData, projectsData, spocsData] = await Promise.all([
+      const [clientsData, accountsData, projectsData, spocsData, spocLinksData] = await Promise.all([
         CrmService.getClients(),
         CrmService.getAccounts(),
         CrmService.getProjects(),
-        CrmService.getAllSpocs()
+        CrmService.getAllSpocs(),
+        CrmSpocLinkService.getAllSpocLinks()
       ]);
 
       console.log('📊 CRM Data fetched:', {
         clients: clientsData.length,
         accounts: accountsData.length,
         projects: projectsData.length,
-        spocs: spocsData.length
+        spocs: spocsData.length,
+        spocLinks: spocLinksData.length
       });
 
       setClients(clientsData);
@@ -176,7 +179,7 @@ export function ClientDeskPage() {
       setProjects(projectsData);
       setSpocs(spocsData);
 
-      buildHierarchy(clientsData, accountsData, projectsData, spocsData);
+      buildHierarchy(clientsData, accountsData, projectsData, spocsData, spocLinksData);
       
       toast({
         title: "CRM Data Loaded",
@@ -249,18 +252,40 @@ export function ClientDeskPage() {
     return () => document.removeEventListener('keydown', handleKeyboard);
   }, [selectedNode]);
 
-  const buildHierarchy = (clients: CrmClient[], accounts: CrmAccount[], projects: CrmProject[], spocs: CrmSpoc[]) => {
+  const buildHierarchy = (clients: CrmClient[], accounts: CrmAccount[], projects: CrmProject[], spocs: CrmSpoc[], spocLinks: any[]) => {
     const hierarchyMap: { [key: string]: HierarchyNode } = {};
+
+    console.log('🏗️ Building hierarchy with SPOC links:', {
+      totalSpocs: spocs.length,
+      totalLinks: spocLinks.length,
+      spocLinksSample: spocLinks.slice(0, 3)
+    });
+
+    // Helper function to get SPOCs for an entity
+    const getSpocsForEntity = (entityType: string, entityId: string) => {
+      const links = spocLinks.filter(link => 
+        link.entity_type === entityType && link.entity_id === entityId
+      );
+      
+      const linkedSpocs = links.map(link => {
+        const spoc = spocs.find(s => s.id === link.spoc_id);
+        return spoc ? { ...spoc, link_role: link.role } : null;
+      }).filter(Boolean);
+
+      console.log(`🔗 SPOCs for ${entityType} ${entityId}:`, linkedSpocs.length);
+      return linkedSpocs;
+    };
 
     // Create client nodes
     clients.forEach(client => {
+      const clientSpocs = getSpocsForEntity('client', client.id);
       hierarchyMap[`client-${client.id}`] = {
         id: `client-${client.id}`,
         type: 'client',
         name: client.name,
         status: client.status || 'Active',
         children: [],
-        spocs: spocs.filter(s => s.client_id === client.id && !s.account_id),
+        spocs: clientSpocs,
         data: client,
         updated_at: client.updated_at
       };
@@ -268,6 +293,7 @@ export function ClientDeskPage() {
 
     // Create account nodes
     accounts.forEach(account => {
+      const accountSpocs = getSpocsForEntity('account', account.id);
       const accountNode: HierarchyNode = {
         id: `account-${account.id}`,
         type: 'account',
@@ -275,7 +301,7 @@ export function ClientDeskPage() {
         status: 'Active',
         parent: `client-${account.client_id}`,
         children: [],
-        spocs: spocs.filter(s => s.account_id === account.id),
+        spocs: accountSpocs,
         data: account,
         updated_at: account.updated_at
       };
@@ -290,6 +316,7 @@ export function ClientDeskPage() {
 
     // Create project nodes
     projects.forEach(project => {
+      const projectSpocs = getSpocsForEntity('project', project.id);
       const projectNode: HierarchyNode = {
         id: `project-${project.id}`,
         type: 'project',
@@ -298,7 +325,7 @@ export function ClientDeskPage() {
         status: project.status || 'Planned',
         parent: project.account_id ? `account-${project.account_id}` : `client-${project.client_id}`,
         children: [],
-        spocs: spocs.filter(s => s.client_id === project.client_id),
+        spocs: projectSpocs,
         data: project,
         updated_at: project.updated_at
       };

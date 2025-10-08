@@ -13,6 +13,15 @@ export class CrmSpocLinkService {
     return data as CrmSpocLink;
   }
 
+  static async getAllSpocLinks() {
+    const { data, error } = await supabase
+      .from('crm_spoc_links')
+      .select('*');
+
+    if (error) throw error;
+    return data as CrmSpocLink[];
+  }
+
   static async getSpocLinksByEntity(entityType: 'client' | 'account' | 'project', entityId: string) {
     const { data, error } = await supabase
       .from('crm_spoc_links')
