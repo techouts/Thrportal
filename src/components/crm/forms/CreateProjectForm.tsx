@@ -62,8 +62,18 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
     try {
       setLoading(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Authentication required');
+      // Get user ID from auth context (works with dev mode)
+      const storedDevUser = localStorage.getItem("dev_user");
+      let userId: string;
+      
+      if (storedDevUser) {
+        const devUser = JSON.parse(storedDevUser);
+        userId = devUser.id;
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Authentication required');
+        userId = user.id;
+      }
       
       await CrmService.createProject({
         name: data.name,
@@ -77,7 +87,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
         priority: data.priority || 'Medium',
         status: data.status || 'Planned',
         skills: data.skills ? data.skills.split(',').map(s => s.trim()) : undefined,
-        created_by: user.id
+        created_by: userId
       });
       
       toast({

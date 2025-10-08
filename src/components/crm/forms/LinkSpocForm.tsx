@@ -50,8 +50,18 @@ export function LinkSpocForm({ clientId, accountId, projectId, onSuccess, onCanc
     try {
       setLoading(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Authentication required');
+      // Get user ID from auth context (works with dev mode)
+      const storedDevUser = localStorage.getItem("dev_user");
+      let userId: string;
+      
+      if (storedDevUser) {
+        const devUser = JSON.parse(storedDevUser);
+        userId = devUser.id;
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Authentication required');
+        userId = user.id;
+      }
       
       // Create the SPOC first
       const spocData = {
@@ -60,7 +70,7 @@ export function LinkSpocForm({ clientId, accountId, projectId, onSuccess, onCanc
         phone: data.phone,
         linkedin_url: data.linkedin_url,
         is_primary: data.spoc_role === 'primary',
-        created_by: user.id
+        created_by: userId
       };
 
       const newSpoc = await CrmService.createSpoc(spocData);
@@ -71,7 +81,7 @@ export function LinkSpocForm({ clientId, accountId, projectId, onSuccess, onCanc
         role: data.spoc_role,
         entity_id: '',
         entity_type: '',
-        created_by: user.id
+        created_by: userId
       };
 
       if (clientId) {

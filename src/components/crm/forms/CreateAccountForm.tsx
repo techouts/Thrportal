@@ -49,8 +49,18 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
     try {
       setLoading(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Authentication required');
+      // Get user ID from auth context (works with dev mode)
+      const storedDevUser = localStorage.getItem("dev_user");
+      let userId: string;
+      
+      if (storedDevUser) {
+        const devUser = JSON.parse(storedDevUser);
+        userId = devUser.id;
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Authentication required');
+        userId = user.id;
+      }
       
       await CrmService.createAccount({
         name: data.name,
@@ -60,7 +70,7 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
         primary_spoc_id: data.primary_spoc_id || undefined,
         billing_currency: data.billing_currency,
         status: data.status,
-        created_by: user.id
+        created_by: userId
       });
       
       toast({

@@ -15,14 +15,13 @@ import type { CrmClient } from '@/types/crm';
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
-  industry: z.string().min(1, 'Industry is required'),
-  region: z.string().min(1, 'Region is required'),
+  industry: z.string().optional(),
+  region: z.string().optional(),
   status: z.enum(['Active', 'Inactive', 'Prospect']).default('Active'),
-  contract_type: z.string().min(1, 'Contract type is required'),
+  contract_type: z.string().optional(),
   sla_reference_url: z.string().optional(),
   domain: z.string().optional(),
-  gst_vat: z.string().optional(),
-  owner_id: z.string().min(1, 'Owner is required')
+  gst_vat: z.string().optional()
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -48,8 +47,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
       contract_type: initialData?.contract_type || '',
       sla_reference_url: initialData?.sla_reference_url || '',
       domain: initialData?.domain || '',
-      gst_vat: initialData?.gst_vat || '',
-      owner_id: initialData?.created_by || ''
+      gst_vat: initialData?.gst_vat || ''
     }
   });
 
@@ -57,13 +55,23 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
     try {
       setLoading(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Authentication required');
+      // Get user ID from auth context (works with dev mode)
+      const storedDevUser = localStorage.getItem("dev_user");
+      let userId: string;
+      
+      if (storedDevUser) {
+        const devUser = JSON.parse(storedDevUser);
+        userId = devUser.id;
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Authentication required');
+        userId = user.id;
+      }
       
       if (mode === 'create') {
         await CrmService.createClient({
           ...data,
-          created_by: user.id
+          created_by: userId
         } as Omit<CrmClient, 'id' | 'created_at' | 'updated_at'>);
         toast({
           title: 'Success',
@@ -209,19 +217,6 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="owner_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Owner</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Owner ID or name" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
