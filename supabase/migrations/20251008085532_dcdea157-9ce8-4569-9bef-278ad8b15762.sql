@@ -1,0 +1,21 @@
+-- Drop foreign key constraints on created_by/assigned_by columns
+ALTER TABLE crm_clients DROP CONSTRAINT IF EXISTS crm_clients_created_by_fkey;
+ALTER TABLE crm_accounts DROP CONSTRAINT IF EXISTS crm_accounts_created_by_fkey;
+ALTER TABLE crm_projects DROP CONSTRAINT IF EXISTS crm_projects_created_by_fkey;
+ALTER TABLE crm_spocs DROP CONSTRAINT IF EXISTS crm_spocs_created_by_fkey;
+ALTER TABLE crm_interactions DROP CONSTRAINT IF EXISTS crm_interactions_created_by_fkey;
+ALTER TABLE crm_opportunities DROP CONSTRAINT IF EXISTS crm_opportunities_created_by_fkey;
+ALTER TABLE crm_documents DROP CONSTRAINT IF EXISTS crm_documents_created_by_fkey;
+ALTER TABLE crm_spoc_links DROP CONSTRAINT IF EXISTS crm_spoc_links_created_by_fkey;
+ALTER TABLE crm_recruiter_assignments DROP CONSTRAINT IF EXISTS crm_recruiter_assignments_assigned_by_fkey;
+
+-- Change created_by/assigned_by columns from uuid to text
+ALTER TABLE crm_clients ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_accounts ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_projects ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_spocs ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_interactions ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_opportunities ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_documents ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_spoc_links ALTER COLUMN created_by TYPE text;
+ALTER TABLE crm_recruiter_assignments ALTER COLUMN assigned_by TYPE text;
