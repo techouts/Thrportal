@@ -55,11 +55,23 @@ export default function ClientDetailPage() {
 
   const loadClientDetails = async () => {
     try {
+      console.log('🚀 ClientDetailPage: Starting to load client details for:', clientId);
       setLoading(true);
       const data = await CrmService.getClientById(clientId!);
+      console.log('✅ ClientDetailPage: Received client data:', { 
+        hasData: !!data, 
+        clientName: data?.name,
+        spocCount: data?.spocs?.length,
+        spocs: data?.spocs 
+      });
       setClient(data);
     } catch (error) {
-      console.error('Error loading client details:', error);
+      console.error('❌ ClientDetailPage: Error loading client details:', error);
+      console.error('❌ Error details:', {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        fullError: error
+      });
     } finally {
       setLoading(false);
     }

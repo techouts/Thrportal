@@ -40,6 +40,8 @@ export class CrmService {
   }
 
   static async getClientById(id: string) {
+    console.log('🎯 START getClientById called with id:', id);
+    
     const { data, error } = await supabase
       .from('crm_clients')
       .select(`
@@ -53,9 +55,17 @@ export class CrmService {
       .eq('id', id)
       .single();
 
+    console.log('📦 Client data fetched:', { 
+      success: !error, 
+      hasData: !!data, 
+      error: error?.message,
+      clientName: data?.name 
+    });
+
     if (error) throw error;
 
     // Fetch SPOCs through the junction table
+    console.log('🔗 Fetching SPOC links for client:', id);
     const { data: spocLinks, error: spocError } = await supabase
       .from('crm_spoc_links')
       .select(`
@@ -65,6 +75,13 @@ export class CrmService {
       `)
       .eq('entity_type', 'client')
       .eq('entity_id', id);
+
+    console.log('🔗 SPOC links query result:', { 
+      success: !spocError, 
+      linkCount: spocLinks?.length,
+      error: spocError?.message,
+      rawLinks: spocLinks 
+    });
 
     if (spocError) throw spocError;
 
@@ -77,7 +94,12 @@ export class CrmService {
         link_role: link.role
       }));
 
-    console.log('🔍 Fetched SPOCs for client:', { clientId: id, spocCount: spocs.length, spocs });
+    console.log('🔍 FINAL SPOCs for client:', { 
+      clientId: id, 
+      spocCount: spocs.length, 
+      spocNames: spocs.map(s => s.name),
+      fullSpocs: spocs 
+    });
 
     return {
       ...data,
