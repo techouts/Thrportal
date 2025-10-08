@@ -75,7 +75,7 @@ export function ClientDeskPage() {
   const [showInspector, setShowInspector] = useState(false);
   const [inspectorEntity, setInspectorEntity] = useState<any>(null);
   const [recentEntities, setRecentEntities] = useState<HierarchyNode[]>([]);
-  const [selectedSmartList, setSelectedSmartList] = useState<string>('recents');
+  const [selectedSmartList, setSelectedSmartList] = useState<string>('all-clients');
 
   // Forms
   const [showCreateClient, setShowCreateClient] = useState(false);
@@ -90,6 +90,13 @@ export function ClientDeskPage() {
 
   // Smart lists configuration
   const smartLists: SmartList[] = [
+    {
+      id: 'all-clients',
+      name: 'All Clients',
+      icon: Building,
+      count: hierarchy.length,
+      filter: (nodes) => nodes
+    },
     {
       id: 'recents',
       name: 'Recently Viewed',
