@@ -2,11 +2,11 @@ export interface CrmClient {
   id: string;
   name: string;
   industry?: string;
-  location?: string;
+  region?: string;
   status: 'Active' | 'Inactive' | 'Prospect';
   billing_model?: string;
   contract_type?: string;
-  sla_reference?: string;
+  sla_reference_url?: string;
   health_score: number;
   domain?: string;
   gst_vat?: string;
@@ -22,6 +22,8 @@ export interface CrmAccount {
   type?: string;
   sla_override?: string;
   primary_spoc_id?: string;
+  billing_currency?: string;
+  status?: string;
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -148,10 +150,22 @@ export interface CrmRecruiterAssignment {
   project?: CrmProject;
 }
 
+export interface CrmSpocLink {
+  id: string;
+  spoc_id: string;
+  entity_type: 'client' | 'account' | 'project';
+  entity_id: string;
+  role: 'finance' | 'project' | 'sales' | 'escalation' | 'primary';
+  created_at: string;
+  created_by?: string;
+  // Relations
+  spoc?: CrmSpoc;
+}
+
 // Filters and API types
 export interface CrmClientFilters {
   industry?: string;
-  location?: string;
+  region?: string;
   status?: string;
   assigned_recruiter?: string;
   search?: string;

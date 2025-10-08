@@ -14,7 +14,9 @@ const accountSchema = z.object({
   name: z.string().min(1, 'Account name is required'),
   type: z.string().optional(),
   sla_override: z.string().optional(),
-  primary_spoc_id: z.string().optional()
+  primary_spoc_id: z.string().optional(),
+  billing_currency: z.string().min(1, 'Billing currency is required'),
+  status: z.string().min(1, 'Status is required')
 });
 
 type AccountFormData = z.infer<typeof accountSchema>;
@@ -36,7 +38,9 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
       name: '',
       type: '',
       sla_override: '',
-      primary_spoc_id: ''
+      primary_spoc_id: '',
+      billing_currency: 'USD',
+      status: 'Active'
     }
   });
 
@@ -49,7 +53,9 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
         type: data.type,
         sla_override: data.sla_override,
         client_id: clientId,
-        primary_spoc_id: data.primary_spoc_id || undefined
+        primary_spoc_id: data.primary_spoc_id || undefined,
+        billing_currency: data.billing_currency,
+        status: data.status
       });
       
       toast({
@@ -146,6 +152,52 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
               <FormControl>
                 <Input {...field} placeholder="Custom SLA for this account" />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="billing_currency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Billing Currency *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                  <SelectItem value="INR">INR</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

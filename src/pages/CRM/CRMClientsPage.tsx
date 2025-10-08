@@ -25,7 +25,7 @@ export default function CRMClientsPage() {
     search: searchParams.get('search') || '',
     status: searchParams.get('status') || '',
     industry: searchParams.get('industry') || '',
-    location: searchParams.get('location') || ''
+    region: searchParams.get('region') || ''
   });
 
   const statusOptions = ['Active', 'Inactive', 'Prospect'];
@@ -101,13 +101,13 @@ export default function CRMClientsPage() {
       )
     },
     {
-      id: 'location',
-      header: 'Location',
-      accessor: 'location' as keyof CrmClient,
+      id: 'region',
+      header: 'Region',
+      accessor: 'region' as keyof CrmClient,
       cell: (client: CrmClient) => (
         <div className="flex items-center gap-1">
           <MapPin className="h-3 w-3 text-muted-foreground" />
-          <span className="text-sm">{client.location || 'Not specified'}</span>
+          <span className="text-sm">{client.region || 'Not specified'}</span>
         </div>
       )
     },
@@ -241,9 +241,9 @@ export default function CRMClientsPage() {
             </Select>
 
             <Input
-              placeholder="Filter by location..."
-              value={filters.location}
-              onChange={(e) => handleFilterChange('location', e.target.value)}
+              placeholder="Filter by region..."
+              value={filters.region}
+              onChange={(e) => handleFilterChange('region', e.target.value)}
             />
           </div>
 

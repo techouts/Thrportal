@@ -27,8 +27,8 @@ export class CrmService {
     if (filters?.industry) {
       query = query.eq('industry', filters.industry);
     }
-    if (filters?.location) {
-      query = query.ilike('location', `%${filters.location}%`);
+    if (filters?.region) {
+      query = query.ilike('region', `%${filters.region}%`);
     }
     if (filters?.search) {
       query = query.or(`name.ilike.%${filters.search}%,domain.ilike.%${filters.search}%`);

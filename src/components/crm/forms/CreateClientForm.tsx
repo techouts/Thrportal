@@ -42,10 +42,10 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
     defaultValues: {
       name: initialData?.name || '',
       industry: initialData?.industry || '',
-      region: initialData?.location || '',
+      region: initialData?.region || '',
       status: initialData?.status || 'Prospect',
       contract_type: initialData?.contract_type || '',
-      sla_reference: initialData?.sla_reference || '',
+      sla_reference: initialData?.sla_reference_url || '',
       domain: initialData?.domain || '',
       gst_vat: initialData?.gst_vat || '',
       owner_id: initialData?.created_by || ''

@@ -223,6 +223,7 @@ export type Database = {
       }
       crm_accounts: {
         Row: {
+          billing_currency: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -230,10 +231,12 @@ export type Database = {
           name: string
           primary_spoc_id: string | null
           sla_override: string | null
+          status: string
           type: string | null
           updated_at: string
         }
         Insert: {
+          billing_currency?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -241,10 +244,12 @@ export type Database = {
           name: string
           primary_spoc_id?: string | null
           sla_override?: string | null
+          status?: string
           type?: string | null
           updated_at?: string
         }
         Update: {
+          billing_currency?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -252,6 +257,7 @@ export type Database = {
           name?: string
           primary_spoc_id?: string | null
           sla_override?: string | null
+          status?: string
           type?: string | null
           updated_at?: string
         }
@@ -283,9 +289,9 @@ export type Database = {
           health_score: number | null
           id: string
           industry: string | null
-          location: string | null
           name: string
-          sla_reference: string | null
+          region: string | null
+          sla_reference_url: string | null
           status: string
           updated_at: string
         }
@@ -299,9 +305,9 @@ export type Database = {
           health_score?: number | null
           id?: string
           industry?: string | null
-          location?: string | null
           name: string
-          sla_reference?: string | null
+          region?: string | null
+          sla_reference_url?: string | null
           status?: string
           updated_at?: string
         }
@@ -315,9 +321,9 @@ export type Database = {
           health_score?: number | null
           id?: string
           industry?: string | null
-          location?: string | null
           name?: string
-          sla_reference?: string | null
+          region?: string | null
+          sla_reference_url?: string | null
           status?: string
           updated_at?: string
         }
@@ -667,6 +673,44 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "crm_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_spoc_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          role: string
+          spoc_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          role: string
+          spoc_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          role?: string
+          spoc_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_spoc_links_spoc_id_fkey"
+            columns: ["spoc_id"]
+            isOneToOne: false
+            referencedRelation: "crm_spocs"
             referencedColumns: ["id"]
           },
         ]
