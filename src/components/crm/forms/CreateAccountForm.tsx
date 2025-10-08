@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { CrmSpoc } from '@/types/crm';
 
 const accountSchema = z.object({
@@ -48,6 +49,9 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
     try {
       setLoading(true);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Authentication required');
+      
       await CrmService.createAccount({
         name: data.name,
         type: data.type,
@@ -55,7 +59,8 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
         client_id: clientId,
         primary_spoc_id: data.primary_spoc_id || undefined,
         billing_currency: data.billing_currency,
-        status: data.status
+        status: data.status,
+        created_by: user.id
       });
       
       toast({

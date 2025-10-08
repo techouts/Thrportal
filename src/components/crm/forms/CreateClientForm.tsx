@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { CrmClient } from '@/types/crm';
 
 const clientSchema = z.object({
@@ -18,7 +19,7 @@ const clientSchema = z.object({
   region: z.string().min(1, 'Region is required'),
   status: z.enum(['Active', 'Inactive', 'Prospect']).default('Active'),
   contract_type: z.string().min(1, 'Contract type is required'),
-  sla_reference: z.string().optional(),
+  sla_reference_url: z.string().optional(),
   domain: z.string().optional(),
   gst_vat: z.string().optional(),
   owner_id: z.string().min(1, 'Owner is required')
@@ -45,7 +46,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
       region: initialData?.region || '',
       status: initialData?.status || 'Prospect',
       contract_type: initialData?.contract_type || '',
-      sla_reference: initialData?.sla_reference_url || '',
+      sla_reference_url: initialData?.sla_reference_url || '',
       domain: initialData?.domain || '',
       gst_vat: initialData?.gst_vat || '',
       owner_id: initialData?.created_by || ''
@@ -56,8 +57,14 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
     try {
       setLoading(true);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Authentication required');
+      
       if (mode === 'create') {
-        await CrmService.createClient(data as Omit<CrmClient, 'id' | 'created_at' | 'updated_at'>);
+        await CrmService.createClient({
+          ...data,
+          created_by: user.id
+        } as Omit<CrmClient, 'id' | 'created_at' | 'updated_at'>);
         toast({
           title: 'Success',
           description: 'Client created successfully.'
@@ -241,7 +248,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
 
           <FormField
             control={form.control}
-            name="sla_reference"
+            name="sla_reference_url"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel>SLA Reference (Optional)</FormLabel>

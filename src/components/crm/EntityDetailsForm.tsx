@@ -137,10 +137,10 @@ export function EntityDetailsForm({ entity, entityType, onSave }: EntityDetailsF
                 />
               </div>
               <div>
-                <Label>Location/Region</Label>
+                <Label>Region</Label>
                 <Input 
-                  value={formData.location || ''} 
-                  onChange={(e) => handleChange('location', e.target.value)}
+                  value={formData.region || ''} 
+                  onChange={(e) => handleChange('region', e.target.value)}
                   className="mt-1" 
                 />
               </div>

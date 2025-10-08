@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { cn } from '@/lib/utils';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { CrmAccount, CrmSpoc } from '@/types/crm';
 
 const projectSchema = z.object({
@@ -61,6 +62,9 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
     try {
       setLoading(true);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Authentication required');
+      
       await CrmService.createProject({
         name: data.name,
         client_id: clientId,
@@ -72,7 +76,8 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
         contract_target: data.contract_target || 0,
         priority: data.priority || 'Medium',
         status: data.status || 'Planned',
-        skills: data.skills ? data.skills.split(',').map(s => s.trim()) : undefined
+        skills: data.skills ? data.skills.split(',').map(s => s.trim()) : undefined,
+        created_by: user.id
       });
       
       toast({

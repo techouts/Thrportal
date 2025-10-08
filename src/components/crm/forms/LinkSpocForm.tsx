@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CrmService } from '@/services/crmService';
 import { CrmSpocLinkService } from '@/services/crmSpocLinkService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const linkSpocSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -49,13 +50,17 @@ export function LinkSpocForm({ clientId, accountId, projectId, onSuccess, onCanc
     try {
       setLoading(true);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Authentication required');
+      
       // Create the SPOC first
       const spocData = {
         name: data.name,
         email: data.email,
         phone: data.phone,
         linkedin_url: data.linkedin_url,
-        is_primary: data.spoc_role === 'primary'
+        is_primary: data.spoc_role === 'primary',
+        created_by: user.id
       };
 
       const newSpoc = await CrmService.createSpoc(spocData);
@@ -65,7 +70,8 @@ export function LinkSpocForm({ clientId, accountId, projectId, onSuccess, onCanc
         spoc_id: newSpoc.id,
         role: data.spoc_role,
         entity_id: '',
-        entity_type: ''
+        entity_type: '',
+        created_by: user.id
       };
 
       if (clientId) {
