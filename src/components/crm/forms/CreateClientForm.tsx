@@ -85,7 +85,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
         });
       }
       
-      onSuccess();
+      await onSuccess();
     } catch (error) {
       toast({
         title: 'Error',

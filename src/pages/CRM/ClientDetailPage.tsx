@@ -362,9 +362,9 @@ export default function ClientDetailPage() {
                   <CreateClientForm 
                     mode="edit"
                     initialData={client}
-                    onSuccess={() => {
+                    onSuccess={async () => {
+                      await loadClientDetails();
                       setShowEditForm(false);
-                      loadClientDetails();
                     }}
                     onCancel={() => setShowEditForm(false)}
                   />

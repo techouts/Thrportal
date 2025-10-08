@@ -63,7 +63,7 @@ export function CreateSpocForm({ clientId, accountId, onSuccess }: CreateSpocFor
         description: 'SPOC created successfully.'
       });
       
-      onSuccess();
+      await onSuccess();
     } catch (error) {
       toast({
         title: 'Error',
