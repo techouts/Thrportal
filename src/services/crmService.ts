@@ -45,7 +45,6 @@ export class CrmService {
       .select(`
         *,
         accounts:crm_accounts(*),
-        spocs:crm_spocs(*),
         projects:crm_projects(*),
         opportunities:crm_opportunities(*),
         interactions:crm_interactions(*),
@@ -55,7 +54,31 @@ export class CrmService {
       .single();
 
     if (error) throw error;
-    return data;
+
+    // Fetch SPOCs through the junction table
+    const { data: spocLinks, error: spocError } = await supabase
+      .from('crm_spoc_links')
+      .select(`
+        id,
+        role,
+        spoc:crm_spocs(*)
+      `)
+      .eq('entity_type', 'client')
+      .eq('entity_id', id);
+
+    if (spocError) throw spocError;
+
+    // Transform spoc links to match the expected format
+    const spocs = (spocLinks || []).map(link => ({
+      ...link.spoc,
+      link_id: link.id,
+      link_role: link.role
+    }));
+
+    return {
+      ...data,
+      spocs
+    };
   }
 
   static async createClient(client: Omit<CrmClient, 'id' | 'created_at' | 'updated_at'>) {
@@ -125,13 +148,23 @@ export class CrmService {
   // SPOCs
   static async getSpocsByClient(clientId: string) {
     const { data, error } = await supabase
-      .from('crm_spocs')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('is_primary', { ascending: false });
+      .from('crm_spoc_links')
+      .select(`
+        id,
+        role,
+        spoc:crm_spocs(*)
+      `)
+      .eq('entity_type', 'client')
+      .eq('entity_id', clientId);
 
     if (error) throw error;
-    return data as CrmSpoc[];
+    
+    // Transform to match expected format
+    return (data || []).map(link => ({
+      ...link.spoc,
+      link_id: link.id,
+      link_role: link.role
+    })) as CrmSpoc[];
   }
 
   static async getAllSpocs() {
