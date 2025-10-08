@@ -343,6 +343,11 @@ export function ClientDeskPage() {
     });
 
     const rootNodes = Object.values(hierarchyMap).filter(node => node.type === 'client');
+    console.log('✅ Hierarchy built - Root clients:', {
+      totalClients: rootNodes.length,
+      clientNames: rootNodes.map(n => n.name),
+      fullNodes: rootNodes
+    });
     setHierarchy(rootNodes);
   };
 
