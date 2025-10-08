@@ -24,10 +24,11 @@ type SpocFormData = z.infer<typeof spocSchema>;
 interface CreateSpocFormProps {
   clientId?: string;
   accountId?: string;
-  onSuccess: () => void;
+  onSuccess: (newSpoc?: any) => void;
+  onCancel?: () => void;
 }
 
-export function CreateSpocForm({ clientId, accountId, onSuccess }: CreateSpocFormProps) {
+export function CreateSpocForm({ clientId, accountId, onSuccess, onCancel }: CreateSpocFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -47,7 +48,7 @@ export function CreateSpocForm({ clientId, accountId, onSuccess }: CreateSpocFor
     try {
       setLoading(true);
       
-      await CrmService.createSpoc({
+      const newSpoc = await CrmService.createSpoc({
         name: data.name,
         role: data.role,
         email: data.email || undefined,
@@ -63,7 +64,7 @@ export function CreateSpocForm({ clientId, accountId, onSuccess }: CreateSpocFor
         description: 'SPOC created successfully.'
       });
       
-      await onSuccess();
+      onSuccess(newSpoc);
     } catch (error) {
       toast({
         title: 'Error',
@@ -174,7 +175,7 @@ export function CreateSpocForm({ clientId, accountId, onSuccess }: CreateSpocFor
         />
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+          <Button type="button" variant="outline" onClick={onCancel || (() => onSuccess())}>
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>

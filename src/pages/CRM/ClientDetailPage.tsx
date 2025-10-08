@@ -359,13 +359,14 @@ export default function ClientDetailPage() {
                   <DialogHeader>
                     <DialogTitle>Edit Client</DialogTitle>
                   </DialogHeader>
-                  <CreateClientForm 
+                  <CreateClientForm
                     mode="edit"
                     initialData={client}
-                    onSuccess={async () => {
-                      await loadClientDetails();
-                      await new Promise(r => setTimeout(r, 100));
+                    onSuccess={() => {
+                      // Close dialog immediately for instant feedback
                       setShowEditForm(false);
+                      // Refresh data in background
+                      loadClientDetails();
                     }}
                     onCancel={() => setShowEditForm(false)}
                   />
@@ -461,13 +462,15 @@ export default function ClientDetailPage() {
                     <DialogHeader>
                       <DialogTitle>Add New SPOC</DialogTitle>
                     </DialogHeader>
-                    <CreateSpocForm 
+                    <CreateSpocForm
                       clientId={client.id}
-                      onSuccess={async () => {
-                        await loadClientDetails();
-                        await new Promise(r => setTimeout(r, 100));
+                      onSuccess={(newSpoc) => {
+                        // Optimistic UI update - close dialog immediately
                         setShowSpocForm(false);
+                        // Refresh data in background
+                        loadClientDetails();
                       }}
+                      onCancel={() => setShowSpocForm(false)}
                     />
                   </DialogContent>
                 </Dialog>
