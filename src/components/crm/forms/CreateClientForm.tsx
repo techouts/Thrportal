@@ -140,7 +140,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Industry</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select industry" />
@@ -163,7 +163,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Region</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select region" />
@@ -186,7 +186,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -224,7 +224,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contract Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select contract type" />

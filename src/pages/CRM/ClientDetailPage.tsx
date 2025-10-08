@@ -462,9 +462,9 @@ export default function ClientDetailPage() {
                     </DialogHeader>
                     <CreateSpocForm 
                       clientId={client.id}
-                      onSuccess={() => {
+                      onSuccess={async () => {
+                        await loadClientDetails();
                         setShowSpocForm(false);
-                        loadClientDetails();
                       }}
                     />
                   </DialogContent>
