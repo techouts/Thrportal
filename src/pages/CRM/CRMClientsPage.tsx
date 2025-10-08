@@ -198,6 +198,7 @@ export default function CRMClientsPage() {
                     setShowCreateForm(false);
                     loadClients();
                   }}
+                  onCancel={() => setShowCreateForm(false)}
                 />
               </DialogContent>
             </Dialog>

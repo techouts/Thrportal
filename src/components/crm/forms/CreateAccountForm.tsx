@@ -23,9 +23,10 @@ interface CreateAccountFormProps {
   clientId: string;
   spocs: CrmSpoc[];
   onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function CreateAccountForm({ clientId, spocs, onSuccess }: CreateAccountFormProps) {
+export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: CreateAccountFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -151,10 +152,10 @@ export function CreateAccountForm({ clientId, spocs, onSuccess }: CreateAccountF
         />
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !form.formState.isValid}>
             {loading ? 'Creating...' : 'Create Account'}
           </Button>
         </div>

@@ -354,6 +354,7 @@ export default function ClientDetailPage() {
                       setShowEditForm(false);
                       loadClientDetails();
                     }}
+                    onCancel={() => setShowEditForm(false)}
                   />
                 </DialogContent>
               </Dialog>
@@ -493,6 +494,7 @@ export default function ClientDetailPage() {
                         setShowAccountForm(false);
                         loadClientDetails();
                       }}
+                      onCancel={() => setShowAccountForm(false)}
                     />
                   </DialogContent>
                 </Dialog>
@@ -534,6 +536,7 @@ export default function ClientDetailPage() {
                         setShowProjectForm(false);
                         loadClientDetails();
                       }}
+                      onCancel={() => setShowProjectForm(false)}
                     />
                   </DialogContent>
                 </Dialog>

@@ -36,9 +36,10 @@ interface CreateProjectFormProps {
   accounts: CrmAccount[];
   spocs: CrmSpoc[];
   onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function CreateProjectForm({ clientId, accounts, spocs, onSuccess }: CreateProjectFormProps) {
+export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCancel }: CreateProjectFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -354,10 +355,10 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess }: Crea
         />
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !form.formState.isValid}>
             {loading ? 'Creating...' : 'Create Project'}
           </Button>
         </div>

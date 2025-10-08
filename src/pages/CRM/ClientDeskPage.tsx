@@ -21,6 +21,7 @@ import { CreateClientForm } from '@/components/crm/forms/CreateClientForm';
 import { CreateAccountForm } from '@/components/crm/forms/CreateAccountForm';
 import { CreateProjectForm } from '@/components/crm/forms/CreateProjectForm';
 import { LinkSpocForm } from '@/components/crm/forms/LinkSpocForm';
+import { EntityDetailsForm } from '@/components/crm/EntityDetailsForm';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
@@ -641,7 +642,7 @@ export function ClientDeskPage() {
               
               <div className="flex-1 overflow-y-auto">
                 <TabsContent value="overview" className="p-6">
-                  {/* Metrics for Client level only */}
+                  {/* Metrics for Client and Account levels */}
                   {selectedNode.type === 'client' && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                       <Card>
@@ -663,6 +664,30 @@ export function ClientDeskPage() {
                             {selectedNode.children.reduce((sum, acc) => sum + acc.children.length, 0)}
                           </p>
                           <p className="text-xs text-muted-foreground">Total projects</p>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">SPOCs</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-2xl font-bold">{selectedNode.spocs.length}</p>
+                          <p className="text-xs text-muted-foreground">Contact points</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+
+                  {selectedNode.type === 'account' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Projects</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-2xl font-bold">{selectedNode.children.length}</p>
+                          <p className="text-xs text-muted-foreground">Active projects</p>
                         </CardContent>
                       </Card>
                       
@@ -775,67 +800,11 @@ export function ClientDeskPage() {
                 </TabsContent>
 
                 <TabsContent value="details" className="p-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Entity Details</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Name</Label>
-                          <Input value={selectedNode.name} className="mt-1" />
-                        </div>
-                        {selectedNode.type !== 'project' && (
-                          <div>
-                            <Label>Status</Label>
-                            <Select value={selectedNode.status || 'Active'}>
-                              <SelectTrigger className="mt-1">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Active">Active</SelectItem>
-                                <SelectItem value="Inactive">Inactive</SelectItem>
-                                {selectedNode.type !== 'client' && selectedNode.type !== 'account' && (
-                                  <>
-                                    <SelectItem value="Planned">Planned</SelectItem>
-                                    <SelectItem value="Closed">Closed</SelectItem>
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-                        {selectedNode.type === 'client' && (
-                          <>
-                            <div>
-                              <Label>Industry</Label>
-                              <Input value={(selectedNode.data as CrmClient).industry || ''} className="mt-1" />
-                            </div>
-                            <div>
-                              <Label>Location</Label>
-                              <Input value={(selectedNode.data as CrmClient).location || ''} className="mt-1" />
-                            </div>
-                          </>
-                        )}
-                        <Button onClick={async () => {
-                          if (!selectedNode) return;
-                          try {
-                            if (selectedNode.type === 'client') {
-                              await CrmService.updateClient(selectedNode.data.id, selectedNode.data as Partial<CrmClient>);
-                            } else if (selectedNode.type === 'account') {
-                              await CrmService.updateAccount(selectedNode.data.id, selectedNode.data as Partial<CrmAccount>);
-                            } else if (selectedNode.type === 'project') {
-                              await CrmService.updateProject(selectedNode.data.id, selectedNode.data as Partial<CrmProject>);
-                            }
-                            toast({ title: 'Success', description: 'Changes saved successfully' });
-                            loadData();
-                          } catch (error) {
-                            toast({ title: 'Error', description: 'Failed to save changes', variant: 'destructive' });
-                          }
-                        }}>Save Changes</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <EntityDetailsForm 
+                    entity={selectedNode.data}
+                    entityType={selectedNode.type}
+                    onSave={loadData}
+                  />
                 </TabsContent>
 
                 <TabsContent value="spocs" className="p-6">
@@ -976,7 +945,10 @@ export function ClientDeskPage() {
           <DialogHeader>
             <DialogTitle>Create New Client</DialogTitle>
           </DialogHeader>
-          <CreateClientForm onSuccess={handleCreateSuccess} />
+          <CreateClientForm 
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setShowCreateClient(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -988,7 +960,8 @@ export function ClientDeskPage() {
           <CreateAccountForm 
             clientId={parentContext?.type === 'client' ? parentContext.id : ''}
             spocs={spocs}
-            onSuccess={handleCreateSuccess} 
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setShowCreateAccount(false)}
           />
         </DialogContent>
       </Dialog>
@@ -1004,7 +977,8 @@ export function ClientDeskPage() {
                        accounts.find(a => a.id === parentContext.id)?.client_id || '' : '')}
             accounts={accounts}
             spocs={spocs}
-            onSuccess={handleCreateSuccess} 
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setShowCreateProject(false)}
           />
         </DialogContent>
       </Dialog>
@@ -1015,8 +989,9 @@ export function ClientDeskPage() {
             <DialogTitle>Link SPOC</DialogTitle>
           </DialogHeader>
           <LinkSpocForm 
-            clientId={selectedNode?.type === 'client' ? selectedNode.id : undefined}
-            accountId={selectedNode?.type === 'account' ? selectedNode.id : undefined}
+            clientId={selectedNode?.type === 'client' ? selectedNode.id.replace('client-', '') : undefined}
+            accountId={selectedNode?.type === 'account' ? selectedNode.id.replace('account-', '') : undefined}
+            projectId={selectedNode?.type === 'project' ? selectedNode.id.replace('project-', '') : undefined}
             onSuccess={handleCreateSuccess}
             onCancel={() => setShowLinkSpoc(false)}
           />

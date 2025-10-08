@@ -14,25 +14,26 @@ import type { CrmClient } from '@/types/crm';
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
-  industry: z.string().optional(),
-  region: z.string().optional(),
-  status: z.enum(['Active', 'Inactive', 'Prospect']).default('Prospect'),
-  contract_type: z.string().optional(),
+  industry: z.string().min(1, 'Industry is required'),
+  region: z.string().min(1, 'Region is required'),
+  status: z.enum(['Active', 'Inactive', 'Prospect']).default('Active'),
+  contract_type: z.string().min(1, 'Contract type is required'),
   sla_reference: z.string().optional(),
   domain: z.string().optional(),
   gst_vat: z.string().optional(),
-  owner_id: z.string().optional()
+  owner_id: z.string().min(1, 'Owner is required')
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
 
 interface CreateClientFormProps {
   onSuccess: () => void;
+  onCancel: () => void;
   initialData?: Partial<CrmClient>;
   mode?: 'create' | 'edit';
 }
 
-export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: CreateClientFormProps) {
+export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'create' }: CreateClientFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -264,10 +265,10 @@ export function CreateClientForm({ onSuccess, initialData, mode = 'create' }: Cr
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !form.formState.isValid}>
             {loading ? 'Saving...' : mode === 'create' ? 'Create Client' : 'Update Client'}
           </Button>
         </div>

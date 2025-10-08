@@ -21,11 +21,12 @@ type LinkSpocFormData = z.infer<typeof linkSpocSchema>;
 interface LinkSpocFormProps {
   clientId?: string;
   accountId?: string;
+  projectId?: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function LinkSpocForm({ clientId, accountId, onSuccess, onCancel }: LinkSpocFormProps) {
+export function LinkSpocForm({ clientId, accountId, projectId, onSuccess, onCancel }: LinkSpocFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
