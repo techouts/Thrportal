@@ -199,7 +199,9 @@ export function SOWTab() {
           </DialogHeader>
           <CreateSOWForm 
             onSuccess={() => {
+              // Close dialog immediately for instant feedback
               setShowCreateDialog(false);
+              // Refresh data in background
               loadSOWs();
             }}
             onCancel={() => setShowCreateDialog(false)}

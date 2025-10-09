@@ -208,7 +208,9 @@ export function PurchaseOrderTab() {
           </DialogHeader>
           <CreatePOForm 
             onSuccess={() => {
+              // Close dialog immediately for instant feedback
               setShowCreateDialog(false);
+              // Refresh data in background
               loadPOs();
             }}
             onCancel={() => setShowCreateDialog(false)}

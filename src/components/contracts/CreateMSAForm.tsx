@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,14 +13,18 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
+import { supabase } from '@/integrations/supabase/client';
 
 const msaSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   client_id: z.string().min(1, 'Client is required'),
-  valid_from: z.date(),
-  valid_to: z.date(),
+  valid_from: z.date({ required_error: 'Valid from date is required' }),
+  valid_to: z.date({ required_error: 'Valid to date is required' }),
   status: z.enum(['draft', 'active', 'expired', 'terminated']).default('draft'),
-  doc_link: z.string().optional()
+  document: z.instanceof(File).optional()
+}).refine(data => data.valid_to > data.valid_from, {
+  message: 'Valid to must be after valid from',
+  path: ['valid_to']
 });
 
 type MSAFormData = z.infer<typeof msaSchema>;
@@ -33,6 +37,8 @@ interface CreateMSAFormProps {
 
 export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormProps) {
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   const form = useForm<MSAFormData>({
@@ -40,14 +46,69 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
     defaultValues: {
       title: '',
       client_id: '',
-      status: 'draft',
-      doc_link: ''
+      status: 'draft'
     }
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: 'Error',
+          description: 'File size must be less than 10MB',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/png', 'image/jpeg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: 'Error',
+          description: 'Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+      form.setValue('document', file);
+    }
+  };
+
+  const uploadDocument = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `msas/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('contracts')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('contracts')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
 
   const onSubmit = async (data: MSAFormData) => {
     try {
       setLoading(true);
+      
+      let doc_link: string | undefined = undefined;
+      
+      // Upload document if provided
+      if (selectedFile) {
+        setUploading(true);
+        doc_link = await uploadDocument(selectedFile);
+        setUploading(false);
+      }
       
       await CrmService.createMSA({
         title: data.title,
@@ -55,7 +116,7 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
         valid_from: format(data.valid_from, 'yyyy-MM-dd'),
         valid_to: format(data.valid_to, 'yyyy-MM-dd'),
         status: data.status,
-        doc_link: data.doc_link || undefined
+        doc_link
       });
       
       toast({
@@ -64,16 +125,19 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
       });
       
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to create MSA. Please try again.',
+        description: error.message || 'Failed to create MSA. Please try again.',
         variant: 'destructive'
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
+
+  const isFormValid = form.formState.isValid && !uploading;
 
   return (
     <Form {...form}>
@@ -98,7 +162,7 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Client *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select client" />
@@ -138,7 +202,13 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    <Calendar 
+                      mode="single" 
+                      selected={field.value} 
+                      onSelect={field.onChange} 
+                      initialFocus 
+                      className="pointer-events-auto"
+                    />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
@@ -168,7 +238,17 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    <Calendar 
+                      mode="single" 
+                      selected={field.value} 
+                      onSelect={field.onChange} 
+                      initialFocus
+                      disabled={(date) => {
+                        const validFrom = form.getValues('valid_from');
+                        return validFrom ? date < validFrom : false;
+                      }}
+                      className="pointer-events-auto"
+                    />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
@@ -183,7 +263,7 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -203,24 +283,54 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
 
         <FormField
           control={form.control}
-          name="doc_link"
-          render={({ field }) => (
+          name="document"
+          render={() => (
             <FormItem>
-              <FormLabel>Document Link</FormLabel>
+              <FormLabel>Document Upload</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="SharePoint or document URL" />
+                <div className="space-y-2">
+                  {!selectedFile ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
+                        onChange={handleFileChange}
+                        className="flex-1"
+                      />
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 p-2 border rounded">
+                      <span className="flex-1 text-sm truncate">{selectedFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          form.setValue('document', undefined);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Accepted: PDF, DOCX, XLSX, PNG, JPG (max 10MB)
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create MSA'}
+          <Button type="submit" disabled={!isFormValid || loading}>
+            {loading ? (uploading ? 'Uploading...' : 'Creating...') : 'Create MSA'}
           </Button>
         </div>
       </form>

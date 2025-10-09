@@ -206,7 +206,9 @@ export function MSATab() {
           <CreateMSAForm 
             clients={clients}
             onSuccess={() => {
+              // Close dialog immediately for instant feedback
               setShowCreateDialog(false);
+              // Refresh data in background
               loadMSAs();
             }}
             onCancel={() => setShowCreateDialog(false)}

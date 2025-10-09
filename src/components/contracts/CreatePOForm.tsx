@@ -1,10 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
+import { supabase } from '@/integrations/supabase/client';
+
+const poSchema = z.object({
+  po_number: z.string().min(1, 'PO number is required'),
+  client_id: z.string().min(1, 'Client is required'),
+  valid_from: z.date({ required_error: 'Valid from date is required' }),
+  valid_to: z.date({ required_error: 'Valid to date is required' }),
+  total_amount: z.number().min(0.01, 'Total amount must be greater than 0'),
+  currency: z.string().default('USD'),
+  status: z.enum(['draft', 'active', 'expired', 'terminated']).default('draft'),
+  document: z.instanceof(File).optional()
+}).refine(data => data.valid_to > data.valid_from, {
+  message: 'Valid to must be after valid from',
+  path: ['valid_to']
+});
+
+type POFormData = z.infer<typeof poSchema>;
 
 interface CreatePOFormProps {
   onSuccess: () => void;
@@ -14,32 +39,100 @@ interface CreatePOFormProps {
 export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    po_number: '',
-    client_id: '',
-    valid_from: '',
-    valid_to: '',
-    total_amount: '',
-    currency: 'USD',
-    status: 'draft',
-    doc_link: '',
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [clients, setClients] = useState<any[]>([]);
+
+  const form = useForm<POFormData>({
+    resolver: zodResolver(poSchema),
+    defaultValues: {
+      po_number: '',
+      client_id: '',
+      currency: 'USD',
+      status: 'draft'
+    }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  useEffect(() => {
+    loadClients();
+  }, []);
 
+  const loadClients = async () => {
     try {
+      const data = await CrmService.getClients();
+      setClients(data);
+    } catch (error) {
+      console.error('Failed to load clients', error);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: 'Error',
+          description: 'File size must be less than 10MB',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/png', 'image/jpeg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: 'Error',
+          description: 'Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+      form.setValue('document', file);
+    }
+  };
+
+  const uploadDocument = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `pos/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('contracts')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('contracts')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const onSubmit = async (data: POFormData) => {
+    try {
+      setLoading(true);
+      
+      let doc_link: string | undefined = undefined;
+      
+      if (selectedFile) {
+        setUploading(true);
+        doc_link = await uploadDocument(selectedFile);
+        setUploading(false);
+      }
+
       await CrmService.createPO({
-        po_number: formData.po_number,
-        client_id: formData.client_id,
-        valid_from: formData.valid_from,
-        valid_to: formData.valid_to,
-        total_amount: parseFloat(formData.total_amount),
-        remaining_amount: parseFloat(formData.total_amount),
-        currency: formData.currency,
-        status: formData.status,
-        doc_link: formData.doc_link || undefined
+        po_number: data.po_number,
+        client_id: data.client_id,
+        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
+        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
+        total_amount: data.total_amount,
+        remaining_amount: data.total_amount,
+        currency: data.currency,
+        status: data.status,
+        doc_link
       });
       
       toast({
@@ -55,105 +148,254 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
+  const isFormValid = form.formState.isValid && !uploading;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="po_number">PO Number*</Label>
-        <Input
-          id="po_number"
-          value={formData.po_number}
-          onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
-          placeholder="PO-2024-0001"
-          required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="po_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>PO Number *</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="PO-2025-001" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="valid_from">Valid From*</Label>
-          <Input
-            id="valid_from"
-            type="date"
-            value={formData.valid_from}
-            onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="valid_to">Valid To*</Label>
-          <Input
-            id="valid_to"
-            type="date"
-            value={formData.valid_to}
-            onChange={(e) => setFormData({ ...formData, valid_to: e.target.value })}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="total_amount">Total Amount*</Label>
-          <Input
-            id="total_amount"
-            type="number"
-            value={formData.total_amount}
-            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="currency">Currency</Label>
-          <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="EUR">EUR</SelectItem>
-              <SelectItem value="GBP">GBP</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="doc_link">Document Link</Label>
-        <Input
-          id="doc_link"
-          type="url"
-          placeholder="https://..."
-          value={formData.doc_link}
-          onChange={(e) => setFormData({ ...formData, doc_link: e.target.value })}
+        <FormField
+          control={form.control}
+          name="client_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Client *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <Label htmlFor="status">Status</Label>
-        <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
-            <SelectItem value="terminated">Terminated</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="valid_from"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Valid From *</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar 
+                      mode="single" 
+                      selected={field.value} 
+                      onSelect={field.onChange} 
+                      initialFocus 
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create Purchase Order"}
-        </Button>
-      </div>
-    </form>
+          <FormField
+            control={form.control}
+            name="valid_to"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Valid To *</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar 
+                      mode="single" 
+                      selected={field.value} 
+                      onSelect={field.onChange} 
+                      initialFocus
+                      disabled={(date) => {
+                        const validFrom = form.getValues('valid_from');
+                        return validFrom ? date < validFrom : false;
+                      }}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="total_amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Total Amount *</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    step="0.01"
+                    {...field} 
+                    onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    value={field.value || ''}
+                    placeholder="100000.00"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                    <SelectItem value="INR">INR</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="terminated">Terminated</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="document"
+          render={() => (
+            <FormItem>
+              <FormLabel>Document Upload</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  {!selectedFile ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
+                        onChange={handleFileChange}
+                        className="flex-1"
+                      />
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 p-2 border rounded">
+                      <span className="flex-1 text-sm truncate">{selectedFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          form.setValue('document', undefined);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Accepted: PDF, DOCX, XLSX, PNG, JPG (max 10MB)
+                  </p>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!isFormValid || loading}>
+            {loading ? (uploading ? 'Uploading...' : 'Creating...') : 'Create Purchase Order'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
