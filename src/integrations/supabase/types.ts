@@ -1658,6 +1658,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1671,8 +1695,34 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role:
+        | "ADMIN"
+        | "MANAGEMENT"
+        | "FINANCE_MANAGER"
+        | "STAFFING_MANAGER"
+        | "HR_MANAGER"
+        | "HR_LEAD"
+        | "HIRING_MANAGER"
+        | "RECRUITER"
+        | "PROJECT_LEAD"
+        | "DELIVERY_HEAD"
+        | "PAYROLL_SPECIALIST"
+        | "FINANCE_ANALYST"
+        | "IT_HELPDESK"
+        | "AUDITOR_RO"
+        | "DPO_PRIVACY"
+        | "MANAGER"
+        | "EMPLOYEE"
+        | "VIEWER"
       approval_action:
         | "submit"
         | "approve"
@@ -1829,6 +1879,26 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "ADMIN",
+        "MANAGEMENT",
+        "FINANCE_MANAGER",
+        "STAFFING_MANAGER",
+        "HR_MANAGER",
+        "HR_LEAD",
+        "HIRING_MANAGER",
+        "RECRUITER",
+        "PROJECT_LEAD",
+        "DELIVERY_HEAD",
+        "PAYROLL_SPECIALIST",
+        "FINANCE_ANALYST",
+        "IT_HELPDESK",
+        "AUDITOR_RO",
+        "DPO_PRIVACY",
+        "MANAGER",
+        "EMPLOYEE",
+        "VIEWER",
+      ],
       approval_action: [
         "submit",
         "approve",
