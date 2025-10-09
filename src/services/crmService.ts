@@ -533,9 +533,19 @@ export class CrmService {
   }
 
   static async createMSA(msa: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Only include created_by if we have a valid UUID (not dev mode string)
+    const payload = {
+      ...msa,
+      ...(user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)
+        ? { created_by: user.id }
+        : {})
+    };
+    
     const { data, error } = await supabase
       .from('msas')
-      .insert(msa)
+      .insert(payload)
       .select()
       .single();
 
@@ -593,9 +603,19 @@ export class CrmService {
   }
 
   static async createSOW(sow: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Only include created_by if we have a valid UUID (not dev mode string)
+    const payload = {
+      ...sow,
+      ...(user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)
+        ? { created_by: user.id }
+        : {})
+    };
+    
     const { data, error } = await supabase
       .from('sows')
-      .insert(sow)
+      .insert(payload)
       .select()
       .single();
 
@@ -650,9 +670,19 @@ export class CrmService {
   }
 
   static async createPO(po: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Only include created_by if we have a valid UUID (not dev mode string)
+    const payload = {
+      ...po,
+      ...(user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)
+        ? { created_by: user.id }
+        : {})
+    };
+    
     const { data, error } = await supabase
       .from('purchase_orders')
-      .insert(po)
+      .insert(payload)
       .select()
       .single();
 

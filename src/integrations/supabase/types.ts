@@ -1185,7 +1185,15 @@ export type Database = {
           valid_from?: string
           valid_to?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_msas_client_id"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1404,7 +1412,15 @@ export type Database = {
           valid_from?: string
           valid_to?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_purchase_orders_client_id"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roles_catalog: {
         Row: {
@@ -1594,7 +1610,15 @@ export type Database = {
           valid_from?: string
           valid_to?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_sows_msa_id"
+            columns: ["msa_id"]
+            isOneToOne: false
+            referencedRelation: "msas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
