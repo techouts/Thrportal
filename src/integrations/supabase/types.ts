@@ -1006,9 +1006,11 @@ export type Database = {
       }
       jd_approvals: {
         Row: {
+          additional_notes: string | null
           approver_names: string[] | null
           attachments: Json | null
           business_justification: string | null
+          business_unit: string | null
           client_name: string | null
           contract_period_months: number | null
           cost_center: string | null
@@ -1020,18 +1022,30 @@ export type Database = {
           ctc_monthly_min: number | null
           currency: string | null
           current_step: number | null
+          department: string | null
           employment_type: string | null
+          experience_max: number | null
+          experience_min: number | null
           headcount: number | null
           id: string
+          interview_rounds: Json | null
+          is_internal: boolean | null
           is_replacement: boolean | null
           jd_id: string
+          job_title: string | null
           job_type: string | null
           opex_capex: string | null
           pay_type: string | null
+          positions: number | null
+          priority: string | null
           project_name: string | null
           replacement_for: string | null
+          required_skills: Json | null
+          responsibilities: Json | null
+          resume_deadline: string | null
           salary_band_max: number | null
           salary_band_min: number | null
+          short_summary: string | null
           status: string
           submitted_at: string | null
           submitted_by: string | null
@@ -1039,11 +1053,14 @@ export type Database = {
           target_doj: string | null
           target_first_submission_days: number | null
           updated_at: string
+          work_location: Json | null
         }
         Insert: {
+          additional_notes?: string | null
           approver_names?: string[] | null
           attachments?: Json | null
           business_justification?: string | null
+          business_unit?: string | null
           client_name?: string | null
           contract_period_months?: number | null
           cost_center?: string | null
@@ -1055,18 +1072,30 @@ export type Database = {
           ctc_monthly_min?: number | null
           currency?: string | null
           current_step?: number | null
+          department?: string | null
           employment_type?: string | null
+          experience_max?: number | null
+          experience_min?: number | null
           headcount?: number | null
           id?: string
+          interview_rounds?: Json | null
+          is_internal?: boolean | null
           is_replacement?: boolean | null
           jd_id: string
+          job_title?: string | null
           job_type?: string | null
           opex_capex?: string | null
           pay_type?: string | null
+          positions?: number | null
+          priority?: string | null
           project_name?: string | null
           replacement_for?: string | null
+          required_skills?: Json | null
+          responsibilities?: Json | null
+          resume_deadline?: string | null
           salary_band_max?: number | null
           salary_band_min?: number | null
+          short_summary?: string | null
           status?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -1074,11 +1103,14 @@ export type Database = {
           target_doj?: string | null
           target_first_submission_days?: number | null
           updated_at?: string
+          work_location?: Json | null
         }
         Update: {
+          additional_notes?: string | null
           approver_names?: string[] | null
           attachments?: Json | null
           business_justification?: string | null
+          business_unit?: string | null
           client_name?: string | null
           contract_period_months?: number | null
           cost_center?: string | null
@@ -1090,18 +1122,30 @@ export type Database = {
           ctc_monthly_min?: number | null
           currency?: string | null
           current_step?: number | null
+          department?: string | null
           employment_type?: string | null
+          experience_max?: number | null
+          experience_min?: number | null
           headcount?: number | null
           id?: string
+          interview_rounds?: Json | null
+          is_internal?: boolean | null
           is_replacement?: boolean | null
           jd_id?: string
+          job_title?: string | null
           job_type?: string | null
           opex_capex?: string | null
           pay_type?: string | null
+          positions?: number | null
+          priority?: string | null
           project_name?: string | null
           replacement_for?: string | null
+          required_skills?: Json | null
+          responsibilities?: Json | null
+          resume_deadline?: string | null
           salary_band_max?: number | null
           salary_band_min?: number | null
+          short_summary?: string | null
           status?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -1109,6 +1153,7 @@ export type Database = {
           target_doj?: string | null
           target_first_submission_days?: number | null
           updated_at?: string
+          work_location?: Json | null
         }
         Relationships: [
           {

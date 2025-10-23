@@ -40,6 +40,22 @@ export interface JDApproval {
   created_at: string;
   updated_at: string;
   created_by?: string | null;
+  // Job description fields
+  job_title?: string | null;
+  department?: string | null;
+  business_unit?: string | null;
+  work_location?: { city: string; mode: 'Onsite' | 'Remote' | 'Hybrid' } | null;
+  is_internal?: boolean | null;
+  short_summary?: string | null;
+  responsibilities?: string[] | null;
+  required_skills?: { mustHave: string[]; goodToHave: string[] } | null;
+  experience_min?: number | null;
+  experience_max?: number | null;
+  positions?: number | null;
+  priority?: 'Critical' | 'High' | 'Normal' | null;
+  resume_deadline?: string | null;
+  interview_rounds?: string[] | null;
+  additional_notes?: string | null;
 }
 
 export interface JDApprovalStep {
@@ -122,6 +138,22 @@ export interface CreateJDApproval {
   target_doj?: string;
   attachments?: any;
   created_by?: string;
+  // Job description fields
+  job_title?: string;
+  department?: string;
+  business_unit?: string;
+  work_location?: { city: string; mode: 'Onsite' | 'Remote' | 'Hybrid' };
+  is_internal?: boolean;
+  short_summary?: string;
+  responsibilities?: string[];
+  required_skills?: { mustHave: string[]; goodToHave: string[] };
+  experience_min?: number;
+  experience_max?: number;
+  positions?: number;
+  priority?: 'Critical' | 'High' | 'Normal';
+  resume_deadline?: string;
+  interview_rounds?: string[];
+  additional_notes?: string;
 }
 
 export interface CreateJDApprovalStep {
