@@ -124,17 +124,23 @@ export function ApprovalsTab({ jdId }: ApprovalsTabProps) {
     }
   };
 
-  const getStatusBadge = (status: ApprovalStatus) => {
-    const statusConfig = {
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
       draft: { color: 'secondary', icon: FileText, label: 'Draft' },
+      Draft: { color: 'secondary', icon: FileText, label: 'Draft' },
       submitted: { color: 'warning', icon: Clock, label: 'Submitted' },
+      Active: { color: 'success', icon: CheckCircle, label: 'Active' },
       approved: { color: 'success', icon: CheckCircle, label: 'Approved' },
       rejected: { color: 'destructive', icon: XCircle, label: 'Rejected' },
       on_hold: { color: 'secondary', icon: AlertTriangle, label: 'On Hold' },
-      changes_requested: { color: 'warning', icon: AlertTriangle, label: 'Changes Requested' }
+      'On Hold': { color: 'secondary', icon: AlertTriangle, label: 'On Hold' },
+      changes_requested: { color: 'warning', icon: AlertTriangle, label: 'Changes Requested' },
+      Closed: { color: 'default', icon: CheckCircle, label: 'Closed' },
+      Cancelled: { color: 'destructive', icon: XCircle, label: 'Cancelled' },
+      'Target Date Expired': { color: 'warning', icon: AlertTriangle, label: 'Target Date Expired' }
     };
 
-    const config = statusConfig[status];
+    const config = statusConfig[status] || { color: 'secondary', icon: FileText, label: status };
     const Icon = config.icon;
 
     return (

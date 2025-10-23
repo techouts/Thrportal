@@ -2,10 +2,24 @@ export type ApprovalStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | '
 export type ApprovalStepStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested' | 'skipped';
 export type ApprovalAction = 'submit' | 'approve' | 'reject' | 'request_changes' | 'reassign' | 'override';
 
+export type JDStatusType = 'Active' | 'Draft' | 'Closed' | 'On Hold' | 'Cancelled' | 'Target Date Expired' | ApprovalStatus;
+export type JobType = 'Permanent' | 'Contract' | 'C2H' | 'Full-time';
+export type PayType = 'Monthly' | 'Annually';
+
 export interface JDApproval {
   id: string;
   jd_id: string;
-  status: ApprovalStatus;
+  status: JDStatusType;
+  approver_names?: string[] | null;
+  target_date?: string | null;
+  job_type?: JobType | null;
+  pay_type?: PayType | null;
+  ctc_monthly_min?: number | null;
+  ctc_monthly_max?: number | null;
+  ctc_annual_min?: number | null;
+  ctc_annual_max?: number | null;
+  contract_period_months?: number | null;
+  employment_type?: string | null;
   submitted_at?: string | null;
   submitted_by?: string | null;
   current_step: number | null;
@@ -79,7 +93,17 @@ export interface ApprovalChainStep {
 // Create types for insert operations
 export interface CreateJDApproval {
   jd_id: string;
-  status?: ApprovalStatus;
+  status?: JDStatusType;
+  approver_names?: string[];
+  target_date?: string;
+  job_type?: JobType;
+  pay_type?: PayType;
+  ctc_monthly_min?: number;
+  ctc_monthly_max?: number;
+  ctc_annual_min?: number;
+  ctc_annual_max?: number;
+  contract_period_months?: number;
+  employment_type?: string;
   submitted_at?: string;
   submitted_by?: string;
   current_step?: number;

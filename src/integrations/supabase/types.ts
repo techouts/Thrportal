@@ -1006,73 +1006,106 @@ export type Database = {
       }
       jd_approvals: {
         Row: {
+          approver_names: string[] | null
           attachments: Json | null
           business_justification: string | null
           client_name: string | null
+          contract_period_months: number | null
           cost_center: string | null
           created_at: string
           created_by: string | null
+          ctc_annual_max: number | null
+          ctc_annual_min: number | null
+          ctc_monthly_max: number | null
+          ctc_monthly_min: number | null
           currency: string | null
           current_step: number | null
+          employment_type: string | null
           headcount: number | null
           id: string
           is_replacement: boolean | null
           jd_id: string
+          job_type: string | null
           opex_capex: string | null
+          pay_type: string | null
           project_name: string | null
           replacement_for: string | null
           salary_band_max: number | null
           salary_band_min: number | null
+          status: string
           submitted_at: string | null
           submitted_by: string | null
+          target_date: string | null
           target_doj: string | null
           target_first_submission_days: number | null
           updated_at: string
         }
         Insert: {
+          approver_names?: string[] | null
           attachments?: Json | null
           business_justification?: string | null
           client_name?: string | null
+          contract_period_months?: number | null
           cost_center?: string | null
           created_at?: string
           created_by?: string | null
+          ctc_annual_max?: number | null
+          ctc_annual_min?: number | null
+          ctc_monthly_max?: number | null
+          ctc_monthly_min?: number | null
           currency?: string | null
           current_step?: number | null
+          employment_type?: string | null
           headcount?: number | null
           id?: string
           is_replacement?: boolean | null
           jd_id: string
+          job_type?: string | null
           opex_capex?: string | null
+          pay_type?: string | null
           project_name?: string | null
           replacement_for?: string | null
           salary_band_max?: number | null
           salary_band_min?: number | null
+          status?: string
           submitted_at?: string | null
           submitted_by?: string | null
+          target_date?: string | null
           target_doj?: string | null
           target_first_submission_days?: number | null
           updated_at?: string
         }
         Update: {
+          approver_names?: string[] | null
           attachments?: Json | null
           business_justification?: string | null
           client_name?: string | null
+          contract_period_months?: number | null
           cost_center?: string | null
           created_at?: string
           created_by?: string | null
+          ctc_annual_max?: number | null
+          ctc_annual_min?: number | null
+          ctc_monthly_max?: number | null
+          ctc_monthly_min?: number | null
           currency?: string | null
           current_step?: number | null
+          employment_type?: string | null
           headcount?: number | null
           id?: string
           is_replacement?: boolean | null
           jd_id?: string
+          job_type?: string | null
           opex_capex?: string | null
+          pay_type?: string | null
           project_name?: string | null
           replacement_for?: string | null
           salary_band_max?: number | null
           salary_band_min?: number | null
+          status?: string
           submitted_at?: string | null
           submitted_by?: string | null
+          target_date?: string | null
           target_doj?: string | null
           target_first_submission_days?: number | null
           updated_at?: string
@@ -1712,6 +1745,7 @@ export type Database = {
     }
     Functions: {
       auto_expire_slots: { Args: never; Returns: undefined }
+      get_approver_names_from_chain: { Args: never; Returns: string[] }
       get_current_user_role: { Args: never; Returns: string }
       has_role: {
         Args: {

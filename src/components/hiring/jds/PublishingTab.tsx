@@ -55,17 +55,23 @@ export function PublishingTab({ jdId }: PublishingTabProps) {
     }
   };
 
-  const getStatusBadge = (status: ApprovalStatus) => {
-    const statusConfig = {
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; label: string }> = {
       draft: { color: 'secondary', label: 'Draft' },
+      Draft: { color: 'secondary', label: 'Draft' },
       submitted: { color: 'warning', label: 'Submitted' },
+      Active: { color: 'default', label: 'Active' },
       approved: { color: 'default', label: 'Approved' },
       rejected: { color: 'destructive', label: 'Rejected' },
       on_hold: { color: 'secondary', label: 'On Hold' },
-      changes_requested: { color: 'warning', label: 'Changes Requested' }
+      'On Hold': { color: 'secondary', label: 'On Hold' },
+      changes_requested: { color: 'warning', label: 'Changes Requested' },
+      Closed: { color: 'default', label: 'Closed' },
+      Cancelled: { color: 'destructive', label: 'Cancelled' },
+      'Target Date Expired': { color: 'warning', label: 'Target Date Expired' }
     };
 
-    const config = statusConfig[status];
+    const config = statusConfig[status] || { color: 'secondary', label: status };
     return (
       <Badge variant={config.color as any}>
         {config.label}

@@ -164,9 +164,15 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       draft: "secondary",
+      Draft: "secondary",
       pending: "default",
+      Active: "default",
       approved: "default",
       rejected: "destructive",
+      Closed: "outline",
+      'On Hold': "secondary",
+      Cancelled: "destructive",
+      'Target Date Expired': "destructive"
     };
     return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
   };

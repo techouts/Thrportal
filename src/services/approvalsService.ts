@@ -325,5 +325,52 @@ export const approvalsService = {
     });
 
     return step;
+  },
+
+  // New methods for Manual JD Creation
+  async getApproverNamesFromChain(): Promise<string[]> {
+    const { data, error } = await supabase.rpc('get_approver_names_from_chain');
+    
+    if (error) {
+      console.error('Error fetching approver names:', error);
+      return [];
+    }
+    
+    return data || [];
+  },
+
+  calculateCTCValues(amount: number, payType: 'Monthly' | 'Annually'): {
+    monthly: number;
+    annual: number;
+  } {
+    if (payType === 'Monthly') {
+      return {
+        monthly: amount,
+        annual: amount * 12
+      };
+    } else {
+      return {
+        monthly: amount / 12,
+        annual: amount
+      };
+    }
+  },
+
+  async createJDWithStatus(
+    jdData: Partial<CreateJDApproval>, 
+    isDraft: boolean
+  ): Promise<JDApproval> {
+    const approverNames = await this.getApproverNamesFromChain();
+    
+    const jdApproval: CreateJDApproval = {
+      ...jdData,
+      jd_id: jdData.jd_id || crypto.randomUUID(),
+      status: isDraft ? 'Draft' : 'Active',
+      approver_names: approverNames,
+      current_step: isDraft ? 0 : 1,
+      submitted_at: isDraft ? undefined : new Date().toISOString()
+    };
+
+    return await this.createJDApproval(jdApproval);
   }
 };
