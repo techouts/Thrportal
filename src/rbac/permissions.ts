@@ -14,12 +14,13 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "leave.reports.read","attendance.reports.read",
     "performance.cycles.read","performance.reviews.read",
     "projects.*","timesheets.*.read","timesheets.export.*",
-    "hiring.dashboard.read","hiring.requisitions.read","applications.pipeline.read","applications.submissions.*",
+    "hiring.*","hiring.dashboard.read","hiring.requisitions.read",
+    "applications.*","applications.pipeline.read","applications.submissions.*",
+    "jds.*","jds.create","jds.read","jds.approve.management","jds.reports.read",
+    "candidates.*","resumes.*","ownership.*",
     "finance.payroll.read","finance.reports.read",
-    "jds.approve.management","jds.reports.read","crm.kpis.read",
-    "crm.*","crm.integrations.read","crm.demo.read",
+    "crm.*","crm.integrations.read","crm.demo.read","crm.kpis.read",
     "reports.*","analytics.*"
-    // no admin/security/roles/integrations
   ],
 
   VIEWER: [
@@ -92,11 +93,11 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   STAFFING_MANAGER: [
     "portal.announcements.read",
-    "hiring.dashboard.read","hiring.requisitions.read","hiring.settings.*",
-    "jds.create","jds.read","jds.approve.external","mapping.approve",
-    "candidates.create","resumes.create","applications.rank",
-    "applications.pipeline.read","applications.submissions.*",
-    "crm.*","ownership.*"
+    "hiring.*","hiring.dashboard.read","hiring.requisitions.read","hiring.settings.*",
+    "jds.*","jds.create","jds.read","jds.approve.external",
+    "candidates.*","resumes.*","applications.*",
+    "applications.pipeline.read","applications.submissions.*","applications.rank",
+    "mapping.approve","ownership.*","crm.*"
   ],
 
   PROJECT_LEAD: [
