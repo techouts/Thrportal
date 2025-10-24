@@ -521,11 +521,7 @@ export const approvalsService = {
 
     const createdJD = await this.createJDApproval(jdApproval);
 
-    // For Active JDs, explicitly create approval steps (belt & suspenders with trigger)
-    if (!isDraft && createdJD.is_internal !== undefined) {
-      await this.createApprovalStepsForJD(createdJD.id, createdJD.is_internal);
-    }
-
+    // Database trigger handles approval step creation automatically
     return createdJD;
   },
 
