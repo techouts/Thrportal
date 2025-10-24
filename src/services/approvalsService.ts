@@ -161,7 +161,6 @@ export const approvalsService = {
 
   // Get approvals by status
   async getApprovalsByStatus(statusList: string[]): Promise<any[]> {
-    // Simplified implementation to avoid type recursion
     const { data } = await supabase
       .from('jd_approvals')
       .select('*')
@@ -172,9 +171,156 @@ export const approvalsService = {
     return data.filter((item: any) => statusList.includes(item.status));
   },
 
-  // Get pending approvals for current user role
+  // NEW: Get pending approvals for user's role
+  async getPendingApprovals(userRole: string): Promise<JDApproval[]> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select(`
+        *,
+        jd_approval_steps!inner(*)
+      `)
+      .eq('status', 'Active')
+      .neq('approval_status', 'approved')
+      .neq('approval_status', 'rejected')
+      .eq('jd_approval_steps.approver_role', userRole)
+      .eq('jd_approval_steps.status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pending approvals:', error);
+      throw error;
+    }
+
+    return (data || []) as any as JDApproval[];
+  },
+
+  // NEW: Get approved JDs awaiting final HR review
+  async getApprovedAwaitingHR(): Promise<JDApproval[]> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select(`
+        *,
+        jd_approval_steps!inner(*)
+      `)
+      .eq('status', 'Active')
+      .eq('approval_status', 'in_review')
+      .eq('jd_approval_steps.approver_role', 'HR_MANAGER')
+      .eq('jd_approval_steps.status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching HR review queue:', error);
+      throw error;
+    }
+
+    return (data || []) as any as JDApproval[];
+  },
+
+  // NEW: Get JD approval by ID
+  async getJDApprovalById(id: string): Promise<JDApproval> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching JD approval by ID:', error);
+      throw error;
+    }
+
+    return data as JDApproval;
+  },
+
+  // NEW: Approve a JD and move workflow forward
+  async approveJD(
+    jdApprovalId: string,
+    stepId: string,
+    comments?: string,
+    actorId?: string,
+    actorRole?: string
+  ): Promise<void> {
+    // 1. Update the step to approved
+    await this.approveStep(stepId, comments);
+
+    // 2. Get approval and check if more steps exist
+    const approval = await this.getJDApprovalById(jdApprovalId);
+    const steps = await this.getApprovalSteps(jdApprovalId);
+    const currentStep = approval.current_step || 1;
+    const nextStep = steps.find(s => s.step_number === currentStep + 1);
+
+    if (nextStep) {
+      // Move to next step
+      await supabase
+        .from('jd_approvals')
+        .update({
+          current_step: currentStep + 1,
+          approval_status: 'in_review'
+        } as any)
+        .eq('id', jdApprovalId);
+
+      // Activate next step
+      await supabase
+        .from('jd_approval_steps')
+        .update({
+          status: 'pending',
+          assigned_at: new Date().toISOString()
+        } as any)
+        .eq('id', nextStep.id);
+    } else {
+      // Final approval - mark as fully approved
+      await supabase
+        .from('jd_approvals')
+        .update({
+          approval_status: 'approved'
+        } as any)
+        .eq('id', jdApprovalId);
+    }
+
+    // 3. Create audit log
+    await this.createAuditEntry({
+      jd_approval_id: jdApprovalId,
+      action: 'approve',
+      actor_id: actorId,
+      actor_role: actorRole,
+      comments,
+      details: { step_id: stepId }
+    });
+  },
+
+  // NEW: Reject a JD
+  async rejectJD(
+    jdApprovalId: string,
+    stepId: string,
+    comments: string,
+    actorId?: string,
+    actorRole?: string
+  ): Promise<void> {
+    // 1. Reject the step
+    await this.rejectStep(stepId, comments);
+
+    // 2. Update approval status to rejected
+    await supabase
+      .from('jd_approvals')
+      .update({
+        approval_status: 'rejected',
+        status: 'On Hold'
+      } as any)
+      .eq('id', jdApprovalId);
+
+    // 3. Create audit log
+    await this.createAuditEntry({
+      jd_approval_id: jdApprovalId,
+      action: 'reject',
+      actor_id: actorId,
+      actor_role: actorRole,
+      comments,
+      details: { step_id: stepId, reason: comments }
+    });
+  },
+
+  // Get pending approvals for current user role (legacy method)
   async getPendingApprovalsForRole(role: string): Promise<any[]> {
-    // First get approvals that are submitted or in progress
     const approvalsResult = await supabase
       .from('jd_approvals')
       .select('*')
@@ -191,7 +337,6 @@ export const approvalsService = {
 
     if (!approvals) return [];
 
-    // Get all steps for these approvals
     const approvalIds = approvals.map((a: any) => a.id);
     const stepsResult = await supabase
       .from('jd_approval_steps')
@@ -207,7 +352,6 @@ export const approvalsService = {
       throw stepsResult.error;
     }
 
-    // Filter to only approvals where the current step matches the user's role
     const result = approvals
       .map(approval => {
         const approvalSteps = steps?.filter(s => s.jd_approval_id === approval.id) || [];
@@ -221,9 +365,13 @@ export const approvalsService = {
 
   // Workflow Actions
   async submitForApproval(jdId: string, approvalData: Partial<JDApproval>): Promise<JDApproval> {
-    // First create or update the approval record
+    // First check if JD is Draft
     let approval = await this.getJDApproval(jdId);
     
+    if (approval && approval.status === 'Draft') {
+      throw new Error("Cannot submit Draft JDs for approval. Please change status to Active first.");
+    }
+
     if (!approval) {
       approval = await this.createJDApproval({
         ...approvalData,
@@ -241,11 +389,14 @@ export const approvalsService = {
       });
     }
 
-    // Get default approval rule and create steps
+    // Get appropriate approval rule based on is_internal
     const rules = await this.getApprovalRules();
-    const defaultRule = rules.find(rule => rule.rule_name === 'Default JD Approval');
+    const ruleName = approval.is_internal 
+      ? 'Internal Position Approval' 
+      : 'External Position Approval';
+    const rule = rules.find(r => r.rule_name === ruleName);
     
-    if (defaultRule && defaultRule.approval_chain) {
+    if (rule && rule.approval_chain) {
       // Clear existing steps
       const { error: deleteError } = await supabase
         .from('jd_approval_steps')
@@ -257,7 +408,7 @@ export const approvalsService = {
       }
 
       // Create new steps from the approval chain
-      for (const chainStep of defaultRule.approval_chain) {
+      for (const chainStep of rule.approval_chain) {
         await this.createApprovalStep({
           jd_approval_id: approval.id,
           step_number: chainStep.step,
@@ -269,7 +420,6 @@ export const approvalsService = {
       }
     }
 
-    // Create audit entry
     await this.createAuditEntry({
       jd_id: jdId,
       jd_approval_id: approval.id,
@@ -288,7 +438,6 @@ export const approvalsService = {
       comments
     });
 
-    // Create audit entry
     await this.createAuditEntry({
       jd_approval_id: step.jd_approval_id,
       action: 'approve',
@@ -306,7 +455,6 @@ export const approvalsService = {
       comments
     });
 
-    // Update overall approval status
     const { error } = await supabase
       .from('jd_approvals')
       .update({ status: 'rejected' } as any)
@@ -316,7 +464,6 @@ export const approvalsService = {
       console.error('Error updating approval status:', error);
     }
 
-    // Create audit entry
     await this.createAuditEntry({
       jd_approval_id: step.jd_approval_id,
       action: 'reject',

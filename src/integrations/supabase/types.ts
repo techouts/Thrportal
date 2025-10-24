@@ -1007,6 +1007,7 @@ export type Database = {
       jd_approvals: {
         Row: {
           additional_notes: string | null
+          approval_status: string | null
           approver_names: string[] | null
           attachments: Json | null
           business_justification: string | null
@@ -1057,6 +1058,7 @@ export type Database = {
         }
         Insert: {
           additional_notes?: string | null
+          approval_status?: string | null
           approver_names?: string[] | null
           attachments?: Json | null
           business_justification?: string | null
@@ -1107,6 +1109,7 @@ export type Database = {
         }
         Update: {
           additional_notes?: string | null
+          approval_status?: string | null
           approver_names?: string[] | null
           attachments?: Json | null
           business_justification?: string | null

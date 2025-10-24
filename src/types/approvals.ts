@@ -1,6 +1,7 @@
 export type ApprovalStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'on_hold' | 'changes_requested';
 export type ApprovalStepStatus = 'pending' | 'approved' | 'rejected' | 'changes_requested' | 'skipped';
 export type ApprovalAction = 'submit' | 'approve' | 'reject' | 'request_changes' | 'reassign' | 'override';
+export type ApprovalWorkflowStatus = 'pending' | 'in_review' | 'approved' | 'rejected' | 'changes_requested';
 
 export type JDStatusType = 'Active' | 'Draft' | 'Closed' | 'On Hold' | 'Cancelled' | 'Target Date Expired' | ApprovalStatus;
 export type JobType = 'Permanent' | 'Contract' | 'C2H' | 'Full-time';
@@ -56,6 +57,7 @@ export interface JDApproval {
   resume_deadline?: string | null;
   interview_rounds?: string[] | null;
   additional_notes?: string | null;
+  approval_status?: ApprovalWorkflowStatus | null;
 }
 
 export interface JDApprovalStep {
@@ -154,6 +156,7 @@ export interface CreateJDApproval {
   resume_deadline?: string;
   interview_rounds?: string[];
   additional_notes?: string;
+  approval_status?: ApprovalWorkflowStatus;
 }
 
 export interface CreateJDApprovalStep {
