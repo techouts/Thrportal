@@ -248,14 +248,10 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                     </TableHead>
                     <TableHead>JD ID</TableHead>
                     <TableHead>Job Title</TableHead>
-                    <TableHead>
-                      <Button variant="ghost" size="sm" onClick={() => handleSort('client_name')}>
-                        Client
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
-                    <TableHead>Openings</TableHead>
-                    <TableHead>Salary Range</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Positions</TableHead>
+                    <TableHead>Experience</TableHead>
+                    <TableHead>Priority</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>
                       <Button variant="ghost" size="sm" onClick={() => handleSort('created_at')}>
@@ -276,11 +272,25 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                         />
                       </TableCell>
                       <TableCell className="font-mono text-xs">{jd.jd_id}</TableCell>
-                      <TableCell className="font-medium">{jd.project_name || 'Untitled'}</TableCell>
-                      <TableCell>{jd.client_name || 'N/A'}</TableCell>
-                      <TableCell>{jd.headcount || 'N/A'}</TableCell>
                       <TableCell>
-                        {jd.currency} {jd.salary_band_min?.toLocaleString() || 'N/A'} - {jd.salary_band_max?.toLocaleString() || 'N/A'}
+                        <div className="font-medium">{jd.job_title || jd.project_name || 'Untitled'}</div>
+                        {jd.short_summary && (
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2 max-w-xs">{jd.short_summary}</div>
+                        )}
+                      </TableCell>
+                      <TableCell>{jd.department || 'N/A'}</TableCell>
+                      <TableCell>{jd.positions || jd.headcount || 'N/A'}</TableCell>
+                      <TableCell>
+                        {jd.experience_min && jd.experience_max
+                          ? `${jd.experience_min}-${jd.experience_max} yrs`
+                          : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {jd.priority ? (
+                          <Badge variant={jd.priority === 'Critical' ? 'destructive' : jd.priority === 'High' ? 'default' : 'secondary'}>
+                            {jd.priority}
+                          </Badge>
+                        ) : 'N/A'}
                       </TableCell>
                       <TableCell>{getStatusBadge(jd.status)}</TableCell>
                       <TableCell>{format(new Date(jd.created_at), 'MMM dd, yyyy')}</TableCell>

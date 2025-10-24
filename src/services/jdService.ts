@@ -6,6 +6,9 @@ export interface JDOverviewItem {
   jd_id: string;
   project_name: string | null;
   client_name: string | null;
+  job_title: string | null;
+  department: string | null;
+  business_unit: string | null;
   headcount: number | null;
   salary_band_min: number | null;
   salary_band_max: number | null;
@@ -16,6 +19,25 @@ export interface JDOverviewItem {
   current_step: number | null;
   cost_center: string | null;
   business_justification: string | null;
+  work_location: { city: string; mode: string } | null;
+  is_internal: boolean | null;
+  short_summary: string | null;
+  responsibilities: string[] | null;
+  required_skills: { mustHave: string[]; goodToHave: string[] } | null;
+  experience_min: number | null;
+  experience_max: number | null;
+  positions: number | null;
+  priority: string | null;
+  job_type: string | null;
+  pay_type: string | null;
+  employment_type: string | null;
+  ctc_monthly_min: number | null;
+  ctc_monthly_max: number | null;
+  target_date: string | null;
+  resume_deadline: string | null;
+  interview_rounds: string[] | null;
+  additional_notes: string | null;
+  approver_names: string[] | null;
 }
 
 export interface JDFilters {
@@ -39,6 +61,9 @@ export class JDService {
           id,
           project_name,
           client_name,
+          job_title,
+          department,
+          business_unit,
           headcount,
           salary_band_min,
           salary_band_max,
@@ -46,6 +71,26 @@ export class JDService {
           current_step,
           cost_center,
           business_justification,
+          work_location,
+          is_internal,
+          short_summary,
+          responsibilities,
+          required_skills,
+          experience_min,
+          experience_max,
+          positions,
+          priority,
+          job_type,
+          pay_type,
+          employment_type,
+          ctc_monthly_min,
+          ctc_monthly_max,
+          target_date,
+          resume_deadline,
+          interview_rounds,
+          additional_notes,
+          approver_names,
+          status,
           created_at,
           created_by,
           profiles:created_by(display_name)
@@ -73,16 +118,38 @@ export class JDService {
         jd_id: `JD-${item.id.substring(0, 8)}`,
         project_name: item.project_name,
         client_name: item.client_name,
+        job_title: item.job_title,
+        department: item.department,
+        business_unit: item.business_unit,
         headcount: item.headcount,
         salary_band_min: item.salary_band_min,
         salary_band_max: item.salary_band_max,
         currency: item.currency || 'USD',
-        status: item.current_step === 0 ? 'draft' : item.current_step > 0 ? 'pending' : 'approved',
+        status: item.status || (item.current_step === 0 ? 'Draft' : 'Active'),
         created_at: item.created_at,
         created_by_name: item.profiles?.display_name || 'Unknown',
         current_step: item.current_step,
         cost_center: item.cost_center,
         business_justification: item.business_justification,
+        work_location: item.work_location,
+        is_internal: item.is_internal,
+        short_summary: item.short_summary,
+        responsibilities: item.responsibilities,
+        required_skills: item.required_skills,
+        experience_min: item.experience_min,
+        experience_max: item.experience_max,
+        positions: item.positions,
+        priority: item.priority,
+        job_type: item.job_type,
+        pay_type: item.pay_type,
+        employment_type: item.employment_type,
+        ctc_monthly_min: item.ctc_monthly_min,
+        ctc_monthly_max: item.ctc_monthly_max,
+        target_date: item.target_date,
+        resume_deadline: item.resume_deadline,
+        interview_rounds: item.interview_rounds,
+        additional_notes: item.additional_notes,
+        approver_names: item.approver_names,
       }));
 
       const total = count || 0;
