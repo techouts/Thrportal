@@ -5,12 +5,12 @@ import { ManualJDTab } from './ManualJDTab';
 import { ExcelJDTab } from './ExcelJDTab';
 import { SmartJDTab } from './SmartJDTab';
 import { DraftsJDTab } from './DraftsJDTab';
-import { ApprovalsTab } from './ApprovalsTab';
+
 import { PublishingTab } from './PublishingTab';
 
 export function JDManagementModule() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedJdId, setSelectedJdId] = useState<string | null>(null);
+  
 
   // Mock JD ID for demo - in real implementation, this would come from JD selection
   const mockJdId = "mock-jd-id-123";
@@ -23,12 +23,12 @@ export function JDManagementModule() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="manual">Manual Creation</TabsTrigger>
           <TabsTrigger value="smart">Smart Parse</TabsTrigger>
           <TabsTrigger value="drafts">Drafts</TabsTrigger>
-          <TabsTrigger value="approvals">Approvals</TabsTrigger>
+          
           <TabsTrigger value="publishing">Publishing</TabsTrigger>
         </TabsList>
 
@@ -48,9 +48,6 @@ export function JDManagementModule() {
           <DraftsJDTab />
         </TabsContent>
 
-        <TabsContent value="approvals" className="space-y-4">
-          <ApprovalsTab jdId={mockJdId} />
-        </TabsContent>
 
         <TabsContent value="publishing" className="space-y-4">
           <PublishingTab jdId={mockJdId} />
