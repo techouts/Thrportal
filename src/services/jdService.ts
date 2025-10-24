@@ -235,7 +235,7 @@ export class JDService {
       if (error) throw error;
 
       // If status changed to Active, ensure approval steps exist
-      if (statusChangedToActive && result) {
+      if (statusChangedToActive && result && result.is_internal !== undefined) {
         const { approvalsService } = await import('./approvalsService');
         await approvalsService.ensureApprovalStepsExist(result.id, result.is_internal);
       }
