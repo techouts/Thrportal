@@ -203,9 +203,11 @@ export const approvalsService = {
         jd_approval_steps!inner(*)
       `)
       .eq('status', 'Active')
+      .eq('is_internal', true)
       .eq('approval_status', 'in_review')
       .eq('jd_approval_steps.approver_role', 'HR_MANAGER')
       .eq('jd_approval_steps.status', 'pending')
+      .not('jd_approval_steps.assigned_at', 'is', null)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -213,6 +215,7 @@ export const approvalsService = {
       throw error;
     }
 
+    console.log(`[getApprovedAwaitingHR] Found ${data?.length || 0} JDs awaiting HR review`);
     return (data || []) as any as JDApproval[];
   },
 
@@ -240,52 +243,126 @@ export const approvalsService = {
     actorId?: string,
     actorRole?: string
   ): Promise<void> {
-    // 1. Update the step to approved
-    await this.approveStep(stepId, comments);
-
-    // 2. Get approval and check if more steps exist
-    const approval = await this.getJDApprovalById(jdApprovalId);
-    const steps = await this.getApprovalSteps(jdApprovalId);
-    const currentStep = approval.current_step || 1;
-    const nextStep = steps.find(s => s.step_number === currentStep + 1);
-
-    if (nextStep) {
-      // Move to next step
-      await supabase
-        .from('jd_approvals')
-        .update({
-          current_step: currentStep + 1,
-          approval_status: 'in_review'
-        } as any)
-        .eq('id', jdApprovalId);
-
-      // Activate next step
-      await supabase
-        .from('jd_approval_steps')
-        .update({
-          status: 'pending',
-          assigned_at: new Date().toISOString()
-        } as any)
-        .eq('id', nextStep.id);
-    } else {
-      // Final approval - mark as fully approved
-      await supabase
-        .from('jd_approvals')
-        .update({
-          approval_status: 'approved'
-        } as any)
-        .eq('id', jdApprovalId);
+    try {
+      console.log(`[approveJD] Starting approval for JD ${jdApprovalId}, step ${stepId}`);
+      
+      // 1. Approve the current step
+      await this.approveStep(stepId, comments);
+      
+      // 2. Get approval and steps
+      const approval = await this.getJDApprovalById(jdApprovalId);
+      const steps = await this.getApprovalSteps(jdApprovalId);
+      const currentStep = approval.current_step || 1;
+      const nextStepNumber = currentStep + 1;
+      
+      console.log(`[approveJD] Current step: ${currentStep}, looking for step: ${nextStepNumber}`);
+      
+      let nextStep = steps.find(s => s.step_number === nextStepNumber);
+      
+      // Auto-create missing next step (e.g., HR_MANAGER step)
+      if (!nextStep && approval.is_internal && nextStepNumber === 2) {
+        console.log(`[approveJD] HR_MANAGER step missing, auto-creating...`);
+        
+        const { data: createdStep, error: createError } = await supabase
+          .from('jd_approval_steps')
+          .insert({
+            jd_approval_id: jdApprovalId,
+            step_number: 2,
+            approver_role: 'HR_MANAGER',
+            status: 'pending',
+            sla_hours: 24,
+            assigned_at: null
+          })
+          .select()
+          .single();
+        
+        if (createError) {
+          console.error('[approveJD] Failed to create HR_MANAGER step:', createError);
+          throw createError;
+        }
+        
+        nextStep = createdStep as JDApprovalStep;
+        console.log(`[approveJD] Created HR_MANAGER step:`, nextStep.id);
+      }
+      
+      if (nextStep) {
+        console.log(`[approveJD] Found next step: ${nextStep.id} (${nextStep.approver_role})`);
+        
+        // Move to next step - update both JD approval and next step atomically
+        const assignedAt = new Date().toISOString();
+        
+        // Update jd_approvals
+        const { error: approvalError } = await supabase
+          .from('jd_approvals')
+          .update({
+            current_step: nextStepNumber,
+            approval_status: 'in_review',
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('id', jdApprovalId);
+        
+        if (approvalError) {
+          console.error('[approveJD] Failed to update jd_approvals:', approvalError);
+          throw approvalError;
+        }
+        
+        console.log(`[approveJD] Updated jd_approvals: current_step=${nextStepNumber}, approval_status=in_review`);
+        
+        // Activate next step by setting assigned_at
+        const { error: stepError } = await supabase
+          .from('jd_approval_steps')
+          .update({
+            assigned_at: assignedAt,
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('id', nextStep.id);
+        
+        if (stepError) {
+          console.error('[approveJD] Failed to activate next step:', stepError);
+          throw stepError;
+        }
+        
+        console.log(`[approveJD] Activated next step ${nextStep.id}: assigned_at=${assignedAt}`);
+        
+      } else {
+        // Final approval - no more steps
+        console.log(`[approveJD] No next step found, marking as fully approved`);
+        
+        const { error: finalError } = await supabase
+          .from('jd_approvals')
+          .update({
+            approval_status: 'approved',
+            updated_at: new Date().toISOString()
+          } as any)
+          .eq('id', jdApprovalId);
+        
+        if (finalError) {
+          console.error('[approveJD] Failed to mark as approved:', finalError);
+          throw finalError;
+        }
+        
+        console.log(`[approveJD] JD marked as fully approved`);
+      }
+      
+      // 3. Create audit log
+      await this.createAuditEntry({
+        jd_approval_id: jdApprovalId,
+        action: 'approve',
+        actor_id: actorId,
+        actor_role: actorRole,
+        comments,
+        details: { 
+          step_id: stepId,
+          next_step_activated: nextStep?.id || null
+        }
+      });
+      
+      console.log(`[approveJD] Approval completed successfully`);
+      
+    } catch (error) {
+      console.error('[approveJD] Approval failed with error:', error);
+      throw error;
     }
-
-    // 3. Create audit log
-    await this.createAuditEntry({
-      jd_approval_id: jdApprovalId,
-      action: 'approve',
-      actor_id: actorId,
-      actor_role: actorRole,
-      comments,
-      details: { step_id: stepId }
-    });
   },
 
   // NEW: Reject a JD
