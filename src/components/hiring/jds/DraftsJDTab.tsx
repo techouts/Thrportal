@@ -89,14 +89,34 @@ export function DraftsJDTab() {
   };
 
   const handleEmail = (jd: JDOverviewItem) => {
-    const salaryRange = `${jd.currency} ${jd.salary_band_min?.toLocaleString() || 'N/A'} - ${jd.salary_band_max?.toLocaleString() || 'N/A'}`;
-    const subject = `Job Description: ${jd.project_name || 'Untitled'}`;
-    const body = `Job Title: ${jd.project_name || 'Untitled'}
-Client: ${jd.client_name || 'N/A'}
-Openings: ${jd.headcount || 'N/A'}
+    const jobTitle = jd.job_title || jd.project_name || 'Untitled';
+    const client = jd.is_internal ? 'Internal Position' : (jd.client_name || 'N/A');
+    const openings = jd.positions || jd.headcount || 1;
+    
+    let salaryRange = '';
+    if (jd.ctc_monthly_min && jd.ctc_monthly_max) {
+      salaryRange = `${jd.currency || 'INR'} ${jd.ctc_monthly_min.toLocaleString()} - ${jd.ctc_monthly_max.toLocaleString()} per month`;
+    } else if (jd.salary_band_min && jd.salary_band_max) {
+      salaryRange = `${jd.currency || 'USD'} ${jd.salary_band_min.toLocaleString()} - ${jd.salary_band_max.toLocaleString()}`;
+    } else {
+      salaryRange = 'Not specified';
+    }
+    
+    const experience = jd.experience_min && jd.experience_max ? `${jd.experience_min}-${jd.experience_max} years` : 'Not specified';
+    const location = jd.work_location ? `${jd.work_location.city} (${jd.work_location.mode})` : 'Not specified';
+    
+    const subject = `Job Description: ${jobTitle}`;
+    const body = `Job Title: ${jobTitle}
+Client: ${client}
+Department: ${jd.department || 'N/A'}
+Openings: ${openings}
+Experience: ${experience}
+Location: ${location}
 Salary Range: ${salaryRange}
+Priority: ${jd.priority || 'Normal'}
 Status: ${jd.status}
 
+${jd.short_summary ? `\nSummary: ${jd.short_summary}\n` : ''}
 View full details here:
 ${window.location.origin}/Hiring/JDs?id=${jd.id}`;
 
@@ -106,8 +126,20 @@ ${window.location.origin}/Hiring/JDs?id=${jd.id}`;
   const handleBulkEmail = () => {
     const selectedJDs = jds.filter(jd => selectedIds.includes(jd.id));
     const body = `Selected Job Descriptions:\n\n${selectedJDs.map((jd, idx) => {
-      const salaryRange = `${jd.currency} ${jd.salary_band_min?.toLocaleString() || 'N/A'} - ${jd.salary_band_max?.toLocaleString() || 'N/A'}`;
-      return `${idx + 1}. ${jd.project_name || 'Untitled'} - ${jd.client_name || 'N/A'} - ${jd.headcount || 'N/A'} openings - ${salaryRange}
+      const jobTitle = jd.job_title || jd.project_name || 'Untitled';
+      const client = jd.is_internal ? 'Internal' : (jd.client_name || 'N/A');
+      const openings = jd.positions || jd.headcount || 1;
+      
+      let salaryRange = '';
+      if (jd.ctc_monthly_min && jd.ctc_monthly_max) {
+        salaryRange = `${jd.currency || 'INR'} ${jd.ctc_monthly_min.toLocaleString()}-${jd.ctc_monthly_max.toLocaleString()}/mo`;
+      } else if (jd.salary_band_min && jd.salary_band_max) {
+        salaryRange = `${jd.currency || 'USD'} ${jd.salary_band_min.toLocaleString()}-${jd.salary_band_max.toLocaleString()}`;
+      } else {
+        salaryRange = 'Not specified';
+      }
+      
+      return `${idx + 1}. ${jobTitle} - ${client} - ${openings} openings - ${salaryRange}
    Link: ${window.location.origin}/Hiring/JDs?id=${jd.id}`;
     }).join('\n\n')}
 
@@ -119,14 +151,29 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
   const handleEdit = (jd: JDOverviewItem) => {
     setEditingJD(jd);
     setEditForm({
+      job_title: jd.job_title,
       project_name: jd.project_name,
       client_name: jd.client_name,
+      department: jd.department,
+      business_unit: jd.business_unit,
       headcount: jd.headcount,
+      positions: jd.positions,
       salary_band_min: jd.salary_band_min,
       salary_band_max: jd.salary_band_max,
+      ctc_monthly_min: jd.ctc_monthly_min,
+      ctc_monthly_max: jd.ctc_monthly_max,
       currency: jd.currency,
       cost_center: jd.cost_center,
       business_justification: jd.business_justification,
+      short_summary: jd.short_summary,
+      experience_min: jd.experience_min,
+      experience_max: jd.experience_max,
+      priority: jd.priority,
+      job_type: jd.job_type,
+      pay_type: jd.pay_type,
+      employment_type: jd.employment_type,
+      additional_notes: jd.additional_notes,
+      is_internal: jd.is_internal,
     });
   };
 
@@ -359,39 +406,183 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
       </Card>
 
       <Sheet open={!!editingJD} onOpenChange={(open) => !open && setEditingJD(null)}>
-        <SheetContent className="overflow-y-auto">
+        <SheetContent className="overflow-y-auto sm:max-w-[600px]">
           <SheetHeader>
             <SheetTitle>Edit Job Description</SheetTitle>
           </SheetHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="project_name">Job Title</Label>
+              <Label htmlFor="job_title">Job Title</Label>
               <Input
-                id="project_name"
-                value={editForm.project_name || ''}
-                onChange={(e) => setEditForm(prev => ({ ...prev, project_name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="client_name">Client Name</Label>
-              <Input
-                id="client_name"
-                value={editForm.client_name || ''}
-                onChange={(e) => setEditForm(prev => ({ ...prev, client_name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="headcount">Openings</Label>
-              <Input
-                id="headcount"
-                type="number"
-                value={editForm.headcount || ''}
-                onChange={(e) => setEditForm(prev => ({ ...prev, headcount: parseInt(e.target.value) }))}
+                id="job_title"
+                value={editForm.job_title || editForm.project_name || ''}
+                onChange={(e) => setEditForm(prev => ({ ...prev, job_title: e.target.value, project_name: e.target.value }))}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="salary_min">Salary Min</Label>
+                <Label htmlFor="department">Department</Label>
+                <Input
+                  id="department"
+                  value={editForm.department || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, department: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="business_unit">Business Unit</Label>
+                <Input
+                  id="business_unit"
+                  value={editForm.business_unit || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, business_unit: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="is_internal">Position Type</Label>
+              <Select
+                value={editForm.is_internal ? 'internal' : 'external'}
+                onValueChange={(value) => setEditForm(prev => ({ ...prev, is_internal: value === 'internal' }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="internal">Internal</SelectItem>
+                  <SelectItem value="external">External (Client)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {!editForm.is_internal && (
+              <div>
+                <Label htmlFor="client_name">Client Name</Label>
+                <Input
+                  id="client_name"
+                  value={editForm.client_name || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, client_name: e.target.value }))}
+                />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="short_summary">Short Summary</Label>
+              <Textarea
+                id="short_summary"
+                value={editForm.short_summary || ''}
+                onChange={(e) => setEditForm(prev => ({ ...prev, short_summary: e.target.value }))}
+                rows={2}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="positions">Number of Positions</Label>
+                <Input
+                  id="positions"
+                  type="number"
+                  value={editForm.positions || editForm.headcount || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, positions: parseInt(e.target.value), headcount: parseInt(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={editForm.priority || 'Normal'}
+                  onValueChange={(value) => setEditForm(prev => ({ ...prev, priority: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="experience_min">Min Experience (years)</Label>
+                <Input
+                  id="experience_min"
+                  type="number"
+                  value={editForm.experience_min || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, experience_min: parseInt(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="experience_max">Max Experience (years)</Label>
+                <Input
+                  id="experience_max"
+                  type="number"
+                  value={editForm.experience_max || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, experience_max: parseInt(e.target.value) }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="job_type">Job Type</Label>
+                <Select
+                  value={editForm.job_type || 'Full-time'}
+                  onValueChange={(value) => setEditForm(prev => ({ ...prev, job_type: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Full-time">Full-time</SelectItem>
+                    <SelectItem value="Contract">Contract</SelectItem>
+                    <SelectItem value="C2H">C2H</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="employment_type">Employment Type</Label>
+                <Input
+                  id="employment_type"
+                  value={editForm.employment_type || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, employment_type: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="pay_type">Pay Type</Label>
+              <Select
+                value={editForm.pay_type || 'Monthly'}
+                onValueChange={(value) => setEditForm(prev => ({ ...prev, pay_type: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Monthly">Monthly</SelectItem>
+                  <SelectItem value="Annual">Annual</SelectItem>
+                  <SelectItem value="Hourly">Hourly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="ctc_monthly_min">CTC Monthly Min</Label>
+                <Input
+                  id="ctc_monthly_min"
+                  type="number"
+                  value={editForm.ctc_monthly_min || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, ctc_monthly_min: parseFloat(e.target.value) }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="ctc_monthly_max">CTC Monthly Max</Label>
+                <Input
+                  id="ctc_monthly_max"
+                  type="number"
+                  value={editForm.ctc_monthly_max || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, ctc_monthly_max: parseFloat(e.target.value) }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="salary_min">Salary Band Min (legacy)</Label>
                 <Input
                   id="salary_min"
                   type="number"
@@ -400,7 +591,7 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                 />
               </div>
               <div>
-                <Label htmlFor="salary_max">Salary Max</Label>
+                <Label htmlFor="salary_max">Salary Band Max (legacy)</Label>
                 <Input
                   id="salary_max"
                   type="number"
@@ -439,7 +630,16 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                 id="business_justification"
                 value={editForm.business_justification || ''}
                 onChange={(e) => setEditForm(prev => ({ ...prev, business_justification: e.target.value }))}
-                rows={4}
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="additional_notes">Additional Notes</Label>
+              <Textarea
+                id="additional_notes"
+                value={editForm.additional_notes || ''}
+                onChange={(e) => setEditForm(prev => ({ ...prev, additional_notes: e.target.value }))}
+                rows={3}
               />
             </div>
           </div>

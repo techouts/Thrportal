@@ -195,14 +195,29 @@ export class JDService {
     try {
       const updateData: any = {};
       
+      if (data.job_title !== undefined) updateData.job_title = data.job_title;
       if (data.project_name !== undefined) updateData.project_name = data.project_name;
       if (data.client_name !== undefined) updateData.client_name = data.client_name;
+      if (data.department !== undefined) updateData.department = data.department;
+      if (data.business_unit !== undefined) updateData.business_unit = data.business_unit;
       if (data.headcount !== undefined) updateData.headcount = data.headcount;
+      if (data.positions !== undefined) updateData.positions = data.positions;
       if (data.salary_band_min !== undefined) updateData.salary_band_min = data.salary_band_min;
       if (data.salary_band_max !== undefined) updateData.salary_band_max = data.salary_band_max;
+      if (data.ctc_monthly_min !== undefined) updateData.ctc_monthly_min = data.ctc_monthly_min;
+      if (data.ctc_monthly_max !== undefined) updateData.ctc_monthly_max = data.ctc_monthly_max;
       if (data.currency !== undefined) updateData.currency = data.currency;
       if (data.cost_center !== undefined) updateData.cost_center = data.cost_center;
       if (data.business_justification !== undefined) updateData.business_justification = data.business_justification;
+      if (data.short_summary !== undefined) updateData.short_summary = data.short_summary;
+      if (data.experience_min !== undefined) updateData.experience_min = data.experience_min;
+      if (data.experience_max !== undefined) updateData.experience_max = data.experience_max;
+      if (data.priority !== undefined) updateData.priority = data.priority;
+      if (data.job_type !== undefined) updateData.job_type = data.job_type;
+      if (data.pay_type !== undefined) updateData.pay_type = data.pay_type;
+      if (data.employment_type !== undefined) updateData.employment_type = data.employment_type;
+      if (data.additional_notes !== undefined) updateData.additional_notes = data.additional_notes;
+      if (data.is_internal !== undefined) updateData.is_internal = data.is_internal;
 
       const { data: result, error } = await supabase
         .from('jd_approvals')
