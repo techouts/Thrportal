@@ -215,6 +215,7 @@ export class JDService {
       if (data.experience_min !== undefined) updateData.experience_min = data.experience_min;
       if (data.experience_max !== undefined) updateData.experience_max = data.experience_max;
       if (data.priority !== undefined) updateData.priority = data.priority;
+      if (data.status !== undefined) updateData.status = data.status;
       if (data.job_type !== undefined) updateData.job_type = data.job_type;
       if (data.pay_type !== undefined) updateData.pay_type = data.pay_type;
       if (data.employment_type !== undefined) updateData.employment_type = data.employment_type;

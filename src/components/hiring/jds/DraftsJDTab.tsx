@@ -173,6 +173,7 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
       experience_min: jd.experience_min,
       experience_max: jd.experience_max,
       priority: jd.priority,
+      status: jd.status,
       job_type: jd.job_type,
       pay_type: jd.pay_type,
       employment_type: jd.employment_type,
@@ -425,6 +426,42 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={editForm.status || 'Draft'}
+                  onValueChange={(value) => setEditForm(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Draft">Draft</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="On Hold">On Hold</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={editForm.priority || 'Normal'}
+                  onValueChange={(value) => setEditForm(prev => ({ ...prev, priority: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Label htmlFor="department">Department</Label>
                 <Input
                   id="department"
@@ -475,32 +512,14 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                 rows={2}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="positions">Number of Positions</Label>
-                <Input
-                  id="positions"
-                  type="number"
-                  value={editForm.positions || editForm.headcount || ''}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, positions: parseInt(e.target.value), headcount: parseInt(e.target.value) }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={editForm.priority || 'Normal'}
-                  onValueChange={(value) => setEditForm(prev => ({ ...prev, priority: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Normal">Normal</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                    <SelectItem value="Critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="positions">Number of Positions</Label>
+              <Input
+                id="positions"
+                type="number"
+                value={editForm.positions || editForm.headcount || ''}
+                onChange={(e) => setEditForm(prev => ({ ...prev, positions: parseInt(e.target.value), headcount: parseInt(e.target.value) }))}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
