@@ -41,7 +41,7 @@ export interface JDOverviewItem {
 }
 
 export interface JDFilters {
-  status: 'all' | 'active' | 'inactive';
+  status: 'all' | 'active' | 'inactive' | 'draft';
   page: number;
   limit: number;
   sortBy?: 'created_at' | 'client_name';
@@ -97,10 +97,12 @@ export class JDService {
         `, { count: 'exact' });
 
       // Apply status filter
-      if (status === 'active') {
-        query = query.gt('current_step', 0);
+      if (status === 'draft') {
+        query = query.eq('status', 'Draft');
+      } else if (status === 'active') {
+        query = query.neq('status', 'Draft');
       } else if (status === 'inactive') {
-        query = query.eq('current_step', 0);
+        query = query.in('status', ['Closed', 'Cancelled']);
       }
 
       // Apply sorting

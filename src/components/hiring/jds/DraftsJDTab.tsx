@@ -17,7 +17,11 @@ import { Mail, MoreVertical, Edit, ArrowUpDown } from "lucide-react";
 import { JDService, type JDOverviewItem, type JDFilters } from "@/services/jdService";
 import { format } from "date-fns";
 
-export function DraftsJDTab() {
+interface DraftsJDTabProps {
+  defaultStatus?: 'all' | 'active' | 'inactive' | 'draft'
+}
+
+export function DraftsJDTab({ defaultStatus = 'draft' }: DraftsJDTabProps = {}) {
   const { toast } = useToast();
   const [jds, setJds] = useState<JDOverviewItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +31,7 @@ export function DraftsJDTab() {
   const [isSaving, setIsSaving] = useState(false);
   
   const [filters, setFilters] = useState<JDFilters>({
-    status: 'all',
+    status: defaultStatus,
     page: 1,
     limit: 20,
     sortBy: 'created_at',

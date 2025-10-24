@@ -33,7 +33,7 @@ export function JDManagementModule() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <DraftsJDTab />
+          <DraftsJDTab defaultStatus="active" />
         </TabsContent>
 
         <TabsContent value="manual" className="space-y-4">
