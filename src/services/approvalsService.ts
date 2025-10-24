@@ -513,11 +513,73 @@ export const approvalsService = {
       ...jdData,
       jd_id: jdData.jd_id || crypto.randomUUID(),
       status: isDraft ? 'Draft' : 'Active',
+      approval_status: isDraft ? undefined : 'pending',
       approver_names: approverNames,
       current_step: isDraft ? 0 : 1,
       submitted_at: isDraft ? undefined : new Date().toISOString()
     };
 
-    return await this.createJDApproval(jdApproval);
+    const createdJD = await this.createJDApproval(jdApproval);
+
+    // For Active JDs, explicitly create approval steps (belt & suspenders with trigger)
+    if (!isDraft && createdJD.is_internal !== undefined) {
+      await this.createApprovalStepsForJD(createdJD.id, createdJD.is_internal);
+    }
+
+    return createdJD;
+  },
+
+  // Helper method to create approval steps
+  async createApprovalStepsForJD(
+    jdApprovalId: string, 
+    isInternal: boolean
+  ): Promise<void> {
+    // Get appropriate approval rule
+    const rules = await this.getApprovalRules();
+    const ruleName = isInternal 
+      ? 'Internal Position Approval' 
+      : 'External Position Approval';
+    const rule = rules.find(r => r.rule_name === ruleName);
+    
+    if (!rule || !rule.approval_chain) {
+      console.warn(`No approval rule found for ${ruleName}`);
+      return;
+    }
+
+    // Check if steps already exist (trigger may have created them)
+    const existingSteps = await this.getApprovalSteps(jdApprovalId);
+    if (existingSteps.length > 0) {
+      console.log('Approval steps already exist, skipping creation');
+      return;
+    }
+
+    // Create approval steps
+    for (const chainStep of rule.approval_chain) {
+      await this.createApprovalStep({
+        jd_approval_id: jdApprovalId,
+        step_number: chainStep.step,
+        approver_role: chainStep.role,
+        sla_hours: chainStep.sla_hours,
+        status: chainStep.step === 1 ? 'pending' : 'pending',
+        assigned_at: chainStep.step === 1 ? new Date().toISOString() : undefined
+      });
+    }
+
+    // Create audit log entry
+    await this.createAuditEntry({
+      jd_approval_id: jdApprovalId,
+      action: 'submit',
+      details: { auto_created_steps: true, is_internal: isInternal },
+      comments: 'Approval steps auto-created on JD activation'
+    });
+  },
+
+  // Public wrapper to ensure approval steps exist
+  async ensureApprovalStepsExist(jdApprovalId: string, isInternal: boolean): Promise<void> {
+    const existingSteps = await this.getApprovalSteps(jdApprovalId);
+    
+    if (existingSteps.length === 0) {
+      await this.createApprovalStepsForJD(jdApprovalId, isInternal);
+    }
   }
 };

@@ -222,6 +222,9 @@ export class JDService {
       if (data.additional_notes !== undefined) updateData.additional_notes = data.additional_notes;
       if (data.is_internal !== undefined) updateData.is_internal = data.is_internal;
 
+      // Track if status is being changed to Active
+      const statusChangedToActive = data.status === 'Active';
+
       const { data: result, error } = await supabase
         .from('jd_approvals')
         .update(updateData)
@@ -230,6 +233,12 @@ export class JDService {
         .single();
 
       if (error) throw error;
+
+      // If status changed to Active, ensure approval steps exist
+      if (statusChangedToActive && result) {
+        const { approvalsService } = await import('./approvalsService');
+        await approvalsService.ensureApprovalStepsExist(result.id, result.is_internal);
+      }
 
       return {
         data: result,
