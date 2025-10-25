@@ -29,6 +29,7 @@ export function InternalApprovalsTab() {
   // Permission checks
   const canViewTab = ['ADMIN', 'MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'RECRUITER', 'HIRING_MANAGER'].includes(userRole);
   const canApprove = ['MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER'].includes(userRole);
+  const canApproveHR = userRole === 'HR_MANAGER';
 
   useEffect(() => {
     if (canViewTab) {
@@ -61,7 +62,17 @@ export function InternalApprovalsTab() {
   };
 
   const handleApprove = async (jd: JDApproval) => {
+    const isHRReviewJD = hrReviewApprovals.some(hrJd => hrJd.id === jd.id);
+    
     if (!canApprove) return;
+    if (isHRReviewJD && userRole !== 'HR_MANAGER') {
+      toast({
+        title: "Permission Denied",
+        description: "Only HR Manager can approve JDs in HR review",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setActionLoading(true);
     try {
@@ -314,17 +325,55 @@ export function InternalApprovalsTab() {
                       </TableCell>
                       <TableCell>{formatDate(jd.updated_at)}</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedJD(jd);
-                            setViewDialogOpen(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </Button>
+                        {canApproveHR ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" disabled={actionLoading}>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-background z-50">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedJD(jd);
+                                  setViewDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleApprove(jd)}
+                                disabled={actionLoading}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedJD(jd);
+                                  setRejectDialogOpen(true);
+                                }}
+                                disabled={actionLoading}
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Reject
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedJD(jd);
+                              setViewDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
