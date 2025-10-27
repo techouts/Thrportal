@@ -260,8 +260,8 @@ export const approvalsService = {
       let nextStep = steps.find(s => s.step_number === nextStepNumber);
       
       // Auto-create missing next step (e.g., HR_MANAGER step)
-      if (!nextStep && approval.is_internal && nextStepNumber === 2) {
-        console.log(`[approveJD] HR_MANAGER step missing, auto-creating...`);
+      if (!nextStep && nextStepNumber === 2) {
+        console.log(`[approveJD] HR_MANAGER step missing, auto-creating for ${approval.is_internal ? "internal" : "external"} JD...`);
         
         const { data: createdStep, error: createError } = await supabase
           .from('jd_approval_steps')
