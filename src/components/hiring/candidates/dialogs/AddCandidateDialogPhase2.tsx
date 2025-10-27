@@ -50,6 +50,9 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
       skills: [],
       languagesKnown: [],
       willingToRelocate: false,
+      currentCtc: undefined,
+      expectedCtc: undefined,
+      noticePeriod: undefined,
     },
   });
 
@@ -65,7 +68,7 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
     
     switch(tabName) {
       case 'basic':
-        return ['firstName', 'lastName', 'email', 'phone'].filter(f => formErrors[f as keyof typeof formErrors]).length;
+        return ['firstName', 'lastName', 'email'].filter(f => formErrors[f as keyof typeof formErrors]).length;
       case 'professional':
         return ['source', 'experience'].filter(f => formErrors[f as keyof typeof formErrors]).length;
       case 'location':
@@ -92,7 +95,7 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
     console.log('Validation errors:', errors);
     
     // Count errors per tab
-    const basicErrors = ['firstName', 'lastName', 'email', 'phone'].filter(f => errors[f]).length;
+    const basicErrors = ['firstName', 'lastName', 'email'].filter(f => errors[f]).length;
     const professionalErrors = ['source', 'experience'].filter(f => errors[f]).length;
     const locationErrors = errors.location ? 1 : 0;
     
@@ -112,13 +115,25 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
 
   const onSubmit = async (data: CandidateFormDataPhase2) => {
     console.log('=== FORM SUBMISSION STARTED ===');
-    console.log('Form data:', data);
+    console.log('Raw form data:', data);
     console.log('Validation errors:', errors);
+    
+    // Auto-generate name from firstName, middleName, lastName
+    const fullName = [data.firstName, data.middleName, data.lastName]
+      .filter(Boolean)
+      .join(' ');
+    
+    const submissionData = {
+      ...data,
+      name: fullName || `${data.firstName} ${data.lastName}`,
+    };
+    
+    console.log('Submission data with generated name:', submissionData);
     
     setLoading(true);
     try {
       console.log('Calling candidatesService.createCandidate...');
-      const result = await candidatesService.createCandidate(data as any);
+      const result = await candidatesService.createCandidate(submissionData as any);
       console.log('Candidate created successfully:', result);
       
       toast.success('Candidate created successfully');
@@ -195,7 +210,7 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input id="phone" {...register('phone')} placeholder="+1 234 567 8900" />
                   {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
                 </div>

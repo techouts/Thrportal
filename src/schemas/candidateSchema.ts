@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const candidateSchemaPhase1 = z.object({
   // Basic Information
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
+  name: z.string().optional(),
   email: z.string().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
   phone: z.string().optional().refine((val) => !val || /^\+?[\d\s\-()]+$/.test(val), {
     message: 'Invalid phone number format'
@@ -14,8 +14,14 @@ export const candidateSchemaPhase1 = z.object({
   source: z.enum(['LinkedIn', 'Job Board', 'Referral', 'Internal Pool', 'Direct Application']),
   experience: z.number().min(0, 'Experience must be 0 or greater').max(50, 'Experience seems too high'),
   skills: z.array(z.string()).default([]),
-  currentCtc: z.number().min(0, 'CTC must be positive').optional().or(z.literal(0)),
-  expectedCtc: z.number().min(0, 'CTC must be positive').optional().or(z.literal(0)),
+  currentCtc: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined || isNaN(Number(val))) ? undefined : Number(val),
+    z.number().min(0, 'CTC must be positive').optional()
+  ),
+  expectedCtc: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined || isNaN(Number(val))) ? undefined : Number(val),
+    z.number().min(0, 'CTC must be positive').optional()
+  ),
   noticePeriod: z.number().optional(),
   status: z.string().default('New'),
   recruiterOwner: z.string().optional(),
