@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/shared/DataTable';
 import { SmartUploadCandidatesModal } from '../shared/SmartUploadCandidatesModal';
+import { AddCandidateDialog } from '../dialogs/AddCandidateDialog';
 
 interface CandidateListTabProps {
   onViewCandidate: (candidateId: string) => void;
@@ -40,6 +41,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [activeView, setActiveView] = useState<'all'>('all');
   const [showSmartUpload, setShowSmartUpload] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [filters, setFilters] = useState<CandidateFilters>({});
   const [showFilters, setShowFilters] = useState(false);
 
@@ -273,7 +275,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 <BrainCircuit className="mr-2 h-4 w-4" />
                 Smart Upload
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setShowAddDialog(true)}>
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add Candidate
               </Button>
@@ -505,6 +507,13 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
       <SmartUploadCandidatesModal
         open={showSmartUpload}
         onClose={() => setShowSmartUpload(false)}
+      />
+
+      {/* Add Candidate Dialog */}
+      <AddCandidateDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSuccess={loadCandidates}
       />
     </div>
   );
