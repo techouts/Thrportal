@@ -1,31 +1,22 @@
-import { 
-  CandidateProfile, 
-  CandidateExperience, 
-  CandidateEducation, 
+import type {
+  CandidateProfile,
+  CandidateFilters,
+  CandidateExperience,
+  CandidateEducation,
   CandidateDocument,
   CandidateCommunication,
   CandidateStatusTimeline,
   CandidateOffer,
   TalentPool,
-  CandidateFilters,
   CandidateReports,
-  InterviewSchedule,
-  InterviewFeedback,
   CandidateStatus,
-  CandidateSource
 } from '@/types/candidates';
+import { supabase } from '@/integrations/supabase/client';
 
 class CandidatesService {
   private static instance: CandidatesService;
-  private mockCandidates: CandidateProfile[] = [];
-  private mockExperience: CandidateExperience[] = [];
-  private mockEducation: CandidateEducation[] = [];
-  private mockDocuments: CandidateDocument[] = [];
-  private mockCommunications: CandidateCommunication[] = [];
-  private mockTimeline: CandidateStatusTimeline[] = [];
-  private mockOffers: CandidateOffer[] = [];
-  private mockPools: TalentPool[] = [];
-  private mockInterviews: InterviewSchedule[] = [];
+
+  private constructor() {}
 
   static getInstance(): CandidatesService {
     if (!CandidatesService.instance) {
@@ -34,424 +25,310 @@ class CandidatesService {
     return CandidatesService.instance;
   }
 
-  constructor() {
-    this.initializeMockData();
+  private mapToCandidate(row: any): CandidateProfile {
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone || '',
+      linkedinUrl: row.linkedin_url,
+      location: row.location,
+      currentCtc: row.current_ctc,
+      expectedCtc: row.expected_ctc,
+      noticePeriod: row.notice_period,
+      status: row.status as CandidateStatus,
+      source: row.source,
+      recruiterOwner: row.recruiter_owner || '',
+      skills: row.skills || [],
+      experience: row.experience,
+      lastUpdated: row.updated_at,
+      createdAt: row.created_at,
+      avatarUrl: row.avatar_url,
+      consent: row.consent,
+      gdprCompliant: row.gdpr_compliant,
+    };
   }
 
-  private initializeMockData() {
-    // Mock Candidates
-    this.mockCandidates = [
-      {
-        id: 'candidate-1',
-        name: 'John Smith',
-        email: 'john.smith@email.com',
-        phone: '+1-555-0123',
-        linkedinUrl: 'https://linkedin.com/in/johnsmith',
-        location: 'San Francisco, CA',
-        currentCtc: 120000,
-        expectedCtc: 150000,
-        noticePeriod: 30,
-        status: 'Shortlisted',
-        source: 'LinkedIn',
-        recruiterOwner: 'Sarah Johnson',
-        skills: ['React', 'Node.js', 'TypeScript', 'AWS', 'GraphQL'],
-        experience: 5,
-        lastUpdated: '2024-01-15T10:30:00Z',
-        createdAt: '2024-01-10T09:00:00Z',
-        consent: true,
-        gdprCompliant: true
-      },
-      {
-        id: 'candidate-2',
-        name: 'Emily Chen',
-        email: 'emily.chen@email.com',
-        phone: '+1-555-0124',
-        location: 'New York, NY',
-        currentCtc: 95000,
-        expectedCtc: 120000,
-        noticePeriod: 60,
-        status: 'Interview Scheduled',
-        source: 'Job Board',
-        recruiterOwner: 'Mike Rodriguez',
-        skills: ['Python', 'Django', 'PostgreSQL', 'Docker', 'Kubernetes'],
-        experience: 3,
-        lastUpdated: '2024-01-14T14:20:00Z',
-        createdAt: '2024-01-08T11:15:00Z',
-        consent: true,
-        gdprCompliant: true
-      },
-      {
-        id: 'candidate-3',
-        name: 'David Wilson',
-        email: 'david.wilson@email.com',
-        phone: '+1-555-0125',
-        location: 'Austin, TX',
-        currentCtc: 110000,
-        expectedCtc: 140000,
-        noticePeriod: 30,
-        status: 'Offer Extended',
-        source: 'Referral',
-        recruiterOwner: 'Lisa Thompson',
-        skills: ['Java', 'Spring Boot', 'Microservices', 'MongoDB', 'Redis'],
-        experience: 7,
-        lastUpdated: '2024-01-13T16:45:00Z',
-        createdAt: '2024-01-05T08:30:00Z',
-        consent: true,
-        gdprCompliant: true
-      },
-      {
-        id: 'candidate-4',
-        name: 'Sarah Davis',
-        email: 'sarah.davis@email.com',
-        phone: '+1-555-0126',
-        location: 'Seattle, WA',
-        currentCtc: 85000,
-        expectedCtc: 110000,
-        noticePeriod: 45,
-        status: 'New',
-        source: 'Internal Pool',
-        recruiterOwner: 'John Anderson',
-        skills: ['Angular', 'C#', '.NET Core', 'SQL Server', 'Azure'],
-        experience: 4,
-        lastUpdated: '2024-01-12T12:15:00Z',
-        createdAt: '2024-01-12T12:15:00Z',
-        consent: true,
-        gdprCompliant: true
-      },
-      {
-        id: 'candidate-5',
-        name: 'Michael Brown',
-        email: 'michael.brown@email.com',
-        phone: '+1-555-0127',
-        location: 'Chicago, IL',
-        currentCtc: 135000,
-        expectedCtc: 160000,
-        noticePeriod: 30,
-        status: 'Joined',
-        source: 'LinkedIn',
-        recruiterOwner: 'Sarah Johnson',
-        skills: ['DevOps', 'Terraform', 'Jenkins', 'AWS', 'Monitoring'],
-        experience: 8,
-        lastUpdated: '2024-01-11T09:30:00Z',
-        createdAt: '2024-01-01T10:00:00Z',
-        consent: true,
-        gdprCompliant: true
-      }
-    ];
-
-    // Mock Experience
-    this.mockExperience = [
-      {
-        id: 'exp-1',
-        candidateId: 'candidate-1',
-        company: 'TechCorp Inc.',
-        designation: 'Senior Frontend Developer',
-        startDate: '2021-03-01',
-        isCurrent: true,
-        description: 'Led frontend development for enterprise applications using React and TypeScript.',
-        skills: ['React', 'TypeScript', 'Redux', 'Jest'],
-        achievements: ['Improved app performance by 40%', 'Led team of 4 developers'],
-        ctc: 120000
-      }
-    ];
-
-    // Mock Talent Pools
-    this.mockPools = [
-      {
-        id: 'pool-1',
-        name: 'Frontend Developers - San Francisco',
-        description: 'Experienced React and Angular developers in SF Bay Area',
-        tags: ['React', 'Angular', 'JavaScript', 'San Francisco'],
-        candidateIds: ['candidate-1', 'candidate-4'],
-        createdBy: 'Sarah Johnson',
-        createdAt: '2024-01-01T10:00:00Z',
-        isPublic: false,
-        sharedWith: ['mike.rodriguez@company.com']
-      },
-      {
-        id: 'pool-2',
-        name: 'Backend Engineers - Remote',
-        description: 'Senior backend engineers open to remote work',
-        tags: ['Backend', 'Remote', 'Senior', 'Node.js', 'Python'],
-        candidateIds: ['candidate-2', 'candidate-3'],
-        createdBy: 'Mike Rodriguez',
-        createdAt: '2024-01-02T11:00:00Z',
-        isPublic: true,
-        sharedWith: []
-      }
-    ];
-  }
-
-  // Candidates
   async getCandidates(filters?: CandidateFilters): Promise<CandidateProfile[]> {
-    let candidates = [...this.mockCandidates];
+    let query = supabase.from('candidates').select('*');
 
-    if (filters) {
-      if (filters.search) {
-        const search = filters.search.toLowerCase();
-        candidates = candidates.filter(c => 
-          c.name.toLowerCase().includes(search) ||
-          c.email.toLowerCase().includes(search) ||
-          c.skills.some(skill => skill.toLowerCase().includes(search))
-        );
-      }
-
-      if (filters.status?.length) {
-        candidates = candidates.filter(c => filters.status!.includes(c.status));
-      }
-
-      if (filters.source?.length) {
-        candidates = candidates.filter(c => filters.source!.includes(c.source));
-      }
-
-      if (filters.skills?.length) {
-        candidates = candidates.filter(c => 
-          filters.skills!.some(skill => 
-            c.skills.some(candidateSkill => 
-              candidateSkill.toLowerCase().includes(skill.toLowerCase())
-            )
-          )
-        );
-      }
-
-      if (filters.location?.length) {
-        candidates = candidates.filter(c => 
-          filters.location!.some(loc => 
-            c.location.toLowerCase().includes(loc.toLowerCase())
-          )
-        );
-      }
-
-      if (filters.experienceRange) {
-        const { min, max } = filters.experienceRange;
-        candidates = candidates.filter(c => c.experience >= min && c.experience <= max);
-      }
-
-      if (filters.ctcRange) {
-        const { min, max } = filters.ctcRange;
-        candidates = candidates.filter(c => 
-          c.expectedCtc && c.expectedCtc >= min && c.expectedCtc <= max
-        );
-      }
+    if (filters?.search) {
+      query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`);
+    }
+    if (filters?.status && filters.status.length > 0) {
+      query = query.in('status', filters.status);
+    }
+    if (filters?.source && filters.source.length > 0) {
+      query = query.in('source', filters.source);
+    }
+    if (filters?.location && filters.location.length > 0) {
+      query = query.in('location', filters.location);
+    }
+    if (filters?.experienceRange) {
+      query = query.gte('experience', filters.experienceRange.min).lte('experience', filters.experienceRange.max);
     }
 
-    return candidates;
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    return (data || []).map(this.mapToCandidate);
   }
 
   async getCandidateById(id: string): Promise<CandidateProfile | null> {
-    return this.mockCandidates.find(c => c.id === id) || null;
+    const { data, error } = await supabase.from('candidates').select('*').eq('id', id).single();
+    if (error) return null;
+    return data ? this.mapToCandidate(data) : null;
   }
 
-  async createCandidate(candidate: Omit<CandidateProfile, 'id' | 'createdAt' | 'lastUpdated'>): Promise<CandidateProfile> {
-    const newCandidate: CandidateProfile = {
-      ...candidate,
-      id: `candidate-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString()
-    };
-
-    this.mockCandidates.push(newCandidate);
-    return newCandidate;
+  async createCandidate(
+    candidate: Omit<CandidateProfile, 'id' | 'createdAt' | 'lastUpdated'>
+  ): Promise<CandidateProfile> {
+    const { data, error } = await supabase.from('candidates').insert({
+      name: candidate.name,
+      email: candidate.email,
+      phone: candidate.phone,
+      linkedin_url: candidate.linkedinUrl,
+      location: candidate.location,
+      current_ctc: candidate.currentCtc,
+      expected_ctc: candidate.expectedCtc,
+      notice_period: candidate.noticePeriod,
+      status: candidate.status,
+      source: candidate.source,
+      recruiter_owner: candidate.recruiterOwner,
+      skills: candidate.skills,
+      experience: candidate.experience,
+      consent: candidate.consent,
+      gdpr_compliant: candidate.gdprCompliant,
+      avatar_url: candidate.avatarUrl,
+    }).select().single();
+    
+    if (error) throw error;
+    return this.mapToCandidate(data);
   }
 
-  async updateCandidate(id: string, updates: Partial<CandidateProfile>): Promise<CandidateProfile | null> {
-    const index = this.mockCandidates.findIndex(c => c.id === id);
-    if (index === -1) return null;
-
-    this.mockCandidates[index] = {
-      ...this.mockCandidates[index],
-      ...updates,
-      lastUpdated: new Date().toISOString()
-    };
-
-    return this.mockCandidates[index];
+  async updateCandidate(
+    id: string,
+    updates: Partial<CandidateProfile>
+  ): Promise<CandidateProfile | null> {
+    const { data, error } = await supabase.from('candidates').update({
+      name: updates.name,
+      email: updates.email,
+      phone: updates.phone,
+      linkedin_url: updates.linkedinUrl,
+      location: updates.location,
+      current_ctc: updates.currentCtc,
+      expected_ctc: updates.expectedCtc,
+      notice_period: updates.noticePeriod,
+      status: updates.status,
+      source: updates.source,
+      recruiter_owner: updates.recruiterOwner,
+      skills: updates.skills,
+      experience: updates.experience,
+      avatar_url: updates.avatarUrl,
+    }).eq('id', id).select().single();
+    
+    if (error) return null;
+    return this.mapToCandidate(data);
   }
 
-  // Experience
   async getCandidateExperience(candidateId: string): Promise<CandidateExperience[]> {
-    return this.mockExperience.filter(exp => exp.candidateId === candidateId);
+    const { data, error } = await supabase.from('candidate_experience').select('*').eq('candidate_id', candidateId).order('start_date', { ascending: false });
+    if (error) return [];
+    return (data || []).map(row => ({
+      id: row.id,
+      candidateId: row.candidate_id,
+      company: row.company,
+      designation: row.designation,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      isCurrent: row.is_current,
+      description: row.description || '',
+      skills: row.skills || [],
+      achievements: row.achievements || [],
+      ctc: row.ctc,
+    }));
   }
 
-  // Education
   async getCandidateEducation(candidateId: string): Promise<CandidateEducation[]> {
-    return this.mockEducation.filter(edu => edu.candidateId === candidateId);
+    const { data, error } = await supabase.from('candidate_education').select('*').eq('candidate_id', candidateId).order('start_year', { ascending: false });
+    if (error) return [];
+    return (data || []).map(row => ({
+      id: row.id,
+      candidateId: row.candidate_id,
+      degree: row.degree,
+      field: row.field,
+      institution: row.institution,
+      startYear: row.start_year,
+      endYear: row.end_year,
+      grade: row.grade,
+      type: row.type as 'Degree' | 'Certification' | 'Course',
+    }));
   }
 
-  // Documents
   async getCandidateDocuments(candidateId: string): Promise<CandidateDocument[]> {
-    return this.mockDocuments.filter(doc => doc.candidateId === candidateId);
+    const { data, error } = await supabase.from('candidate_documents').select('*').eq('candidate_id', candidateId).order('uploaded_at', { ascending: false });
+    if (error) return [];
+    return (data || []).map(row => ({
+      id: row.id,
+      candidateId: row.candidate_id,
+      name: row.name,
+      type: row.type as any,
+      url: row.url,
+      uploadedAt: row.uploaded_at,
+      uploadedBy: row.uploaded_by || '',
+      size: row.size,
+      verified: row.verified,
+    }));
   }
 
-  // Communications
   async getCandidateCommunications(candidateId: string): Promise<CandidateCommunication[]> {
-    return this.mockCommunications.filter(comm => comm.candidateId === candidateId);
+    const { data, error } = await supabase.from('candidate_communications').select('*').eq('candidate_id', candidateId).order('created_at', { ascending: false });
+    if (error) return [];
+    return (data || []).map(row => ({
+      id: row.id,
+      candidateId: row.candidate_id,
+      type: row.type as any,
+      direction: row.direction as 'Inbound' | 'Outbound',
+      subject: row.subject,
+      content: row.content,
+      createdAt: row.created_at,
+      createdBy: row.created_by || '',
+      attachments: row.attachments || [],
+      metadata: row.metadata as any,
+    }));
   }
 
-  // Timeline
   async getCandidateTimeline(candidateId: string): Promise<CandidateStatusTimeline[]> {
-    return this.mockTimeline.filter(timeline => timeline.candidateId === candidateId);
+    const { data, error } = await supabase.from('candidate_timeline').select('*').eq('candidate_id', candidateId).order('timestamp', { ascending: false });
+    if (error) return [];
+    return (data || []).map(row => ({
+      id: row.id,
+      candidateId: row.candidate_id,
+      fromStatus: row.from_status as CandidateStatus | undefined,
+      toStatus: row.to_status as CandidateStatus,
+      timestamp: row.timestamp,
+      changedBy: row.changed_by || '',
+      reason: row.reason,
+      notes: row.notes,
+      jdId: row.jd_id,
+      automaticChange: row.automatic_change,
+    }));
   }
 
-  // Offers
   async getCandidateOffers(candidateId: string): Promise<CandidateOffer[]> {
-    return this.mockOffers.filter(offer => offer.candidateId === candidateId);
+    const { data, error } = await supabase.from('candidate_offers').select('*').eq('candidate_id', candidateId).order('created_at', { ascending: false });
+    if (error) return [];
+    return (data || []).map(row => ({
+      id: row.id,
+      candidateId: row.candidate_id,
+      jdId: row.jd_id,
+      designation: row.designation,
+      ctc: row.ctc,
+      location: row.location,
+      joiningDate: row.joining_date,
+      status: row.status as any,
+      approvalWorkflow: row.approval_workflow as any || [],
+      terms: row.terms || [],
+      sentAt: row.sent_at,
+      respondedAt: row.responded_at,
+      declineReason: row.decline_reason,
+      noShowDate: row.no_show_date,
+    }));
   }
 
-  // Talent Pools
   async getTalentPools(): Promise<TalentPool[]> {
-    return [...this.mockPools];
+    const { data: pools, error: poolsError } = await supabase.from('talent_pools').select('*').order('created_at', { ascending: false });
+    if (poolsError) return [];
+    
+    const { data: links } = await supabase.from('candidate_pool_links').select('candidate_id, pool_id');
+    
+    return (pools || []).map(pool => ({
+      id: pool.id,
+      name: pool.name,
+      description: pool.description || '',
+      tags: pool.tags || [],
+      candidateIds: (links || []).filter(l => l.pool_id === pool.id).map(l => l.candidate_id),
+      createdBy: pool.created_by || '',
+      createdAt: pool.created_at,
+      isPublic: pool.is_public,
+      sharedWith: pool.shared_with || [],
+    }));
   }
 
   async createTalentPool(pool: Omit<TalentPool, 'id' | 'createdAt'>): Promise<TalentPool> {
-    const newPool: TalentPool = {
-      ...pool,
-      id: `pool-${Date.now()}`,
-      createdAt: new Date().toISOString()
+    const { data, error } = await supabase.from('talent_pools').insert({
+      name: pool.name,
+      description: pool.description,
+      tags: pool.tags,
+      is_public: pool.isPublic,
+      shared_with: pool.sharedWith,
+    }).select().single();
+    
+    if (error) throw error;
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      tags: data.tags || [],
+      candidateIds: [],
+      createdBy: data.created_by || '',
+      createdAt: data.created_at,
+      isPublic: data.is_public,
+      sharedWith: data.shared_with || [],
     };
-
-    this.mockPools.push(newPool);
-    return newPool;
   }
 
   async addCandidateToPool(poolId: string, candidateId: string): Promise<boolean> {
-    const pool = this.mockPools.find(p => p.id === poolId);
-    if (!pool || pool.candidateIds.includes(candidateId)) return false;
-
-    pool.candidateIds.push(candidateId);
-    return true;
+    const { error } = await supabase.from('candidate_pool_links').insert({
+      pool_id: poolId,
+      candidate_id: candidateId,
+    });
+    return !error;
   }
 
-  // Reports
   async getReports(): Promise<CandidateReports> {
+    // Simplified mock report data - can be replaced with actual DB queries
     return {
-      recruiterStats: [
-        {
-          recruiterId: 'rec-1',
-          recruiterName: 'Sarah Johnson',
-          candidatesSourced: 25,
-          candidatesShortlisted: 18,
-          candidatesSubmitted: 12,
-          offersExtended: 8,
-          candidatesJoined: 6,
-          conversionRate: 24,
-          avgTimeToSubmit: 5.2
-        },
-        {
-          recruiterId: 'rec-2',
-          recruiterName: 'Mike Rodriguez',
-          candidatesSourced: 30,
-          candidatesShortlisted: 22,
-          candidatesSubmitted: 15,
-          offersExtended: 10,
-          candidatesJoined: 7,
-          conversionRate: 23.3,
-          avgTimeToSubmit: 4.8
-        }
-      ],
-      sourceAnalytics: [
-        {
-          source: 'LinkedIn',
-          totalCandidates: 120,
-          shortlistedRate: 65,
-          submissionRate: 45,
-          offerRate: 25,
-          joinRate: 18,
-          avgQualityScore: 8.2
-        },
-        {
-          source: 'Job Board',
-          totalCandidates: 200,
-          shortlistedRate: 35,
-          submissionRate: 25,
-          offerRate: 15,
-          joinRate: 12,
-          avgQualityScore: 6.8
-        }
-      ],
+      recruiterStats: [],
+      sourceAnalytics: [],
       conversionMetrics: {
         sourcedToShortlisted: 58,
         shortlistedToSubmitted: 67,
         submittedToInterview: 78,
         interviewToOffer: 65,
         offerToJoin: 82,
-        overallConversion: 15.2
+        overallConversion: 15.2,
       },
       pipelineHealth: {
-        totalCandidates: 1250,
-        candidatesByStage: {
-          'New': 180,
-          'Shortlisted': 150,
-          'Submitted': 120,
-          'Interview Scheduled': 80,
-          'Interview Completed': 60,
-          'Offer Extended': 40,
-          'Offer Accepted': 30,
-          'Joined': 25,
-          'Rejected': 450,
-          'On Hold': 35,
-          'Withdrawn': 80
-        },
-        avgTimeInStage: {
-          'New': 2.5,
-          'Shortlisted': 3.2,
-          'Submitted': 5.8,
-          'Interview Scheduled': 4.1,
-          'Interview Completed': 2.3,
-          'Offer Extended': 7.2,
-          'Offer Accepted': 15.5,
-          'Joined': 0,
-          'Rejected': 0,
-          'On Hold': 12.8,
-          'Withdrawn': 0
-        },
-        bottlenecks: ['Submission to Interview', 'Offer to Join']
+        totalCandidates: 5,
+        candidatesByStage: {} as any,
+        avgTimeInStage: {} as any,
+        bottlenecks: [],
       },
       rejectionAnalysis: {
-        candidateDriven: {
-          total: 180,
-          reasons: {
-            'Better offer received': 65,
-            'Counter offer accepted': 45,
-            'Personal reasons': 35,
-            'Role mismatch': 25,
-            'Compensation': 10
-          }
-        },
-        clientDriven: {
-          total: 270,
-          reasons: {
-            'Skills mismatch': 85,
-            'Experience level': 70,
-            'Cultural fit': 45,
-            'Communication': 35,
-            'Availability': 25,
-            'Other': 10
-          }
-        },
-        topReasons: [
-          { reason: 'Skills mismatch', count: 85, percentage: 18.9 },
-          { reason: 'Experience level', count: 70, percentage: 15.6 },
-          { reason: 'Better offer received', count: 65, percentage: 14.4 }
-        ]
-      }
+        candidateDriven: { total: 0, reasons: {} },
+        clientDriven: { total: 0, reasons: {} },
+        topReasons: [],
+      },
     };
   }
 
-  // Bulk operations
   async bulkUpdateStatus(candidateIds: string[], status: CandidateStatus, reason?: string): Promise<boolean> {
-    candidateIds.forEach(id => {
-      const candidate = this.mockCandidates.find(c => c.id === id);
-      if (candidate) {
-        candidate.status = status;
-        candidate.lastUpdated = new Date().toISOString();
-      }
-    });
+    const { error } = await supabase.from('candidates').update({ status }).in('id', candidateIds);
+    if (error) return false;
+    
+    const timelineEntries = candidateIds.map(id => ({
+      candidate_id: id,
+      to_status: status,
+      reason: reason || 'Bulk status update',
+      automatic_change: false,
+    }));
+    
+    await supabase.from('candidate_timeline').insert(timelineEntries);
     return true;
   }
 
   async exportCandidates(format: 'csv' | 'excel', filters?: CandidateFilters): Promise<string> {
-    const candidates = await this.getCandidates(filters);
-    // Mock export URL
     return `https://exports.company.com/candidates-${Date.now()}.${format}`;
   }
 }

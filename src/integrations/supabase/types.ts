@@ -161,6 +161,471 @@ export type Database = {
           },
         ]
       }
+      candidate_communications: {
+        Row: {
+          attachments: string[] | null
+          candidate_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          direction: string
+          id: string
+          metadata: Json | null
+          subject: string | null
+          type: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          candidate_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          direction: string
+          id?: string
+          metadata?: Json | null
+          subject?: string | null
+          type: string
+        }
+        Update: {
+          attachments?: string[] | null
+          candidate_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          id?: string
+          metadata?: Json | null
+          subject?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_communications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_communications_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_documents: {
+        Row: {
+          candidate_id: string
+          id: string
+          name: string
+          size: number
+          type: string
+          uploaded_at: string
+          uploaded_by: string | null
+          url: string
+          verified: boolean | null
+        }
+        Insert: {
+          candidate_id: string
+          id?: string
+          name: string
+          size?: number
+          type: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          url: string
+          verified?: boolean | null
+        }
+        Update: {
+          candidate_id?: string
+          id?: string
+          name?: string
+          size?: number
+          type?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          url?: string
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_documents_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_education: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          degree: string
+          end_year: number | null
+          field: string
+          grade: string | null
+          id: string
+          institution: string
+          start_year: number
+          type: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          degree: string
+          end_year?: number | null
+          field: string
+          grade?: string | null
+          id?: string
+          institution: string
+          start_year: number
+          type?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          degree?: string
+          end_year?: number | null
+          field?: string
+          grade?: string | null
+          id?: string
+          institution?: string
+          start_year?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_education_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_experience: {
+        Row: {
+          achievements: string[] | null
+          candidate_id: string
+          company: string
+          created_at: string
+          ctc: number | null
+          description: string | null
+          designation: string
+          end_date: string | null
+          id: string
+          is_current: boolean | null
+          skills: string[] | null
+          start_date: string
+        }
+        Insert: {
+          achievements?: string[] | null
+          candidate_id: string
+          company: string
+          created_at?: string
+          ctc?: number | null
+          description?: string | null
+          designation: string
+          end_date?: string | null
+          id?: string
+          is_current?: boolean | null
+          skills?: string[] | null
+          start_date: string
+        }
+        Update: {
+          achievements?: string[] | null
+          candidate_id?: string
+          company?: string
+          created_at?: string
+          ctc?: number | null
+          description?: string | null
+          designation?: string
+          end_date?: string | null
+          id?: string
+          is_current?: boolean | null
+          skills?: string[] | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_experience_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_offers: {
+        Row: {
+          approval_workflow: Json | null
+          candidate_id: string
+          created_at: string
+          ctc: number
+          decline_reason: string | null
+          designation: string
+          id: string
+          jd_id: string | null
+          joining_date: string
+          location: string
+          no_show_date: string | null
+          responded_at: string | null
+          sent_at: string | null
+          status: string
+          terms: string[] | null
+        }
+        Insert: {
+          approval_workflow?: Json | null
+          candidate_id: string
+          created_at?: string
+          ctc: number
+          decline_reason?: string | null
+          designation: string
+          id?: string
+          jd_id?: string | null
+          joining_date: string
+          location: string
+          no_show_date?: string | null
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string
+          terms?: string[] | null
+        }
+        Update: {
+          approval_workflow?: Json | null
+          candidate_id?: string
+          created_at?: string
+          ctc?: number
+          decline_reason?: string | null
+          designation?: string
+          id?: string
+          jd_id?: string | null
+          joining_date?: string
+          location?: string
+          no_show_date?: string | null
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string
+          terms?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_offers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_pool_links: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          candidate_id: string
+          id: string
+          pool_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          candidate_id: string
+          id?: string
+          pool_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          candidate_id?: string
+          id?: string
+          pool_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_pool_links_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_pool_links_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_pool_links_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "talent_pools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_tags: {
+        Row: {
+          category: string
+          color: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          color?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          color?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      candidate_timeline: {
+        Row: {
+          automatic_change: boolean | null
+          candidate_id: string
+          changed_by: string | null
+          from_status: string | null
+          id: string
+          jd_id: string | null
+          notes: string | null
+          reason: string | null
+          timestamp: string
+          to_status: string
+        }
+        Insert: {
+          automatic_change?: boolean | null
+          candidate_id: string
+          changed_by?: string | null
+          from_status?: string | null
+          id?: string
+          jd_id?: string | null
+          notes?: string | null
+          reason?: string | null
+          timestamp?: string
+          to_status: string
+        }
+        Update: {
+          automatic_change?: boolean | null
+          candidate_id?: string
+          changed_by?: string | null
+          from_status?: string | null
+          id?: string
+          jd_id?: string | null
+          notes?: string | null
+          reason?: string | null
+          timestamp?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_timeline_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_timeline_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          avatar_url: string | null
+          consent: boolean | null
+          created_at: string
+          created_by: string | null
+          current_ctc: number | null
+          email: string
+          expected_ctc: number | null
+          experience: number
+          gdpr_compliant: boolean | null
+          id: string
+          linkedin_url: string | null
+          location: string
+          name: string
+          notice_period: number | null
+          phone: string | null
+          recruiter_owner: string | null
+          skills: string[] | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          consent?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          current_ctc?: number | null
+          email: string
+          expected_ctc?: number | null
+          experience?: number
+          gdpr_compliant?: boolean | null
+          id?: string
+          linkedin_url?: string | null
+          location: string
+          name: string
+          notice_period?: number | null
+          phone?: string | null
+          recruiter_owner?: string | null
+          skills?: string[] | null
+          source: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          consent?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          current_ctc?: number | null
+          email?: string
+          expected_ctc?: number | null
+          experience?: number
+          gdpr_compliant?: boolean | null
+          id?: string
+          linkedin_url?: string | null
+          location?: string
+          name?: string
+          notice_period?: number | null
+          phone?: string | null
+          recruiter_owner?: string | null
+          skills?: string[] | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_assignments: {
         Row: {
           allocation_pct: number | null
@@ -1697,6 +2162,47 @@ export type Database = {
             columns: ["msa_id"]
             isOneToOne: false
             referencedRelation: "msas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      talent_pools: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          shared_with: string[] | null
+          tags: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          shared_with?: string[] | null
+          tags?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          shared_with?: string[] | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_pools_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
