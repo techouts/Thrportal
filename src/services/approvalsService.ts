@@ -654,5 +654,54 @@ export const approvalsService = {
     if (existingSteps.length === 0) {
       await this.createApprovalStepsForJD(jdApprovalId, isInternal);
     }
+  },
+
+  // Get pending external approvals for STAFFING_MANAGER
+  async getPendingExternalApprovals(): Promise<JDApproval[]> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select(`
+        *,
+        jd_approval_steps!inner(*)
+      `)
+      .eq('status', 'Active')
+      .eq('is_internal', false)
+      .eq('approval_status', 'in_review')
+      .eq('jd_approval_steps.approver_role', 'STAFFING_MANAGER')
+      .eq('jd_approval_steps.status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pending external approvals:', error);
+      throw error;
+    }
+
+    console.log(`[getPendingExternalApprovals] Found ${data?.length || 0} external JDs pending STAFFING_MANAGER approval`);
+    return (data || []) as any as JDApproval[];
+  },
+
+  // Get external JDs approved by STAFFING_MANAGER, awaiting HR_MANAGER
+  async getApprovedAwaitingHRExternal(): Promise<JDApproval[]> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select(`
+        *,
+        jd_approval_steps!inner(*)
+      `)
+      .eq('status', 'Active')
+      .eq('is_internal', false)
+      .eq('approval_status', 'in_review')
+      .eq('jd_approval_steps.approver_role', 'HR_MANAGER')
+      .eq('jd_approval_steps.status', 'pending')
+      .not('jd_approval_steps.assigned_at', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching external HR review queue:', error);
+      throw error;
+    }
+
+    console.log(`[getApprovedAwaitingHRExternal] Found ${data?.length || 0} external JDs awaiting HR review`);
+    return (data || []) as any as JDApproval[];
   }
 };
