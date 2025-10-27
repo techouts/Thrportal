@@ -103,9 +103,16 @@ export function InternalApprovalsTab() {
     } catch (error: any) {
       console.error('Error approving JD:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to approve JD",
+        title: "Approval Failed",
+        description: error.message || "An error occurred while approving the JD. Please check the logs and try again.",
         variant: "destructive"
+      });
+      
+      // Log detailed error information for debugging
+      console.error('Full error details:', {
+        jdId: jd.id,
+        userRole,
+        error
       });
     } finally {
       setActionLoading(false);

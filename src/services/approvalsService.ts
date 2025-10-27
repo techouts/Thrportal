@@ -325,6 +325,29 @@ export const approvalsService = {
         
         console.log(`[approveJD] Activated next step ${nextStep.id}: assigned_at=${assignedAt}`);
         
+        // VERIFY the updates actually took effect
+        const verifyApproval = await this.getJDApprovalById(jdApprovalId);
+        const { data: verifyStep, error: verifyError } = await supabase
+          .from('jd_approval_steps')
+          .select('assigned_at')
+          .eq('id', nextStep.id)
+          .single();
+
+        if (verifyError) {
+          console.error('[approveJD] Failed to verify step activation:', verifyError);
+          throw new Error(`Failed to verify step activation: ${verifyError.message}`);
+        }
+
+        if (verifyApproval.current_step !== nextStepNumber) {
+          throw new Error(`Failed to update current_step: expected ${nextStepNumber}, got ${verifyApproval.current_step}`);
+        }
+
+        if (!verifyStep?.assigned_at) {
+          throw new Error(`Failed to set assigned_at for step ${nextStep.id}`);
+        }
+
+        console.log(`[approveJD] Verified: current_step=${verifyApproval.current_step}, assigned_at=${verifyStep.assigned_at}`);
+        
       } else {
         // Final approval - no more steps
         console.log(`[approveJD] No next step found, marking as fully approved`);
@@ -358,19 +381,25 @@ export const approvalsService = {
         });
       }
       
-      // 3. Create audit log
-      await this.createAuditEntry({
-        jd_approval_id: jdApprovalId,
-        action: 'approve',
-        actor_id: actorId,
-        actor_role: actorRole,
-        comments,
-        details: { 
-          step_id: stepId,
-          next_step_activated: nextStep?.id || null,
-          approval_status: nextStep ? 'in_review' : 'approved'
-        }
-      });
+      // 3. Create audit log (after all critical updates succeeded)
+      try {
+        await this.createAuditEntry({
+          jd_approval_id: jdApprovalId,
+          action: 'approve',
+          actor_id: actorId,
+          actor_role: actorRole,
+          comments,
+          details: { 
+            step_id: stepId,
+            next_step_activated: nextStep?.id || null,
+            approval_status: nextStep ? 'in_review' : 'approved'
+          }
+        });
+        console.log(`[approveJD] Audit log created successfully`);
+      } catch (auditError) {
+        // Log but don't throw - approval already completed successfully
+        console.error('[approveJD] Failed to create audit log (non-critical):', auditError);
+      }
       
       console.log(`[approveJD] Approval completed successfully`);
       
