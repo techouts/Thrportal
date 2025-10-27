@@ -342,6 +342,19 @@ export const approvalsService = {
         }
         
         console.log(`[approveJD] JD marked as fully approved`);
+        
+        // Log approval_status transition to 'approved'
+        await this.createAuditEntry({
+          jd_approval_id: jdApprovalId,
+          action: 'approve',
+          actor_id: actorId,
+          actor_role: actorRole,
+          comments: 'Final approval - All steps completed',
+          details: { 
+            approval_status_changed: 'in_review -> approved',
+            final_approval: true
+          }
+        });
       }
       
       // 3. Create audit log
@@ -353,7 +366,8 @@ export const approvalsService = {
         comments,
         details: { 
           step_id: stepId,
-          next_step_activated: nextStep?.id || null
+          next_step_activated: nextStep?.id || null,
+          approval_status: nextStep ? 'in_review' : 'approved'
         }
       });
       
@@ -385,14 +399,18 @@ export const approvalsService = {
       } as any)
       .eq('id', jdApprovalId);
 
-    // 3. Create audit log
+    // 3. Create audit log with approval_status transition
     await this.createAuditEntry({
       jd_approval_id: jdApprovalId,
       action: 'reject',
       actor_id: actorId,
       actor_role: actorRole,
       comments,
-      details: { step_id: stepId, reason: comments }
+      details: { 
+        step_id: stepId, 
+        reason: comments,
+        approval_status_changed: 'in_review -> rejected'
+      }
     });
   },
 
@@ -461,6 +479,7 @@ export const approvalsService = {
       approval = await this.updateJDApproval(approval.id, {
         ...approvalData,
         status: 'submitted',
+        approval_status: 'in_review',
         submitted_at: new Date().toISOString(),
         current_step: 1
       });
@@ -590,7 +609,7 @@ export const approvalsService = {
       ...jdData,
       jd_id: jdData.jd_id || crypto.randomUUID(),
       status: isDraft ? 'Draft' : 'Active',
-      approval_status: isDraft ? undefined : 'pending',
+      approval_status: isDraft ? undefined : 'in_review',
       approver_names: approverNames,
       current_step: isDraft ? 0 : 1,
       submitted_at: isDraft ? undefined : new Date().toISOString()
