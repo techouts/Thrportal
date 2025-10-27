@@ -106,7 +106,10 @@ class CandidatesService {
   async createCandidate(
     candidate: Omit<CandidateProfile, 'id' | 'createdAt' | 'lastUpdated'>
   ): Promise<CandidateProfile> {
-    const { data, error } = await supabase.from('candidates').insert({
+    console.log('=== CREATE CANDIDATE SERVICE CALLED ===');
+    console.log('Input data:', candidate);
+    
+    const insertData = {
       name: candidate.name,
       email: candidate.email,
       phone: candidate.phone,
@@ -145,9 +148,19 @@ class CandidatesService {
       preferred_shift: candidate.preferredShift,
       expected_ctc_type: candidate.expectedCtcType,
       status_extended: candidate.statusExtended,
-    }).select().single();
+    };
     
-    if (error) throw error;
+    console.log('Insert data:', insertData);
+    
+    const { data, error } = await supabase.from('candidates').insert(insertData).select().single();
+    
+    console.log('Supabase response:', { data, error });
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+    
     return this.mapToCandidate(data);
   }
 

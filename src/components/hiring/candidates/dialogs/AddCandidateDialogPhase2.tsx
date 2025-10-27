@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -12,7 +12,7 @@ import { TagsInput } from '@/components/ui/tags-input';
 import { candidateSchemaPhase2, CandidateFormDataPhase2 } from '@/schemas/candidateSchema';
 import { candidatesService } from '@/services/candidatesService';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 interface AddCandidateDialogPhase2Props {
@@ -24,6 +24,14 @@ interface AddCandidateDialogPhase2Props {
 export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddCandidateDialogPhase2Props) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [tabErrors, setTabErrors] = useState<Record<string, number>>({
+    basic: 0,
+    professional: 0,
+    location: 0,
+    personal: 0,
+    identity: 0,
+    compliance: 0,
+  });
 
   const {
     register,
@@ -51,15 +59,75 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
   const gdprCompliant = watch('gdprCompliant');
   const willingToRelocate = watch('willingToRelocate');
 
+  // Validate tab fields
+  const validateTab = (tabName: string) => {
+    const formErrors = errors;
+    
+    switch(tabName) {
+      case 'basic':
+        return ['firstName', 'lastName', 'email', 'phone'].filter(f => formErrors[f as keyof typeof formErrors]).length;
+      case 'professional':
+        return ['source', 'experience'].filter(f => formErrors[f as keyof typeof formErrors]).length;
+      case 'location':
+        return formErrors.location ? 1 : 0;
+      default:
+        return 0;
+    }
+  };
+
+  // Update tab errors in real-time
+  useEffect(() => {
+    setTabErrors({
+      basic: validateTab('basic'),
+      professional: validateTab('professional'),
+      location: validateTab('location'),
+      personal: 0,
+      identity: 0,
+      compliance: 0,
+    });
+  }, [errors]);
+
+  const onError = (errors: any) => {
+    console.log('=== FORM VALIDATION FAILED ===');
+    console.log('Validation errors:', errors);
+    
+    // Count errors per tab
+    const basicErrors = ['firstName', 'lastName', 'email', 'phone'].filter(f => errors[f]).length;
+    const professionalErrors = ['source', 'experience'].filter(f => errors[f]).length;
+    const locationErrors = errors.location ? 1 : 0;
+    
+    // Find first tab with errors
+    let firstErrorTab = 'basic';
+    if (basicErrors > 0) firstErrorTab = 'basic';
+    else if (professionalErrors > 0) firstErrorTab = 'professional';
+    else if (locationErrors > 0) firstErrorTab = 'location';
+    
+    // Navigate to first error tab
+    setActiveTab(firstErrorTab);
+    
+    // Show error toast
+    const totalErrors = basicErrors + professionalErrors + locationErrors;
+    toast.error(`Please fill ${totalErrors} required field${totalErrors > 1 ? 's' : ''} before creating candidate`);
+  };
+
   const onSubmit = async (data: CandidateFormDataPhase2) => {
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('Form data:', data);
+    console.log('Validation errors:', errors);
+    
     setLoading(true);
     try {
-      await candidatesService.createCandidate(data as any);
+      console.log('Calling candidatesService.createCandidate...');
+      const result = await candidatesService.createCandidate(data as any);
+      console.log('Candidate created successfully:', result);
+      
       toast.success('Candidate created successfully');
       reset();
       onOpenChange(false);
+      console.log('Calling onSuccess callback to refresh candidate list...');
       onSuccess?.();
     } catch (error: any) {
+      console.error('Error creating candidate:', error);
       toast.error(error.message || 'Failed to create candidate');
     } finally {
       setLoading(false);
@@ -74,12 +142,21 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
           <DialogDescription>Fill in comprehensive candidate details to add them to the system.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="professional">Professional</TabsTrigger>
-              <TabsTrigger value="location">Location</TabsTrigger>
+              <TabsTrigger value="basic" className={tabErrors.basic > 0 ? 'border-2 border-destructive' : ''}>
+                Basic
+                {tabErrors.basic > 0 && <AlertCircle className="ml-1 h-4 w-4 text-destructive" />}
+              </TabsTrigger>
+              <TabsTrigger value="professional" className={tabErrors.professional > 0 ? 'border-2 border-destructive' : ''}>
+                Professional
+                {tabErrors.professional > 0 && <AlertCircle className="ml-1 h-4 w-4 text-destructive" />}
+              </TabsTrigger>
+              <TabsTrigger value="location" className={tabErrors.location > 0 ? 'border-2 border-destructive' : ''}>
+                Location
+                {tabErrors.location > 0 && <AlertCircle className="ml-1 h-4 w-4 text-destructive" />}
+              </TabsTrigger>
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="identity">Identity</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -128,6 +205,15 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                   <Input id="dateOfBirth" type="date" {...register('dateOfBirth')} />
                   {errors.dateOfBirth && <p className="text-sm text-destructive">{errors.dateOfBirth.message}</p>}
                 </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={() => setActiveTab('professional')}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -277,6 +363,15 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                   <Input id="githubUrl" {...register('githubUrl')} placeholder="https://github.com/johndoe" />
                 </div>
               </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={() => setActiveTab('location')}>
+                  Next
+                </Button>
+              </div>
             </TabsContent>
 
             {/* Tab 3: Location Details */}
@@ -322,6 +417,15 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                   <Label htmlFor="willingToRelocate" className="cursor-pointer">Willing to Relocate</Label>
                 </div>
               </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={() => setActiveTab('personal')}>
+                  Next
+                </Button>
+              </div>
             </TabsContent>
 
             {/* Tab 4: Personal Details */}
@@ -349,6 +453,15 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                   />
                 </div>
               </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={() => setActiveTab('identity')}>
+                  Next
+                </Button>
+              </div>
             </TabsContent>
 
             {/* Tab 5: Identity Documents */}
@@ -370,6 +483,15 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                   <Label htmlFor="passportNumber">Passport Number</Label>
                   <Input id="passportNumber" {...register('passportNumber')} placeholder="A12345678" />
                 </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={() => setActiveTab('compliance')}>
+                  Next
+                </Button>
               </div>
             </TabsContent>
 
@@ -405,18 +527,23 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                   </p>
                 </div>
               </div>
+
+              <div className="flex justify-between pt-4 border-t mt-6">
+                <Button type="button" variant="outline" onClick={() => setActiveTab('identity')}>
+                  Previous
+                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Candidate
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Candidate
-            </Button>
-          </div>
         </form>
       </DialogContent>
     </Dialog>
