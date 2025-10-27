@@ -29,6 +29,7 @@ export function InternalApprovalsTab() {
   // Permission checks
   const canViewTab = ['ADMIN', 'MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'RECRUITER', 'HIRING_MANAGER'].includes(userRole);
   const canApprove = ['MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER'].includes(userRole);
+  const canApproveManagement = userRole === 'MANAGEMENT';
   const canApproveHR = userRole === 'HR_MANAGER';
 
   useEffect(() => {
@@ -241,41 +242,55 @@ export function InternalApprovalsTab() {
                         </TableCell>
                         <TableCell>{formatDate(jd.submitted_at || jd.created_at)}</TableCell>
                         <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" disabled={actionLoading}>
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedJD(jd);
-                                  setViewDialogOpen(true);
-                                }}
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleApprove(jd)}
-                                disabled={actionLoading}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Approve
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedJD(jd);
-                                  setRejectDialogOpen(true);
-                                }}
-                                disabled={actionLoading}
-                              >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Reject
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {canApproveManagement ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" disabled={actionLoading}>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedJD(jd);
+                                    setViewDialogOpen(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleApprove(jd)}
+                                  disabled={actionLoading}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedJD(jd);
+                                    setRejectDialogOpen(true);
+                                  }}
+                                  disabled={actionLoading}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Reject
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedJD(jd);
+                                setViewDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

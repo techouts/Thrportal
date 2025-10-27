@@ -180,6 +180,7 @@ export const approvalsService = {
         jd_approval_steps!inner(*)
       `)
       .eq('status', 'Active')
+      .eq('is_internal', true)
       .neq('approval_status', 'approved')
       .neq('approval_status', 'rejected')
       .eq('jd_approval_steps.approver_role', userRole)
