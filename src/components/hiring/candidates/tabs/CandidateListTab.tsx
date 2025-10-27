@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/shared/DataTable';
 import { SmartUploadCandidatesModal } from '../shared/SmartUploadCandidatesModal';
-import { AddCandidateDialog } from '../dialogs/AddCandidateDialog';
+import { AddCandidateDialogPhase2 } from '../dialogs/AddCandidateDialogPhase2';
 
 interface CandidateListTabProps {
   onViewCandidate: (candidateId: string) => void;
@@ -510,7 +510,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
       />
 
       {/* Add Candidate Dialog */}
-      <AddCandidateDialog
+      <AddCandidateDialogPhase2
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onSuccess={loadCandidates}

@@ -46,6 +46,29 @@ class CandidatesService {
       avatarUrl: row.avatar_url,
       consent: row.consent,
       gdprCompliant: row.gdpr_compliant,
+      
+      // Phase 2 fields
+      firstName: row.first_name,
+      middleName: row.middle_name,
+      lastName: row.last_name,
+      dateOfBirth: row.date_of_birth,
+      maritalStatus: row.marital_status,
+      languagesKnown: row.languages_known || [],
+      panCardNumber: row.pan_card_number,
+      aadhaarCardNumber: row.aadhaar_card_number,
+      passportNumber: row.passport_number,
+      city: row.city,
+      state: row.state,
+      country: row.country,
+      address: row.address,
+      pincode: row.pincode,
+      willingToRelocate: row.willing_to_relocate,
+      githubUrl: row.github_url,
+      alternateEmail: row.alternate_email,
+      jobType: row.job_type,
+      preferredShift: row.preferred_shift,
+      expectedCtcType: row.expected_ctc_type,
+      statusExtended: row.status_extended,
     };
   }
 
@@ -100,6 +123,28 @@ class CandidatesService {
       consent: candidate.consent,
       gdpr_compliant: candidate.gdprCompliant,
       avatar_url: candidate.avatarUrl,
+      // Phase 2 fields
+      first_name: candidate.firstName,
+      middle_name: candidate.middleName,
+      last_name: candidate.lastName,
+      date_of_birth: candidate.dateOfBirth,
+      marital_status: candidate.maritalStatus,
+      languages_known: candidate.languagesKnown,
+      pan_card_number: candidate.panCardNumber,
+      aadhaar_card_number: candidate.aadhaarCardNumber,
+      passport_number: candidate.passportNumber,
+      city: candidate.city,
+      state: candidate.state,
+      country: candidate.country,
+      address: candidate.address,
+      pincode: candidate.pincode,
+      willing_to_relocate: candidate.willingToRelocate,
+      github_url: candidate.githubUrl,
+      alternate_email: candidate.alternateEmail,
+      job_type: candidate.jobType,
+      preferred_shift: candidate.preferredShift,
+      expected_ctc_type: candidate.expectedCtcType,
+      status_extended: candidate.statusExtended,
     }).select().single();
     
     if (error) throw error;

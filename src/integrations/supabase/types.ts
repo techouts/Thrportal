@@ -551,70 +551,133 @@ export type Database = {
       }
       candidates: {
         Row: {
+          aadhaar_card_number: string | null
+          address: string | null
+          alternate_email: string | null
           avatar_url: string | null
+          city: string | null
           consent: boolean | null
+          country: string | null
           created_at: string
           created_by: string | null
           current_ctc: number | null
+          date_of_birth: string | null
           email: string
           expected_ctc: number | null
+          expected_ctc_type: string | null
           experience: number
+          first_name: string | null
           gdpr_compliant: boolean | null
+          github_url: string | null
           id: string
+          job_type: string | null
+          languages_known: string[] | null
+          last_name: string | null
           linkedin_url: string | null
           location: string
-          name: string
+          marital_status: string | null
+          middle_name: string | null
+          name: string | null
           notice_period: number | null
+          pan_card_number: string | null
+          passport_number: string | null
           phone: string | null
+          pincode: string | null
+          preferred_shift: string | null
           recruiter_owner: string | null
           skills: string[] | null
           source: string
+          state: string | null
           status: string
+          status_extended: string | null
           updated_at: string
+          willing_to_relocate: boolean | null
         }
         Insert: {
+          aadhaar_card_number?: string | null
+          address?: string | null
+          alternate_email?: string | null
           avatar_url?: string | null
+          city?: string | null
           consent?: boolean | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           current_ctc?: number | null
+          date_of_birth?: string | null
           email: string
           expected_ctc?: number | null
+          expected_ctc_type?: string | null
           experience?: number
+          first_name?: string | null
           gdpr_compliant?: boolean | null
+          github_url?: string | null
           id?: string
+          job_type?: string | null
+          languages_known?: string[] | null
+          last_name?: string | null
           linkedin_url?: string | null
           location: string
-          name: string
+          marital_status?: string | null
+          middle_name?: string | null
+          name?: string | null
           notice_period?: number | null
+          pan_card_number?: string | null
+          passport_number?: string | null
           phone?: string | null
+          pincode?: string | null
+          preferred_shift?: string | null
           recruiter_owner?: string | null
           skills?: string[] | null
           source: string
+          state?: string | null
           status?: string
+          status_extended?: string | null
           updated_at?: string
+          willing_to_relocate?: boolean | null
         }
         Update: {
+          aadhaar_card_number?: string | null
+          address?: string | null
+          alternate_email?: string | null
           avatar_url?: string | null
+          city?: string | null
           consent?: boolean | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           current_ctc?: number | null
+          date_of_birth?: string | null
           email?: string
           expected_ctc?: number | null
+          expected_ctc_type?: string | null
           experience?: number
+          first_name?: string | null
           gdpr_compliant?: boolean | null
+          github_url?: string | null
           id?: string
+          job_type?: string | null
+          languages_known?: string[] | null
+          last_name?: string | null
           linkedin_url?: string | null
           location?: string
-          name?: string
+          marital_status?: string | null
+          middle_name?: string | null
+          name?: string | null
           notice_period?: number | null
+          pan_card_number?: string | null
+          passport_number?: string | null
           phone?: string | null
+          pincode?: string | null
+          preferred_shift?: string | null
           recruiter_owner?: string | null
           skills?: string[] | null
           source?: string
+          state?: string | null
           status?: string
+          status_extended?: string | null
           updated_at?: string
+          willing_to_relocate?: boolean | null
         }
         Relationships: [
           {

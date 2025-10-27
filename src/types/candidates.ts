@@ -20,6 +20,37 @@ export interface CandidateProfile {
   avatarUrl?: string;
   consent: boolean;
   gdprCompliant: boolean;
+  
+  // Phase 2 fields - Name breakdown
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  
+  // Personal details
+  dateOfBirth?: string;
+  maritalStatus?: 'Unmarried' | 'Married';
+  languagesKnown?: string[];
+  
+  // Identity documents
+  panCardNumber?: string;
+  aadhaarCardNumber?: string;
+  passportNumber?: string;
+  
+  // Extended location
+  city?: string;
+  state?: string;
+  country?: string;
+  address?: string;
+  pincode?: string;
+  willingToRelocate?: boolean;
+  
+  // Extended professional
+  githubUrl?: string;
+  alternateEmail?: string;
+  jobType?: 'Permanent' | 'Part Time';
+  preferredShift?: 'Day' | 'Night' | 'Flexible';
+  expectedCtcType?: string;
+  statusExtended?: 'Available' | 'Not Available' | 'Do Not Call' | 'Blacklist' | 'Inactive' | 'Placed';
 }
 
 export type CandidateStatus = 
