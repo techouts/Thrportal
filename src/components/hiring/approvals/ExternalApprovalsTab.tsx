@@ -221,6 +221,15 @@ export function ExternalApprovalsTab() {
     }
   };
 
+  const getPositionTypeBadge = (isInternal: boolean | null | undefined) => {
+    if (isInternal === null || isInternal === undefined) {
+      return <Badge variant="outline">Not specified</Badge>;
+    }
+    return isInternal 
+      ? <Badge variant="secondary">Internal</Badge>
+      : <Badge variant="outline">External</Badge>;
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -249,6 +258,7 @@ export function ExternalApprovalsTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Job Title</TableHead>
+                    <TableHead>Position Type</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Project</TableHead>
                     <TableHead>Positions</TableHead>
@@ -261,6 +271,7 @@ export function ExternalApprovalsTab() {
                   {pendingApprovals.map((jd) => (
                     <TableRow key={jd.id}>
                       <TableCell className="font-medium">{jd.job_title || 'Not specified'}</TableCell>
+                      <TableCell>{getPositionTypeBadge(jd.is_internal)}</TableCell>
                       <TableCell>{jd.client_name || 'Not specified'}</TableCell>
                       <TableCell>{jd.project_name || 'Not specified'}</TableCell>
                       <TableCell>{jd.positions || 1}</TableCell>
@@ -344,6 +355,7 @@ export function ExternalApprovalsTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Job Title</TableHead>
+                    <TableHead>Position Type</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Project</TableHead>
                     <TableHead>Positions</TableHead>
@@ -356,6 +368,7 @@ export function ExternalApprovalsTab() {
                   {hrReviewApprovals.map((jd) => (
                     <TableRow key={jd.id}>
                       <TableCell className="font-medium">{jd.job_title || 'Not specified'}</TableCell>
+                      <TableCell>{getPositionTypeBadge(jd.is_internal)}</TableCell>
                       <TableCell>{jd.client_name || 'Not specified'}</TableCell>
                       <TableCell>{jd.project_name || 'Not specified'}</TableCell>
                       <TableCell>{jd.positions || 1}</TableCell>
