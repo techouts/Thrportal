@@ -102,7 +102,7 @@ export function ExternalApprovalsTab() {
         return;
       }
 
-      await approvalsService.approveJD(jd.id, pendingStep.id, userRole, comment);
+      await approvalsService.approveJD(jd.id, pendingStep.id, comment, profile?.id, userRole);
       
       toast({
         title: "Success",
@@ -112,12 +112,19 @@ export function ExternalApprovalsTab() {
       setComment('');
       setViewDialogOpen(false);
       await loadApprovals();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving external JD:', error);
       toast({
-        title: "Error",
-        description: "Failed to approve external JD",
+        title: "Approval Failed",
+        description: error.message || "An error occurred while approving the JD. Please check the logs and try again.",
         variant: "destructive"
+      });
+      
+      // Log detailed error information for debugging
+      console.error('Full error details:', {
+        jdId: jd.id,
+        userRole,
+        error
       });
     } finally {
       setActionLoading(false);
