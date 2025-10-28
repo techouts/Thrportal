@@ -389,6 +389,219 @@ class CandidatesService {
   async exportCandidates(format: 'csv' | 'excel', filters?: CandidateFilters): Promise<string> {
     return `https://exports.company.com/candidates-${Date.now()}.${format}`;
   }
+
+  // Experience CRUD
+  async createCandidateExperience(experience: Omit<CandidateExperience, 'id'>): Promise<CandidateExperience> {
+    const { data, error } = await supabase
+      .from('candidate_experience')
+      .insert({
+        candidate_id: experience.candidateId,
+        company: experience.company,
+        designation: experience.designation,
+        start_date: experience.startDate,
+        end_date: experience.endDate,
+        is_current: experience.isCurrent,
+        description: experience.description,
+        skills: experience.skills,
+        achievements: experience.achievements,
+        ctc: experience.ctc,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      candidateId: data.candidate_id,
+      company: data.company,
+      designation: data.designation,
+      startDate: data.start_date,
+      endDate: data.end_date,
+      isCurrent: data.is_current,
+      description: data.description,
+      skills: data.skills,
+      achievements: data.achievements,
+      ctc: data.ctc,
+    };
+  }
+
+  async updateCandidateExperience(id: string, updates: Partial<CandidateExperience>): Promise<CandidateExperience> {
+    const updateData: any = {};
+    if (updates.company) updateData.company = updates.company;
+    if (updates.designation) updateData.designation = updates.designation;
+    if (updates.startDate) updateData.start_date = updates.startDate;
+    if (updates.endDate !== undefined) updateData.end_date = updates.endDate;
+    if (updates.isCurrent !== undefined) updateData.is_current = updates.isCurrent;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.skills) updateData.skills = updates.skills;
+    if (updates.achievements) updateData.achievements = updates.achievements;
+    if (updates.ctc !== undefined) updateData.ctc = updates.ctc;
+    
+    const { data, error } = await supabase
+      .from('candidate_experience')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      candidateId: data.candidate_id,
+      company: data.company,
+      designation: data.designation,
+      startDate: data.start_date,
+      endDate: data.end_date,
+      isCurrent: data.is_current,
+      description: data.description,
+      skills: data.skills,
+      achievements: data.achievements,
+      ctc: data.ctc,
+    };
+  }
+
+  async deleteCandidateExperience(id: string): Promise<boolean> {
+    const { error } = await supabase.from('candidate_experience').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  }
+
+  // Education CRUD
+  async createCandidateEducation(education: Omit<CandidateEducation, 'id'>): Promise<CandidateEducation> {
+    const { data, error } = await supabase
+      .from('candidate_education')
+      .insert({
+        candidate_id: education.candidateId,
+        degree: education.degree,
+        field: education.field,
+        institution: education.institution,
+        start_year: education.startYear,
+        end_year: education.endYear,
+        grade: education.grade,
+        type: education.type,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      candidateId: data.candidate_id,
+      degree: data.degree,
+      field: data.field,
+      institution: data.institution,
+      startYear: data.start_year,
+      endYear: data.end_year,
+      grade: data.grade,
+      type: data.type as 'Degree' | 'Certification' | 'Course',
+    };
+  }
+
+  async updateCandidateEducation(id: string, updates: Partial<CandidateEducation>): Promise<CandidateEducation> {
+    const updateData: any = {};
+    if (updates.degree) updateData.degree = updates.degree;
+    if (updates.field) updateData.field = updates.field;
+    if (updates.institution) updateData.institution = updates.institution;
+    if (updates.startYear) updateData.start_year = updates.startYear;
+    if (updates.endYear !== undefined) updateData.end_year = updates.endYear;
+    if (updates.grade !== undefined) updateData.grade = updates.grade;
+    if (updates.type) updateData.type = updates.type;
+    
+    const { data, error } = await supabase
+      .from('candidate_education')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      candidateId: data.candidate_id,
+      degree: data.degree,
+      field: data.field,
+      institution: data.institution,
+      startYear: data.start_year,
+      endYear: data.end_year,
+      grade: data.grade,
+      type: data.type as 'Degree' | 'Certification' | 'Course',
+    };
+  }
+
+  async deleteCandidateEducation(id: string): Promise<boolean> {
+    const { error } = await supabase.from('candidate_education').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  }
+
+  // Document Upload & Delete
+  async uploadCandidateDocument(
+    candidateId: string, 
+    file: File, 
+    type: string,
+    name: string
+  ): Promise<CandidateDocument> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${candidateId}/${Date.now()}_${type.replace(/\s/g, '_')}.${fileExt}`;
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('candidate-documents')
+      .upload(fileName, file);
+    
+    if (uploadError) throw uploadError;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('candidate-documents')
+      .getPublicUrl(fileName);
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase
+      .from('candidate_documents')
+      .insert({
+        candidate_id: candidateId,
+        name: name || file.name,
+        type,
+        url: publicUrl,
+        size: file.size,
+        uploaded_by: user?.id,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      candidateId: data.candidate_id,
+      name: data.name,
+      type: data.type as any,
+      url: data.url,
+      uploadedAt: data.uploaded_at,
+      uploadedBy: data.uploaded_by,
+      size: data.size,
+      verified: data.verified,
+    };
+  }
+
+  async deleteCandidateDocument(id: string, url: string): Promise<boolean> {
+    const pathMatch = url.match(/candidate-documents\/(.+)$/);
+    if (pathMatch) {
+      const { error: storageError } = await supabase.storage
+        .from('candidate-documents')
+        .remove([pathMatch[1]]);
+      
+      if (storageError) console.error('Storage delete error:', storageError);
+    }
+    
+    const { error } = await supabase.from('candidate_documents').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  }
 }
 
 export const candidatesService = CandidatesService.getInstance();
