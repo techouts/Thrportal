@@ -16,7 +16,9 @@ import {
   Archive, 
   MoreHorizontal,
   BrainCircuit,
-  AlertTriangle
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { candidatesService } from '@/services/candidatesService';
 import { CandidateProfile, CandidateFilters, CandidateStatus, CandidateSource } from '@/types/candidates';
@@ -29,6 +31,16 @@ import {
 import { DataTable } from '@/components/shared/DataTable';
 import { SmartUploadCandidatesModal } from '../shared/SmartUploadCandidatesModal';
 import { AddCandidateDialogPhase2 } from '../dialogs/AddCandidateDialogPhase2';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { toast } from 'sonner';
 
 interface CandidateListTabProps {
   onViewCandidate: (candidateId: string) => void;
@@ -44,6 +56,8 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [filters, setFilters] = useState<CandidateFilters>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     loadCandidates();
@@ -66,7 +80,28 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
 
   const handleSearch = () => {
     setFilters(prev => ({ ...prev, search: searchTerm }));
+    setCurrentPage(1); // Reset to first page on search
   };
+
+  const handleExport = async (format: 'csv' | 'excel') => {
+    try {
+      const url = await candidatesService.exportCandidates(format, {
+        ...filters,
+        search: searchTerm
+      });
+      window.open(url, '_blank');
+      toast.success(`Exporting candidates as ${format.toUpperCase()}...`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export candidates');
+    }
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(candidates.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedCandidates = candidates.slice(startIndex, endIndex);
 
   const getStatusBadgeVariant = (status: CandidateStatus) => {
     switch (status) {
@@ -279,24 +314,26 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add Candidate
               </Button>
-              <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleExport('csv')}>
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('excel')}>
+                    Export as Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* View Tabs */}
-          <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
-            <Button 
-              variant="default" 
-              size="sm"
-            >
-              All Candidates
-            </Button>
-          </div>
-
           {/* Search Bar */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -449,7 +486,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate) => {
+                {paginatedCandidates.map((candidate) => {
                   const isUnattended = new Date(candidate.lastUpdated) < new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
                   return (
                     <tr 
@@ -499,6 +536,77 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Showing {startIndex + 1}-{Math.min(endIndex, candidates.length)} of {candidates.length}
+              </span>
+              <Select
+                value={pageSize.toString()}
+                onValueChange={(value) => {
+                  setPageSize(parseInt(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="25">25 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                  <SelectItem value="100">100 per page</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return null;
+                })}
+
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         </CardContent>
       </Card>
