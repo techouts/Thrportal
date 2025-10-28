@@ -85,15 +85,14 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
 
   const handleExport = async (format: 'csv' | 'excel') => {
     try {
-      const url = await candidatesService.exportCandidates(format, {
+      await candidatesService.exportCandidates(format, {
         ...filters,
         search: searchTerm
       });
-      window.open(url, '_blank');
-      toast.success(`Exporting candidates as ${format.toUpperCase()}...`);
+      toast.success(`Candidates exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Export failed:', error);
-      toast.error('Failed to export candidates');
+      toast.error(error instanceof Error ? error.message : 'Failed to export candidates');
     }
   };
 

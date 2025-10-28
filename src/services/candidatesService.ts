@@ -386,8 +386,49 @@ class CandidatesService {
     return true;
   }
 
-  async exportCandidates(format: 'csv' | 'excel', filters?: CandidateFilters): Promise<string> {
-    return `https://exports.company.com/candidates-${Date.now()}.${format}`;
+  async exportCandidates(format: 'csv' | 'excel', filters?: CandidateFilters): Promise<void> {
+    const candidates = await this.getCandidates(filters);
+    
+    if (candidates.length === 0) {
+      throw new Error('No candidates to export');
+    }
+    
+    const exportData = candidates.map(candidate => ({
+      'Name': candidate.name,
+      'Email': candidate.email,
+      'Phone': candidate.phone,
+      'Location': candidate.location,
+      'Experience (Years)': candidate.experience,
+      'Current CTC': candidate.currentCtc,
+      'Expected CTC': candidate.expectedCtc,
+      'Notice Period': candidate.noticePeriod,
+      'Status': candidate.status,
+      'Source': candidate.source,
+      'Skills': candidate.skills?.join(', ') || '',
+      'Recruiter Owner': candidate.recruiterOwner,
+      'Created At': new Date(candidate.createdAt).toLocaleDateString(),
+      'Last Updated': new Date(candidate.lastUpdated).toLocaleDateString(),
+    }));
+    
+    const headers = Object.keys(exportData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...exportData.map(row => 
+        headers.map(header => {
+          const value = row[header as keyof typeof row] || '';
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }).join(',')
+      )
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { 
+      type: format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `candidates_export_${Date.now()}.${format === 'csv' ? 'csv' : 'xlsx'}`;
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 
   // Experience CRUD
