@@ -12,7 +12,6 @@ import {
   Calendar, 
   User, 
   Building,
-  ExternalLink,
   Plus,
   AlertCircle
 } from 'lucide-react';
@@ -246,10 +245,6 @@ export function CandidateClientResumesTab({ candidateId }: CandidateClientResume
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
-                    <Button size="sm" variant="outline">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
                   </div>
                 </div>
               ))}
@@ -412,10 +407,6 @@ export function CandidateClientResumesTab({ candidateId }: CandidateClientResume
                             <Button size="sm" variant="outline">
                               <Download className="h-3 w-3 mr-1" />
                               Download
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              View
                             </Button>
                           </div>
                         </td>
