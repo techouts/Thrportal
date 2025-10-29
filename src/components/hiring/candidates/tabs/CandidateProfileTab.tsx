@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, Briefcase, GraduationCap, FileText, MessageSquare, Clock, Shield, HandCoins } from 'lucide-react';
+import { ArrowLeft, User, Briefcase, GraduationCap, FileText, MessageSquare, Clock, Shield } from 'lucide-react';
 import { candidatesService } from '@/services/candidatesService';
 import { CandidateProfile } from '@/types/candidates';
 import { CandidateOverviewTab } from './profile/CandidateOverviewTab';
@@ -13,7 +13,7 @@ import { CandidateDocumentsTab } from './profile/CandidateDocumentsTab';
 import { CandidateCommunicationTab } from './profile/CandidateCommunicationTab';
 import { CandidateTimelineTab } from './profile/CandidateTimelineTab';
 import { CandidateComplianceTab } from './profile/CandidateComplianceTab';
-import { CandidateOfferTab } from './profile/CandidateOfferTab';
+
 import { CandidateClientResumesTab } from './profile/CandidateClientResumesTab';
 
 interface CandidateProfileTabProps {
@@ -118,7 +118,7 @@ export function CandidateProfileTab({ candidateId, onBack }: CandidateProfileTab
 
       {/* Profile Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9 gap-1">
+        <TabsList className="grid w-full grid-cols-8 gap-1">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Overview
@@ -150,10 +150,6 @@ export function CandidateProfileTab({ candidateId, onBack }: CandidateProfileTab
           <TabsTrigger value="compliance" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Compliance
-          </TabsTrigger>
-          <TabsTrigger value="offer" className="flex items-center gap-2">
-            <HandCoins className="h-4 w-4" />
-            Offer
           </TabsTrigger>
         </TabsList>
 
@@ -189,9 +185,6 @@ export function CandidateProfileTab({ candidateId, onBack }: CandidateProfileTab
           <CandidateComplianceTab candidate={candidate} />
         </TabsContent>
 
-        <TabsContent value="offer">
-          <CandidateOfferTab candidateId={candidate.id} />
-        </TabsContent>
       </Tabs>
     </div>
   );
