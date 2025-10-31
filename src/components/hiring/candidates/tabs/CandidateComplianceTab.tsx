@@ -24,7 +24,6 @@ export function CandidateComplianceTab() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [consentFilter, setConsentFilter] = useState<string>('all');
-  const [bgvFilter, setBgvFilter] = useState<string>('all');
 
   useEffect(() => {
     loadComplianceData();
@@ -82,26 +81,12 @@ export function CandidateComplianceTab() {
     }
   };
 
-  const getBgvBadge = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return <Badge variant="default" className="bg-green-500">Completed</Badge>;
-      case 'In Progress':
-        return <Badge variant="default" className="bg-blue-500">In Progress</Badge>;
-      case 'Failed':
-        return <Badge variant="destructive">Failed</Badge>;
-      default:
-        return <Badge variant="secondary">Not Initiated</Badge>;
-    }
-  };
-
   const filteredData = complianceData.filter(record => {
     const matchesSearch = record.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.candidateId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesConsent = consentFilter === 'all' || record.consentStatus === consentFilter;
-    const matchesBgv = bgvFilter === 'all' || record.bgvStatus === bgvFilter;
     
-    return matchesSearch && matchesConsent && matchesBgv;
+    return matchesSearch && matchesConsent;
   });
 
   const complianceStats = {
@@ -216,18 +201,6 @@ export function CandidateComplianceTab() {
                     <SelectItem value="Expired">Expired</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={bgvFilter} onValueChange={setBgvFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="BGV Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All BGV Status</SelectItem>
-                    <SelectItem value="Not Initiated">Not Initiated</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Failed">Failed</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               {/* Compliance Table */}
@@ -239,7 +212,6 @@ export function CandidateComplianceTab() {
                       <th className="text-left p-3 font-medium">Consent Status</th>
                       <th className="text-left p-3 font-medium">Consent Date</th>
                       <th className="text-left p-3 font-medium">GDPR</th>
-                      <th className="text-left p-3 font-medium">BGV Status</th>
                       <th className="text-left p-3 font-medium">Data Retention</th>
                       <th className="text-left p-3 font-medium">Collected By</th>
                     </tr>
@@ -266,7 +238,6 @@ export function CandidateComplianceTab() {
                             </Badge>
                           )}
                         </td>
-                        <td className="p-3">{getBgvBadge(record.bgvStatus)}</td>
                         <td className="p-3">
                           <Badge variant={record.dataRetention === 'Active' ? 'default' : 'destructive'}>
                             {record.dataRetention}
