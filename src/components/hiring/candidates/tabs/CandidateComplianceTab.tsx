@@ -161,8 +161,6 @@ export function CandidateComplianceTab() {
         <TabsList>
           <TabsTrigger value="tracker">Consent Tracker</TabsTrigger>
           <TabsTrigger value="purge">Data Purge</TabsTrigger>
-          <TabsTrigger value="bgv">BGV Tracker</TabsTrigger>
-          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tracker" className="space-y-6">
@@ -299,57 +297,6 @@ export function CandidateComplianceTab() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="bgv" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Background Verification Tracker</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-gray-500">45</div>
-                    <div className="text-sm text-muted-foreground">Not Initiated</div>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-blue-500">12</div>
-                    <div className="text-sm text-muted-foreground">In Progress</div>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-green-500">28</div>
-                    <div className="text-sm text-muted-foreground">Completed</div>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-red-500">3</div>
-                    <div className="text-sm text-muted-foreground">Failed</div>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full">
-                  Initiate Bulk BGV for Selected Candidates
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="audit" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Compliance Audit Logs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  All compliance-related activities are logged here for audit purposes.
-                </div>
-                <Button variant="outline">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Audit Trail
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
