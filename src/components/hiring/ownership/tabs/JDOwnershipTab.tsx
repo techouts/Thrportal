@@ -140,12 +140,27 @@ export function JDOwnershipTab() {
     }
   };
 
-  const filteredJDs = jdOwnerships.filter(jd =>
+  // Step 1: Apply search filter
+  const searchFilteredJDs = jdOwnerships.filter(jd =>
     jd.jdTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
     jd.jdId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     jd.primaryRecruiter.toLowerCase().includes(searchTerm.toLowerCase()) ||
     jd.collaborators.some(collaborator => collaborator.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Step 2: Apply view filter
+  const filteredJDs = searchFilteredJDs.filter(jd => {
+    if (viewFilter === 'unassigned') {
+      return jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '';
+    }
+    if (viewFilter === 'unattended') {
+      return jd.submissionsTotal === 0;
+    }
+    if (viewFilter === 'all') {
+      return jd.primaryRecruiter !== 'Unassigned' && jd.primaryRecruiter !== '';
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -162,14 +177,14 @@ export function JDOwnershipTab() {
                   size="sm"
                   onClick={() => setViewFilter('all')}
                 >
-                  All JDs ({jdOwnerships.length})
+                  All JDs ({jdOwnerships.filter(jd => jd.primaryRecruiter !== 'Unassigned' && jd.primaryRecruiter !== '').length})
                 </Button>
                 <Button
                   variant={viewFilter === 'unassigned' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewFilter('unassigned')}
                 >
-                  Unassigned ({jdOwnerships.filter(jd => jd.primaryRecruiter === '').length})
+                  Unassigned ({jdOwnerships.filter(jd => jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '').length})
                 </Button>
                 <Button
                   variant={viewFilter === 'unattended' ? 'default' : 'outline'}
