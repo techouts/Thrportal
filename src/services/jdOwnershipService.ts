@@ -111,6 +111,18 @@ class JDOwnershipService {
         onConflict: 'jd_id'
       });
   }
+
+  async updateSubmissionCap(jdId: string, cap: number): Promise<void> {
+    await supabase
+      .from('jd_ownership_metadata')
+      .upsert({
+        jd_id: jdId,
+        per_recruiter_submission_cap: cap,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'jd_id'
+      });
+  }
 }
 
 export const jdOwnershipService = new JDOwnershipService();

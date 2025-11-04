@@ -38,6 +38,8 @@ export function JDOwnershipTab() {
   const [showCollaboratorsDialog, setShowCollaboratorsDialog] = useState(false);
   const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState<string[]>([]);
   const [tempCollaboratorId, setTempCollaboratorId] = useState<string>('');
+  const [showSubmissionCapDialog, setShowSubmissionCapDialog] = useState(false);
+  const [newSubmissionCap, setNewSubmissionCap] = useState<number>(5);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -215,6 +217,42 @@ export function JDOwnershipTab() {
       toast({
         title: "Error",
         description: "Failed to update collaborators",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleOpenSubmissionCapDialog = (jd: JDOwnership) => {
+    setSelectedJD(jd);
+    setNewSubmissionCap(jd.perRecruiterSubmissionCap);
+    setShowSubmissionCapDialog(true);
+  };
+
+  const handleSaveSubmissionCap = async () => {
+    if (!selectedJD) return;
+
+    if (newSubmissionCap < 1 || newSubmissionCap > 999) {
+      toast({
+        title: "Invalid Cap",
+        description: "Submission cap must be between 1 and 999",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await jdOwnershipService.updateSubmissionCap(selectedJD.jdId, newSubmissionCap);
+      await loadJDOwnerships();
+      setShowSubmissionCapDialog(false);
+      toast({
+        title: "Success",
+        description: "Submission cap updated successfully"
+      });
+    } catch (error) {
+      console.error('Failed to update submission cap:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update submission cap",
         variant: "destructive"
       });
     }
@@ -523,7 +561,9 @@ export function JDOwnershipTab() {
                                 <Badge className="mr-2 h-4 w-4" />
                                 Toggle Open Pool
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleOpenSubmissionCapDialog(jd)}
+                              >
                                 <Users className="mr-2 h-4 w-4" />
                                 Set Submission Cap
                               </DropdownMenuItem>
@@ -720,6 +760,51 @@ export function JDOwnershipTab() {
             </Button>
             <Button onClick={handleSaveCollaborators}>
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Submission Cap Dialog */}
+      <Dialog open={showSubmissionCapDialog} onOpenChange={setShowSubmissionCapDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Set Submission Cap</DialogTitle>
+            <DialogDescription>
+              Set the daily submission limit per recruiter for "{selectedJD?.jdTitle}"
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Cap</label>
+              <Badge variant="default">
+                {selectedJD?.perRecruiterSubmissionCap} submissions/day
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Cap (1-999)</label>
+              <Input
+                type="number"
+                min="1"
+                max="999"
+                value={newSubmissionCap}
+                onChange={(e) => setNewSubmissionCap(parseInt(e.target.value) || 1)}
+                placeholder="Enter submission cap"
+              />
+              <p className="text-xs text-muted-foreground">
+                This limits how many candidates each recruiter can submit per day for this JD.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSubmissionCapDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveSubmissionCap}>
+              Save Cap
             </Button>
           </DialogFooter>
         </DialogContent>
