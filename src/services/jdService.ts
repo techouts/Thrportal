@@ -38,6 +38,7 @@ export interface JDOverviewItem {
   interview_rounds: string[] | null;
   additional_notes: string | null;
   approver_names: string[] | null;
+  approval_status: string | null;
 }
 
 export interface JDFilters {
@@ -90,6 +91,7 @@ export class JDService {
           interview_rounds,
           additional_notes,
           approver_names,
+          approval_status,
           status,
           created_at,
           created_by,
@@ -152,6 +154,7 @@ export class JDService {
         interview_rounds: item.interview_rounds,
         additional_notes: item.additional_notes,
         approver_names: item.approver_names,
+        approval_status: item.approval_status,
       }));
 
       const total = count || 0;

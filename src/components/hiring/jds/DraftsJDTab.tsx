@@ -229,6 +229,28 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
     return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
   };
 
+  const getApprovalStatusBadge = (approvalStatus: string | null) => {
+    if (!approvalStatus) return <Badge variant="secondary">N/A</Badge>;
+    
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      pending: "secondary",
+      in_review: "default",
+      approved: "default",
+      rejected: "destructive",
+    };
+    
+    const labels: Record<string, string> = {
+      pending: "Pending",
+      in_review: "In Review",
+      approved: "Approved",
+      rejected: "Rejected",
+    };
+    
+    return <Badge variant={variants[approvalStatus] || "outline"}>
+      {labels[approvalStatus] || approvalStatus}
+    </Badge>;
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -305,6 +327,7 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                     <TableHead>Experience</TableHead>
                     <TableHead>Priority</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Approval Status</TableHead>
                     <TableHead>
                       <Button variant="ghost" size="sm" onClick={() => handleSort('created_at')}>
                         Created
@@ -345,6 +368,7 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
                         ) : 'N/A'}
                       </TableCell>
                       <TableCell>{getStatusBadge(jd.status)}</TableCell>
+                      <TableCell>{getApprovalStatusBadge(jd.approval_status)}</TableCell>
                       <TableCell>{format(new Date(jd.created_at), 'MMM dd, yyyy')}</TableCell>
                       <TableCell>
                         <DropdownMenu>
