@@ -33,11 +33,19 @@ export function JDOwnershipTab() {
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [selectedJD, setSelectedJD] = useState<JDOwnership | null>(null);
   const [viewFilter, setViewFilter] = useState<'all' | 'unassigned' | 'unattended'>('all');
+  const [recruiters, setRecruiters] = useState<Array<{ id: string; name: string }>>([]);
+  const [newPrimaryId, setNewPrimaryId] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
     loadJDOwnerships();
   }, []);
+
+  useEffect(() => {
+    if (showReassignDialog) {
+      loadRecruiters();
+    }
+  }, [showReassignDialog]);
 
   const loadJDOwnerships = async () => {
     setLoading(true);
@@ -56,23 +64,38 @@ export function JDOwnershipTab() {
     }
   };
 
-  const handleReassign = async (jdId: string, newPrimary: string) => {
+  const loadRecruiters = async () => {
+    try {
+      const data = await jdOwnershipService.getRecruiters();
+      setRecruiters(data);
+    } catch (error) {
+      console.error('Failed to load recruiters:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load recruiter list",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleReassign = async (jdId: string, recruiterId: string) => {
     try {
       await jdOwnershipService.updateJDOwnership(jdId, {
-        primaryRecruiter: newPrimary,
+        recruiterId,
         updatedBy: 'current-user'
       });
-      loadJDOwnerships();
+      await loadJDOwnerships();
       setShowReassignDialog(false);
+      setNewPrimaryId('');
       toast({
         title: "Success",
-        description: "Primary recruiter reassigned successfully"
+        description: "Primary recruiter assigned successfully"
       });
     } catch (error) {
       console.error('Failed to reassign JD:', error);
       toast({
         title: "Error",
-        description: "Failed to reassign primary recruiter",
+        description: "Failed to assign primary recruiter",
         variant: "destructive"
       });
     }
@@ -499,14 +522,16 @@ export function JDOwnershipTab() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">New Primary</label>
-              <Select>
+              <Select value={newPrimaryId} onValueChange={setNewPrimaryId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select primary recruiter" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="recruiter-1">Sarah Johnson</SelectItem>
-                  <SelectItem value="recruiter-2">David Chen</SelectItem>
-                  <SelectItem value="recruiter-3">Emily Davis</SelectItem>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={recruiter.id} value={recruiter.id}>
+                      {recruiter.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -528,16 +553,20 @@ export function JDOwnershipTab() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowReassignDialog(false)}
+              onClick={() => {
+                setShowReassignDialog(false);
+                setNewPrimaryId('');
+              }}
             >
               Cancel
             </Button>
             <Button
               onClick={() => {
-                if (selectedJD) {
-                  handleReassign(selectedJD.jdId, 'recruiter-1'); // Mock reassignment
+                if (selectedJD && newPrimaryId) {
+                  handleReassign(selectedJD.jdId, newPrimaryId);
                 }
               }}
+              disabled={!newPrimaryId}
             >
               Set Primary
             </Button>

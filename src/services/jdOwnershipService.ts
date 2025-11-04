@@ -108,10 +108,24 @@ class JDOwnershipService {
     return jdOwnerships;
   }
 
-  async updateJDOwnership(jdId: string, updates: Partial<JDOwnership>): Promise<void> {
+  async updateJDOwnership(jdId: string, updates: Partial<JDOwnership> & { recruiterId?: string }): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (updates.recruiterId) {
+      await supabase
+        .from('jd_ownership_assignments')
+        .upsert({
+          jd_id: jdId,
+          primary_recruiter_id: updates.recruiterId,
+          assigned_by: user?.id,
+          assigned_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'jd_id'
+        });
+    }
+
     if (updates.isLocked !== undefined) {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       await supabase
         .from('jd_ownership_metadata')
         .update({
@@ -122,37 +136,20 @@ class JDOwnershipService {
         })
         .eq('jd_id', jdId);
     }
-
-    if (updates.primaryRecruiter && updates.primaryRecruiter !== 'Unassigned') {
-      const { data: recruiter } = await supabase
-        .from('profiles')
-        .select('id')
-        .or(`display_name.eq.${updates.primaryRecruiter},first_name.eq.${updates.primaryRecruiter.split(' ')[0]}`)
-        .maybeSingle();
-
-      if (recruiter) {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        await supabase
-          .from('jd_ownership_assignments')
-          .upsert({
-            jd_id: jdId,
-            primary_recruiter_id: recruiter.id,
-            assigned_by: user?.id,
-            assigned_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'jd_id'
-          });
-      }
-    }
   }
 
   async getRecruiters(): Promise<Array<{ id: string; name: string }>> {
     const { data } = await supabase
       .from('profiles')
-      .select('id, display_name, first_name, last_name')
-      .limit(100);
+      .select(`
+        id, 
+        display_name, 
+        first_name, 
+        last_name,
+        user_roles!inner(role)
+      `)
+      .in('user_roles.role', ['RECRUITER', 'HIRING_MANAGER', 'STAFFING_MANAGER'])
+      .order('display_name');
 
     return (data || []).map(p => ({
       id: p.id,
