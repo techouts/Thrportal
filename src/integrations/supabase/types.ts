@@ -1805,7 +1805,7 @@ export type Database = {
           {
             foreignKeyName: "jd_ownership_assignments_jd_id_fkey"
             columns: ["jd_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "jd_approvals"
             referencedColumns: ["id"]
           },
