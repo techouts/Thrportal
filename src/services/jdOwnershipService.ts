@@ -144,10 +144,18 @@ class JDOwnershipService {
 
     if (error) throw error;
 
-    return (data || []).map(p => ({
-      id: p.id,
-      name: p.display_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Unknown'
-    }));
+    // Deduplicate by name - keep first occurrence
+    const recruitersMap = new Map<string, { id: string; name: string }>();
+    
+    (data || []).forEach(p => {
+      const name = p.display_name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Unknown';
+      
+      if (!recruitersMap.has(name)) {
+        recruitersMap.set(name, { id: p.id, name });
+      }
+    });
+    
+    return Array.from(recruitersMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async escalateToManager(jdId: string, reason: string): Promise<void> {

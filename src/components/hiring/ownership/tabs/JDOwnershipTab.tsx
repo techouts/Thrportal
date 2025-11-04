@@ -80,16 +80,25 @@ export function JDOwnershipTab() {
 
   const handleReassign = async (jdId: string, recruiterId: string) => {
     try {
+      console.log('Assigning recruiter:', { jdId, recruiterId });
+      
       await jdOwnershipService.updateJDOwnership(jdId, {
         recruiterId,
         updatedBy: 'current-user'
       });
+      
+      console.log('Assignment successful, reloading data...');
       await loadJDOwnerships();
+      
+      console.log('Data reloaded, switching to All JDs view');
+      setViewFilter('all');
+      
       setShowReassignDialog(false);
       setNewPrimaryId('');
+      
       toast({
         title: "Success",
-        description: "Primary recruiter assigned successfully"
+        description: "Primary recruiter assigned successfully. Viewing All JDs."
       });
     } catch (error) {
       console.error('Failed to reassign JD:', error);
