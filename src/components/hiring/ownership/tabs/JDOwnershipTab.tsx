@@ -35,6 +35,9 @@ export function JDOwnershipTab() {
   const [viewFilter, setViewFilter] = useState<'all' | 'unassigned' | 'unattended'>('all');
   const [recruiters, setRecruiters] = useState<Array<{ id: string; name: string }>>([]);
   const [newPrimaryId, setNewPrimaryId] = useState<string>('');
+  const [showCollaboratorsDialog, setShowCollaboratorsDialog] = useState(false);
+  const [selectedCollaboratorIds, setSelectedCollaboratorIds] = useState<string[]>([]);
+  const [tempCollaboratorId, setTempCollaboratorId] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,10 +45,10 @@ export function JDOwnershipTab() {
   }, []);
 
   useEffect(() => {
-    if (showReassignDialog) {
+    if (showReassignDialog || showCollaboratorsDialog) {
       loadRecruiters();
     }
-  }, [showReassignDialog]);
+  }, [showReassignDialog, showCollaboratorsDialog]);
 
   const loadJDOwnerships = async () => {
     setLoading(true);
@@ -169,6 +172,51 @@ export function JDOwnershipTab() {
       loadJDOwnerships();
     } catch (error) {
       toast({ title: "Error", description: "Failed to perform action.", variant: "destructive" });
+    }
+  };
+
+  const handleManageCollaborators = (jd: JDOwnership) => {
+    setSelectedJD(jd);
+    // Get current collaborator IDs from names
+    const currentCollaboratorIds = recruiters
+      .filter(r => jd.collaborators.includes(r.name))
+      .map(r => r.id);
+    setSelectedCollaboratorIds(currentCollaboratorIds);
+    setTempCollaboratorId('');
+    setShowCollaboratorsDialog(true);
+  };
+
+  const handleAddCollaborator = () => {
+    if (tempCollaboratorId && !selectedCollaboratorIds.includes(tempCollaboratorId)) {
+      setSelectedCollaboratorIds([...selectedCollaboratorIds, tempCollaboratorId]);
+      setTempCollaboratorId('');
+    }
+  };
+
+  const handleRemoveCollaborator = (recruiterId: string) => {
+    setSelectedCollaboratorIds(selectedCollaboratorIds.filter(id => id !== recruiterId));
+  };
+
+  const handleSaveCollaborators = async () => {
+    if (!selectedJD) return;
+
+    try {
+      await jdOwnershipService.updateCollaborators(selectedJD.jdId, selectedCollaboratorIds);
+      await loadJDOwnerships();
+      setShowCollaboratorsDialog(false);
+      setSelectedCollaboratorIds([]);
+      setTempCollaboratorId('');
+      toast({
+        title: "Success",
+        description: "Collaborators updated successfully"
+      });
+    } catch (error) {
+      console.error('Failed to update collaborators:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update collaborators",
+        variant: "destructive"
+      });
     }
   };
 
@@ -465,7 +513,9 @@ export function JDOwnershipTab() {
                                 <UserPlus className="mr-2 h-4 w-4" />
                                 Set/Change Primary
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleManageCollaborators(jd)}
+                              >
                                 <Users className="mr-2 h-4 w-4" />
                                 Manage Collaborators
                               </DropdownMenuItem>
@@ -578,6 +628,98 @@ export function JDOwnershipTab() {
               disabled={!newPrimaryId}
             >
               Set Primary
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Collaborators Dialog */}
+      <Dialog open={showCollaboratorsDialog} onOpenChange={setShowCollaboratorsDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Manage Collaborators for {selectedJD?.jdTitle}</DialogTitle>
+            <DialogDescription>
+              Add or remove collaborators who can work on this JD
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Primary Recruiter</label>
+              <Badge variant="default">
+                {selectedJD?.primaryRecruiter}
+              </Badge>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Add Collaborators</label>
+              <div className="flex gap-2">
+                <Select value={tempCollaboratorId} onValueChange={setTempCollaboratorId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select collaborator to add" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recruiters
+                      .filter(r => {
+                        // Filter out primary recruiter and already selected collaborators
+                        const isPrimary = selectedJD && r.name === selectedJD.primaryRecruiter;
+                        const isAlreadySelected = selectedCollaboratorIds.includes(r.id);
+                        return !isPrimary && !isAlreadySelected;
+                      })
+                      .map((recruiter) => (
+                        <SelectItem key={recruiter.id} value={recruiter.id}>
+                          {recruiter.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleAddCollaborator}
+                  disabled={!tempCollaboratorId}
+                  size="sm"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Collaborators</label>
+              {selectedCollaboratorIds.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No collaborators added yet</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {selectedCollaboratorIds.map((id) => {
+                    const recruiter = recruiters.find(r => r.id === id);
+                    return (
+                      <Badge key={id} variant="secondary" className="gap-1">
+                        {recruiter?.name || 'Unknown'}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCollaborator(id)}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCollaboratorsDialog(false);
+                setSelectedCollaboratorIds([]);
+                setTempCollaboratorId('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveCollaborators}>
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>

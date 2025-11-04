@@ -112,6 +112,20 @@ class JDOwnershipService {
     console.log(`Notifying recruiter for JD ${jdId}: ${message}`);
     // TODO: Implement notification logic
   }
+
+  async updateCollaborators(jdId: string, collaboratorIds: string[]): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    await supabase
+      .from('jd_ownership_assignments')
+      .upsert({
+        jd_id: jdId,
+        collaborator_ids: collaboratorIds,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'jd_id'
+      });
+  }
 }
 
 export const jdOwnershipService = new JDOwnershipService();
