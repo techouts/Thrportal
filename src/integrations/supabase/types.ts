@@ -1757,6 +1757,131 @@ export type Database = {
           },
         ]
       }
+      jd_ownership_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          client_spoc: string | null
+          collaborator_ids: string[] | null
+          created_at: string | null
+          id: string
+          jd_id: string
+          primary_recruiter_id: string | null
+          staffing_manager_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          client_spoc?: string | null
+          collaborator_ids?: string[] | null
+          created_at?: string | null
+          id?: string
+          jd_id: string
+          primary_recruiter_id?: string | null
+          staffing_manager_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          client_spoc?: string | null
+          collaborator_ids?: string[] | null
+          created_at?: string | null
+          id?: string
+          jd_id?: string
+          primary_recruiter_id?: string | null
+          staffing_manager_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jd_ownership_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_ownership_assignments_jd_id_fkey"
+            columns: ["jd_id"]
+            isOneToOne: false
+            referencedRelation: "jd_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_ownership_assignments_primary_recruiter_id_fkey"
+            columns: ["primary_recruiter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_ownership_assignments_staffing_manager_id_fkey"
+            columns: ["staffing_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jd_ownership_metadata: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_locked: boolean | null
+          jd_id: string
+          locked_at: string | null
+          locked_by: string | null
+          open_pool_flag: boolean | null
+          per_recruiter_submission_cap: number | null
+          sla_deadline: string | null
+          sla_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_locked?: boolean | null
+          jd_id: string
+          locked_at?: string | null
+          locked_by?: string | null
+          open_pool_flag?: boolean | null
+          per_recruiter_submission_cap?: number | null
+          sla_deadline?: string | null
+          sla_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_locked?: boolean | null
+          jd_id?: string
+          locked_at?: string | null
+          locked_by?: string | null
+          open_pool_flag?: boolean | null
+          per_recruiter_submission_cap?: number | null
+          sla_deadline?: string | null
+          sla_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jd_ownership_metadata_jd_id_fkey"
+            columns: ["jd_id"]
+            isOneToOne: true
+            referencedRelation: "jd_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jd_ownership_metadata_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       msas: {
         Row: {
           client_id: string

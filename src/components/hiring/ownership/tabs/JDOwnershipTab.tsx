@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Filter, Lock, Unlock, Users, UserPlus, History, MoreHorizontal, AlertTriangle, Send, Bell } from 'lucide-react';
-import { ownershipService } from '@/services/ownershipService';
+import { jdOwnershipService } from '@/services/jdOwnershipService';
 import { JDOwnership, JDStatus, SlaStatus } from '@/types/ownership';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -42,10 +42,15 @@ export function JDOwnershipTab() {
   const loadJDOwnerships = async () => {
     setLoading(true);
     try {
-      const data = await ownershipService.getJDOwnerships();
+      const data = await jdOwnershipService.getApprovedJDOwnerships();
       setJdOwnerships(data);
     } catch (error) {
       console.error('Failed to load JD ownerships:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load JD ownership data",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -53,26 +58,44 @@ export function JDOwnershipTab() {
 
   const handleReassign = async (jdId: string, newPrimary: string) => {
     try {
-      await ownershipService.updateJDOwnership(jdId, {
+      await jdOwnershipService.updateJDOwnership(jdId, {
         primaryRecruiter: newPrimary,
         updatedBy: 'current-user'
       });
       loadJDOwnerships();
       setShowReassignDialog(false);
+      toast({
+        title: "Success",
+        description: "Primary recruiter reassigned successfully"
+      });
     } catch (error) {
       console.error('Failed to reassign JD:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reassign primary recruiter",
+        variant: "destructive"
+      });
     }
   };
 
   const handleLockToggle = async (jdId: string, isLocked: boolean) => {
     try {
-      await ownershipService.updateJDOwnership(jdId, {
+      await jdOwnershipService.updateJDOwnership(jdId, {
         isLocked: !isLocked,
         updatedBy: 'current-user'
       });
       loadJDOwnerships();
+      toast({
+        title: "Success",
+        description: `JD ${!isLocked ? 'locked' : 'unlocked'} successfully`
+      });
     } catch (error) {
       console.error('Failed to toggle lock:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update lock status",
+        variant: "destructive"
+      });
     }
   };
 
@@ -101,11 +124,11 @@ export function JDOwnershipTab() {
     try {
       switch (action) {
         case 'escalate':
-          await ownershipService.escalateToManager(jdId, 'No submissions received');
+          await jdOwnershipService.escalateToManager(jdId, 'No submissions received');
           toast({ title: "Escalated to Manager", description: "JD has been escalated to the staffing manager." });
           break;
         case 'notify':
-          await ownershipService.notifyRecruiter(jdId, 'Please prioritize submissions for this JD');
+          await jdOwnershipService.notifyRecruiter(jdId, 'Please prioritize submissions for this JD');
           toast({ title: "Recruiter Notified", description: "Reminder sent to the assigned recruiter." });
           break;
         default:
