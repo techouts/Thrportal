@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
-import { DEV_USERS } from "./devUsers";
+import { DEV_USERS, DEV_USER_ID_MAP } from "./devUsers";
 import { roleToPermissionPatterns, matchPermission } from "../rbac/permissions";
 
 export type User = { 
@@ -165,15 +165,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const devUser = DEV_USERS.find(u => u.email === email && u.password === password);
       if (!devUser) throw new Error("Invalid dev credentials");
       
+      // Use fixed UUID from database
+      const userId = DEV_USER_ID_MAP[devUser.email];
+      if (!userId) throw new Error("Dev user not properly configured");
+      
       const userData: User = { 
-        id: `dev-${devUser.email}`,
+        id: userId,
         email: devUser.email, 
         display_name: devUser.display_name, 
         role: devUser.role,
         employeeId: `EMP-${devUser.email.split('@')[0].toUpperCase()}`
       };
       
-      console.log('[AUTH] Signing in dev user:', userData);
+      console.log('[AUTH] Signing in dev user with fixed UUID:', userData);
       localStorage.setItem("dev_user", JSON.stringify(userData)); 
       setUser(userData); 
       setSession({ user: { id: userData.id, email: userData.email } as any, access_token: 'dev-token' } as any);
