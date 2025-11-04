@@ -239,6 +239,10 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
       rejected: "destructive",
     };
     
+    const customClasses: Record<string, string> = {
+      approved: "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20",
+    };
+    
     const labels: Record<string, string> = {
       pending: "Pending",
       in_review: "In Review",
@@ -246,7 +250,10 @@ View all JDs: ${window.location.origin}/Hiring/JDs`;
       rejected: "Rejected",
     };
     
-    return <Badge variant={variants[approvalStatus] || "outline"}>
+    return <Badge 
+      variant={variants[approvalStatus] || "outline"}
+      className={customClasses[approvalStatus] || ""}
+    >
       {labels[approvalStatus] || approvalStatus}
     </Badge>;
   };
