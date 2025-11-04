@@ -2489,6 +2489,15 @@ export type Database = {
       auto_expire_slots: { Args: never; Returns: undefined }
       get_approver_names_from_chain: { Args: never; Returns: string[] }
       get_current_user_role: { Args: never; Returns: string }
+      get_recruiter_profiles: {
+        Args: never
+        Returns: {
+          display_name: string
+          first_name: string
+          id: string
+          last_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

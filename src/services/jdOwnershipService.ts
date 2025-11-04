@@ -139,17 +139,10 @@ class JDOwnershipService {
   }
 
   async getRecruiters(): Promise<Array<{ id: string; name: string }>> {
-    const { data } = await supabase
-      .from('profiles')
-      .select(`
-        id, 
-        display_name, 
-        first_name, 
-        last_name,
-        user_roles!inner(role)
-      `)
-      .in('user_roles.role', ['RECRUITER', 'HIRING_MANAGER', 'STAFFING_MANAGER'])
-      .order('display_name');
+    const { data, error } = await supabase
+      .rpc('get_recruiter_profiles');
+
+    if (error) throw error;
 
     return (data || []).map(p => ({
       id: p.id,
