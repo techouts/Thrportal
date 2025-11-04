@@ -2496,6 +2496,7 @@ export type Database = {
           client_name: string
           client_spoc: string
           collaborator_ids: string[]
+          collaborator_names: string[]
           created_at: string
           is_locked: boolean
           jd_id: string

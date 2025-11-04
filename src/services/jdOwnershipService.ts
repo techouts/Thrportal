@@ -9,28 +9,14 @@ class JDOwnershipService {
 
     if (error) throw error;
 
-    // Get collaborator names if any collaborator_ids exist
-    const jdOwnerships = await Promise.all(
-      (data || []).map(async (row) => {
-        const collaborators: string[] = [];
-        
-        if (row.collaborator_ids && row.collaborator_ids.length > 0) {
-          const { data: collabProfiles } = await supabase
-            .from('profiles')
-            .select('display_name, first_name, last_name')
-            .in('id', row.collaborator_ids);
-          
-          collaborators.push(...(collabProfiles || []).map(p => 
-            p.display_name || `${p.first_name || ''} ${p.last_name || ''}`.trim()
-          ));
-        }
-
-        return {
-          id: row.jd_id,
-          jdId: row.jd_id,
-          jdTitle: row.job_title || 'Untitled JD',
-          primaryRecruiter: row.primary_recruiter_name,
-          collaborators,
+    // Map RPC results to JDOwnership objects
+    const jdOwnerships = (data || []).map((row) => {
+      return {
+        id: row.jd_id,
+        jdId: row.jd_id,
+        jdTitle: row.job_title || 'Untitled JD',
+        primaryRecruiter: row.primary_recruiter_name,
+        collaborators: row.collaborator_names || [],
           openPoolFlag: row.open_pool_flag,
           perRecruiterSubmissionCap: row.per_recruiter_submission_cap,
           staffingManager: row.staffing_manager_name,
@@ -44,11 +30,10 @@ class JDOwnershipService {
           slaStatus: (row.sla_status || 'On Track') as SlaStatus,
           slaDeadline: row.sla_deadline || new Date().toISOString(),
           createdAt: row.created_at,
-          updatedAt: row.assignment_updated_at || row.jd_updated_at,
-          updatedBy: 'system'
-        } as JDOwnership;
-      })
-    );
+        updatedAt: row.assignment_updated_at || row.jd_updated_at,
+        updatedBy: 'system'
+      } as JDOwnership;
+    });
 
     return jdOwnerships;
   }
