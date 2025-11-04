@@ -3,103 +3,48 @@ import { JDOwnership, JDStatus, SlaStatus } from '@/types/ownership';
 
 class JDOwnershipService {
   async getApprovedJDOwnerships(): Promise<JDOwnership[]> {
-    const { data: jds, error } = await supabase
-      .from('jd_approvals')
-      .select(`
-        id,
-        job_title,
-        status,
-        client_name,
-        created_at,
-        updated_at
-      `)
-      .eq('approval_status', 'approved')
-      .eq('status', 'Active');
+    // Use server-side JOIN query to eliminate caching issues
+    const { data, error } = await supabase
+      .rpc('get_jd_ownerships_with_details');
 
     if (error) throw error;
 
+    // Get collaborator names if any collaborator_ids exist
     const jdOwnerships = await Promise.all(
-      (jds || []).map(async (jd) => {
-        const { data: assignment } = await supabase
-          .from('jd_ownership_assignments')
-          .select(`
-            primary_recruiter_id,
-            collaborator_ids,
-            staffing_manager_id,
-            client_spoc,
-            updated_at
-          `)
-          .eq('jd_id', jd.id)
-          .maybeSingle();
-
-        const { data: metadata } = await supabase
-          .from('jd_ownership_metadata')
-          .select('*')
-          .eq('jd_id', jd.id)
-          .maybeSingle();
-
-        let primaryRecruiterName = 'Unassigned';
-        if (assignment?.primary_recruiter_id) {
-          const { data: recruiter } = await supabase
-            .from('profiles')
-            .select('display_name, first_name, last_name')
-            .eq('id', assignment.primary_recruiter_id)
-            .maybeSingle();
-          
-          if (recruiter) {
-            primaryRecruiterName = recruiter.display_name || 
-              `${recruiter.first_name || ''} ${recruiter.last_name || ''}`.trim() || 
-              'Unknown';
-          }
-        }
-
+      (data || []).map(async (row) => {
         const collaborators: string[] = [];
-        if (assignment?.collaborator_ids && assignment.collaborator_ids.length > 0) {
+        
+        if (row.collaborator_ids && row.collaborator_ids.length > 0) {
           const { data: collabProfiles } = await supabase
             .from('profiles')
             .select('display_name, first_name, last_name')
-            .in('id', assignment.collaborator_ids);
+            .in('id', row.collaborator_ids);
           
           collaborators.push(...(collabProfiles || []).map(p => 
             p.display_name || `${p.first_name || ''} ${p.last_name || ''}`.trim()
           ));
         }
 
-        let staffingManagerName = 'TBD';
-        if (assignment?.staffing_manager_id) {
-          const { data: manager } = await supabase
-            .from('profiles')
-            .select('display_name, first_name, last_name')
-            .eq('id', assignment.staffing_manager_id)
-            .maybeSingle();
-          
-          if (manager) {
-            staffingManagerName = manager.display_name || 
-              `${manager.first_name || ''} ${manager.last_name || ''}`.trim() || 
-              'TBD';
-          }
-        }
-
         return {
-          id: jd.id,
-          jdId: jd.id,
-          jdTitle: jd.job_title || 'Untitled JD',
-          primaryRecruiter: primaryRecruiterName,
+          id: row.jd_id,
+          jdId: row.jd_id,
+          jdTitle: row.job_title || 'Untitled JD',
+          primaryRecruiter: row.primary_recruiter_name,
           collaborators,
-          openPoolFlag: metadata?.open_pool_flag || false,
-          perRecruiterSubmissionCap: metadata?.per_recruiter_submission_cap || 5,
-          staffingManager: staffingManagerName,
-          clientSpoc: assignment?.client_spoc || jd.client_name || 'TBD',
-          status: (jd.status || 'Active') as JDStatus,
-          isLocked: metadata?.is_locked || false,
+          openPoolFlag: row.open_pool_flag,
+          perRecruiterSubmissionCap: row.per_recruiter_submission_cap,
+          staffingManager: row.staffing_manager_name,
+          clientSpoc: row.client_spoc,
+          status: (row.status || 'Active') as JDStatus,
+          isLocked: row.is_locked,
           submissionsByRecruiter: {},
           submissionsToday: 0,
           submissionsTotal: 0,
           firstSubmitAge: 0,
-          slaStatus: (metadata?.sla_status || 'On Track') as SlaStatus,
-          slaDeadline: metadata?.sla_deadline || new Date().toISOString(),
-          createdAt: jd.created_at,
-          updatedAt: assignment?.updated_at || jd.updated_at,
+          slaStatus: (row.sla_status || 'On Track') as SlaStatus,
+          slaDeadline: row.sla_deadline || new Date().toISOString(),
+          createdAt: row.created_at,
+          updatedAt: row.assignment_updated_at || row.jd_updated_at,
           updatedBy: 'system'
         } as JDOwnership;
       })

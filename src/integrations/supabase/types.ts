@@ -2489,6 +2489,29 @@ export type Database = {
       auto_expire_slots: { Args: never; Returns: undefined }
       get_approver_names_from_chain: { Args: never; Returns: string[] }
       get_current_user_role: { Args: never; Returns: string }
+      get_jd_ownerships_with_details: {
+        Args: never
+        Returns: {
+          assignment_updated_at: string
+          client_name: string
+          client_spoc: string
+          collaborator_ids: string[]
+          created_at: string
+          is_locked: boolean
+          jd_id: string
+          jd_updated_at: string
+          job_title: string
+          open_pool_flag: boolean
+          per_recruiter_submission_cap: number
+          primary_recruiter_id: string
+          primary_recruiter_name: string
+          sla_deadline: string
+          sla_status: string
+          staffing_manager_id: string
+          staffing_manager_name: string
+          status: string
+        }[]
+      }
       get_recruiter_profiles: {
         Args: never
         Returns: {
