@@ -242,6 +242,10 @@ export function JDOwnershipTab() {
 
     try {
       await jdOwnershipService.updateSubmissionCap(selectedJD.jdId, newSubmissionCap);
+      
+      // Add delay to ensure DB write completes before fetching fresh data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       await loadJDOwnerships();
       setShowSubmissionCapDialog(false);
       toast({
