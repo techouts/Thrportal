@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { CandidateOwnership, CandidateStage } from '@/types/ownership';
 import { toast } from 'sonner';
 import { LinkJdDialog } from '../dialogs/LinkJdDialog';
 import { UnlinkJdDialog } from '../dialogs/UnlinkJdDialog';
+import { BulkLinkJdDialog } from '../dialogs/BulkLinkJdDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,9 @@ export function CandidateOwnershipTab() {
   const [bulkNewOwnerId, setBulkNewOwnerId] = useState<string>('');
   const [showLinkJdDialog, setShowLinkJdDialog] = useState(false);
   const [showUnlinkJdDialog, setShowUnlinkJdDialog] = useState(false);
+  const [showBulkLinkJdDialog, setShowBulkLinkJdDialog] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<string>('all');
+  const [selectedRecruiter, setSelectedRecruiter] = useState<string>('all');
 
   useEffect(() => {
     loadCandidateOwnerships();
@@ -115,11 +119,21 @@ export function CandidateOwnershipTab() {
     }
   };
 
-  const filteredCandidates = candidateOwnerships.filter(candidate =>
-    candidate.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.recruiterOwner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.jdLinks.some(jd => jd.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || jd.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const uniqueRecruiters = useMemo(() => {
+    const recruitersSet = new Set(candidateOwnerships.map(c => c.recruiterOwner));
+    return Array.from(recruitersSet).sort();
+  }, [candidateOwnerships]);
+
+  const filteredCandidates = candidateOwnerships.filter(candidate => {
+    const matchesSearch = candidate.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      candidate.recruiterOwner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      candidate.jdLinks.some(jd => jd.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || jd.clientName.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStage = selectedStage === 'all' || candidate.currentStage === selectedStage;
+    const matchesRecruiter = selectedRecruiter === 'all' || candidate.recruiterOwner === selectedRecruiter;
+    
+    return matchesSearch && matchesStage && matchesRecruiter;
+  });
 
   return (
     <div className="space-y-6">
@@ -135,7 +149,12 @@ export function CandidateOwnershipTab() {
                   Bulk Reassign ({selectedCandidates.length})
                 </Button>
               )}
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={selectedCandidates.length === 0}
+                onClick={() => setShowBulkLinkJdDialog(true)}
+              >
                 <Link2 className="mr-2 h-4 w-4" />
                 Bulk Link to JDs
               </Button>
@@ -154,7 +173,7 @@ export function CandidateOwnershipTab() {
                 className="pl-10"
               />
             </div>
-            <Select>
+            <Select value={selectedStage} onValueChange={setSelectedStage}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Stage" />
               </SelectTrigger>
@@ -167,15 +186,17 @@ export function CandidateOwnershipTab() {
                 <SelectItem value="Joined">Joined</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={selectedRecruiter} onValueChange={setSelectedRecruiter}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Recruiter" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Recruiters</SelectItem>
-                <SelectItem value="recruiter-1">Sarah Johnson</SelectItem>
-                <SelectItem value="recruiter-2">David Chen</SelectItem>
-                <SelectItem value="recruiter-3">Emily Davis</SelectItem>
+                {uniqueRecruiters.map((recruiter) => (
+                  <SelectItem key={recruiter} value={recruiter}>
+                    {recruiter}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button variant="outline">
@@ -303,10 +324,6 @@ export function CandidateOwnershipTab() {
                             }}>
                               <Unlink className="mr-2 h-4 w-4" />
                               Unlink from JD
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Users className="mr-2 h-4 w-4" />
-                              View History
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -448,6 +465,17 @@ export function CandidateOwnershipTab() {
           onOpenChange={setShowUnlinkJdDialog}
           candidateId={selectedCandidate.candidateId}
           candidateName={selectedCandidate.candidateName}
+          onSuccess={loadCandidateOwnerships}
+        />
+      )}
+
+      {/* Bulk Link JD Dialog */}
+      {showBulkLinkJdDialog && (
+        <BulkLinkJdDialog
+          open={showBulkLinkJdDialog}
+          onOpenChange={setShowBulkLinkJdDialog}
+          selectedCandidateIds={selectedCandidates}
+          selectedCandidateCount={selectedCandidates.length}
           onSuccess={loadCandidateOwnerships}
         />
       )}
