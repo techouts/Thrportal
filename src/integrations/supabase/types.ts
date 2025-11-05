@@ -731,6 +731,68 @@ export type Database = {
           },
         ]
       }
+      client_spoc_mappings: {
+        Row: {
+          assigned_recruiter_ids: string[] | null
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          primary_spoc_id: string
+          secondary_spoc_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_recruiter_ids?: string[] | null
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          primary_spoc_id: string
+          secondary_spoc_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_recruiter_ids?: string[] | null
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          primary_spoc_id?: string
+          secondary_spoc_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_spoc_mappings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_spoc_mappings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_spoc_mappings_primary_spoc_id_fkey"
+            columns: ["primary_spoc_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_spoc_mappings_secondary_spoc_id_fkey"
+            columns: ["secondary_spoc_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_assignments: {
         Row: {
           allocation_pct: number | null

@@ -4,13 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, TrendingUp, AlertTriangle, CheckCircle, Users, FileText } from 'lucide-react';
-import { ownershipService } from '@/services/ownershipService';
+import { Clock, TrendingUp, AlertTriangle, CheckCircle, Users, FileText, Plus } from 'lucide-react';
 import { ClientSpocMapping } from '@/types/ownership';
+import { ClientSpocMappingService } from '@/services/clientSpocMappingService';
+import { CreateClientSpocMappingDialog } from '../dialogs/CreateClientSpocMappingDialog';
+import { toast } from 'sonner';
 
 export function ClientSpocMappingTab() {
   const [clientMappings, setClientMappings] = useState<ClientSpocMapping[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     loadClientMappings();
@@ -19,10 +22,11 @@ export function ClientSpocMappingTab() {
   const loadClientMappings = async () => {
     setLoading(true);
     try {
-      const data = await ownershipService.getClientSpocMappings();
+      const data = await ClientSpocMappingService.getAllMappings();
       setClientMappings(data);
     } catch (error) {
       console.error('Failed to load client mappings:', error);
+      toast.error('Failed to load client mappings');
     } finally {
       setLoading(false);
     }
@@ -62,8 +66,14 @@ export function ClientSpocMappingTab() {
         <TabsContent value="mappings" className="space-y-6">
           {/* Client Mappings Table */}
           <Card>
-            <CardHeader>
-              <CardTitle>Client SPOC Mappings</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Client SPOC Mappings</CardTitle>
+              </div>
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Client SPOC Mapping
+              </Button>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -381,6 +391,13 @@ export function ClientSpocMappingTab() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Create Dialog */}
+      <CreateClientSpocMappingDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSuccess={loadClientMappings}
+      />
     </div>
   );
 }

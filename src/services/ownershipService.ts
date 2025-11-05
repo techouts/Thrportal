@@ -455,7 +455,9 @@ class OwnershipService {
 
   // Client SPOC Mapping
   async getClientSpocMappings(): Promise<ClientSpocMapping[]> {
-    return [...this.mockClientSpocMappings];
+    // Import dynamically to avoid circular dependency
+    const { ClientSpocMappingService } = await import('./clientSpocMappingService');
+    return ClientSpocMappingService.getAllMappings();
   }
 
   async updateClientSpocMapping(clientId: string, updates: Partial<ClientSpocMapping>): Promise<ClientSpocMapping> {
