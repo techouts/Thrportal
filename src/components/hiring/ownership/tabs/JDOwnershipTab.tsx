@@ -1077,7 +1077,6 @@ export function JDOwnershipTab() {
                   <SelectValue placeholder="Select primary recruiter (leave empty to keep current)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Keep Current Primary</SelectItem>
                   {recruiters.map((recruiter) => (
                     <SelectItem key={recruiter.id} value={recruiter.id}>
                       {recruiter.name}
