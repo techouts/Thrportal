@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Filter, Lock, Unlock, Users, UserPlus, History, MoreHorizontal, AlertTriangle, Send, Bell } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { jdOwnershipService } from '@/services/jdOwnershipService';
 import { JDOwnership, JDStatus, SlaStatus } from '@/types/ownership';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +49,10 @@ export function JDOwnershipTab() {
   const [tempCollaboratorId, setTempCollaboratorId] = useState<string>('');
   const [showSubmissionCapDialog, setShowSubmissionCapDialog] = useState(false);
   const [newSubmissionCap, setNewSubmissionCap] = useState<number>(5);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [managerFilter, setManagerFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,6 +64,11 @@ export function JDOwnershipTab() {
       loadRecruiters();
     }
   }, [showReassignDialog, showCollaboratorsDialog]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, managerFilter, viewFilter]);
 
   const loadJDOwnerships = async () => {
     setLoading(true);
@@ -262,6 +280,16 @@ export function JDOwnershipTab() {
     }
   };
 
+  // Extract unique managers dynamically
+  const uniqueManagers = useMemo(() => {
+    const managers = new Set(
+      jdOwnerships
+        .map(jd => jd.staffingManager)
+        .filter(manager => manager && manager.trim() !== '')
+    );
+    return Array.from(managers).sort();
+  }, [jdOwnerships]);
+
   // Step 1: Apply search filter
   const searchFilteredJDs = jdOwnerships.filter(jd =>
     jd.jdTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -270,8 +298,20 @@ export function JDOwnershipTab() {
     jd.collaborators.some(collaborator => collaborator.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Step 2: Apply view filter
-  const filteredJDs = searchFilteredJDs.filter(jd => {
+  // Step 2: Apply status filter
+  const statusFilteredJDs = searchFilteredJDs.filter(jd => {
+    if (statusFilter === 'all') return true;
+    return jd.status === statusFilter;
+  });
+
+  // Step 3: Apply manager filter
+  const managerFilteredJDs = statusFilteredJDs.filter(jd => {
+    if (managerFilter === 'all') return true;
+    return jd.staffingManager === managerFilter;
+  });
+
+  // Step 4: Apply view filter
+  const filteredJDs = managerFilteredJDs.filter(jd => {
     if (viewFilter === 'unassigned') {
       return jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '';
     }
@@ -283,6 +323,12 @@ export function JDOwnershipTab() {
     }
     return true;
   });
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredJDs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedJDs = filteredJDs.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
@@ -299,21 +345,21 @@ export function JDOwnershipTab() {
                   size="sm"
                   onClick={() => setViewFilter('all')}
                 >
-                  All JDs ({jdOwnerships.filter(jd => jd.primaryRecruiter !== 'Unassigned' && jd.primaryRecruiter !== '').length})
+                  All JDs ({managerFilteredJDs.filter(jd => jd.primaryRecruiter !== 'Unassigned' && jd.primaryRecruiter !== '').length})
                 </Button>
                 <Button
                   variant={viewFilter === 'unassigned' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewFilter('unassigned')}
                 >
-                  Unassigned ({jdOwnerships.filter(jd => jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '').length})
+                  Unassigned ({managerFilteredJDs.filter(jd => jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '').length})
                 </Button>
                 <Button
                   variant={viewFilter === 'unattended' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewFilter('unattended')}
                 >
-                  Unattended ({jdOwnerships.filter(jd => jd.submissionsTotal === 0).length})
+                  Unattended ({managerFilteredJDs.filter(jd => jd.submissionsTotal === 0).length})
                 </Button>
               </div>
             </div>
@@ -324,10 +370,6 @@ export function JDOwnershipTab() {
                   Bulk Reassign ({selectedJDs.length})
                 </Button>
               )}
-              <Button variant="outline" size="sm">
-                <History className="mr-2 h-4 w-4" />
-                Change History
-              </Button>
             </div>
           </div>
         </CardHeader>
@@ -343,7 +385,7 @@ export function JDOwnershipTab() {
                 className="pl-10"
               />
             </div>
-            <Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -354,14 +396,17 @@ export function JDOwnershipTab() {
                 <SelectItem value="Closed">Closed</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={managerFilter} onValueChange={setManagerFilter}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Staffing Manager" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Managers</SelectItem>
-                <SelectItem value="manager-1">Mike Rodriguez</SelectItem>
-                <SelectItem value="manager-2">Lisa Thompson</SelectItem>
+                {uniqueManagers.map((manager) => (
+                  <SelectItem key={manager} value={manager}>
+                    {manager}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button variant="outline">
@@ -412,7 +457,7 @@ export function JDOwnershipTab() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredJDs.map((jd) => (
+                  {paginatedJDs.map((jd) => (
                     <tr key={jd.id} className={`border-b hover:bg-muted/50 ${jd.submissionsTotal === 0 ? 'bg-red-50/50' : ''}`}>
                       <td className="p-2">
                         <Checkbox
@@ -602,6 +647,85 @@ export function JDOwnershipTab() {
                   <p className="text-muted-foreground">No JD ownerships found</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredJDs.length > 0 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rows per page:</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredJDs.length)} of {filteredJDs.length}
+                </span>
+              </div>
+
+              {/* Pagination controls */}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      // Show first page, last page, current page, and pages around current
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      );
+                    })
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {/* Add ellipsis if there's a gap */}
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>
