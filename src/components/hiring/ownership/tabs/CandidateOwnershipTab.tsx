@@ -10,6 +10,8 @@ import { candidatesService } from '@/services/candidatesService';
 import { jdOwnershipService } from '@/services/jdOwnershipService';
 import { CandidateOwnership, CandidateStage } from '@/types/ownership';
 import { toast } from 'sonner';
+import { LinkJdDialog } from '../dialogs/LinkJdDialog';
+import { UnlinkJdDialog } from '../dialogs/UnlinkJdDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +36,10 @@ export function CandidateOwnershipTab() {
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateOwnership | null>(null);
   const [recruiters, setRecruiters] = useState<Array<{ id: string; name: string }>>([]);
   const [newOwnerId, setNewOwnerId] = useState<string>('');
+  const [showBulkReassignDialog, setShowBulkReassignDialog] = useState(false);
+  const [bulkNewOwnerId, setBulkNewOwnerId] = useState<string>('');
+  const [showLinkJdDialog, setShowLinkJdDialog] = useState(false);
+  const [showUnlinkJdDialog, setShowUnlinkJdDialog] = useState(false);
 
   useEffect(() => {
     loadCandidateOwnerships();
@@ -75,18 +81,24 @@ export function CandidateOwnershipTab() {
     }
   };
 
-  const handleBulkReassign = async () => {
+  const handleBulkReassign = async (newOwner: string, reason: string) => {
     try {
-      // Bulk update recruiter_owner for selected candidates
-      for (const candidateId of selectedCandidates) {
-        await candidatesService.updateCandidate(candidateId, {
-          recruiterOwner: 'recruiter-1', // Mock target - should be from UI selection
-        } as any);
-      }
-      loadCandidateOwnerships();
+      console.log(`Bulk reassigning ${selectedCandidates.length} candidates to ${newOwner}`);
+      await Promise.all(
+        selectedCandidates.map(candidateId =>
+          candidatesService.updateCandidateOwnership(candidateId, {
+            recruiterOwner: newOwner
+          })
+        )
+      );
+      toast.success(`Successfully reassigned ${selectedCandidates.length} candidates`);
       setSelectedCandidates([]);
+      setShowBulkReassignDialog(false);
+      setBulkNewOwnerId('');
+      loadCandidateOwnerships();
     } catch (error) {
-      console.error('Failed to bulk reassign:', error);
+      console.error('Error in bulk reassign:', error);
+      toast.error('Failed to reassign candidates');
     }
   };
 
@@ -106,7 +118,7 @@ export function CandidateOwnershipTab() {
   const filteredCandidates = candidateOwnerships.filter(candidate =>
     candidate.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     candidate.recruiterOwner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    candidate.jdLinks.some(jd => jd.toLowerCase().includes(searchTerm.toLowerCase()))
+    candidate.jdLinks.some(jd => jd.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || jd.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -118,8 +130,8 @@ export function CandidateOwnershipTab() {
             <CardTitle>Candidate Ownership Management</CardTitle>
             <div className="flex items-center gap-2">
               {selectedCandidates.length > 0 && (
-                <Button variant="outline" size="sm" onClick={handleBulkReassign}>
-                  <UserX className="mr-2 h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={() => setShowBulkReassignDialog(true)}>
+                  <Users className="mr-2 h-4 w-4" />
                   Bulk Reassign ({selectedCandidates.length})
                 </Button>
               )}
@@ -237,14 +249,16 @@ export function CandidateOwnershipTab() {
                         <Badge variant="outline">{candidate.recruiterOwner}</Badge>
                       </td>
                       <td className="p-2">
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.jdLinks.map((jdId) => (
-                            <Badge key={jdId} variant="secondary" className="text-xs">
-                              {jdId}
-                            </Badge>
-                          ))}
-                          {candidate.jdLinks.length === 0 && (
+                        <div className="space-y-1">
+                          {candidate.jdLinks.length === 0 ? (
                             <span className="text-xs text-muted-foreground">No JD linked</span>
+                          ) : (
+                            candidate.jdLinks.map((link) => (
+                              <div key={link.jdId} className="text-sm">
+                                <div className="font-medium">{link.jobTitle}</div>
+                                <div className="text-xs text-muted-foreground">{link.clientName}</div>
+                              </div>
+                            ))
                           )}
                         </div>
                       </td>
@@ -276,11 +290,17 @@ export function CandidateOwnershipTab() {
                               <UserX className="mr-2 h-4 w-4" />
                               Reassign Recruiter
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedCandidate(candidate);
+                              setShowLinkJdDialog(true);
+                            }}>
                               <Link2 className="mr-2 h-4 w-4" />
                               Link to JD
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedCandidate(candidate);
+                              setShowUnlinkJdDialog(true);
+                            }}>
                               <Unlink className="mr-2 h-4 w-4" />
                               Unlink from JD
                             </DropdownMenuItem>
@@ -361,6 +381,76 @@ export function CandidateOwnershipTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Reassign Dialog */}
+      <Dialog open={showBulkReassignDialog} onOpenChange={setShowBulkReassignDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bulk Reassign Candidates</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm">
+                You are about to reassign <strong>{selectedCandidates.length}</strong> candidate(s)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Recruiter</label>
+              <Select onValueChange={(value) => setBulkNewOwnerId(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select new recruiter" />
+                </SelectTrigger>
+                <SelectContent>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={recruiter.id} value={recruiter.name}>
+                      {recruiter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBulkReassignDialog(false);
+                setBulkNewOwnerId('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleBulkReassign(bulkNewOwnerId, 'Bulk reassignment')}
+              disabled={!bulkNewOwnerId}
+            >
+              Reassign All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link JD Dialog */}
+      {showLinkJdDialog && selectedCandidate && (
+        <LinkJdDialog
+          open={showLinkJdDialog}
+          onOpenChange={setShowLinkJdDialog}
+          candidateId={selectedCandidate.candidateId}
+          candidateName={selectedCandidate.candidateName}
+          onSuccess={loadCandidateOwnerships}
+        />
+      )}
+
+      {/* Unlink JD Dialog */}
+      {showUnlinkJdDialog && selectedCandidate && (
+        <UnlinkJdDialog
+          open={showUnlinkJdDialog}
+          onOpenChange={setShowUnlinkJdDialog}
+          candidateId={selectedCandidate.candidateId}
+          candidateName={selectedCandidate.candidateName}
+          onSuccess={loadCandidateOwnerships}
+        />
+      )}
     </div>
   );
 }

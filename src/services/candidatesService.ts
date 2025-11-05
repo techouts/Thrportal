@@ -451,51 +451,51 @@ class CandidatesService {
   // Get candidate ownerships from database
   async getCandidateOwnershipsFromDB(): Promise<CandidateOwnership[]> {
     try {
-      // Optimized query with JOIN to get candidates and their JD links in one query
-      const { data, error } = await supabase
+      // First, get all candidates
+      const { data: candidates, error: candidatesError } = await supabase
         .from('candidates')
-        .select(`
-          id,
-          name,
-          recruiter_owner,
-          status,
-          updated_at,
-          created_at,
-          created_by,
-          candidate_timeline!inner(jd_id)
-        `)
+        .select('id, name, recruiter_owner, status, updated_at, created_at, created_by')
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (candidatesError) throw candidatesError;
 
-      // Group JD links by candidate
-      const candidateMap = new Map<string, CandidateOwnership>();
-      
-      (data || []).forEach((row: any) => {
-        const candidateId = row.id;
-        
-        if (!candidateMap.has(candidateId)) {
-          candidateMap.set(candidateId, {
-            id: candidateId,
-            candidateId: candidateId,
-            candidateName: row.name || 'Unknown',
-            recruiterOwner: row.recruiter_owner || 'Unassigned',
-            jdLinks: [],
-            currentStage: this.mapStatusToStage(row.status),
-            lastUpdated: row.updated_at,
-            assignedAt: row.created_at,
-            assignedBy: row.created_by || 'system',
-          });
-        }
+      // Get all JD links with job details
+      const { data: jdLinks, error: linksError } = await supabase
+        .from('candidate_jd_links')
+        .select(`
+          candidate_id,
+          jd_id,
+          jd_approvals!inner(id, job_title, client_name)
+        `);
 
-        // Add JD link if it exists and not already added
-        const ownership = candidateMap.get(candidateId)!;
-        if (row.candidate_timeline?.jd_id && !ownership.jdLinks.includes(row.candidate_timeline.jd_id)) {
-          ownership.jdLinks.push(row.candidate_timeline.jd_id);
+      if (linksError) throw linksError;
+
+      // Build map of candidate ID to JD links
+      const linksMap = new Map<string, Array<{ jdId: string; jobTitle: string; clientName: string }>>();
+      (jdLinks || []).forEach((link: any) => {
+        if (!linksMap.has(link.candidate_id)) {
+          linksMap.set(link.candidate_id, []);
         }
+        linksMap.get(link.candidate_id)!.push({
+          jdId: link.jd_id,
+          jobTitle: link.jd_approvals?.job_title || 'Untitled',
+          clientName: link.jd_approvals?.client_name || 'Unknown Client',
+        });
       });
 
-      return Array.from(candidateMap.values());
+      // Map candidates to ownership objects
+      return (candidates || []).map((row: any) => ({
+        id: row.id,
+        candidateId: row.id,
+        candidateName: row.name || 'Unknown',
+        recruiterOwner: row.recruiter_owner || 'Unassigned',
+        jdLinks: linksMap.get(row.id) || [],
+        currentStage: this.mapStatusToStage(row.status),
+        lastUpdated: row.updated_at,
+        assignedAt: row.created_at,
+        assignedBy: row.created_by || 'system',
+      }));
+      
     } catch (error) {
       console.error('Failed to fetch candidate ownerships:', error);
       return [];
@@ -713,6 +713,82 @@ class CandidatesService {
     const { error } = await supabase.from('candidate_documents').delete().eq('id', id);
     if (error) throw error;
     return true;
+  }
+
+  // Get all approved JDs with details
+  async getApprovedJDs(): Promise<Array<{ id: string; jobTitle: string; clientName: string }>> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select('id, job_title, client_name')
+      .eq('approval_status', 'approved')
+      .order('job_title');
+    
+    if (error) throw error;
+    return (data || []).map(jd => ({
+      id: jd.id,
+      jobTitle: jd.job_title || 'Untitled',
+      clientName: jd.client_name || 'Unknown Client'
+    }));
+  }
+
+  // Link candidate to multiple JDs
+  async linkCandidateToJDs(candidateId: string, jdIds: string[]): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    const links = jdIds.map(jdId => ({
+      candidate_id: candidateId,
+      jd_id: jdId,
+      linked_by: user?.id
+    }));
+    
+    const { error } = await supabase
+      .from('candidate_jd_links')
+      .insert(links);
+    
+    if (error) throw error;
+  }
+
+  // Get linked JDs for a candidate
+  async getLinkedJDs(candidateId: string): Promise<Array<{ id: string; jobTitle: string; clientName: string }>> {
+    const { data, error } = await supabase
+      .from('candidate_jd_links')
+      .select(`
+        jd_id,
+        jd_approvals!inner (
+          id,
+          job_title,
+          client_name
+        )
+      `)
+      .eq('candidate_id', candidateId);
+    
+    if (error) throw error;
+    
+    return (data || []).map((link: any) => ({
+      id: link.jd_id,
+      jobTitle: link.jd_approvals.job_title || 'Untitled',
+      clientName: link.jd_approvals.client_name || 'Unknown Client'
+    }));
+  }
+
+  // Unlink candidate from multiple JDs
+  async unlinkCandidateFromJDs(candidateId: string, jdIds: string[]): Promise<void> {
+    const { error } = await supabase
+      .from('candidate_jd_links')
+      .delete()
+      .eq('candidate_id', candidateId)
+      .in('jd_id', jdIds);
+    
+    if (error) throw error;
+  }
+
+  // Update candidate ownership
+  async updateCandidateOwnership(candidateId: string, updates: { recruiterOwner: string }): Promise<void> {
+    const { error } = await supabase
+      .from('candidates')
+      .update({ recruiter_owner: updates.recruiterOwner })
+      .eq('id', candidateId);
+    
+    if (error) throw error;
   }
 }
 

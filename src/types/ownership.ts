@@ -31,7 +31,7 @@ export interface CandidateOwnership {
   candidateId: string;
   candidateName: string;
   recruiterOwner: string;
-  jdLinks: string[];
+  jdLinks: Array<{ jdId: string; jobTitle: string; clientName: string }>;
   currentStage: CandidateStage;
   lastUpdated: string;
   assignedAt: string;

@@ -366,6 +366,48 @@ export type Database = {
           },
         ]
       }
+      candidate_jd_links: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          id: string
+          jd_id: string
+          linked_at: string | null
+          linked_by: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          id?: string
+          jd_id: string
+          linked_at?: string | null
+          linked_by?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          id?: string
+          jd_id?: string
+          linked_at?: string | null
+          linked_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_jd_links_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_jd_links_jd_id_fkey"
+            columns: ["jd_id"]
+            isOneToOne: false
+            referencedRelation: "jd_approvals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_offers: {
         Row: {
           approval_workflow: Json | null
