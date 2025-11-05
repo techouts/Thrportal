@@ -65,10 +65,10 @@ export function JDOwnershipTab() {
   }, []);
 
   useEffect(() => {
-    if (showReassignDialog || showCollaboratorsDialog) {
+    if (showReassignDialog || showCollaboratorsDialog || showBulkReassignDialog) {
       loadRecruiters();
     }
-  }, [showReassignDialog, showCollaboratorsDialog]);
+  }, [showReassignDialog, showCollaboratorsDialog, showBulkReassignDialog]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
