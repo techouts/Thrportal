@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Filter, UserX, Users, Link2, Unlink, MoreHorizontal } from 'lucide-react';
 import { candidatesService } from '@/services/candidatesService';
+import { jdOwnershipService } from '@/services/jdOwnershipService';
 import { CandidateOwnership, CandidateStage } from '@/types/ownership';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,10 +32,23 @@ export function CandidateOwnershipTab() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateOwnership | null>(null);
+  const [recruiters, setRecruiters] = useState<Array<{ id: string; name: string }>>([]);
+  const [newOwnerId, setNewOwnerId] = useState<string>('');
 
   useEffect(() => {
     loadCandidateOwnerships();
+    loadRecruiters();
   }, []);
+
+  const loadRecruiters = async () => {
+    try {
+      const recruitersList = await jdOwnershipService.getRecruiters();
+      setRecruiters(recruitersList);
+    } catch (error) {
+      console.error('Error loading recruiters:', error);
+      toast.error('Failed to load recruiters');
+    }
+  };
 
   const loadCandidateOwnerships = async () => {
     setLoading(true);
@@ -308,14 +323,16 @@ export function CandidateOwnershipTab() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">New Recruiter</label>
-              <Select>
+              <Select onValueChange={(value) => setNewOwnerId(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select new recruiter" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="recruiter-1">Sarah Johnson</SelectItem>
-                  <SelectItem value="recruiter-2">David Chen</SelectItem>
-                  <SelectItem value="recruiter-3">Emily Davis</SelectItem>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={recruiter.id} value={recruiter.name}>
+                      {recruiter.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -333,10 +350,11 @@ export function CandidateOwnershipTab() {
             </Button>
             <Button
               onClick={() => {
-                if (selectedCandidate) {
-                  handleReassign(selectedCandidate.candidateId, 'recruiter-1', 'Workload balancing');
+                if (selectedCandidate && newOwnerId) {
+                  handleReassign(selectedCandidate.candidateId, newOwnerId, 'Workload balancing');
                 }
               }}
+              disabled={!newOwnerId}
             >
               Reassign
             </Button>
