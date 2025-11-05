@@ -280,14 +280,18 @@ export function JDOwnershipTab() {
     }
   };
 
-  // Extract unique managers dynamically
-  const uniqueManagers = useMemo(() => {
-    const managers = new Set(
+  // Extract unique primary recruiters dynamically
+  const uniquePrimaryRecruiters = useMemo(() => {
+    const recruiters = new Set(
       jdOwnerships
-        .map(jd => jd.staffingManager)
-        .filter(manager => manager && manager.trim() !== '')
+        .map(jd => jd.primaryRecruiter)
+        .filter(recruiter => 
+          recruiter && 
+          recruiter.trim() !== '' && 
+          recruiter !== 'Unassigned'
+        )
     );
-    return Array.from(managers).sort();
+    return Array.from(recruiters).sort();
   }, [jdOwnerships]);
 
   // Step 1: Apply search filter
@@ -304,14 +308,14 @@ export function JDOwnershipTab() {
     return jd.status === statusFilter;
   });
 
-  // Step 3: Apply manager filter
-  const managerFilteredJDs = statusFilteredJDs.filter(jd => {
+  // Step 3: Apply primary recruiter filter
+  const primaryRecruiterFilteredJDs = statusFilteredJDs.filter(jd => {
     if (managerFilter === 'all') return true;
-    return jd.staffingManager === managerFilter;
+    return jd.primaryRecruiter === managerFilter;
   });
 
   // Step 4: Apply view filter
-  const filteredJDs = managerFilteredJDs.filter(jd => {
+  const filteredJDs = primaryRecruiterFilteredJDs.filter(jd => {
     if (viewFilter === 'unassigned') {
       return jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '';
     }
@@ -345,21 +349,21 @@ export function JDOwnershipTab() {
                   size="sm"
                   onClick={() => setViewFilter('all')}
                 >
-                  All JDs ({managerFilteredJDs.filter(jd => jd.primaryRecruiter !== 'Unassigned' && jd.primaryRecruiter !== '').length})
+                  All JDs ({primaryRecruiterFilteredJDs.filter(jd => jd.primaryRecruiter !== 'Unassigned' && jd.primaryRecruiter !== '').length})
                 </Button>
                 <Button
                   variant={viewFilter === 'unassigned' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewFilter('unassigned')}
                 >
-                  Unassigned ({managerFilteredJDs.filter(jd => jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '').length})
+                  Unassigned ({primaryRecruiterFilteredJDs.filter(jd => jd.primaryRecruiter === 'Unassigned' || jd.primaryRecruiter === '').length})
                 </Button>
                 <Button
                   variant={viewFilter === 'unattended' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewFilter('unattended')}
                 >
-                  Unattended ({managerFilteredJDs.filter(jd => jd.submissionsTotal === 0).length})
+                  Unattended ({primaryRecruiterFilteredJDs.filter(jd => jd.submissionsTotal === 0).length})
                 </Button>
               </div>
             </div>
@@ -398,13 +402,13 @@ export function JDOwnershipTab() {
             </Select>
             <Select value={managerFilter} onValueChange={setManagerFilter}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Staffing Manager" />
+                <SelectValue placeholder="Primary Recruiter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Managers</SelectItem>
-                {uniqueManagers.map((manager) => (
-                  <SelectItem key={manager} value={manager}>
-                    {manager}
+                <SelectItem value="all">All Primary</SelectItem>
+                {uniquePrimaryRecruiters.map((recruiter) => (
+                  <SelectItem key={recruiter} value={recruiter}>
+                    {recruiter}
                   </SelectItem>
                 ))}
               </SelectContent>
