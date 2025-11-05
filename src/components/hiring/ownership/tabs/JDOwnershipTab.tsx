@@ -53,6 +53,11 @@ export function JDOwnershipTab() {
   const [managerFilter, setManagerFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showBulkReassignDialog, setShowBulkReassignDialog] = useState(false);
+  const [bulkNewPrimaryId, setBulkNewPrimaryId] = useState<string>('');
+  const [bulkCollaboratorIds, setBulkCollaboratorIds] = useState<string[]>([]);
+  const [bulkTempCollaboratorId, setBulkTempCollaboratorId] = useState<string>('');
+  const [bulkUpdateMode, setBulkUpdateMode] = useState<'replace' | 'append'>('replace');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -280,6 +285,100 @@ export function JDOwnershipTab() {
     }
   };
 
+  const handleOpenBulkReassign = () => {
+    setBulkNewPrimaryId('');
+    setBulkCollaboratorIds([]);
+    setBulkTempCollaboratorId('');
+    setBulkUpdateMode('replace');
+    setShowBulkReassignDialog(true);
+  };
+
+  const handleAddBulkCollaborator = () => {
+    if (bulkTempCollaboratorId && !bulkCollaboratorIds.includes(bulkTempCollaboratorId)) {
+      setBulkCollaboratorIds([...bulkCollaboratorIds, bulkTempCollaboratorId]);
+      setBulkTempCollaboratorId('');
+    }
+  };
+
+  const handleRemoveBulkCollaborator = (recruiterId: string) => {
+    setBulkCollaboratorIds(bulkCollaboratorIds.filter(id => id !== recruiterId));
+  };
+
+  const handleBulkReassign = async () => {
+    if (selectedJDs.length === 0) return;
+
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Process each selected JD
+      for (const jdId of selectedJDs) {
+        try {
+          // Update primary recruiter if specified
+          if (bulkNewPrimaryId) {
+            await jdOwnershipService.updateJDOwnership(jdId, {
+              recruiterId: bulkNewPrimaryId,
+              updatedBy: 'current-user'
+            });
+          }
+
+          // Update collaborators if specified
+          if (bulkCollaboratorIds.length > 0) {
+            if (bulkUpdateMode === 'replace') {
+              // Replace all collaborators
+              await jdOwnershipService.updateCollaborators(jdId, bulkCollaboratorIds);
+            } else {
+              // Append mode: get existing collaborators and merge
+              const existingJD = jdOwnerships.find(jd => jd.jdId === jdId);
+              if (existingJD) {
+                const existingCollaboratorIds = recruiters
+                  .filter(r => existingJD.collaborators.includes(r.name))
+                  .map(r => r.id);
+                const mergedIds = [...new Set([...existingCollaboratorIds, ...bulkCollaboratorIds])];
+                await jdOwnershipService.updateCollaborators(jdId, mergedIds);
+              }
+            }
+          }
+
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to update JD ${jdId}:`, error);
+          errorCount++;
+        }
+      }
+
+      // Reload data
+      await loadJDOwnerships();
+
+      // Clear selections and close dialog
+      setSelectedJDs([]);
+      setShowBulkReassignDialog(false);
+      setBulkNewPrimaryId('');
+      setBulkCollaboratorIds([]);
+
+      // Show result toast
+      if (errorCount === 0) {
+        toast({
+          title: "Success",
+          description: `Successfully updated ${successCount} JD${successCount > 1 ? 's' : ''}`
+        });
+      } else {
+        toast({
+          title: "Partial Success",
+          description: `Updated ${successCount} JD(s), ${errorCount} failed`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Bulk reassign failed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to perform bulk reassignment",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Extract unique primary recruiters dynamically
   const uniquePrimaryRecruiters = useMemo(() => {
     const recruiters = new Set(
@@ -369,7 +468,7 @@ export function JDOwnershipTab() {
             </div>
             <div className="flex items-center gap-2">
               {selectedJDs.length > 0 && (
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleOpenBulkReassign}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   Bulk Reassign ({selectedJDs.length})
                 </Button>
@@ -937,6 +1036,169 @@ export function JDOwnershipTab() {
             </Button>
             <Button onClick={handleSaveSubmissionCap}>
               Save Cap
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Reassign Dialog */}
+      <Dialog open={showBulkReassignDialog} onOpenChange={setShowBulkReassignDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Bulk Reassign JDs</DialogTitle>
+            <DialogDescription>
+              Update primary recruiter and/or collaborators for {selectedJDs.length} selected JD{selectedJDs.length > 1 ? 's' : ''}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Show affected JDs */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Affected JDs ({selectedJDs.length})</label>
+              <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                {jdOwnerships
+                  .filter(jd => selectedJDs.includes(jd.jdId))
+                  .map(jd => (
+                    <div key={jd.jdId} className="text-xs flex items-center justify-between py-1">
+                      <span className="font-mono">{jd.jdId}</span>
+                      <span className="text-muted-foreground truncate max-w-[200px]">{jd.jdTitle}</span>
+                      <Badge variant="outline" className="text-xs">{jd.primaryRecruiter}</Badge>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            {/* Primary Recruiter Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Set Primary Recruiter (Optional)</label>
+              <Select value={bulkNewPrimaryId} onValueChange={setBulkNewPrimaryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select primary recruiter (leave empty to keep current)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Keep Current Primary</SelectItem>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={recruiter.id} value={recruiter.id}>
+                      {recruiter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                This will replace the primary recruiter for all selected JDs
+              </p>
+            </div>
+
+            {/* Collaborators Update Mode */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Collaborators Update Mode</label>
+              <Select value={bulkUpdateMode} onValueChange={(value: 'replace' | 'append') => setBulkUpdateMode(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="replace">Replace All Collaborators</SelectItem>
+                  <SelectItem value="append">Add to Existing Collaborators</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {bulkUpdateMode === 'replace' 
+                  ? 'This will replace all existing collaborators with the ones selected below'
+                  : 'This will add the selected collaborators to existing ones (no duplicates)'
+                }
+              </p>
+            </div>
+
+            {/* Collaborators Management */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Add Collaborators (Optional)</label>
+              <div className="flex gap-2">
+                <Select value={bulkTempCollaboratorId} onValueChange={setBulkTempCollaboratorId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select collaborator to add" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recruiters
+                      .filter(r => {
+                        const isNewPrimary = bulkNewPrimaryId && r.id === bulkNewPrimaryId;
+                        const isAlreadySelected = bulkCollaboratorIds.includes(r.id);
+                        return !isNewPrimary && !isAlreadySelected;
+                      })
+                      .map((recruiter) => (
+                        <SelectItem key={recruiter.id} value={recruiter.id}>
+                          {recruiter.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleAddBulkCollaborator}
+                  disabled={!bulkTempCollaboratorId}
+                  size="sm"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Selected Collaborators Display */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Selected Collaborators</label>
+              {bulkCollaboratorIds.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No collaborators selected (existing collaborators will be {bulkUpdateMode === 'replace' ? 'removed' : 'kept'})
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {bulkCollaboratorIds.map((id) => {
+                    const recruiter = recruiters.find(r => r.id === id);
+                    return (
+                      <Badge key={id} variant="secondary" className="gap-1">
+                        {recruiter?.name || 'Unknown'}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBulkCollaborator(id)}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Warning/Info Message */}
+            {(bulkNewPrimaryId || bulkCollaboratorIds.length > 0) && (
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
+                <p className="text-xs text-amber-800">
+                  <strong>⚠️ Warning:</strong> This action will affect {selectedJDs.length} JD{selectedJDs.length > 1 ? 's' : ''}. 
+                  {bulkNewPrimaryId && ' Primary recruiters will be updated.'}
+                  {bulkCollaboratorIds.length > 0 && ` Collaborators will be ${bulkUpdateMode === 'replace' ? 'replaced' : 'added'}.`}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBulkReassignDialog(false);
+                setBulkNewPrimaryId('');
+                setBulkCollaboratorIds([]);
+                setBulkTempCollaboratorId('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBulkReassign}
+              disabled={!bulkNewPrimaryId && bulkCollaboratorIds.length === 0}
+            >
+              Update {selectedJDs.length} JD{selectedJDs.length > 1 ? 's' : ''}
             </Button>
           </DialogFooter>
         </DialogContent>
