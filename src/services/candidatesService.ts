@@ -11,6 +11,7 @@ import type {
   CandidateReports,
   CandidateStatus,
 } from '@/types/candidates';
+import type { CandidateOwnership, CandidateStage } from '@/types/ownership';
 import { supabase } from '@/integrations/supabase/client';
 
 class CandidatesService {
@@ -429,6 +430,76 @@ class CandidatesService {
     link.download = `candidates_export_${Date.now()}.${format === 'csv' ? 'csv' : 'xlsx'}`;
     link.click();
     URL.revokeObjectURL(link.href);
+  }
+
+  // Helper method to map candidate status to ownership stage
+  private mapStatusToStage(status: CandidateStatus): CandidateStage {
+    const statusMapping: Record<string, CandidateStage> = {
+      'New': 'New',
+      'Shortlisted': 'Shortlisted',
+      'Submitted': 'Submitted',
+      'Interview Scheduled': 'Interview',
+      'Interview Completed': 'Interview',
+      'Offer Extended': 'Offer',
+      'Offer Accepted': 'Offer',
+      'Joined': 'Joined',
+      'Rejected': 'Rejected',
+    };
+    return statusMapping[status] || 'New';
+  }
+
+  // Get candidate ownerships from database
+  async getCandidateOwnershipsFromDB(): Promise<CandidateOwnership[]> {
+    try {
+      // Optimized query with JOIN to get candidates and their JD links in one query
+      const { data, error } = await supabase
+        .from('candidates')
+        .select(`
+          id,
+          name,
+          recruiter_owner,
+          status,
+          updated_at,
+          created_at,
+          created_by,
+          candidate_timeline!inner(jd_id)
+        `)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Group JD links by candidate
+      const candidateMap = new Map<string, CandidateOwnership>();
+      
+      (data || []).forEach((row: any) => {
+        const candidateId = row.id;
+        
+        if (!candidateMap.has(candidateId)) {
+          candidateMap.set(candidateId, {
+            id: candidateId,
+            candidateId: candidateId,
+            candidateName: row.name || 'Unknown',
+            recruiterOwner: row.recruiter_owner || 'Unassigned',
+            jdLinks: [],
+            currentStage: this.mapStatusToStage(row.status),
+            lastUpdated: row.updated_at,
+            assignedAt: row.created_at,
+            assignedBy: row.created_by || 'system',
+          });
+        }
+
+        // Add JD link if it exists and not already added
+        const ownership = candidateMap.get(candidateId)!;
+        if (row.candidate_timeline?.jd_id && !ownership.jdLinks.includes(row.candidate_timeline.jd_id)) {
+          ownership.jdLinks.push(row.candidate_timeline.jd_id);
+        }
+      });
+
+      return Array.from(candidateMap.values());
+    } catch (error) {
+      console.error('Failed to fetch candidate ownerships:', error);
+      return [];
+    }
   }
 
   // Experience CRUD

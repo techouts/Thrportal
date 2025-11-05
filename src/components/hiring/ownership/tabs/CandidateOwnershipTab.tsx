@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Filter, UserX, Users, Link2, Unlink, MoreHorizontal } from 'lucide-react';
-import { ownershipService } from '@/services/ownershipService';
+import { candidatesService } from '@/services/candidatesService';
 import { CandidateOwnership, CandidateStage } from '@/types/ownership';
 import {
   DropdownMenu,
@@ -38,7 +38,7 @@ export function CandidateOwnershipTab() {
   const loadCandidateOwnerships = async () => {
     setLoading(true);
     try {
-      const data = await ownershipService.getCandidateOwnerships();
+      const data = await candidatesService.getCandidateOwnershipsFromDB();
       setCandidateOwnerships(data);
     } catch (error) {
       console.error('Failed to load candidate ownerships:', error);
@@ -49,7 +49,10 @@ export function CandidateOwnershipTab() {
 
   const handleReassign = async (candidateId: string, newOwnerId: string, reason?: string) => {
     try {
-      await ownershipService.reassignCandidate(candidateId, newOwnerId, reason);
+      // Update recruiter_owner in database
+      await candidatesService.updateCandidate(candidateId, {
+        recruiterOwner: newOwnerId,
+      } as any);
       loadCandidateOwnerships();
       setShowReassignDialog(false);
     } catch (error) {
@@ -59,12 +62,12 @@ export function CandidateOwnershipTab() {
 
   const handleBulkReassign = async () => {
     try {
-      await ownershipService.bulkReassign({
-        operation: 'REASSIGN',
-        resourceIds: selectedCandidates,
-        targetOwnerId: 'recruiter-1', // Mock target
-        reason: 'Bulk reassignment for workload balancing'
-      });
+      // Bulk update recruiter_owner for selected candidates
+      for (const candidateId of selectedCandidates) {
+        await candidatesService.updateCandidate(candidateId, {
+          recruiterOwner: 'recruiter-1', // Mock target - should be from UI selection
+        } as any);
+      }
       loadCandidateOwnerships();
       setSelectedCandidates([]);
     } catch (error) {
