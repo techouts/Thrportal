@@ -27,6 +27,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 export function CandidateOwnershipTab() {
   const [candidateOwnerships, setCandidateOwnerships] = useState<CandidateOwnership[]>([]);
@@ -44,11 +53,17 @@ export function CandidateOwnershipTab() {
   const [showBulkLinkJdDialog, setShowBulkLinkJdDialog] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string>('all');
   const [selectedRecruiter, setSelectedRecruiter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     loadCandidateOwnerships();
     loadRecruiters();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStage, selectedRecruiter]);
 
   const loadRecruiters = async () => {
     try {
@@ -134,6 +149,11 @@ export function CandidateOwnershipTab() {
     
     return matchesSearch && matchesStage && matchesRecruiter;
   });
+
+  const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
@@ -224,12 +244,13 @@ export function CandidateOwnershipTab() {
                   <tr className="border-b">
                     <th className="text-left p-2">
                       <Checkbox
-                        checked={selectedCandidates.length === filteredCandidates.length}
+                        checked={paginatedCandidates.length > 0 && paginatedCandidates.every(c => selectedCandidates.includes(c.candidateId))}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedCandidates(filteredCandidates.map(c => c.candidateId));
+                            const newSelections = [...selectedCandidates, ...paginatedCandidates.map(c => c.candidateId).filter(id => !selectedCandidates.includes(id))];
+                            setSelectedCandidates(newSelections);
                           } else {
-                            setSelectedCandidates([]);
+                            setSelectedCandidates(selectedCandidates.filter(id => !paginatedCandidates.map(c => c.candidateId).includes(id)));
                           }
                         }}
                       />
@@ -244,7 +265,7 @@ export function CandidateOwnershipTab() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCandidates.map((candidate) => (
+                  {paginatedCandidates.map((candidate) => (
                     <tr key={candidate.id} className="border-b hover:bg-muted/50">
                       <td className="p-2">
                         <Checkbox
@@ -339,6 +360,82 @@ export function CandidateOwnershipTab() {
                   <p className="text-muted-foreground">No candidate ownerships found</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredCandidates.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              {/* Left: Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Show</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger className="w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredCandidates.length)} of {filteredCandidates.length}
+                </span>
+              </div>
+
+              {/* Right: Page navigation */}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    const showPage = page === 1 || 
+                                    page === totalPages || 
+                                    (page >= currentPage - 1 && page <= currentPage + 1);
+                    
+                    if (!showPage) {
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>
