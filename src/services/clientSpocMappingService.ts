@@ -142,30 +142,26 @@ export class ClientSpocMappingService {
 
   // Get users with specific roles for SPOC selection
   static async getUsersByRoles(roles: string[]) {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select(`
-        user_id,
-        role,
-        profiles!user_roles_user_id_fkey(id, display_name, first_name, last_name, email)
-      `)
-      .in('role', roles as any);
+    // Use the same RPC that works in JD Ownership tab (SECURITY DEFINER bypasses RLS)
+    const { data, error } = await supabase.rpc('get_recruiter_profiles');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching users by roles:', error);
+      throw error;
+    }
 
-    // Deduplicate users (a user might have multiple roles)
-    const uniqueUsers = new Map();
-    (data || []).forEach((item: any) => {
-      if (item.profiles && !uniqueUsers.has(item.profiles.id)) {
-        uniqueUsers.set(item.profiles.id, item.profiles);
-      }
-    });
-
-    return Array.from(uniqueUsers.values());
+    // The RPC already returns users with recruiter-related roles
+    return (data || []).map(user => ({
+      id: user.id,
+      display_name: user.display_name,
+      first_name: user.first_name,
+      last_name: user.last_name,
+    }));
   }
 
   // Get all recruiters
   static async getAllRecruiters() {
+    // Use the same method since the RPC returns all recruiter-related roles
     return this.getUsersByRoles(['RECRUITER', 'HIRING_MANAGER', 'STAFFING_MANAGER']);
   }
 }
