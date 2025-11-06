@@ -13,6 +13,7 @@ import type {
   CrmKPIs,
 } from "@/types/crm";
 import axios from "axios";
+const VITE_API_BASE_NODE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
 export class CrmService {
   // Clients
   static async getClients(filters?: CrmClientFilters) {
@@ -126,7 +127,7 @@ export class CrmService {
     // return data as CrmClient;
     try {
       const response = await axios.post<CrmClient>(
-        "http://172.168.168.206:3002/api/clients/createClient",
+        `${VITE_API_BASE_NODE_URL}/api/clients/createClient`,
         client
       );
       return response.data as CrmClient;
