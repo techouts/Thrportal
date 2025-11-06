@@ -4,16 +4,31 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationEllipsis, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from '@/components/ui/pagination';
 import { Clock, TrendingUp, AlertTriangle, CheckCircle, Users, FileText, Plus } from 'lucide-react';
 import { ClientSpocMapping } from '@/types/ownership';
 import { ClientSpocMappingService } from '@/services/clientSpocMappingService';
 import { CreateClientSpocMappingDialog } from '../dialogs/CreateClientSpocMappingDialog';
+import { EditClientSpocMappingDialog } from '../dialogs/EditClientSpocMappingDialog';
 import { toast } from 'sonner';
 
 export function ClientSpocMappingTab() {
   const [clientMappings, setClientMappings] = useState<ClientSpocMapping[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingMapping, setEditingMapping] = useState<ClientSpocMapping | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     loadClientMappings();
@@ -43,6 +58,17 @@ export function ClientSpocMappingTab() {
     if (adherence >= 70) return 'secondary';
     return 'destructive';
   };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(clientMappings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMappings = clientMappings.slice(startIndex, endIndex);
+
+  // Reset to page 1 when items per page changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
 
   return (
     <div className="space-y-6">
@@ -97,7 +123,7 @@ export function ClientSpocMappingTab() {
                       </tr>
                     </thead>
                     <tbody>
-                      {clientMappings.map((mapping) => (
+                      {paginatedMappings.map((mapping) => (
                         <tr key={mapping.id} className="border-b hover:bg-muted/50">
                           <td className="p-3">
                             <div>
@@ -164,11 +190,15 @@ export function ClientSpocMappingTab() {
                           </td>
                           <td className="p-3">
                             <div className="flex gap-1">
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingMapping(mapping);
+                                  setShowEditDialog(true);
+                                }}
+                              >
                                 Edit
-                              </Button>
-                              <Button variant="outline" size="sm">
-                                View
                               </Button>
                             </div>
                           </td>
@@ -176,6 +206,89 @@ export function ClientSpocMappingTab() {
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Pagination Controls */}
+                  {clientMappings.length > 0 && (
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      {/* Left: Items per page selector */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Show</span>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={(value) => setItemsPerPage(Number(value))}
+                        >
+                          <SelectTrigger className="w-[70px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <span className="text-sm text-muted-foreground">
+                          entries
+                        </span>
+                      </div>
+
+                      {/* Center: Page info */}
+                      <div className="text-sm text-muted-foreground">
+                        Showing {startIndex + 1} to {Math.min(endIndex, clientMappings.length)} of {clientMappings.length} entries
+                      </div>
+
+                      {/* Right: Page navigation */}
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+
+                          {/* Page numbers */}
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            // Show first page, last page, current page, and pages around current
+                            const showPage = 
+                              page === 1 || 
+                              page === totalPages || 
+                              (page >= currentPage - 1 && page <= currentPage + 1);
+
+                            if (!showPage) {
+                              // Show ellipsis only once between ranges
+                              if (page === currentPage - 2 || page === currentPage + 2) {
+                                return (
+                                  <PaginationItem key={page}>
+                                    <PaginationEllipsis />
+                                  </PaginationItem>
+                                );
+                              }
+                              return null;
+                            }
+
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(page)}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -398,6 +511,16 @@ export function ClientSpocMappingTab() {
         onOpenChange={setShowCreateDialog}
         onSuccess={loadClientMappings}
       />
+
+      {/* Edit Dialog */}
+      {editingMapping && (
+        <EditClientSpocMappingDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          onSuccess={loadClientMappings}
+          mapping={editingMapping}
+        />
+      )}
     </div>
   );
 }

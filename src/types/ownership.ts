@@ -45,8 +45,11 @@ export interface ClientSpocMapping {
   clientId: string;
   clientName: string;
   primarySpoc: string;
+  primarySpocId: string;
   secondarySpoc?: string;
+  secondarySpocId?: string;
   assignedRecruiters: string[];
+  assignedRecruiterIds: string[];
   jdCount: number;
   avgTurnaroundTime: number;
   feedbackAgeing: number;
