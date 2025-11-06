@@ -33,8 +33,8 @@ const schema = z.object({
   secondarySpocId: z.string().optional(),
   assignedRecruiterIds: z.array(z.string()).default([]),
 }).refine((data) => {
-  // Validation: Primary and Secondary SPOC cannot be the same
-  if (data.secondarySpocId && data.primarySpocId === data.secondarySpocId) {
+  // Validation: Primary and Secondary SPOC cannot be the same (ignore "NONE")
+  if (data.secondarySpocId && data.secondarySpocId !== 'NONE' && data.primarySpocId === data.secondarySpocId) {
     return false;
   }
   return true;
@@ -70,7 +70,7 @@ export function EditClientSpocMappingDialog({ open, onOpenChange, onSuccess, map
     if (open && mapping) {
       form.reset({
         primarySpocId: mapping.primarySpocId,
-        secondarySpocId: mapping.secondarySpocId || '',
+        secondarySpocId: mapping.secondarySpocId || 'NONE',
         assignedRecruiterIds: mapping.assignedRecruiterIds || [],
       });
       loadData();
@@ -109,7 +109,7 @@ export function EditClientSpocMappingDialog({ open, onOpenChange, onSuccess, map
     try {
       await ClientSpocMappingService.updateMapping(mapping.id, {
         primarySpocId: data.primarySpocId,
-        secondarySpocId: data.secondarySpocId || undefined,
+        secondarySpocId: data.secondarySpocId === 'NONE' ? undefined : data.secondarySpocId,
         assignedRecruiterIds: data.assignedRecruiterIds,
       });
       toast.success('Client SPOC mapping updated successfully');
@@ -185,7 +185,7 @@ export function EditClientSpocMappingDialog({ open, onOpenChange, onSuccess, map
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="NONE">None</SelectItem>
                       {spocs.map((spoc) => (
                         <SelectItem key={spoc.id} value={spoc.id}>
                           {formatUserName(spoc)}
