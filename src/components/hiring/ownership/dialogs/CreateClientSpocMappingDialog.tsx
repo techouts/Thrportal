@@ -94,7 +94,7 @@ export function CreateClientSpocMappingDialog({ open, onOpenChange, onSuccess }:
       await ClientSpocMappingService.createMapping({
         clientId: data.clientId,
         primarySpocId: data.primarySpocId,
-        secondarySpocId: data.secondarySpocId,
+        secondarySpocId: data.secondarySpocId || undefined,
         assignedRecruiterIds: data.assignedRecruiterIds,
       });
       toast.success('Client SPOC mapping created successfully');
@@ -184,11 +184,10 @@ export function CreateClientSpocMappingDialog({ open, onOpenChange, onSuccess }:
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select secondary SPOC" />
+                        <SelectValue placeholder="Select secondary SPOC (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {spocs.map((spoc) => (
                         <SelectItem key={spoc.id} value={spoc.id}>
                           {formatUserName(spoc)}

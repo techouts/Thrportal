@@ -115,13 +115,20 @@ export class ClientSpocMappingService {
 
   // Helper: Calculate metrics for a client
   private static async calculateMetrics(clientId: string) {
-    // Get active JDs count
+    // First, get the client name from the client_id
+    const { data: client } = await supabase
+      .from('crm_clients')
+      .select('name')
+      .eq('id', clientId)
+      .single();
+
+    // Get active JDs count using the client name
     const { count: jdCount } = await supabase
       .from('jd_approvals')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'Active')
       .eq('approval_status', 'approved')
-      .ilike('client_name', `%${clientId}%`);
+      .eq('client_name', client?.name || '');
 
     // For now, return default values for other metrics
     // TODO: Implement actual calculation logic based on your business rules
