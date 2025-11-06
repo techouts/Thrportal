@@ -147,7 +147,7 @@ export class ClientSpocMappingService {
       .select(`
         user_id,
         role,
-        profiles:user_id(id, display_name, first_name, last_name, email)
+        profiles!user_roles_user_id_fkey(id, display_name, first_name, last_name, email)
       `)
       .in('role', roles as any);
 
