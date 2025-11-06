@@ -9,29 +9,37 @@ export class ClientSpocMappingService {
       .from('client_spoc_mappings')
       .select(`
         *,
-        client:crm_clients!client_id(name),
-        primary_spoc:profiles!primary_spoc_id(id, display_name, first_name, last_name),
-        secondary_spoc:profiles!secondary_spoc_id(id, display_name, first_name, last_name)
+        client:crm_clients!client_id(name)
       `);
 
     if (error) throw error;
 
-    // For each mapping, fetch assigned recruiters and calculate metrics
+    // Fetch all recruiter profiles once using RPC (bypasses RLS)
+    const { data: allProfiles } = await supabase.rpc('get_recruiter_profiles');
+    const profilesMap = new Map(
+      (allProfiles || []).map(p => [p.id, p])
+    );
+
+    // For each mapping, calculate metrics and enrich with user data
     const enrichedMappings = await Promise.all(
       (mappings || []).map(async (mapping: any) => {
-        // Get recruiter names
-        const recruiterNames = await this.getRecruiterNames(mapping.assigned_recruiter_ids || []);
-        
         // Calculate metrics
         const metrics = await this.calculateMetrics(mapping.client_id);
+        
+        // Get user names from the profiles map
+        const primarySpocProfile = profilesMap.get(mapping.primary_spoc_id);
+        const secondarySpocProfile = mapping.secondary_spoc_id ? profilesMap.get(mapping.secondary_spoc_id) : null;
+        const recruiterProfiles = (mapping.assigned_recruiter_ids || [])
+          .map((id: string) => profilesMap.get(id))
+          .filter(Boolean);
         
         return {
           id: mapping.id,
           clientId: mapping.client_id,
           clientName: mapping.client?.name || 'Unknown',
-          primarySpoc: this.formatUserName(mapping.primary_spoc),
-          secondarySpoc: mapping.secondary_spoc ? this.formatUserName(mapping.secondary_spoc) : undefined,
-          assignedRecruiters: recruiterNames,
+          primarySpoc: this.formatUserName(primarySpocProfile),
+          secondarySpoc: secondarySpocProfile ? this.formatUserName(secondarySpocProfile) : undefined,
+          assignedRecruiters: recruiterProfiles.map(user => this.formatUserName(user)),
           ...metrics,
           createdAt: mapping.created_at,
           updatedAt: mapping.updated_at,
@@ -95,17 +103,6 @@ export class ClientSpocMappingService {
     if (error) throw error;
   }
 
-  // Helper: Get recruiter names
-  private static async getRecruiterNames(recruiterIds: string[]): Promise<string[]> {
-    if (!recruiterIds || recruiterIds.length === 0) return [];
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, display_name, first_name, last_name')
-      .in('id', recruiterIds);
-
-    return (data || []).map(user => this.formatUserName(user));
-  }
 
   // Helper: Format user name
   private static formatUserName(user: any): string {
