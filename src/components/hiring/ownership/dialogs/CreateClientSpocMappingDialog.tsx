@@ -82,9 +82,17 @@ export function CreateClientSpocMappingDialog({ open, onOpenChange, onSuccess }:
       // Load all recruiters
       const recruitersData = await ClientSpocMappingService.getAllRecruiters();
       setRecruiters(recruitersData);
+
+      // Show warnings if no data found
+      if (spocsData.length === 0) {
+        toast.warning('No SPOCs found. Make sure users have proper roles assigned.');
+      }
+      if (recruitersData.length === 0) {
+        toast.warning('No recruiters found. Make sure users have proper roles assigned.');
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
-      toast.error('Failed to load form data');
+      toast.error(`Failed to load form data: ${error.message || 'Unknown error'}`);
     }
   };
 
