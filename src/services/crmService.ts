@@ -196,6 +196,26 @@ export class CrmService {
       .single();
 
     if (error) throw error;
+
+    // Create SPOC link if primary_spoc_id is provided
+    if (account.primary_spoc_id) {
+      const linkData = {
+        spoc_id: account.primary_spoc_id,
+        entity_type: 'account',
+        entity_id: data.id,
+        role: 'Primary Contact'
+      };
+
+      const { error: linkError } = await supabase
+        .from('crm_spoc_links')
+        .insert(linkData);
+
+      if (linkError) {
+        console.error('Failed to create SPOC link for account:', linkError);
+        // Don't throw - account was created successfully
+      }
+    }
+
     return data as CrmAccount;
   }
 
@@ -320,6 +340,26 @@ export class CrmService {
       .single();
 
     if (error) throw error;
+
+    // Create SPOC link if primary_spoc_id is provided
+    if (project.primary_spoc_id) {
+      const linkData = {
+        spoc_id: project.primary_spoc_id,
+        entity_type: 'project',
+        entity_id: data.id,
+        role: 'Primary Contact'
+      };
+
+      const { error: linkError } = await supabase
+        .from('crm_spoc_links')
+        .insert(linkData);
+
+      if (linkError) {
+        console.error('Failed to create SPOC link for project:', linkError);
+        // Don't throw - project was created successfully
+      }
+    }
+
     return data as CrmProject;
   }
 

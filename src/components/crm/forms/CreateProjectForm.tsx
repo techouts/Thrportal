@@ -79,7 +79,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
         name: data.name,
         client_id: clientId,
         account_id: data.account_id || undefined,
-        primary_spoc_id: data.primary_spoc_id || undefined,
+        primary_spoc_id: data.primary_spoc_id === 'none' ? undefined : data.primary_spoc_id,
         start_date: data.start_date?.toISOString().split('T')[0],
         end_date: data.end_date?.toISOString().split('T')[0],
         ft_target: data.ft_target || 0,

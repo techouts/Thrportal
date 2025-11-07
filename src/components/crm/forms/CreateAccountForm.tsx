@@ -67,7 +67,7 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
         type: data.type,
         sla_override: data.sla_override,
         client_id: clientId,
-        primary_spoc_id: data.primary_spoc_id || undefined,
+        primary_spoc_id: data.primary_spoc_id === 'none' ? undefined : data.primary_spoc_id,
         billing_currency: data.billing_currency,
         status: data.status,
         created_by: userId
