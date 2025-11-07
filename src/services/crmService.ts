@@ -203,7 +203,7 @@ export class CrmService {
         spoc_id: account.primary_spoc_id,
         entity_type: 'account',
         entity_id: data.id,
-        role: 'Primary Contact'
+        role: 'primary'
       };
 
       const { error: linkError } = await supabase
@@ -280,7 +280,7 @@ export class CrmService {
         spoc_id: spocData.id,
         entity_type: spoc.client_id ? "client" : "account",
         entity_id: spoc.client_id || spoc.account_id,
-        role: spoc.role || "Contact",
+        role: spoc.role || "primary",
       };
 
       const { error: linkError } = await supabase
@@ -347,7 +347,7 @@ export class CrmService {
         spoc_id: project.primary_spoc_id,
         entity_type: 'project',
         entity_id: data.id,
-        role: 'Primary Contact'
+        role: 'primary'
       };
 
       const { error: linkError } = await supabase
