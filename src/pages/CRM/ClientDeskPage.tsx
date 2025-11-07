@@ -186,7 +186,10 @@ export function ClientDeskPage() {
       setProjects(projectsData);
       setSpocs(spocsData);
 
-      buildHierarchy(clientsData, accountsData, projectsData, spocsData, spocLinksData);
+      const newHierarchy = buildHierarchy(clientsData, accountsData, projectsData, spocsData, spocLinksData);
+      
+      // Refresh the selected node with updated data
+      refreshSelectedNode(newHierarchy);
       
       toast({
         title: "CRM Data Loaded",
@@ -356,6 +359,7 @@ export function ClientDeskPage() {
       fullNodes: rootNodes
     });
     setHierarchy(rootNodes);
+    return rootNodes;
   };
 
   const findNodeById = (id: string, nodes: HierarchyNode[], exactMatch = false): HierarchyNode | null => {
@@ -365,6 +369,21 @@ export function ClientDeskPage() {
       if (found) return found;
     }
     return null;
+  };
+
+  const refreshSelectedNode = (newHierarchy: HierarchyNode[]) => {
+    if (selectedNode) {
+      const updatedNode = findNodeById(selectedNode.id, newHierarchy, true);
+      if (updatedNode) {
+        console.log('🔄 Refreshing selected node with updated data:', {
+          oldNode: selectedNode.name,
+          newNode: updatedNode.name,
+          oldSpocCount: selectedNode.spocs.length,
+          newSpocCount: updatedNode.spocs.length
+        });
+        setSelectedNode(updatedNode);
+      }
+    }
   };
 
   const addToRecents = (node: HierarchyNode) => {
