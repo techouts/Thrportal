@@ -36,12 +36,12 @@ export function MSATab() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
-    loadMSAs();
     loadClients();
   }, []);
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when filters change
+    loadMSAs(); // Fetch filtered data from API
   }, [searchTerm, selectedClient, selectedStatus]);
 
   const loadMSAs = async () => {
