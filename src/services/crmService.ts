@@ -12,34 +12,34 @@ import type {
   CrmMetrics,
   CrmKPIs,
 } from "@/types/crm";
-import axios from "axios";
+import axios,{AxiosInstance} from "axios";
 const VITE_API_BASE_NODE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
+const CRM_API_TIMEOUT = 30000
+// Create axios instance
+const CrmApiClient: AxiosInstance = axios.create({
+  baseURL: VITE_API_BASE_NODE_URL,
+  timeout: CRM_API_TIMEOUT,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 export class CrmService {
   // Clients
   static async getClients(filters?: CrmClientFilters) {
-    let query = supabase
-      .from("crm_clients")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (filters?.status) {
-      query = query.eq("status", filters.status);
-    }
-    if (filters?.industry) {
-      query = query.eq("industry", filters.industry);
-    }
-    if (filters?.region) {
-      query = query.ilike("region", `%${filters.region}%`);
-    }
-    if (filters?.search) {
-      query = query.or(
-        `name.ilike.%${filters.search}%,domain.ilike.%${filters.search}%`
+ try {
+      const response = await CrmApiClient.get<CrmClient[]>(
+        "/crm/clients"
       );
+      return response.data as CrmClient[];
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to fetch client: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
     }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data as CrmClient[];
   }
 
   static async getClientById(id: string) {
@@ -117,56 +117,57 @@ export class CrmService {
   static async createClient(
     client: Omit<CrmClient, "id" | "created_at" | "updated_at">
   ) {
-    // const { data, error } = await supabase
-    //   .from("crm_clients")
-    //   .insert(client)
-    //   .select()
-    //   .single();
-
-    // if (error) throw error;
-    // return data as CrmClient;
-    try {
-      const response = await axios.post<CrmClient>(
-        `${VITE_API_BASE_NODE_URL}/api/clients/createClient`,
+     try {
+      const response = await CrmApiClient.post<CrmClient>(
+        "/crm/clients/createClient",
         client
       );
       return response.data as CrmClient;
     } catch (error) {
-      // Handle API or network errors
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || error.message);
+        const msg =
+          error.response?.data?.message ||
+          `Failed to create client: ${error.message}`;
+        throw new Error(msg);
       }
       throw error;
     }
   }
 
   static async updateClient(id: string, updates: Partial<CrmClient>) {
-    const { data, error } = await supabase
-      .from("crm_clients")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as CrmClient;
+    try {
+      const response = await CrmApiClient.put<CrmClient>(
+        `/crm/clients/${id}`,
+        updates
+      );
+      return response.data as CrmClient;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to update Client: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   // Accounts
   static async getAccounts() {
-    const { data, error } = await supabase
-      .from("crm_accounts")
-      .select(
-        `
-        *,
-        client:crm_clients(*),
-        primary_spoc:crm_spocs!fk_crm_accounts_primary_spoc(*)
-      `
-      )
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data as any[];
+     try {
+      const response = await CrmApiClient.get<CrmAccount[]>(
+        "/crm/accounts"
+      );
+      return response.data as CrmAccount[];
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to fetch accounts: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async getAccountsByClient(clientId: string) {
@@ -189,34 +190,45 @@ export class CrmService {
   static async createAccount(
     account: Omit<CrmAccount, "id" | "created_at" | "updated_at">
   ) {
-    const { data, error } = await supabase
-      .from("crm_accounts")
-      .insert(account)
-      .select()
-      .single();
+    try {
+      const response = await CrmApiClient.post<CrmAccount>(
+        "/crm/accounts/createAccount",
+        account
+      );
+      const accountData = response.data;
 
-    if (error) throw error;
-
-    // Create SPOC link if primary_spoc_id is provided
+     // Create SPOC link if primary_spoc_id is provided
     if (account.primary_spoc_id) {
       const linkData = {
         spoc_id: account.primary_spoc_id,
         entity_type: 'account',
-        entity_id: data.id,
+        entity_id: response.data.id,
         role: 'primary'
       };
-
-      const { error: linkError } = await supabase
-        .from('crm_spoc_links')
-        .insert(linkData);
-
-      if (linkError) {
-        console.error('Failed to create SPOC link for account:', linkError);
-        // Don't throw - account was created successfully
+      try {
+          await CrmApiClient.post(
+            "/crm/spoc-links",
+            linkData
+          );
+        } catch (linkError) {
+          console.error(
+            "Failed to create SPOC link:",
+            linkError.response?.data || linkError.message
+          );
+          // Don’t throw — the SPOC was created successfully
+        }
       }
-    }
+    return accountData as CrmAccount;
 
-    return data as CrmAccount;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to create Account: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   // SPOCs
@@ -253,47 +265,66 @@ export class CrmService {
   }
 
   static async getAllSpocs() {
-    const { data, error } = await supabase
-      .from("crm_spocs")
-      .select("*")
-      .order("is_primary", { ascending: false });
-
-    if (error) throw error;
-    return data as CrmSpoc[];
+    try {
+      const response = await CrmApiClient.get<CrmSpoc[]>(
+        "/crm/spocs"
+      );
+      return response.data as CrmSpoc[];
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to fetch accounts: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async createSpoc(
     spoc: Omit<CrmSpoc, "id" | "created_at" | "updated_at">
   ) {
-    // Create the SPOC record
-    const { data: spocData, error: spocError } = await supabase
-      .from("crm_spocs")
-      .insert(spoc)
-      .select()
-      .single();
+        try {
+      // 1️⃣ Create the SPOC record
+      const spocResponse = await CrmApiClient.post<CrmSpoc>(
+        "/crm/spocs",
+        spoc
+      );
+      const spocData = spocResponse.data;
 
-    if (spocError) throw spocError;
-
-    // Create the link in crm_spoc_links if client_id or account_id is provided
-    if (spoc.client_id || spoc.account_id) {
-      const linkData = {
-        spoc_id: spocData.id,
-        entity_type: spoc.client_id ? "client" : "account",
-        entity_id: spoc.client_id || spoc.account_id,
-        role: spoc.role || "primary",
-      };
-
-      const { error: linkError } = await supabase
-        .from("crm_spoc_links")
-        .insert(linkData);
-
-      if (linkError) {
-        console.error("Failed to create SPOC link:", linkError);
-        // Don't throw - the SPOC was created, just the link failed
+      // 2️⃣ Create the link if client_id or account_id is provided
+      if (spoc.client_id || spoc.account_id) {
+        const linkData = {
+          spoc_id: spocData.id,
+          entity_type: spoc.client_id ? "client" : "account",
+          entity_id: spoc.client_id || spoc.account_id,
+          role: spoc.role || "Contact",
+        };
+        
+        try {
+          await CrmApiClient.post(
+            "/crm/spoc-links",
+            linkData
+          );
+        } catch (linkError) {
+          console.error(
+            "Failed to create SPOC link:",
+            linkError.response?.data || linkError.message
+          );
+          // Don’t throw — the SPOC was created successfully
+        }
       }
-    }
 
-    return spocData as CrmSpoc;
+      return spocData as CrmSpoc;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to create SPOC: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async updateSpoc(id: string, updates: Partial<CrmSpoc>) {
@@ -310,57 +341,69 @@ export class CrmService {
 
   // Projects
   static async getProjects() {
-    const { data, error } = await supabase
-      .from("crm_projects")
-      .select(
-        `
-        *,
-        client:crm_clients(*),
-        account:crm_accounts(*),
-        primary_spoc:crm_spocs(*)
-      `
-      )
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return (data || []).map((project) => ({
-      ...project,
-      priority: project.priority as "Low" | "Medium" | "High" | "Critical",
-      status: project.status as "Planned" | "In-flight" | "Closed",
-    })) as CrmProject[];
+    try {
+      const response = await CrmApiClient.get<CrmProject[]>(
+        "/crm/projects"
+      );
+      return (response.data || []).map((project) => ({
+        ...project,
+        priority: project.priority as "Low" | "Medium" | "High" | "Critical",
+        status: project.status as "Planned" | "In-flight" | "Closed",
+      })) as CrmProject[];
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to get projects: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error
+  }
   }
 
   static async createProject(
     project: Omit<CrmProject, "id" | "created_at" | "updated_at">
   ) {
-    const { data, error } = await supabase
-      .from("crm_projects")
-      .insert(project)
-      .select()
-      .single();
+    try {
+      const response = await CrmApiClient.post<CrmProject>(
+        "/crm/projects/createProject",
+        project
+      );
+      const projectData = response.data;
 
-    if (error) throw error;
-
-    // Create SPOC link if primary_spoc_id is provided
+      // Create SPOC link if primary_spoc_id is provided
     if (project.primary_spoc_id) {
       const linkData = {
         spoc_id: project.primary_spoc_id,
         entity_type: 'project',
-        entity_id: data.id,
+        entity_id: response.data.id,
         role: 'primary'
       };
-
-      const { error: linkError } = await supabase
-        .from('crm_spoc_links')
-        .insert(linkData);
-
-      if (linkError) {
-        console.error('Failed to create SPOC link for project:', linkError);
-        // Don't throw - project was created successfully
-      }
+       try {
+          await CrmApiClient.post(
+            "/crm/spoc-links",
+            linkData
+          );
+        } catch (linkError) {
+          console.error(
+            "Failed to create SPOC link:",
+            linkError.response?.data || linkError.message
+          );
+          // Don’t throw — the SPOC was created successfully
+        }
     }
+    return projectData as CrmProject;
 
-    return data as CrmProject;
+      // return response.data as CrmProject;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to create Project: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   // Opportunities
@@ -554,27 +597,39 @@ export class CrmService {
 
   // Additional CRUD methods
   static async updateAccount(id: string, updates: Partial<CrmAccount>) {
-    const { data, error } = await supabase
-      .from("crm_accounts")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as CrmAccount;
+    try {
+      const response = await CrmApiClient.put<CrmAccount>(
+        `/crm/accounts/${id}`,
+        updates
+      );
+      return response.data as CrmAccount;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to update Account: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async updateProject(id: string, updates: Partial<CrmProject>) {
-    const { data, error } = await supabase
-      .from("crm_projects")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as CrmProject;
+    try {
+      const response = await CrmApiClient.put<CrmProject>(
+        `/crm/projects/${id}`,
+        updates
+      );
+      return response.data as CrmProject;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to update Account: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async updateOpportunity(id: string, updates: Partial<CrmOpportunity>) {
