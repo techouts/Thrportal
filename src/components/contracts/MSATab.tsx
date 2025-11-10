@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
 import { CreateMSAForm } from './CreateMSAForm';
 import { EditMSAForm } from './EditMSAForm';
+import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
 import type { MSA } from '@/types/contracts';
 
 export function MSATab() {
@@ -21,6 +22,7 @@ export function MSATab() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingMSA, setEditingMSA] = useState<MSA | null>(null);
+  const [msaToDelete, setMsaToDelete] = useState<MSA | null>(null);
   const [clients, setClients] = useState<any[]>([]);
 
   useEffect(() => {
@@ -72,15 +74,16 @@ export function MSATab() {
     }
   };
 
-  const handleDeleteMSA = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this MSA?')) return;
+  const handleDeleteMSA = async () => {
+    if (!msaToDelete) return;
     
     try {
-      await CrmService.deleteMSA(id);
+      await CrmService.deleteMSA(msaToDelete.id);
       toast({
         title: 'Success',
         description: 'MSA deleted successfully'
       });
+      setMsaToDelete(null);
       loadMSAs();
     } catch (error) {
       toast({
@@ -186,7 +189,7 @@ export function MSATab() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteMSA(msa.id)}
+                      onClick={() => setMsaToDelete(msa)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -233,6 +236,15 @@ export function MSATab() {
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={!!msaToDelete}
+        onOpenChange={(open) => !open && setMsaToDelete(null)}
+        onConfirm={handleDeleteMSA}
+        title="Delete MSA"
+        description="Are you sure you want to delete this MSA? This action cannot be undone."
+        entityName={msaToDelete?.title}
+      />
     </div>
   );
 }
