@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
+import { format, parse } from 'date-fns';
+import { CalendarIcon, Upload, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, X, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CrmService } from '@/services/crmService';
+import { cn } from '@/lib/utils';
 
 interface EditMSAFormProps {
   msa: any;
@@ -22,8 +26,8 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
   const [formData, setFormData] = useState({
     title: msa.title || '',
     client_id: msa.client_id || '',
-    valid_from: msa.valid_from || '',
-    valid_to: msa.valid_to || '',
+    valid_from: msa.valid_from ? parse(msa.valid_from, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
+    valid_to: msa.valid_to ? parse(msa.valid_to, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
     status: msa.status || 'active',
     doc_link: msa.doc_link || '',
   });
@@ -99,8 +103,8 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
       // Prepare update payload
       const updatePayload = {
         title: formData.title,
-        valid_from: formData.valid_from,
-        valid_to: formData.valid_to,
+        valid_from: formData.valid_from ? format(formData.valid_from, 'yyyy-MM-dd') : '',
+        valid_to: formData.valid_to ? format(formData.valid_to, 'yyyy-MM-dd') : '',
         status: formData.status,
         doc_link: doc_link
       };
@@ -138,25 +142,60 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="valid_from">Valid From*</Label>
-          <Input
-            id="valid_from"
-            type="date"
-            value={formData.valid_from}
-            onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
-            required
-          />
+        <div className="flex flex-col space-y-2">
+          <Label>Valid From*</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !formData.valid_from && "text-muted-foreground"
+                )}
+              >
+                {formData.valid_from ? format(formData.valid_from, "PPP") : <span>Pick a date</span>}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.valid_from}
+                onSelect={(date) => setFormData({ ...formData, valid_from: date })}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
-        <div>
-          <Label htmlFor="valid_to">Valid To*</Label>
-          <Input
-            id="valid_to"
-            type="date"
-            value={formData.valid_to}
-            onChange={(e) => setFormData({ ...formData, valid_to: e.target.value })}
-            required
-          />
+        <div className="flex flex-col space-y-2">
+          <Label>Valid To*</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !formData.valid_to && "text-muted-foreground"
+                )}
+              >
+                {formData.valid_to ? format(formData.valid_to, "PPP") : <span>Pick a date</span>}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.valid_to}
+                onSelect={(date) => setFormData({ ...formData, valid_to: date })}
+                initialFocus
+                disabled={(date) => {
+                  return formData.valid_from ? date < formData.valid_from : false;
+                }}
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 

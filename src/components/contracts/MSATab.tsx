@@ -5,6 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Plus, Search, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
@@ -24,10 +32,16 @@ export function MSATab() {
   const [editingMSA, setEditingMSA] = useState<MSA | null>(null);
   const [msaToDelete, setMsaToDelete] = useState<MSA | null>(null);
   const [clients, setClients] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     loadMSAs();
     loadClients();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1); // Reset to page 1 when filters change
   }, [searchTerm, selectedClient, selectedStatus]);
 
   const loadMSAs = async () => {
@@ -94,6 +108,12 @@ export function MSATab() {
     }
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(msas.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMSAs = msas.slice(startIndex, endIndex);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -158,8 +178,9 @@ export function MSATab() {
           ) : msas.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">No MSAs found</div>
           ) : (
-            <div className="space-y-4">
-              {msas.map((msa) => (
+            <>
+              <div className="space-y-4">
+                {paginatedMSAs.map((msa) => (
                 <div key={msa.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -197,6 +218,65 @@ export function MSATab() {
                 </div>
               ))}
             </div>
+
+            {msas.length > 0 && (
+              <div className="mt-6 flex items-center justify-between border-t pt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[70px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}-{Math.min(endIndex, msas.length)} of {msas.length}
+                  </span>
+                </div>
+                
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
           )}
         </CardContent>
       </Card>
