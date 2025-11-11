@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
+import { format, parse } from 'date-fns';
+import { CalendarIcon, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { CrmService } from '@/services/crmService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EditSOWFormProps {
   sow: any;
@@ -14,21 +21,98 @@ interface EditSOWFormProps {
 export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   const [formData, setFormData] = useState({
     title: sow.title || '',
-    valid_from: sow.validFrom || '',
-    valid_to: sow.validTo || '',
-    amount_cap: sow.amountCap || '',
+    valid_from: sow.valid_from ? parse(sow.valid_from, 'yyyy-MM-dd', new Date()) : undefined,
+    valid_to: sow.valid_to ? parse(sow.valid_to, 'yyyy-MM-dd', new Date()) : undefined,
+    amount_cap: sow.amount_cap || '',
     currency: sow.currency || 'USD',
     status: sow.status || 'active',
+    doc_link: sow.doc_link || '',
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: 'Error',
+          description: 'File size must be less than 10MB',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/png', 'image/jpeg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: 'Error',
+          description: 'Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+    }
+  };
+
+  const uploadDocument = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `sows/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('contracts')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('contracts')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.title || !formData.valid_from || !formData.valid_to) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // TODO: Update SOW via service
+      let doc_link = formData.doc_link;
+      
+      if (selectedFile) {
+        setUploading(true);
+        doc_link = await uploadDocument(selectedFile);
+        setUploading(false);
+      }
+
+      const updatePayload = {
+        title: formData.title,
+        valid_from: format(formData.valid_from, 'yyyy-MM-dd'),
+        valid_to: format(formData.valid_to, 'yyyy-MM-dd'),
+        amount_cap: formData.amount_cap ? parseFloat(formData.amount_cap) : null,
+        currency: formData.currency,
+        status: formData.status,
+        doc_link,
+      };
+
+      await CrmService.updateSOW(sow.id, updatePayload);
+      
       toast({
         title: "Success",
         description: "SOW updated successfully",
@@ -42,6 +126,7 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -58,37 +143,80 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="valid_from">Valid From*</Label>
-          <Input
-            id="valid_from"
-            type="date"
-            value={formData.valid_from}
-            onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
-            required
-          />
+        <div className="flex flex-col space-y-2">
+          <Label>Valid From*</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !formData.valid_from && "text-muted-foreground"
+                )}
+              >
+                {formData.valid_from ? (
+                  format(formData.valid_from, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.valid_from}
+                onSelect={(date) => setFormData({ ...formData, valid_from: date })}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
-        <div>
-          <Label htmlFor="valid_to">Valid To*</Label>
-          <Input
-            id="valid_to"
-            type="date"
-            value={formData.valid_to}
-            onChange={(e) => setFormData({ ...formData, valid_to: e.target.value })}
-            required
-          />
+
+        <div className="flex flex-col space-y-2">
+          <Label>Valid To*</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !formData.valid_to && "text-muted-foreground"
+                )}
+              >
+                {formData.valid_to ? (
+                  format(formData.valid_to, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.valid_to}
+                onSelect={(date) => setFormData({ ...formData, valid_to: date })}
+                initialFocus
+                disabled={(date) => formData.valid_from ? date < formData.valid_from : false}
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="amount_cap">Amount Cap*</Label>
+          <Label htmlFor="amount_cap">Amount Cap</Label>
           <Input
             id="amount_cap"
             type="number"
+            step="0.01"
             value={formData.amount_cap}
             onChange={(e) => setFormData({ ...formData, amount_cap: e.target.value })}
-            required
+            placeholder="250000.00"
           />
         </div>
         <div>
@@ -101,6 +229,7 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="GBP">GBP</SelectItem>
+              <SelectItem value="INR">INR</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -121,12 +250,53 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
         </Select>
       </div>
 
+      <div className="space-y-2">
+        <Label>Add New Document</Label>
+        {formData.doc_link && !selectedFile && (
+          <div className="flex items-center gap-2 p-2 bg-muted rounded">
+            <span className="text-sm flex-1">Current Document</span>
+            <a 
+              href={formData.doc_link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline flex items-center gap-1"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View
+            </a>
+          </div>
+        )}
+        
+        {!selectedFile ? (
+          <Input
+            type="file"
+            accept=".pdf,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
+            onChange={handleFileChange}
+          />
+        ) : (
+          <div className="flex items-center gap-2 p-2 border rounded">
+            <span className="flex-1 text-sm truncate">{selectedFile.name}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedFile(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Accepted: PDF, DOCX, XLSX, PNG, JPG (max 10MB)
+        </p>
+      </div>
+
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Save Changes"}
+          {loading ? (uploading ? 'Uploading...' : 'Saving...') : 'Save Changes'}
         </Button>
       </div>
     </form>

@@ -6,6 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
 import { CreateSOWForm } from './CreateSOWForm';
@@ -22,6 +31,9 @@ export function SOWTab() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingSOW, setEditingSOW] = useState<SOW | null>(null);
   const [clients, setClients] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sowToDelete, setSOWToDelete] = useState<SOW | null>(null);
 
   useEffect(() => {
     loadSOWs();
@@ -33,7 +45,8 @@ export function SOWTab() {
       setLoading(true);
       const data = await CrmService.getSOWs({
         search: searchTerm,
-        status: selectedStatus !== 'all' ? selectedStatus : undefined
+        status: selectedStatus !== 'all' ? selectedStatus : undefined,
+        client_id: selectedClient !== 'all' ? selectedClient : undefined
       }) as any;
       setSows(data);
     } catch (error) {
@@ -71,15 +84,27 @@ export function SOWTab() {
     }
   };
 
-  const handleDeleteSOW = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this SOW?')) return;
+  // Calculate pagination
+  const totalPages = Math.ceil(sows.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSOWs = sows.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedClient, selectedStatus]);
+
+  const handleDeleteSOW = async () => {
+    if (!sowToDelete) return;
     
     try {
-      await CrmService.deleteSOW(id);
+      await CrmService.deleteSOW(sowToDelete.id);
       toast({
         title: 'Success',
         description: 'SOW deleted successfully'
       });
+      setSOWToDelete(null);
       loadSOWs();
     } catch (error) {
       toast({
@@ -154,7 +179,7 @@ export function SOWTab() {
             <div className="text-center py-8 text-muted-foreground">No SOWs found</div>
           ) : (
             <div className="space-y-4">
-              {sows.map((sow) => (
+              {paginatedSOWs.map((sow) => (
                 <div key={sow.id} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -176,17 +201,75 @@ export function SOWTab() {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteSOW(sow.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSOWToDelete(sow)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {sows.length > 0 && (
+            <div className="mt-6 flex items-center justify-between border-t pt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rows per page:</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, sows.length)} of {sows.length}
+                </span>
+              </div>
+              
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>
@@ -226,6 +309,16 @@ export function SOWTab() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={!!sowToDelete}
+        onOpenChange={(open) => !open && setSOWToDelete(null)}
+        onConfirm={handleDeleteSOW}
+        title="Delete SOW"
+        description="Are you sure you want to delete this SOW? This action cannot be undone."
+        entityName={sowToDelete?.title}
+      />
     </div>
   );
 }

@@ -779,6 +779,7 @@ export class CrmService {
     msa_id?: string;
     status?: string;
     search?: string;
+    client_id?: string;
   }) {
     let query = supabase
       .from("sows")
@@ -801,6 +802,9 @@ export class CrmService {
     }
     if (filters?.search) {
       query = query.ilike("title", `%${filters.search}%`);
+    }
+    if (filters?.client_id) {
+      query = query.eq("msa.client_id", filters.client_id);
     }
 
     const { data, error } = await query;
