@@ -115,24 +115,25 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
     try {
       setLoading(true);
       
-      let doc_link: string | undefined = undefined;
+      // let doc_link: string | undefined = undefined;
       
-      if (selectedFile) {
-        setUploading(true);
-        doc_link = await uploadDocument(selectedFile);
-        setUploading(false);
-      }
+      // if (selectedFile) {
+      //   setUploading(true);
+      //   doc_link = await uploadDocument(selectedFile);
+      //   setUploading(false);
+      // }
 
       await CrmService.createSOW({
         title: data.title,
-        msa_id: data.msa_id,
-        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
-        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
-        amount_cap: data.amount_cap,
+        msaId: data.msa_id,
+        validFrom: format(data.valid_from, 'yyyy-MM-dd'),
+        validTo: format(data.valid_to, 'yyyy-MM-dd'),
+        amountCap: data.amount_cap,
         currency: data.currency,
         status: data.status,
-        doc_link
-      });
+      },
+      selectedFile
+    );
       
       toast({
         title: "Success",

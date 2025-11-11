@@ -781,79 +781,104 @@ export class CrmService {
     search?: string;
     client_id?: string;
   }) {
-    let query = supabase
-      .from("sows")
-      .select(
-        `
-        *,
-        msa:msas(
-          *,
-          client:crm_clients(*)
-        )
-      `
-      )
-      .order("created_at", { ascending: false });
+    try {
+       const mappedFilters: Record<string, string> = {};
 
-    if (filters?.msa_id) {
-      query = query.eq("msa_id", filters.msa_id);
-    }
-    if (filters?.status) {
-      query = query.eq("status", filters.status as any);
-    }
-    if (filters?.search) {
-      query = query.ilike("title", `%${filters.search}%`);
-    }
     if (filters?.client_id) {
-      query = query.eq("msa.client_id", filters.client_id);
+      mappedFilters["client_id"] = filters.client_id; // API expects client_name
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+    if (filters?.status) {
+      mappedFilters["status"] = filters.status;
+    }
+
+    if (filters?.search) {
+      mappedFilters["sow_name"] = filters.search; // API expects msa_name
+    }
+      const response = await CrmApiClient.get(
+        "/crm/contracts/sows",
+        {params: mappedFilters,}
+      );
+      return response.data || [];
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to fetch SOWs: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
-  static async createSOW(sow: any) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  static async createSOW(sow: any,selectedFile: File) {
+     // Create FormData to match curl
+  const formData = new FormData();
+  if (selectedFile) formData.append("file", selectedFile);
+  formData.append("data", JSON.stringify(sow)); // JSON payload as string
 
-    // Only include created_by if we have a valid UUID (not dev mode string)
-    const payload = {
-      ...sow,
-      ...(user?.id &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        user.id
-      )
-        ? { created_by: user.id }
-        : {}),
-    };
+  try {
+    const response = await CrmApiClient.post(
+      "/crm/contracts/sows/createSow",
+      formData,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": undefined,
+        },
+      }
+    );
 
-    const { data, error } = await supabase
-      .from("sows")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return response.data;
+  } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to create SOW: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async updateSOW(id: string, updates: any) {
-    const { data, error } = await supabase
-      .from("sows")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+     // Create FormData to match curl
+  const formData = new FormData();
+  const selectedFile = updates.doc_link
+  if (selectedFile) formData.append("file", selectedFile);
+  formData.append("data", JSON.stringify(updates)); // JSON payload as string
+     try {
+      const response = await CrmApiClient.put(
+        `/crm/contracts/sows/${id}`,
+        formData
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to update MSA: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async deleteSOW(id: string) {
-    const { error } = await supabase.from("sows").delete().eq("id", id);
-
-    if (error) throw error;
+     try {
+      const response = await CrmApiClient.delete(
+        `/crm/contracts/sows/${id}`
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to delete SOW: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   // Purchase Order Methods
