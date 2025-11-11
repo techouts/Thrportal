@@ -6,6 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Search, Edit, Trash2, ExternalLink } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
 import { CreatePOForm } from './CreatePOForm';
@@ -22,6 +31,9 @@ export function PurchaseOrderTab() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingPO, setEditingPO] = useState<PurchaseOrder | null>(null);
   const [clients, setClients] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [poToDelete, setPOToDelete] = useState<PurchaseOrder | null>(null);
 
   useEffect(() => {
     loadPOs();
@@ -57,6 +69,17 @@ export function PurchaseOrderTab() {
     }
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(pos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPOs = pos.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedClient, selectedStatus]);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -72,15 +95,16 @@ export function PurchaseOrderTab() {
     }
   };
 
-  const handleDeletePO = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this Purchase Order?')) return;
+  const handleDeletePO = async () => {
+    if (!poToDelete) return;
     
     try {
-      await CrmService.deletePO(id);
+      await CrmService.deletePO(poToDelete.id);
       toast({
         title: 'Success',
         description: 'Purchase Order deleted successfully'
       });
+      setPOToDelete(null);
       loadPOs();
     } catch (error) {
       toast({
@@ -155,7 +179,7 @@ export function PurchaseOrderTab() {
             <div className="text-center py-8 text-muted-foreground">No Purchase Orders found</div>
           ) : (
             <div className="space-y-4">
-              {pos.map((po) => (
+              {paginatedPOs.map((po) => (
                 <div key={po.id} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -188,7 +212,7 @@ export function PurchaseOrderTab() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeletePO(po.id)}
+                        onClick={() => setPOToDelete(po)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -196,6 +220,64 @@ export function PurchaseOrderTab() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {pos.length > 0 && (
+            <div className="mt-6 flex items-center justify-between border-t pt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rows per page:</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, pos.length)} of {pos.length}
+                </span>
+              </div>
+              
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>
@@ -235,6 +317,15 @@ export function PurchaseOrderTab() {
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={!!poToDelete}
+        onOpenChange={(open) => !open && setPOToDelete(null)}
+        onConfirm={handleDeletePO}
+        title="Delete Purchase Order"
+        description="Are you sure you want to delete this Purchase Order? This action cannot be undone."
+        entityName={poToDelete?.po_number}
+      />
     </div>
   );
 }
