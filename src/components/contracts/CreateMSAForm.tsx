@@ -46,7 +46,7 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
     defaultValues: {
       title: '',
       client_id: '',
-      status: 'draft'
+      status: 'Draft'
     }
   });
 
