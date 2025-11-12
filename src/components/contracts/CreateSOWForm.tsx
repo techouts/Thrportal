@@ -125,12 +125,14 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
 
       await CrmService.createSOW({
         title: data.title,
-        msaId: data.msa_id,
-        validFrom: format(data.valid_from, 'yyyy-MM-dd'),
-        validTo: format(data.valid_to, 'yyyy-MM-dd'),
-        amountCap: data.amount_cap,
+        msa_id: data.msa_id,
+        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
+        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
+        amount_cap: data.amount_cap,
         currency: data.currency,
         status: data.status,
+        rate_cards: {},
+        role_caps: {}
       },
       selectedFile
     );

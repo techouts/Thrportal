@@ -12,6 +12,20 @@ import type {
   CrmMetrics,
   CrmKPIs,
 } from "@/types/crm";
+import type {
+  MSA,
+  SOW,
+  PurchaseOrder,
+  MSAFilters,
+  SOWFilters,
+  POFilters,
+  CreateMSAInput,
+  CreateSOWInput,
+  CreatePOInput,
+  UpdateMSAInput,
+  UpdateSOWInput,
+  UpdatePOInput,
+} from "@/types/contracts";
 import axios,{AxiosInstance} from "axios";
 const VITE_API_BASE_NODE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
 const CRM_API_TIMEOUT = 30000
@@ -669,11 +683,7 @@ export class CrmService {
   }
 
   // MSA Methods
-  static async getMSAs(filters?: {
-    client_id?: string;
-    status?: string;
-    search?: string;
-  }) {
+  static async getMSAs(filters?: MSAFilters): Promise<MSA[]> {
     try {
        const mappedFilters: Record<string, string> = {};
 
@@ -704,7 +714,7 @@ export class CrmService {
     }
   }
 
-  static async createMSA(msa: any, selectedFile: File) {
+  static async createMSA(msa: CreateMSAInput, selectedFile: File): Promise<MSA> {
     // Create FormData to match curl
   const formData = new FormData();
   if (selectedFile) formData.append("file", selectedFile);
@@ -734,7 +744,7 @@ export class CrmService {
     }
   }
 
-  static async updateMSA(id: string, updates: any) {
+  static async updateMSA(id: string, updates: UpdateMSAInput): Promise<MSA> {
      // Create FormData to match curl
   const formData = new FormData();
   const selectedFile = updates.doc_link
@@ -757,12 +767,12 @@ export class CrmService {
     }
   }
 
-  static async deleteMSA(id: string) {
+  static async deleteMSA(id: string): Promise<void> {
     try {
-      const response = await CrmApiClient.delete(
+      await CrmApiClient.delete(
         `/crm/contracts/msa/${id}`
       );
-      return response.data;
+      return;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const msg =
@@ -775,12 +785,7 @@ export class CrmService {
   }
 
   // SOW Methods
-  static async getSOWs(filters?: {
-    msa_id?: string;
-    status?: string;
-    search?: string;
-    client_id?: string;
-  }) {
+  static async getSOWs(filters?: SOWFilters): Promise<SOW[]> {
     try {
        const mappedFilters: Record<string, string> = {};
 
@@ -811,7 +816,7 @@ export class CrmService {
     }
   }
 
-  static async createSOW(sow: any,selectedFile: File) {
+  static async createSOW(sow: CreateSOWInput, selectedFile: File): Promise<SOW> {
      // Create FormData to match curl
   const formData = new FormData();
   if (selectedFile) formData.append("file", selectedFile);
@@ -841,7 +846,7 @@ export class CrmService {
     }
   }
 
-  static async updateSOW(id: string, updates: any) {
+  static async updateSOW(id: string, updates: UpdateSOWInput): Promise<SOW> {
      // Create FormData to match curl
   const formData = new FormData();
   const selectedFile = updates.doc_link
@@ -864,12 +869,12 @@ export class CrmService {
     }
   }
 
-  static async deleteSOW(id: string) {
+  static async deleteSOW(id: string): Promise<void> {
      try {
-      const response = await CrmApiClient.delete(
+      await CrmApiClient.delete(
         `/crm/contracts/sows/${id}`
       );
-      return response.data;
+      return;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const msg =
@@ -882,11 +887,7 @@ export class CrmService {
   }
 
   // Purchase Order Methods
-  static async getPOs(filters?: {
-    client_id?: string;
-    status?: string;
-    search?: string;
-  }) {
+  static async getPOs(filters?: POFilters): Promise<PurchaseOrder[]> {
     let query = supabase
       .from("purchase_orders")
       .select(
@@ -912,7 +913,7 @@ export class CrmService {
     return data || [];
   }
 
-  static async createPO(po: any) {
+  static async createPO(po: CreatePOInput): Promise<PurchaseOrder> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -938,7 +939,7 @@ export class CrmService {
     return data;
   }
 
-  static async updatePO(id: string, updates: any) {
+  static async updatePO(id: string, updates: UpdatePOInput): Promise<PurchaseOrder> {
     const { data, error } = await supabase
       .from("purchase_orders")
       .update(updates)
@@ -950,7 +951,7 @@ export class CrmService {
     return data;
   }
 
-  static async deletePO(id: string) {
+  static async deletePO(id: string): Promise<void> {
     const { error } = await supabase
       .from("purchase_orders")
       .delete()

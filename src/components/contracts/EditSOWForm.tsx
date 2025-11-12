@@ -101,15 +101,18 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
       //   setUploading(false);
       // }
 
-      const updatePayload = {
+      const updatePayload: any = {
         title: formData.title,
-        validFrom: format(formData.valid_from, 'yyyy-MM-dd'),
-        validTo: format(formData.valid_to, 'yyyy-MM-dd'),
-        amountCap: formData.amount_cap ? parseFloat(formData.amount_cap) : null,
+        valid_from: format(formData.valid_from, 'yyyy-MM-dd'),
+        valid_to: format(formData.valid_to, 'yyyy-MM-dd'),
+        amount_cap: formData.amount_cap ? parseFloat(formData.amount_cap) : null,
         currency: formData.currency,
-        status: formData.status,
-        doc_link: selectedFile,
+        status: formData.status as 'draft' | 'active' | 'expired' | 'terminated',
       };
+      
+      if (selectedFile) {
+        updatePayload.doc_link = selectedFile;
+      }
 
       await CrmService.updateSOW(sow.id, updatePayload);
       

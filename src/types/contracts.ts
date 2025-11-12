@@ -142,3 +142,37 @@ export interface ContractMetrics {
   shadow_approvals_pending: number;
   overallocated_sows: number;
 }
+
+// Filter types for API queries
+export interface MSAFilters {
+  client_id?: string;
+  status?: 'draft' | 'active' | 'expired' | 'terminated';
+  search?: string;
+}
+
+export interface SOWFilters {
+  msa_id?: string;
+  client_id?: string;
+  status?: 'draft' | 'active' | 'expired' | 'terminated';
+  search?: string;
+}
+
+export interface POFilters {
+  client_id?: string;
+  status?: 'draft' | 'active' | 'expired' | 'terminated';
+  search?: string;
+}
+
+// Create input types (omit auto-generated fields)
+export type CreateMSAInput = Omit<MSA, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+
+export type CreateSOWInput = Omit<SOW, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+
+export type CreatePOInput = Omit<PurchaseOrder, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+
+// Update input types (all fields optional, immutable fields omitted)
+export type UpdateMSAInput = Partial<Omit<MSA, 'id' | 'created_at' | 'created_by'>>;
+
+export type UpdateSOWInput = Partial<Omit<SOW, 'id' | 'created_at' | 'created_by'>>;
+
+export type UpdatePOInput = Partial<Omit<PurchaseOrder, 'id' | 'created_at' | 'created_by'>>;

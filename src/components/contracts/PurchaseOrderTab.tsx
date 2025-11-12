@@ -46,7 +46,7 @@ export function PurchaseOrderTab() {
       const data = await CrmService.getPOs({
         search: searchTerm,
         client_id: selectedClient !== 'all' ? selectedClient : undefined,
-        status: selectedStatus !== 'all' ? selectedStatus : undefined
+        status: selectedStatus !== 'all' ? (selectedStatus as 'draft' | 'active' | 'expired' | 'terminated') : undefined
       });
       setPos(data);
     } catch (error) {

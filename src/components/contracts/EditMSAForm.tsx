@@ -28,7 +28,7 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
     client_id: msa.client_id || '',
     valid_from: msa.valid_from ? parse(msa.valid_from, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
     valid_to: msa.valid_to ? parse(msa.valid_to, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
-    status: msa.status || 'Active',
+    status: msa.status || 'active',
     doc_link: msa.doc_link || '',
   });
 
@@ -101,13 +101,16 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
       }
       
       // Prepare update payload
-      const updatePayload = {
+      const updatePayload: any = {
         title: formData.title,
         valid_from: formData.valid_from ? format(formData.valid_from, 'yyyy-MM-dd') : '',
         valid_to: formData.valid_to ? format(formData.valid_to, 'yyyy-MM-dd') : '',
-        status: formData.status,
-        doc_link: selectedFile
+        status: formData.status as 'draft' | 'active' | 'expired' | 'terminated',
       };
+      
+      if (selectedFile) {
+        updatePayload.doc_link = selectedFile;
+      }
       
       // Call CrmService.updateMSA
       await CrmService.updateMSA(msa.id, updatePayload);
@@ -206,10 +209,10 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Draft">Draft</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Expired">Expired</SelectItem>
-            <SelectItem value="Terminated">Terminated</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="expired">Expired</SelectItem>
+            <SelectItem value="terminated">Terminated</SelectItem>
           </SelectContent>
         </Select>
       </div>
