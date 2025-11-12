@@ -20,7 +20,7 @@ const msaSchema = z.object({
   client_id: z.string().min(1, 'Client is required'),
   valid_from: z.date({ required_error: 'Valid from date is required' }),
   valid_to: z.date({ required_error: 'Valid to date is required' }),
-  status: z.enum(['draft', 'active', 'expired', 'terminated']).default('draft'),
+  status: z.enum(['Draft', 'Active', 'Expired', 'Terminated']).default('Draft'),
   document: z.instanceof(File).optional()
 }).refine(data => data.valid_to > data.valid_from, {
   message: 'Valid to must be after valid from',
@@ -46,7 +46,7 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
     defaultValues: {
       title: '',
       client_id: '',
-      status: 'draft'
+      status: 'Draft'
     }
   });
 
@@ -112,9 +112,9 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
       
       await CrmService.createMSA({
         title: data.title,
-        client_id: data.client_id,
-        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
-        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
+        clientId: data.client_id,
+        validFrom: format(data.valid_from, 'yyyy-MM-dd'),
+        validTo: format(data.valid_to, 'yyyy-MM-dd'),
         status: data.status,
       },
       selectedFile
@@ -271,10 +271,10 @@ export function CreateMSAForm({ clients, onSuccess, onCancel }: CreateMSAFormPro
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                  <SelectItem value="terminated">Terminated</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Expired">Expired</SelectItem>
+                  <SelectItem value="Terminated">Terminated</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

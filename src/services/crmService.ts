@@ -753,7 +753,13 @@ export class CrmService {
      try {
       const response = await CrmApiClient.put(
         `/crm/contracts/msa/${id}`,
-        formData
+        formData,
+         {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": undefined,
+        },
+      }
       );
       return response.data;
     } catch (error) {
@@ -855,7 +861,13 @@ export class CrmService {
      try {
       const response = await CrmApiClient.put(
         `/crm/contracts/sows/${id}`,
-        formData
+        formData,
+         {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": undefined,
+        },
+      }
       );
       return response.data;
     } catch (error) {

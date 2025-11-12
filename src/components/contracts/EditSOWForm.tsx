@@ -29,8 +29,8 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
     valid_from: sow.valid_from ? parse(sow.valid_from, 'yyyy-MM-dd', new Date()) : undefined,
     valid_to: sow.valid_to ? parse(sow.valid_to, 'yyyy-MM-dd', new Date()) : undefined,
     amount_cap: sow.amount_cap || '',
-    currency: sow.currency || 'USD',
-    status: sow.status || 'active',
+    currency: sow.currency || 'INR',
+    status: sow.status || 'Active',
     doc_link: sow.doc_link || '',
   });
 
@@ -103,16 +103,17 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
 
       const updatePayload: any = {
         title: formData.title,
-        valid_from: format(formData.valid_from, 'yyyy-MM-dd'),
-        valid_to: format(formData.valid_to, 'yyyy-MM-dd'),
-        amount_cap: formData.amount_cap ? parseFloat(formData.amount_cap) : null,
+        validFrom: format(formData.valid_from, 'yyyy-MM-dd'),
+        validTo: format(formData.valid_to, 'yyyy-MM-dd'),
+        amountCap: formData.amount_cap ? parseFloat(formData.amount_cap) : null,
         currency: formData.currency,
-        status: formData.status as 'draft' | 'active' | 'expired' | 'terminated',
+        status: formData.status as 'Draft' | 'Active' | 'Expired' | 'Terminated',
+        doc_link: selectedFile,
       };
       
-      if (selectedFile) {
-        updatePayload.doc_link = selectedFile;
-      }
+      // if (selectedFile) {
+      //   updatePayload.doc_link = selectedFile;
+      // }
 
       await CrmService.updateSOW(sow.id, updatePayload);
       
@@ -229,10 +230,10 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+               <SelectItem value="INR">INR</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="GBP">GBP</SelectItem>
-              <SelectItem value="INR">INR</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -245,10 +246,10 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
-            <SelectItem value="terminated">Terminated</SelectItem>
+            <SelectItem value="Draft">Draft</SelectItem>
+            <SelectItem value="Active">Active</SelectItem>
+            <SelectItem value="Expired">Expired</SelectItem>
+            <SelectItem value="Terminated">Terminated</SelectItem>
           </SelectContent>
         </Select>
       </div>

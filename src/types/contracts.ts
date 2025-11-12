@@ -2,12 +2,15 @@
 
 export interface MSA {
   id: string;
-  client_id: string;
+  client_id?: string;
+  clientId: string;
   title: string;
-  valid_from: string;
-  valid_to: string;
+  valid_from?: string;
+  validFrom: string;
+  valid_to?: string;
+  validTo: string;
   doc_link?: string;
-  status: 'draft' | 'active' | 'expired' | 'terminated';
+  status: 'Draft' | 'Active' | 'Expired' | 'Terminated';
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -15,15 +18,19 @@ export interface MSA {
 
 export interface SOW {
   id: string;
-  msa_id: string;
+  msa_id?: string;
+  msaId: string;
   title: string;
-  valid_from: string;
-  valid_to: string;
-  role_caps: Record<string, number>;
+  valid_from?: string;
+  validFrom: string;
+  valid_to?: string;
+  validTo: string;
+  role_caps?: Record<string, number>;
   amount_cap?: number;
+  amountCap?: number;
   currency: string;
-  rate_cards: Record<string, number>;
-  status: 'draft' | 'active' | 'expired' | 'terminated';
+  rate_cards?: Record<string, number>;
+  status: 'Draft' | 'Active' | 'Expired' | 'Terminated';
   doc_link?: string;
   created_at: string;
   updated_at: string;
@@ -146,20 +153,20 @@ export interface ContractMetrics {
 // Filter types for API queries
 export interface MSAFilters {
   client_id?: string;
-  status?: 'draft' | 'active' | 'expired' | 'terminated';
+  status?: 'Draft' | 'Active' | 'Expired' | 'Terminated';
   search?: string;
 }
 
 export interface SOWFilters {
   msa_id?: string;
   client_id?: string;
-  status?: 'draft' | 'active' | 'expired' | 'terminated';
+  status?: 'Draft' | 'Active' | 'Expired' | 'Terminated';
   search?: string;
 }
 
 export interface POFilters {
   client_id?: string;
-  status?: 'draft' | 'active' | 'expired' | 'terminated';
+  status?: 'Draft' | 'Active' | 'Expired' | 'Terminated';
   search?: string;
 }
 

@@ -22,7 +22,7 @@ const sowSchema = z.object({
   valid_to: z.date({ required_error: 'Valid to date is required' }),
   amount_cap: z.number().min(0, 'Amount must be positive').optional(),
   currency: z.string().default('USD'),
-  status: z.enum(['draft', 'active', 'expired', 'terminated']).default('draft'),
+  status: z.enum(['Draft', 'Active', 'Expired', 'Terminated']).default('Draft'),
   document: z.instanceof(File).optional()
 }).refine(data => data.valid_to > data.valid_from, {
   message: 'Valid to must be after valid from',
@@ -49,7 +49,7 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
       title: '',
       msa_id: '',
       currency: 'USD',
-      status: 'draft'
+      status: 'Draft'
     }
   });
 
@@ -59,7 +59,7 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
 
   const loadMSAs = async () => {
     try {
-      const data = await CrmService.getMSAs({ status: 'active' });
+      const data = await CrmService.getMSAs({ status: 'Active' });
       setMsas(data);
     } catch (error) {
       console.error('Failed to load MSAs', error);
@@ -125,14 +125,14 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
 
       await CrmService.createSOW({
         title: data.title,
-        msa_id: data.msa_id,
-        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
-        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
-        amount_cap: data.amount_cap,
+        msaId: data.msa_id,
+        validFrom: format(data.valid_from, 'yyyy-MM-dd'),
+        validTo: format(data.valid_to, 'yyyy-MM-dd'),
+        amountCap: data.amount_cap,
         currency: data.currency,
         status: data.status,
-        rate_cards: {},
-        role_caps: {}
+        // rate_cards: {},
+        // role_caps: {}
       },
       selectedFile
     );

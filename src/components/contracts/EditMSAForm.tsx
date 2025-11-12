@@ -28,7 +28,7 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
     client_id: msa.client_id || '',
     valid_from: msa.valid_from ? parse(msa.valid_from, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
     valid_to: msa.valid_to ? parse(msa.valid_to, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
-    status: msa.status || 'active',
+    status: msa.status || 'Active',
     doc_link: msa.doc_link || '',
   });
 
@@ -91,26 +91,27 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
     setLoading(true);
 
     try {
-      let doc_link = formData.doc_link; // Keep existing doc_link by default
+      // let doc_link = formData.doc_link; // Keep existing doc_link by default
       
-      // Upload new document if one is selected
-      if (selectedFile) {
-        setUploading(true);
-        doc_link = await uploadDocument(selectedFile);
-        setUploading(false);
-      }
+      // // Upload new document if one is selected
+      // if (selectedFile) {
+      //   setUploading(true);
+      //   doc_link = await uploadDocument(selectedFile);
+      //   setUploading(false);
+      // }
       
       // Prepare update payload
       const updatePayload: any = {
         title: formData.title,
         valid_from: formData.valid_from ? format(formData.valid_from, 'yyyy-MM-dd') : '',
         valid_to: formData.valid_to ? format(formData.valid_to, 'yyyy-MM-dd') : '',
-        status: formData.status as 'draft' | 'active' | 'expired' | 'terminated',
+        status: formData.status as 'Draft' | 'Active' | 'Expired' | 'Terminated',
+        doc_link: selectedFile,
       };
       
-      if (selectedFile) {
-        updatePayload.doc_link = selectedFile;
-      }
+      // if (selectedFile) {
+      //   updatePayload.doc_link = selectedFile;
+      // }
       
       // Call CrmService.updateMSA
       await CrmService.updateMSA(msa.id, updatePayload);
@@ -209,10 +210,10 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
-            <SelectItem value="terminated">Terminated</SelectItem>
+            <SelectItem value="Draft">Draft</SelectItem>
+            <SelectItem value="Active">Active</SelectItem>
+            <SelectItem value="Expired">Expired</SelectItem>
+            <SelectItem value="Terminated">Terminated</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -50,7 +50,7 @@ export function MSATab() {
       const data = await CrmService.getMSAs({
         search: searchTerm,
         client_id: selectedClient !== 'all' ? selectedClient : undefined,
-        status: selectedStatus !== 'all' ? (selectedStatus as 'draft' | 'active' | 'expired' | 'terminated') : undefined
+        status: selectedStatus !== 'all' ? (selectedStatus as 'Draft' | 'Active' | 'Expired' | 'Terminated') : undefined
       });
       setMsas(data);
     } catch (error) {
