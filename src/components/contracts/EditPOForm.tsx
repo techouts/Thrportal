@@ -30,8 +30,8 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
     valid_to: po.valid_to ? parse(po.valid_to, 'yyyy-MM-dd', new Date()) : undefined,
     total_amount: po.total_amount || '',
     remaining_amount: po.remaining_amount || '',
-    currency: po.currency || 'USD',
-    status: po.status || 'active',
+    currency: po.currency || 'INR',
+    status: po.status || 'Active',
     doc_link: po.doc_link || '',
   });
 
@@ -102,23 +102,23 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
     setLoading(true);
 
     try {
-      let doc_link = formData.doc_link;
+      // let doc_link = formData.doc_link;
       
-      if (selectedFile) {
-        setUploading(true);
-        doc_link = await uploadDocument(selectedFile);
-        setUploading(false);
-      }
+      // if (selectedFile) {
+      //   setUploading(true);
+      //   doc_link = await uploadDocument(selectedFile);
+      //   setUploading(false);
+      // }
 
-      const updatePayload = {
-        po_number: formData.po_number,
-        valid_from: format(formData.valid_from, 'yyyy-MM-dd'),
-        valid_to: format(formData.valid_to, 'yyyy-MM-dd'),
-        total_amount: parseFloat(formData.total_amount),
-        remaining_amount: parseFloat(formData.remaining_amount),
+      const updatePayload:any = {
+        poNumber: formData.po_number,
+        validFrom: format(formData.valid_from, 'yyyy-MM-dd'),
+        validTo: format(formData.valid_to, 'yyyy-MM-dd'),
+        totalAmount: parseFloat(formData.total_amount),
+        remainingAmount: parseFloat(formData.remaining_amount),
         currency: formData.currency,
         status: formData.status,
-        doc_link,
+        doc_link: selectedFile,
       };
 
       await CrmService.updatePO(po.id, updatePayload);
@@ -251,10 +251,10 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="INR">INR</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="GBP">GBP</SelectItem>
-              <SelectItem value="INR">INR</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -265,10 +265,10 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="expired">Expired</SelectItem>
-              <SelectItem value="terminated">Terminated</SelectItem>
+              <SelectItem value="Draft">Draft</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Expired">Expired</SelectItem>
+              <SelectItem value="Terminated">Terminated</SelectItem>
             </SelectContent>
           </Select>
         </div>

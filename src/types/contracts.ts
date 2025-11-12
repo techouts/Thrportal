@@ -39,15 +39,21 @@ export interface SOW {
 
 export interface PurchaseOrder {
   id: string;
-  client_id: string;
-  po_number: string;
-  valid_from: string;
-  valid_to: string;
-  total_amount: number;
-  remaining_amount: number;
+  client_id?: string;
+  clientId: string;
+  po_number?: string;
+  poNumber: string;
+  valid_from?: string;
+  validFrom: string;
+  valid_to?: string;
+  validTo: string;
+  total_amount?: number;
+  totalAmount: number;
+  remaining_amount?: number;
+  remainingAmount: number;
   currency: string;
   doc_link?: string;
-  status: 'draft' | 'active' | 'expired' | 'terminated';
+  status: 'Draft' | 'Active' | 'Expired' | 'Terminated';
   created_at: string;
   updated_at: string;
   created_by?: string;

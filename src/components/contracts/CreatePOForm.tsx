@@ -21,8 +21,8 @@ const poSchema = z.object({
   valid_from: z.date({ required_error: 'Valid from date is required' }),
   valid_to: z.date({ required_error: 'Valid to date is required' }),
   total_amount: z.number().min(0.01, 'Total amount must be greater than 0'),
-  currency: z.string().default('USD'),
-  status: z.enum(['draft', 'active', 'expired', 'terminated']).default('draft'),
+  currency: z.string().default('INR'),
+  status: z.enum(['Draft', 'Active', 'Expired', 'Terminated']).default('Draft'),
   document: z.instanceof(File).optional()
 }).refine(data => data.valid_to > data.valid_from, {
   message: 'Valid to must be after valid from',
@@ -48,8 +48,8 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
     defaultValues: {
       po_number: '',
       client_id: '',
-      currency: 'USD',
-      status: 'draft'
+      currency: 'INR',
+      status: 'Draft'
     }
   });
 
@@ -115,25 +115,26 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
     try {
       setLoading(true);
       
-      let doc_link: string | undefined = undefined;
+      // let doc_link: string | undefined = undefined;
       
-      if (selectedFile) {
-        setUploading(true);
-        doc_link = await uploadDocument(selectedFile);
-        setUploading(false);
-      }
+      // if (selectedFile) {
+      //   setUploading(true);
+      //   doc_link = await uploadDocument(selectedFile);
+      //   setUploading(false);
+      // }
 
       await CrmService.createPO({
-        po_number: data.po_number,
-        client_id: data.client_id,
-        valid_from: format(data.valid_from, 'yyyy-MM-dd'),
-        valid_to: format(data.valid_to, 'yyyy-MM-dd'),
-        total_amount: data.total_amount,
-        remaining_amount: data.total_amount,
+        poNumber: data.po_number,
+        clientId: data.client_id,
+        validFrom: format(data.valid_from, 'yyyy-MM-dd'),
+        validTo: format(data.valid_to, 'yyyy-MM-dd'),
+        totalAmount: data.total_amount,
+        remainingAmount: data.total_amount,
         currency: data.currency,
         status: data.status,
-        doc_link
-      });
+      },
+      selectedFile
+    );
       
       toast({
         title: "Success",
@@ -332,10 +333,10 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                  <SelectItem value="terminated">Terminated</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Expired">Expired</SelectItem>
+                  <SelectItem value="Terminated">Terminated</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

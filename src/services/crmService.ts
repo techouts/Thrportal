@@ -900,75 +900,108 @@ export class CrmService {
 
   // Purchase Order Methods
   static async getPOs(filters?: POFilters): Promise<PurchaseOrder[]> {
-    let query = supabase
-      .from("purchase_orders")
-      .select(
-        `
-        *,
-        client:crm_clients(*)
-      `
-      )
-      .order("created_at", { ascending: false });
+    try {
+       const mappedFilters: Record<string, string> = {};
 
     if (filters?.client_id) {
-      query = query.eq("client_id", filters.client_id);
-    }
-    if (filters?.status) {
-      query = query.eq("status", filters.status as any);
-    }
-    if (filters?.search) {
-      query = query.ilike("po_number", `%${filters.search}%`);
+      mappedFilters["client_id"] = filters.client_id; // API expects client_name
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+    if (filters?.status) {
+      mappedFilters["status"] = filters.status;
+    }
+
+    if (filters?.search) {
+      mappedFilters["po_number"] = filters.search; // API expects msa_name
+    }
+      const response = await CrmApiClient.get(
+        "/crm/purchase-orders",
+        {params: mappedFilters,}
+      );
+      return response.data || [];
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to fetch POs: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
-  static async createPO(po: CreatePOInput): Promise<PurchaseOrder> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  static async createPO(po: CreatePOInput, selectedFile: File): Promise<PurchaseOrder> {
+     // Create FormData to match curl
+  const formData = new FormData();
+  if (selectedFile) formData.append("file", selectedFile);
+  formData.append("data", JSON.stringify(po)); // JSON payload as string
 
-    // Only include created_by if we have a valid UUID (not dev mode string)
-    const payload = {
-      ...po,
-      ...(user?.id &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        user.id
-      )
-        ? { created_by: user.id }
-        : {}),
-    };
+  try {
+    const response = await CrmApiClient.post(
+      "/crm/purchase-orders/create",
+      formData,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": undefined,
+        },
+      }
+    );
 
-    const { data, error } = await supabase
-      .from("purchase_orders")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return response.data;
+  } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to create PO: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async updatePO(id: string, updates: UpdatePOInput): Promise<PurchaseOrder> {
-    const { data, error } = await supabase
-      .from("purchase_orders")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const formData = new FormData();
+  const selectedFile = updates.doc_link
+  if (selectedFile) formData.append("file", selectedFile);
+  formData.append("data", JSON.stringify(updates)); // JSON payload as string
+     try {
+      const response = await CrmApiClient.put(
+        `/crm/purchase-orders/${id}`,
+        formData,
+        {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": undefined,
+        },
+      }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Failed to update PO: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
   }
 
   static async deletePO(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("purchase_orders")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
-  }
+   try {
+      const response = await CrmApiClient.delete(
+        `/crm/purchase-orders/${id}`
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          `Unable to delete PO: ${error.message}`;
+        throw new Error(msg);
+      }
+      throw error;
+    }
+}
 }
