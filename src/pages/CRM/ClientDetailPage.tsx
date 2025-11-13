@@ -221,7 +221,6 @@ export default function ClientDetailPage() {
         <div className="flex gap-2">
           <Badge variant="secondary">{opportunity.ft_count} FT</Badge>
           <Badge variant="outline">{opportunity.contract_count} Contract</Badge>
-          <Badge variant="outline">{opportunity.jd_count} JDs</Badge>
         </div>
       )
     },
@@ -588,7 +587,7 @@ export default function ClientDetailPage() {
                       <DialogTitle>Add New Opportunity</DialogTitle>
                     </DialogHeader>
                     <CreateOpportunityForm 
-                      clientId={client.id}
+                      clients={[client]}
                       accounts={client.accounts || []}
                       projects={client.projects || []}
                       onSuccess={() => {

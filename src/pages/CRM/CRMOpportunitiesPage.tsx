@@ -58,8 +58,10 @@ export function CRMOpportunitiesPage() {
 
   const getOpportunityLevel = (opportunity: CrmOpportunity): string => {
     const total = opportunity.ft_count + opportunity.contract_count;
-    if (total >= 10) return 'Enterprise';
-    if (total >= 5) return 'Medium';
+    const hasLargeEstimate = opportunity.estimation_cost && opportunity.estimation_cost >= 1000000;
+    
+    if (total >= 10 || hasLargeEstimate) return 'Enterprise';
+    if (total >= 5 || (opportunity.estimation_cost && opportunity.estimation_cost >= 500000)) return 'Medium';
     return 'Small';
   };
 
@@ -74,7 +76,6 @@ export function CRMOpportunitiesPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<CrmOpportunity | null>(null);
-  const [selectedClientId, setSelectedClientId] = useState<string>('');
 
   const handleDelete = async () => {
     // TODO: Implement delete functionality
@@ -109,12 +110,16 @@ export function CRMOpportunitiesPage() {
     {
       id: 'requirements',
       header: 'Requirements',
-      accessor: (opportunity: CrmOpportunity) => `${opportunity.jd_count}-${opportunity.ft_count}-${opportunity.contract_count}`,
+      accessor: (opportunity: CrmOpportunity) => `${opportunity.ft_count}-${opportunity.contract_count}`,
       cell: (opportunity: CrmOpportunity) => (
         <div className="text-sm">
-          <div>JDs: {opportunity.jd_count}</div>
           <div>FT: {opportunity.ft_count}</div>
           <div>Contract: {opportunity.contract_count}</div>
+          {opportunity.estimation_cost && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Est: {opportunity.currency} {opportunity.estimation_cost.toLocaleString()}
+            </div>
+          )}
         </div>
       )
     },
@@ -216,7 +221,6 @@ export function CRMOpportunitiesPage() {
   ];
 
   const totalValue = opportunities.reduce((sum, opp) => sum + opp.ft_count + opp.contract_count, 0);
-  const totalJDs = opportunities.reduce((sum, opp) => sum + (opp.jd_count || 0), 0);
 
   const stats = [
     {
@@ -312,46 +316,25 @@ export function CRMOpportunitiesPage() {
       </Card>
 
       {/* Create Opportunity Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create New Opportunity</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Select Client</label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedClientId && (
-              <CreateOpportunityForm
-                clientId={selectedClientId}
-                accounts={[]}
-                projects={[]}
-                onSuccess={() => {
-                  setShowCreateDialog(false);
-                  setSelectedClientId('');
-                  loadData();
-                }}
-                onCancel={() => {
-                  setShowCreateDialog(false);
-                  setSelectedClientId('');
-                }}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Opportunity</DialogTitle>
+            </DialogHeader>
+            <CreateOpportunityForm
+              clients={clients}
+              accounts={[]}
+              projects={[]}
+              onSuccess={() => {
+                setShowCreateDialog(false);
+                loadData();
+              }}
+              onCancel={() => {
+                setShowCreateDialog(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
     </div>
   );
 }

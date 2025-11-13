@@ -80,9 +80,10 @@ export interface CrmOpportunity {
   client_id: string;
   account_id?: string;
   project_id?: string;
-  jd_count: number;
   ft_count: number;
   contract_count: number;
+  estimation_cost?: number;
+  currency: string;
   status: 'Open' | 'In Progress' | 'Closed' | 'Lost';
   notes?: string;
   created_at: string;
