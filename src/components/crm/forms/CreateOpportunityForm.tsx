@@ -9,40 +9,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
-import type { CrmAccount, CrmProject } from '@/types/crm';
+import type { CrmAccount, CrmProject, CrmClient } from '@/types/crm';
 
 const opportunitySchema = z.object({
+  client_id: z.string().min(1, 'Please select a client'),
   account_id: z.string().optional(),
   project_id: z.string().optional(),
-  jd_count: z.number().min(0).default(0),
   ft_count: z.number().min(0).default(0),
   contract_count: z.number().min(0).default(0),
+  estimation_cost: z.number().min(0).optional(),
+  currency: z.string().default('INR'),
   status: z.enum(['Open', 'In Progress', 'Closed', 'Lost']).default('Open'),
-  notes: z.string().optional()
+  notes: z.string().min(10, 'Notes must be at least 10 characters')
 });
 
 type OpportunityFormData = z.infer<typeof opportunitySchema>;
 
 interface CreateOpportunityFormProps {
-  clientId: string;
+  clients: CrmClient[];
   accounts: CrmAccount[];
   projects: CrmProject[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess, onCancel }: CreateOpportunityFormProps) {
+export function CreateOpportunityForm({ clients, accounts, projects, onSuccess, onCancel }: CreateOpportunityFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<OpportunityFormData>({
     resolver: zodResolver(opportunitySchema),
     defaultValues: {
+      client_id: '',
       account_id: '',
       project_id: '',
-      jd_count: 0,
       ft_count: 0,
       contract_count: 0,
+      estimation_cost: undefined,
+      currency: 'INR',
       status: 'Open',
       notes: ''
     }
@@ -53,14 +57,15 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
       setLoading(true);
       
       await CrmService.createOpportunity({
-        jd_count: data.jd_count,
+        client_id: data.client_id,
+        account_id: data.account_id || undefined,
+        project_id: data.project_id || undefined,
         ft_count: data.ft_count,
         contract_count: data.contract_count,
+        estimation_cost: data.estimation_cost,
+        currency: data.currency,
         status: data.status,
-        notes: data.notes,
-        client_id: clientId,
-        account_id: data.account_id || undefined,
-        project_id: data.project_id || undefined
+        notes: data.notes
       });
       
       toast({
@@ -85,6 +90,32 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Client Selection - First Field */}
+        <FormField
+          control={form.control}
+          name="client_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Client *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -92,14 +123,14 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">No specific account</SelectItem>
+                    <SelectItem value="">No specific account</SelectItem>
                     {accounts.map(account => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
@@ -118,14 +149,14 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Project (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">No specific project</SelectItem>
+                    <SelectItem value="">No specific project</SelectItem>
                     {projects.map(project => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
@@ -139,26 +170,7 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="jd_count"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>JD Count</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
-                    min="0"
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="ft_count"
@@ -198,6 +210,54 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="estimation_cost"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project Estimation Cost (Optional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    type="number" 
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g., 500000"
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="INR">INR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormField
           control={form.control}
           name="status"
@@ -207,12 +267,14 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {statuses.map(status => (
-                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -226,11 +288,11 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>Notes *</FormLabel>
               <FormControl>
                 <Textarea 
                   {...field} 
-                  placeholder="Additional details about this opportunity..."
+                  placeholder="Provide details about this opportunity (minimum 10 characters)..."
                   rows={3}
                 />
               </FormControl>
@@ -239,7 +301,7 @@ export function CreateOpportunityForm({ clientId, accounts, projects, onSuccess,
           )}
         />
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>

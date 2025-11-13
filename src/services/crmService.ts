@@ -454,6 +454,30 @@ export class CrmService {
     return data as CrmOpportunity;
   }
 
+  static async updateOpportunity(
+    id: string,
+    updates: Partial<Omit<CrmOpportunity, 'id' | 'created_at' | 'client_id'>>
+  ) {
+    const { data, error } = await supabase
+      .from("crm_opportunities")
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as CrmOpportunity;
+  }
+
+  static async deleteOpportunity(id: string) {
+    const { error } = await supabase
+      .from("crm_opportunities")
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
   // Interactions
   static async getInteractions(limit = 50) {
     const { data, error } = await supabase
@@ -644,27 +668,6 @@ export class CrmService {
       }
       throw error;
     }
-  }
-
-  static async updateOpportunity(id: string, updates: Partial<CrmOpportunity>) {
-    const { data, error } = await supabase
-      .from("crm_opportunities")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as CrmOpportunity;
-  }
-
-  static async deleteOpportunity(id: string) {
-    const { error } = await supabase
-      .from("crm_opportunities")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
   }
 
   static async deleteInteraction(id: string) {

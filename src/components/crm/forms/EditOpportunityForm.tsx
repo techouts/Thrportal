@@ -12,11 +12,12 @@ import { useToast } from '@/hooks/use-toast';
 import type { CrmOpportunity } from '@/types/crm';
 
 const opportunitySchema = z.object({
-  jd_count: z.number().min(0).default(0),
   ft_count: z.number().min(0).default(0),
   contract_count: z.number().min(0).default(0),
+  estimation_cost: z.number().min(0).optional(),
+  currency: z.string().default('INR'),
   status: z.enum(['Open', 'In Progress', 'Closed', 'Lost']).default('Open'),
-  notes: z.string().optional()
+  notes: z.string().min(10, 'Notes must be at least 10 characters')
 });
 
 type OpportunityFormData = z.infer<typeof opportunitySchema>;
@@ -34,9 +35,10 @@ export function EditOpportunityForm({ opportunity, onSuccess, onCancel }: EditOp
   const form = useForm<OpportunityFormData>({
     resolver: zodResolver(opportunitySchema),
     defaultValues: {
-      jd_count: opportunity.jd_count || 0,
       ft_count: opportunity.ft_count || 0,
       contract_count: opportunity.contract_count || 0,
+      estimation_cost: opportunity.estimation_cost,
+      currency: opportunity.currency || 'INR',
       status: opportunity.status as any || 'Open',
       notes: opportunity.notes || ''
     }
@@ -46,10 +48,13 @@ export function EditOpportunityForm({ opportunity, onSuccess, onCancel }: EditOp
     try {
       setLoading(true);
       
-      // TODO: Add updateOpportunity to CrmService
-      toast({
-        title: 'Success',
-        description: 'Opportunity updated successfully.'
+      await CrmService.updateOpportunity(opportunity.id, {
+        ft_count: data.ft_count,
+        contract_count: data.contract_count,
+        estimation_cost: data.estimation_cost,
+        currency: data.currency,
+        status: data.status,
+        notes: data.notes
       });
       
       onSuccess();
@@ -67,26 +72,7 @@ export function EditOpportunityForm({ opportunity, onSuccess, onCancel }: EditOp
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="jd_count"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>JD Count</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
-                    min="0"
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="ft_count"
@@ -126,6 +112,53 @@ export function EditOpportunityForm({ opportunity, onSuccess, onCancel }: EditOp
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="estimation_cost"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project Estimation Cost</FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    type="number" 
+                    min="0"
+                    step="0.01"
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="INR">INR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormField
           control={form.control}
           name="status"
@@ -151,11 +184,11 @@ export function EditOpportunityForm({ opportunity, onSuccess, onCancel }: EditOp
         />
 
         <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes *</FormLabel>
               <FormControl>
                 <Textarea {...field} rows={3} placeholder="Additional notes..." />
               </FormControl>
