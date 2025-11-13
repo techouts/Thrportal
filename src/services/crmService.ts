@@ -435,10 +435,7 @@ export class CrmService {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return (data || []).map((opportunity) => ({
-      ...opportunity,
-      status: opportunity.status as "Open" | "In Progress" | "Closed" | "Lost",
-    })) as CrmOpportunity[];
+    return (data || []) as unknown as CrmOpportunity[];
   }
 
   static async createOpportunity(
@@ -451,7 +448,7 @@ export class CrmService {
       .single();
 
     if (error) throw error;
-    return data as CrmOpportunity;
+    return data as unknown as CrmOpportunity;
   }
 
   static async updateOpportunity(
@@ -466,7 +463,7 @@ export class CrmService {
       .single();
 
     if (error) throw error;
-    return data as CrmOpportunity;
+    return data as unknown as CrmOpportunity;
   }
 
   static async deleteOpportunity(id: string) {
