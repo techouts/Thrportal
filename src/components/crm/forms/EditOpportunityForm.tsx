@@ -72,6 +72,17 @@ export function EditOpportunityForm({ opportunity, onSuccess, onCancel }: EditOp
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Client Display (Non-Editable) */}
+        <div className="mb-4 p-4 bg-muted rounded-lg">
+          <div className="text-sm font-medium text-muted-foreground">Client</div>
+          <div className="text-base font-semibold mt-1">
+            {opportunity.client?.name || 'Unknown Client'}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Client cannot be changed after opportunity creation
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
