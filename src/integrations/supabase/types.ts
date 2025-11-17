@@ -1118,10 +1118,9 @@ export type Database = {
           contract_count: number | null
           created_at: string
           created_by: string | null
-          currency: string | null
-          estimation_cost: number | null
           ft_count: number | null
           id: string
+          jd_count: number | null
           notes: string | null
           project_id: string | null
           status: string | null
@@ -1133,10 +1132,9 @@ export type Database = {
           contract_count?: number | null
           created_at?: string
           created_by?: string | null
-          currency?: string | null
-          estimation_cost?: number | null
           ft_count?: number | null
           id?: string
+          jd_count?: number | null
           notes?: string | null
           project_id?: string | null
           status?: string | null
@@ -1148,10 +1146,9 @@ export type Database = {
           contract_count?: number | null
           created_at?: string
           created_by?: string | null
-          currency?: string | null
-          estimation_cost?: number | null
           ft_count?: number | null
           id?: string
+          jd_count?: number | null
           notes?: string | null
           project_id?: string | null
           status?: string | null
