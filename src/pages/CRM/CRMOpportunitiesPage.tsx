@@ -29,21 +29,17 @@ export function CRMOpportunitiesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
 
+  // Reset to page 1 when filters change
   useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (currentPage === 1) {
-      loadData();
-    } else {
+    if (currentPage !== 1) {
       setCurrentPage(1);
     }
   }, [debouncedSearchQuery, statusFilter]);
 
+  // Load data when dependencies change
   useEffect(() => {
     loadData();
-  }, [currentPage, pageSize]);
+  }, [debouncedSearchQuery, statusFilter, currentPage, pageSize]);
 
   const loadData = async () => {
     try {
