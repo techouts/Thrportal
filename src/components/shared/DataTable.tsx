@@ -146,19 +146,9 @@ export function DataTable<T>({
     )
   }
 
-  if (sortedData.length === 0) {
-    return (
-      <EmptyState
-        title="No data found"
-        description={emptyMessage}
-        icon="table"
-      />
-    )
-  }
-
   return (
     <div className="space-y-4" data-test-id={testId}>
-      {/* Toolbar */}
+      {/* Toolbar - ALWAYS VISIBLE */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 flex-1">
           {searchable && (
@@ -223,66 +213,76 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column) => (
-                <TableHead
-                  key={column.id}
-                  className={`${column.width || ''} ${column.sortable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
-                  onClick={() => column.sortable && handleSort(column.id)}
-                >
-                  <div className="flex items-center gap-2">
-                    {column.header}
-                    {sortConfig?.key === column.id && (
-                      <Badge variant="secondary" className="text-xs">
-                        {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                      </Badge>
-                    )}
-                  </div>
-                </TableHead>
-              ))}
-              {actions && <TableHead className="w-12"></TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedData.map((row, index) => (
-              <TableRow key={index} data-test-id={`${testId}-row-${index}`}>
-                {columns.map((column) => {
-                  const value = typeof column.accessor === 'function'
-                    ? column.accessor(row)
-                    : row[column.accessor]
-                  
-                  return (
-                    <TableCell key={column.id}>
-                      {column.cell ? column.cell(value, row) : String(value)}
-                    </TableCell>
-                  )
-                })}
-                {actions && (
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {actions(row)}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                )}
+      {/* Conditional Rendering: Table or Empty State */}
+      {sortedData.length === 0 ? (
+        <div className="rounded-md border p-8">
+          <EmptyState
+            title="No data found"
+            description={emptyMessage}
+            icon="table"
+          />
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableHead
+                    key={column.id}
+                    className={`${column.width || ''} ${column.sortable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+                    onClick={() => column.sortable && handleSort(column.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {column.header}
+                      {sortConfig?.key === column.id && (
+                        <Badge variant="secondary" className="text-xs">
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableHead>
+                ))}
+                {actions && <TableHead className="w-12"></TableHead>}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {sortedData.map((row, index) => (
+                <TableRow key={index} data-test-id={`${testId}-row-${index}`}>
+                  {columns.map((column) => {
+                    const value = typeof column.accessor === 'function'
+                      ? column.accessor(row)
+                      : row[column.accessor]
+                    
+                    return (
+                      <TableCell key={column.id}>
+                        {column.cell ? column.cell(value, row) : String(value)}
+                      </TableCell>
+                    )
+                  })}
+                  {actions && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {actions(row)}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
-      {/* Pagination */}
-      {pagination && (
+      {/* Pagination - Only show when there's data */}
+      {pagination && sortedData.length > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}

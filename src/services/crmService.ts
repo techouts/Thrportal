@@ -441,11 +441,11 @@ export class CrmService {
         query = query.eq('status', filters.status);
       }
 
-      // Apply search filter
+      // Apply search filter (search ONLY in client name and project name - case-insensitive)
       if (filters?.search && filters.search.trim() !== '') {
         const searchTerm = `%${filters.search.trim()}%`;
         query = query.or(
-          `notes.ilike.${searchTerm}`
+          `client.name.ilike.${searchTerm},project.name.ilike.${searchTerm}`
         );
       }
 
