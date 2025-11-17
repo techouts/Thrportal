@@ -33,7 +33,7 @@ export default function CRMDemoOverviewPage() {
   const loadDemoData = async () => {
     try {
       setLoading(true);
-      const [clients, accounts, projects, opportunities, interactions, documents] = await Promise.all([
+      const [clients, accounts, projects, opportunitiesResponse, interactions, documents] = await Promise.all([
         CrmService.getClients(),
         CrmService.getAccounts(),
         CrmService.getProjects(),
@@ -46,7 +46,7 @@ export default function CRMDemoOverviewPage() {
         clients,
         accounts,
         projects,
-        opportunities,
+        opportunities: opportunitiesResponse.data,
         interactions,
         documents
       });

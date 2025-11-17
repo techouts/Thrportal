@@ -35,7 +35,7 @@ export default function CRMReportsPage() {
   const loadReportData = async () => {
     try {
       setLoading(true);
-      const [clientsData, projectsData, opportunitiesData, interactionsData, metricsData] = await Promise.all([
+      const [clientsData, projectsData, opportunitiesResponse, interactionsData, metricsData] = await Promise.all([
         CrmService.getClients(),
         CrmService.getProjects(),
         CrmService.getOpportunities(),
@@ -45,7 +45,7 @@ export default function CRMReportsPage() {
       
       setClients(clientsData);
       setProjects(projectsData);
-      setOpportunities(opportunitiesData);
+      setOpportunities(opportunitiesResponse.data);
       setInteractions(interactionsData);
       setMetrics(metricsData);
     } catch (error) {

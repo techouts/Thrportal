@@ -421,21 +421,60 @@ export class CrmService {
   }
 
   // Opportunities
-  static async getOpportunities() {
-    const { data, error } = await supabase
-      .from("crm_opportunities")
-      .select(
-        `
-        *,
-        client:crm_clients(*),
-        account:crm_accounts(*),
-        project:crm_projects(*)
-      `
-      )
-      .order("created_at", { ascending: false });
+  static async getOpportunities(filters?: import('@/types/crm').CrmOpportunityFilters) {
+    try {
+      let query = supabase
+        .from("crm_opportunities")
+        .select(
+          `
+          *,
+          client:crm_clients(*),
+          account:crm_accounts(*),
+          project:crm_projects(*)
+        `,
+          { count: 'exact' }
+        )
+        .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return (data || []) as unknown as CrmOpportunity[];
+      // Apply status filter
+      if (filters?.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      // Apply search filter
+      if (filters?.search && filters.search.trim() !== '') {
+        const searchTerm = `%${filters.search.trim()}%`;
+        query = query.or(
+          `notes.ilike.${searchTerm}`
+        );
+      }
+
+      // Apply pagination
+      const page = filters?.page || 1;
+      const limit = filters?.limit || 10;
+      const offset = (page - 1) * limit;
+      query = query.range(offset, offset + limit - 1);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Supabase error fetching opportunities:', error);
+        throw error;
+      }
+
+      return {
+        data: (data || []) as unknown as CrmOpportunity[],
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / limit),
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching opportunities from Supabase:', error);
+      throw error;
+    }
   }
 
   static async createOpportunity(

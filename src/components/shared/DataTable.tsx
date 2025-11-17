@@ -55,6 +55,7 @@ interface DataTableProps<T> {
     onPageSizeChange: (size: number) => void
   }
   searchable?: boolean
+  searchPlaceholder?: string
   onSearch?: (query: string) => void
   exportable?: boolean
   onExport?: (format: 'csv' | 'xlsx') => void
@@ -64,6 +65,7 @@ interface DataTableProps<T> {
     onSave: (name: string) => void
     onLoad: (id: string) => void
   }
+  filters?: React.ReactNode
   actions?: (row: T) => React.ReactNode
   emptyMessage?: string
   testId?: string
@@ -75,10 +77,12 @@ export function DataTable<T>({
   loading = false,
   pagination,
   searchable = true,
+  searchPlaceholder,
   onSearch,
   exportable = true,
   onExport,
   savedViews,
+  filters,
   actions,
   emptyMessage = "No data available",
   testId = "data-table"
@@ -156,13 +160,13 @@ export function DataTable<T>({
     <div className="space-y-4" data-test-id={testId}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
           {searchable && (
             <Input
-              placeholder="Search..."
+              placeholder={searchPlaceholder || "Search..."}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-64"
+              className="max-w-md"
               data-test-id={`${testId}-search`}
             />
           )}
@@ -195,7 +199,10 @@ export function DataTable<T>({
           )}
         </div>
 
-        {exportable && onExport && (
+        <div className="flex items-center gap-2">
+          {filters}
+          
+          {exportable && onExport && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -213,6 +220,7 @@ export function DataTable<T>({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        </div>
       </div>
 
       {/* Table */}
