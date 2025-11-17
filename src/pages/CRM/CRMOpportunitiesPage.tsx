@@ -17,6 +17,8 @@ import { CreateOpportunityForm } from '@/components/crm/forms/CreateOpportunityF
 export function CRMOpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<CrmOpportunity[]>([]);
   const [clients, setClients] = useState<CrmClient[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -29,12 +31,16 @@ export function CRMOpportunitiesPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [opportunitiesData, clientsData] = await Promise.all([
+      const [opportunitiesData, clientsData, accountsData, projectsData] = await Promise.all([
         CrmService.getOpportunities(),
-        CrmService.getClients()
+        CrmService.getClients(),
+        CrmService.getAccounts(),
+        CrmService.getProjects()
       ]);
       setOpportunities(opportunitiesData);
       setClients(clientsData);
+      setAccounts(accountsData);
+      setProjects(projectsData);
     } catch (error) {
       toast({
         title: 'Error',
@@ -57,11 +63,17 @@ export function CRMOpportunitiesPage() {
   });
 
   const getOpportunityLevel = (opportunity: CrmOpportunity): string => {
-    const total = opportunity.ft_count + opportunity.contract_count;
-    const hasLargeEstimate = opportunity.estimation_cost && opportunity.estimation_cost >= 1000000;
+    // Priority 1: Check estimation_cost if provided
+    if (opportunity.estimation_cost) {
+      if (opportunity.estimation_cost >= 2500000) return 'Enterprise'; // Above 25 lakhs
+      if (opportunity.estimation_cost >= 1000000) return 'Medium'; // 10-25 lakhs
+      return 'Small'; // Less than 10 lakhs
+    }
     
-    if (total >= 10 || hasLargeEstimate) return 'Enterprise';
-    if (total >= 5 || (opportunity.estimation_cost && opportunity.estimation_cost >= 500000)) return 'Medium';
+    // Priority 2: Check total positions if no estimation_cost
+    const total = opportunity.ft_count + opportunity.contract_count;
+    if (total >= 10) return 'Enterprise';
+    if (total >= 5) return 'Medium';
     return 'Small';
   };
 
@@ -323,8 +335,8 @@ export function CRMOpportunitiesPage() {
             </DialogHeader>
             <CreateOpportunityForm
               clients={clients}
-              accounts={[]}
-              projects={[]}
+              accounts={accounts}
+              projects={projects}
               onSuccess={() => {
                 setShowCreateDialog(false);
                 loadData();

@@ -168,20 +168,17 @@ export class CrmService {
 
   // Accounts
   static async getAccounts() {
-     try {
-      const response = await CrmApiClient.get<CrmAccount[]>(
-        "/crm/accounts"
-      );
-      return response.data as CrmAccount[];
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const msg =
-          error.response?.data?.message ||
-          `Unable to fetch accounts: ${error.message}`;
-        throw new Error(msg);
-      }
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from("crm_accounts")
+      .select(`
+        *,
+        client:crm_clients(*),
+        primary_spoc:crm_spocs!fk_crm_accounts_primary_spoc(*)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as unknown as CrmAccount[];
   }
 
   static async getAccountsByClient(clientId: string) {
@@ -355,24 +352,18 @@ export class CrmService {
 
   // Projects
   static async getProjects() {
-    try {
-      const response = await CrmApiClient.get<CrmProject[]>(
-        "/crm/projects"
-      );
-      return (response.data || []).map((project) => ({
-        ...project,
-        priority: project.priority as "Low" | "Medium" | "High" | "Critical",
-        status: project.status as "Planned" | "In-flight" | "Closed",
-      })) as CrmProject[];
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const msg =
-          error.response?.data?.message ||
-          `Unable to get projects: ${error.message}`;
-        throw new Error(msg);
-      }
-      throw error
-  }
+    const { data, error } = await supabase
+      .from("crm_projects")
+      .select(`
+        *,
+        client:crm_clients(*),
+        account:crm_accounts(*),
+        primary_spoc:crm_spocs(*)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as unknown as CrmProject[];
   }
 
   static async createProject(
