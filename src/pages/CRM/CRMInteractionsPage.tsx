@@ -12,9 +12,11 @@ import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
 import { CreateInteractionForm } from '@/components/crm/forms/CreateInteractionForm';
+import { EditInteractionForm } from '@/components/crm/forms/EditInteractionForm';
 import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
 import type { CrmInteraction, CrmClient } from '@/types/crm';
 import { toast as sonnerToast } from 'sonner';
+import { Pencil, Trash2 } from 'lucide-react';
 
 export function CRMInteractionsPage() {
   const [interactions, setInteractions] = useState<CrmInteraction[]>([]);
@@ -24,8 +26,12 @@ export function CRMInteractionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState<CrmInteraction | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,14 +64,27 @@ export function CRMInteractionsPage() {
     if (!selectedInteraction) return;
     
     try {
-      // TODO: Implement delete in CrmService
-      sonnerToast.success('Interaction deleted successfully');
+      await CrmService.deleteInteraction(selectedInteraction.id);
+      toast({
+        title: 'Success',
+        description: 'Interaction deleted successfully.',
+      });
       setShowDeleteDialog(false);
       setSelectedInteraction(null);
-      loadData();
+      await loadData();
     } catch (error) {
-      sonnerToast.error('Failed to delete interaction');
+      toast({
+        title: 'Error',
+        description: 'Failed to delete interaction. Please try again.',
+        variant: 'destructive',
+      });
     }
+  };
+
+  const handleEditSuccess = async () => {
+    setShowEditDialog(false);
+    setSelectedInteraction(null);
+    await loadData();
   };
 
   const filteredInteractions = interactions.filter(interaction => {
@@ -78,6 +97,22 @@ export function CRMInteractionsPage() {
     
     return matchesSearch && matchesType;
   });
+
+  // Paginated data
+  const paginatedInteractions = filteredInteractions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Update total pages when filtered data changes
+  React.useEffect(() => {
+    const newTotalPages = Math.ceil(filteredInteractions.length / itemsPerPage);
+    setTotalPages(newTotalPages);
+    // Reset to page 1 if current page is out of bounds
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredInteractions.length, currentPage]);
 
   const getInteractionIcon = (type: string) => {
     switch (type) {
@@ -92,136 +127,107 @@ export function CRMInteractionsPage() {
     }
   };
 
-  const [showEditDialog, setShowEditDialog] = useState(false);
-
   const columns: Column<CrmInteraction>[] = [
     {
       id: 'client_spoc',
       header: 'Client & SPOC',
-      accessor: (interaction: CrmInteraction) => interaction.client?.name || '',
-      cell: (interaction: CrmInteraction) => (
-        <div>
-          <div className="font-medium">
-            <Link 
-              to={`/CRM/Clients/${interaction.client_id}`}
-              className="text-primary hover:underline"
-            >
-              {interaction.client?.name || 'Unknown Client'}
-            </Link>
+      accessor: 'client_id' as keyof CrmInteraction,
+      cell: (_value: any, row: CrmInteraction) => {
+        const clientName = row.client?.name || 'Unknown Client';
+        const spocName = row.spoc?.name || 'No SPOC';
+        return (
+          <div className="space-y-1">
+            <div className="font-medium">{clientName}</div>
+            <div className="text-sm text-muted-foreground">{spocName}</div>
           </div>
-          {interaction.spoc?.name && (
-            <div className="text-sm text-muted-foreground">
-              SPOC: {interaction.spoc.name}
-            </div>
-          )}
-        </div>
-      )
+        );
+      },
     },
     {
       id: 'employee',
       header: 'Employee',
-      accessor: (interaction: CrmInteraction) => interaction.created_by || '',
-      cell: (interaction: CrmInteraction) => (
-        <div className="text-sm">
-          {interaction.created_by || 'System'}
-        </div>
-      )
+      accessor: 'created_by' as keyof CrmInteraction,
+      cell: (_value: any, row: CrmInteraction) => (
+        <div className="text-sm">{row.created_by || 'Unknown'}</div>
+      ),
     },
     {
       id: 'type',
       header: 'Type',
-      accessor: 'interaction_type',
-      cell: (interaction: CrmInteraction) => {
-        const Icon = getInteractionIcon(interaction.interaction_type);
+      accessor: 'interaction_type' as keyof CrmInteraction,
+      cell: (_value: any, row: CrmInteraction) => {
+        const Icon = getInteractionIcon(row.interaction_type);
         return (
           <div className="flex items-center gap-2">
             <Icon className="h-4 w-4" />
-            <span className="capitalize">{interaction.interaction_type}</span>
+            <span className="capitalize">{row.interaction_type}</span>
           </div>
         );
-      }
+      },
     },
     {
       id: 'date',
       header: 'Date',
-      accessor: 'date',
-      cell: (interaction: CrmInteraction) => new Date(interaction.date).toLocaleDateString()
+      accessor: 'date' as keyof CrmInteraction,
+      cell: (_value: any, row: CrmInteraction) => (
+        <div className="text-sm">
+          {new Date(row.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </div>
+      ),
+      sortable: true,
     },
     {
-      id: 'engagement_score',
+      id: 'engagement',
       header: 'Engagement',
-      accessor: 'engagement_score',
-      cell: (interaction: CrmInteraction) => (
+      accessor: 'engagement_score' as keyof CrmInteraction,
+      cell: (_value: any, row: CrmInteraction) => (
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${
-            interaction.engagement_score >= 8 ? 'bg-green-500' :
-            interaction.engagement_score >= 6 ? 'bg-yellow-500' : 'bg-red-500'
-          }`} />
-          <span>{interaction.engagement_score}/10</span>
+          <div className="w-16 bg-secondary rounded-full h-2">
+            <div
+              className="bg-primary h-2 rounded-full"
+              style={{ width: `${(row.engagement_score / 10) * 100}%` }}
+            />
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {row.engagement_score}/10
+          </span>
         </div>
-      )
-    },
-    {
-      id: 'outcome',
-      header: 'Outcome',
-      accessor: (interaction: CrmInteraction) => interaction.outcome || '',
-      cell: (interaction: CrmInteraction) => (
-        <div className="text-sm max-w-xs truncate">
-          {interaction.outcome || '-'}
-        </div>
-      )
-    },
-    {
-      id: 'next_step',
-      header: 'Next Step',
-      accessor: (interaction: CrmInteraction) => interaction.next_step || '',
-      cell: (interaction: CrmInteraction) => (
-        <div className="text-sm max-w-xs truncate">
-          {interaction.next_step || '-'}
-        </div>
-      )
-    },
-    {
-      id: 'sync_status',
-      header: 'Sync Status',
-      accessor: (interaction: CrmInteraction) => interaction.is_synced,
-      cell: (interaction: CrmInteraction) => (
-        <Badge variant={interaction.is_synced ? 'default' : 'secondary'}>
-          {interaction.is_synced ? 'Synced' : 'Pending'}
-        </Badge>
-      )
+      ),
+      sortable: true,
     },
     {
       id: 'actions',
       header: 'Actions',
-      accessor: (interaction: CrmInteraction) => interaction.id,
-      cell: (interaction: CrmInteraction) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => {
-              setSelectedInteraction(interaction);
+      accessor: 'id' as keyof CrmInteraction,
+      cell: (_value: any, row: CrmInteraction) => (
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedInteraction(row);
               setShowEditDialog(true);
-            }}>
-              Edit Interaction
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="text-destructive"
-              onClick={() => {
-                setSelectedInteraction(interaction);
-                setShowDeleteDialog(true);
-              }}
-            >
-              Delete Interaction
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    }
+            }}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedInteraction(row);
+              setShowDeleteDialog(true);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   const avgEngagement = interactions.length > 0 
@@ -317,12 +323,19 @@ export function CRMInteractionsPage() {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={filteredInteractions}
+            data={paginatedInteractions}
             columns={columns}
             loading={loading}
             searchable
             onSearch={setSearchQuery}
             emptyMessage="No interactions found"
+            pagination={{
+              page: currentPage,
+              pageSize: itemsPerPage,
+              total: filteredInteractions.length,
+              onPageChange: setCurrentPage,
+              onPageSizeChange: () => {},
+            }}
           />
         </CardContent>
       </Card>
@@ -342,6 +355,22 @@ export function CRMInteractionsPage() {
             }}
             onCancel={() => setShowCreateDialog(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Interaction Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Interaction</DialogTitle>
+          </DialogHeader>
+          {selectedInteraction && (
+            <EditInteractionForm
+              interaction={selectedInteraction}
+              onSuccess={handleEditSuccess}
+              onCancel={() => setShowEditDialog(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
