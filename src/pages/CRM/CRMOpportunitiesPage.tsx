@@ -122,7 +122,7 @@ export function CRMOpportunitiesPage() {
       id: 'client',
       header: 'Client & Project',
       accessor: (opportunity: CrmOpportunity) => opportunity.client?.name || '',
-      cell: (opportunity: CrmOpportunity) => (
+      cell: (_value: any, opportunity: CrmOpportunity) => (
         <div>
           <div className="font-medium">
             <Link 
@@ -144,7 +144,7 @@ export function CRMOpportunitiesPage() {
       id: 'requirements',
       header: 'Requirements',
       accessor: (opportunity: CrmOpportunity) => `${opportunity.ft_count}-${opportunity.contract_count}`,
-      cell: (opportunity: CrmOpportunity) => (
+      cell: (_value: any, opportunity: CrmOpportunity) => (
         <div className="text-sm">
           <div>FT: {opportunity.ft_count}</div>
           <div>Contract: {opportunity.contract_count}</div>
@@ -160,7 +160,7 @@ export function CRMOpportunitiesPage() {
       id: 'level',
       header: 'Level',
       accessor: (opportunity: CrmOpportunity) => getOpportunityLevel(opportunity),
-      cell: (opportunity: CrmOpportunity) => (
+      cell: (_value: any, opportunity: CrmOpportunity) => (
             <Badge variant={
               getOpportunityLevel(opportunity) === 'Large' ? 'default' :
               getOpportunityLevel(opportunity) === 'Medium' ? 'secondary' : 'outline'
@@ -173,7 +173,7 @@ export function CRMOpportunitiesPage() {
       id: 'status',
       header: 'Status',
       accessor: (opportunity: CrmOpportunity) => opportunity.status || '',
-      cell: (opportunity: CrmOpportunity) => (
+      cell: (_value: any, opportunity: CrmOpportunity) => (
         <Badge variant={
           opportunity.status === 'Open' ? 'default' :
           opportunity.status === 'In Progress' ? 'secondary' :
@@ -187,7 +187,7 @@ export function CRMOpportunitiesPage() {
       id: 'aging',
       header: 'Aging',
       accessor: (opportunity: CrmOpportunity) => getAgingDays(opportunity.updated_at),
-      cell: (opportunity: CrmOpportunity) => {
+      cell: (_value: any, opportunity: CrmOpportunity) => {
         const days = getAgingDays(opportunity.updated_at);
         return (
           <div className="text-sm">
@@ -202,7 +202,7 @@ export function CRMOpportunitiesPage() {
       id: 'actions',
       header: 'Actions',
       accessor: (opportunity: CrmOpportunity) => opportunity.id,
-      cell: (opportunity: CrmOpportunity) => (
+      cell: (_value: any, opportunity: CrmOpportunity) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
