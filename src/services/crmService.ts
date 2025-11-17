@@ -556,6 +556,27 @@ export class CrmService {
     return data as CrmInteraction;
   }
 
+  static async updateInteraction(
+    id: string,
+    updates: Partial<Omit<CrmInteraction, "id" | "created_at">>
+  ) {
+    const { data, error } = await supabase
+      .from("crm_interactions")
+      .update(updates)
+      .eq("id", id)
+      .select(`
+        *,
+        client:crm_clients(*),
+        account:crm_accounts(*),
+        project:crm_projects(*),
+        spoc:crm_spocs(*)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data as CrmInteraction;
+  }
+
   // Documents
   static async getDocuments() {
     const { data, error } = await supabase

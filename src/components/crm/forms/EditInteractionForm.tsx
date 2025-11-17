@@ -18,7 +18,7 @@ import type { CrmInteraction } from '@/types/crm';
 
 const interactionSchema = z.object({
   interaction_type: z.enum(['call', 'meeting', 'email', 'whatsapp', 'linkedin', 'onsite']),
-  date: z.date(),
+  date: z.string(),
   notes: z.string().optional(),
   outcome: z.string().optional(),
   next_step: z.string().optional(),
@@ -41,7 +41,7 @@ export function EditInteractionForm({ interaction, onSuccess, onCancel }: EditIn
     resolver: zodResolver(interactionSchema),
     defaultValues: {
       interaction_type: interaction.interaction_type as any,
-      date: new Date(interaction.date),
+      date: interaction.date.split('T')[0],
       notes: interaction.notes || '',
       outcome: interaction.outcome || '',
       next_step: interaction.next_step || '',
@@ -53,7 +53,15 @@ export function EditInteractionForm({ interaction, onSuccess, onCancel }: EditIn
     try {
       setLoading(true);
       
-      // TODO: Add updateInteraction to CrmService
+      await CrmService.updateInteraction(interaction.id, {
+        interaction_type: data.interaction_type,
+        date: data.date,
+        notes: data.notes || undefined,
+        outcome: data.outcome || undefined,
+        next_step: data.next_step || undefined,
+        engagement_score: data.engagement_score,
+      });
+      
       toast({
         title: 'Success',
         description: 'Interaction updated successfully.'
@@ -118,7 +126,7 @@ export function EditInteractionForm({ interaction, onSuccess, onCancel }: EditIn
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(new Date(field.value), "PPP")
                         ) : (
                           <span>Pick a date</span>
                         )}
@@ -129,8 +137,8 @@ export function EditInteractionForm({ interaction, onSuccess, onCancel }: EditIn
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
                       initialFocus
                     />
                   </PopoverContent>
