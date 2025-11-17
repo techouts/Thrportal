@@ -11,8 +11,10 @@ import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
 import type { CrmOpportunity, CrmClient } from '@/types/crm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { CreateOpportunityForm } from '@/components/crm/forms/CreateOpportunityForm';
+import { EditOpportunityForm } from '@/components/crm/forms/EditOpportunityForm';
 
 export function CRMOpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<CrmOpportunity[]>([]);
@@ -57,18 +59,24 @@ export function CRMOpportunitiesPage() {
   });
 
   const getOpportunityLevel = (opportunity: CrmOpportunity): string => {
-    const total = opportunity.ft_count + opportunity.contract_count;
-    const hasLargeEstimate = opportunity.estimation_cost && opportunity.estimation_cost >= 1000000;
+    // Prioritize estimation_cost (in INR)
+    if (opportunity.estimation_cost) {
+      if (opportunity.estimation_cost < 1000000) return 'Small';      // < ₹10L
+      if (opportunity.estimation_cost <= 2500000) return 'Medium';    // ₹10L-25L
+      return 'Large';                                                  // > ₹25L
+    }
     
-    if (total >= 10 || hasLargeEstimate) return 'Enterprise';
-    if (total >= 5 || (opportunity.estimation_cost && opportunity.estimation_cost >= 500000)) return 'Medium';
-    return 'Small';
+    // Fallback to total positions
+    const totalPositions = opportunity.ft_count + opportunity.contract_count;
+    if (totalPositions <= 5) return 'Small';      // 1-5 positions
+    if (totalPositions <= 10) return 'Medium';    // 6-10 positions
+    return 'Large';                                // >10 positions
   };
 
-  const getAgingDays = (createdAt: string): number => {
-    const created = new Date(createdAt);
+  const getAgingDays = (updatedAt: string): number => {
+    const updated = new Date(updatedAt);
     const now = new Date();
-    const diff = now.getTime() - created.getTime();
+    const diff = now.getTime() - updated.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
@@ -78,10 +86,24 @@ export function CRMOpportunitiesPage() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<CrmOpportunity | null>(null);
 
   const handleDelete = async () => {
-    // TODO: Implement delete functionality
-    setShowDeleteDialog(false);
-    setSelectedOpportunity(null);
-    toast({ title: 'Opportunity deleted successfully' });
+    if (!selectedOpportunity) return;
+    
+    try {
+      await CrmService.deleteOpportunity(selectedOpportunity.id);
+      setShowDeleteDialog(false);
+      setSelectedOpportunity(null);
+      loadData();
+      toast({ 
+        title: 'Success',
+        description: 'Opportunity deleted successfully' 
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete opportunity',
+        variant: 'destructive'
+      });
+    }
   };
 
   const columns: Column<CrmOpportunity>[] = [
@@ -128,11 +150,11 @@ export function CRMOpportunitiesPage() {
       header: 'Level',
       accessor: (opportunity: CrmOpportunity) => getOpportunityLevel(opportunity),
       cell: (opportunity: CrmOpportunity) => (
-        <Badge variant={
-          getOpportunityLevel(opportunity) === 'Enterprise' ? 'default' :
-          getOpportunityLevel(opportunity) === 'Medium' ? 'secondary' : 'outline'
-        }>
-          {getOpportunityLevel(opportunity)}
+            <Badge variant={
+              getOpportunityLevel(opportunity) === 'Large' ? 'default' :
+              getOpportunityLevel(opportunity) === 'Medium' ? 'secondary' : 'outline'
+            }>
+              {getOpportunityLevel(opportunity)}
         </Badge>
       )
     },
@@ -153,9 +175,9 @@ export function CRMOpportunitiesPage() {
     {
       id: 'aging',
       header: 'Aging',
-      accessor: (opportunity: CrmOpportunity) => getAgingDays(opportunity.created_at),
+      accessor: (opportunity: CrmOpportunity) => getAgingDays(opportunity.updated_at),
       cell: (opportunity: CrmOpportunity) => {
-        const days = getAgingDays(opportunity.created_at);
+        const days = getAgingDays(opportunity.updated_at);
         return (
           <div className="text-sm">
             <div className={days > 30 ? 'text-orange-600' : ''}>
@@ -164,28 +186,6 @@ export function CRMOpportunitiesPage() {
           </div>
         );
       }
-    },
-    {
-      id: 'potential_value',
-      header: 'Potential Value',
-      accessor: (opportunity: CrmOpportunity) => opportunity.ft_count + opportunity.contract_count,
-      cell: (opportunity: CrmOpportunity) => (
-        <div className="text-sm">
-          <div className="font-medium">
-            {opportunity.ft_count + opportunity.contract_count} Hires
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'notes',
-      header: 'Notes',
-      accessor: (opportunity: CrmOpportunity) => opportunity.notes || '',
-      cell: (opportunity: CrmOpportunity) => (
-        <div className="text-sm text-muted-foreground max-w-xs truncate">
-          {opportunity.notes || '-'}
-        </div>
-      )
     },
     {
       id: 'actions',
@@ -335,6 +335,64 @@ export function CRMOpportunitiesPage() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Edit Opportunity Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Opportunity</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Note: Client cannot be changed after creation
+              </DialogDescription>
+            </DialogHeader>
+            {selectedOpportunity && (
+              <EditOpportunityForm
+                opportunity={selectedOpportunity}
+                onSuccess={() => {
+                  setShowEditDialog(false);
+                  setSelectedOpportunity(null);
+                  loadData();
+                  toast({
+                    title: 'Success',
+                    description: 'Opportunity updated successfully'
+                  });
+                }}
+                onCancel={() => {
+                  setShowEditDialog(false);
+                  setSelectedOpportunity(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Opportunity</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this opportunity for{' '}
+                <span className="font-semibold">{selectedOpportunity?.client?.name}</span>?
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setShowDeleteDialog(false);
+                setSelectedOpportunity(null);
+              }}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }
