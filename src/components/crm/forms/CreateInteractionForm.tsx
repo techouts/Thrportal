@@ -142,7 +142,6 @@ export function CreateInteractionForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No account</SelectItem>
                   {accounts
                     .filter(acc => acc.client_id === selectedClientId)
                     .map((account) => (
@@ -174,7 +173,6 @@ export function CreateInteractionForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No project</SelectItem>
                   {projects
                     .filter(proj => proj.client_id === selectedClientId)
                     .map((project) => (
@@ -206,7 +204,6 @@ export function CreateInteractionForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No SPOC</SelectItem>
                   {spocs
                     .filter(spoc => spoc.client_id === selectedClientId)
                     .map((spoc) => (
