@@ -22,20 +22,41 @@ export function CRMOpportunitiesPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (currentPage === 1) {
+      loadData();
+    } else {
+      setCurrentPage(1);
+    }
+  }, [searchQuery, statusFilter]);
+
+  useEffect(() => {
+    loadData();
+  }, [currentPage, pageSize]);
+
   const loadData = async () => {
     try {
       setLoading(true);
-      const [opportunitiesData, clientsData] = await Promise.all([
-        CrmService.getOpportunities(),
+      const [opportunitiesResponse, clientsData] = await Promise.all([
+        CrmService.getOpportunities({
+          search: searchQuery,
+          status: statusFilter,
+          page: currentPage,
+          limit: pageSize,
+        }),
         CrmService.getClients()
       ]);
-      setOpportunities(opportunitiesData);
+      setOpportunities(opportunitiesResponse.data);
+      setTotalItems(opportunitiesResponse.pagination.total);
       setClients(clientsData);
     } catch (error) {
       toast({
@@ -47,16 +68,6 @@ export function CRMOpportunitiesPage() {
       setLoading(false);
     }
   };
-
-  const filteredOpportunities = opportunities.filter(opportunity => {
-    const matchesSearch = opportunity.client?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      opportunity.project?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      opportunity.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || opportunity.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   const getOpportunityLevel = (opportunity: CrmOpportunity): string => {
     // Prioritize estimation_cost (in INR)
@@ -73,8 +84,10 @@ export function CRMOpportunitiesPage() {
     return 'Large';                                // >10 positions
   };
 
-  const getAgingDays = (updatedAt: string): number => {
+  const getAgingDays = (updatedAt: string | undefined): number => {
+    if (!updatedAt) return 0;
     const updated = new Date(updatedAt);
+    if (isNaN(updated.getTime())) return 0;
     const now = new Date();
     const diff = now.getTime() - updated.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -220,26 +233,18 @@ export function CRMOpportunitiesPage() {
     }
   ];
 
-  const totalValue = opportunities.reduce((sum, opp) => sum + opp.ft_count + opp.contract_count, 0);
-
   const stats = [
     {
       title: 'Total Opportunities',
-      value: opportunities.length,
+      value: totalItems,
       icon: Target,
-      description: 'All active opportunities'
+      description: 'All tracked opportunities'
     },
     {
       title: 'Open Opportunities',
-      value: opportunities.filter(o => o.status === 'Open').length,
+      value: statusFilter === 'Open' ? totalItems : opportunities.filter(o => o.status === 'Open').length,
       icon: TrendingUp,
-      description: 'Opportunities to pursue'
-    },
-    {
-      title: 'Potential Hires',
-      value: totalValue,
-      icon: DollarSign,
-      description: 'Total hiring potential'
+      description: 'Currently active opportunities'
     }
   ];
 
@@ -257,7 +262,7 @@ export function CRMOpportunitiesPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {stats.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -272,29 +277,6 @@ export function CRMOpportunitiesPage() {
         ))}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Opportunities</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Open">Open</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
-                <SelectItem value="Lost">Lost</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Opportunities Table */}
       <Card>
         <CardHeader>
@@ -305,11 +287,36 @@ export function CRMOpportunitiesPage() {
         </CardHeader>
         <CardContent>
           <DataTable
-            data={filteredOpportunities}
+            data={opportunities}
             columns={columns}
             loading={loading}
             searchable
-            onSearch={setSearchQuery}
+            searchPlaceholder="Search by client, project, or notes..."
+            onSearch={(query) => setSearchQuery(query)}
+            pagination={{
+              page: currentPage,
+              pageSize: pageSize,
+              total: totalItems,
+              onPageChange: (page) => setCurrentPage(page),
+              onPageSizeChange: (size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }
+            }}
+            filters={
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Open">Open</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Closed">Closed</SelectItem>
+                  <SelectItem value="Lost">Lost</SelectItem>
+                </SelectContent>
+              </Select>
+            }
             emptyMessage="No opportunities found"
           />
         </CardContent>

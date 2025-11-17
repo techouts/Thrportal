@@ -172,6 +172,13 @@ export interface CrmClientFilters {
   search?: string;
 }
 
+export interface CrmOpportunityFilters {
+  status?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface CrmMetrics {
   total_clients: number;
   active_clients: number;
