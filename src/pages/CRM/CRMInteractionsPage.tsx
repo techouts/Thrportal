@@ -19,8 +19,6 @@ import { toast as sonnerToast } from 'sonner';
 export function CRMInteractionsPage() {
   const [interactions, setInteractions] = useState<CrmInteraction[]>([]);
   const [clients, setClients] = useState<CrmClient[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
   const [spocs, setSpocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,17 +35,13 @@ export function CRMInteractionsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [interactionsData, clientsData, accountsData, projectsData, spocsData] = await Promise.all([
+      const [interactionsData, clientsData, spocsData] = await Promise.all([
         CrmService.getInteractions(),
         CrmService.getClients(),
-        CrmService.getAccounts(),
-        CrmService.getProjects(),
         CrmService.getAllSpocs()
       ]);
       setInteractions(interactionsData);
       setClients(clientsData);
-      setAccounts(accountsData);
-      setProjects(projectsData);
       setSpocs(spocsData);
     } catch (error) {
       toast({
@@ -341,13 +335,12 @@ export function CRMInteractionsPage() {
           </DialogHeader>
           <CreateInteractionForm
             clients={clients}
-            accounts={accounts}
-            projects={projects}
             spocs={spocs}
             onSuccess={() => {
               setShowCreateDialog(false);
               loadData();
             }}
+            onCancel={() => setShowCreateDialog(false)}
           />
         </DialogContent>
       </Dialog>
