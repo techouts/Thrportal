@@ -288,30 +288,6 @@ export function CRMInteractionsPage() {
         ))}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Interactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="call">Call</SelectItem>
-                <SelectItem value="meeting">Meeting</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
-                <SelectItem value="onsite">Onsite</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Interactions Table */}
       <Card>
@@ -328,7 +304,24 @@ export function CRMInteractionsPage() {
             loading={loading}
             searchable
             onSearch={setSearchQuery}
+            exportable={false}
             emptyMessage="No interactions found"
+            filters={
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="call">Call</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  <SelectItem value="onsite">Onsite</SelectItem>
+                </SelectContent>
+              </Select>
+            }
             pagination={{
               page: currentPage,
               pageSize: itemsPerPage,
