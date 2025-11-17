@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 import type { CrmOpportunity, CrmClient } from '@/types/crm';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -21,6 +22,7 @@ export function CRMOpportunitiesPage() {
   const [clients, setClients] = useState<CrmClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -37,7 +39,7 @@ export function CRMOpportunitiesPage() {
     } else {
       setCurrentPage(1);
     }
-  }, [searchQuery, statusFilter]);
+  }, [debouncedSearchQuery, statusFilter]);
 
   useEffect(() => {
     loadData();
@@ -48,7 +50,7 @@ export function CRMOpportunitiesPage() {
       setLoading(true);
       const [opportunitiesResponse, clientsData] = await Promise.all([
         CrmService.getOpportunities({
-          search: searchQuery,
+          search: debouncedSearchQuery,
           status: statusFilter,
           page: currentPage,
           limit: pageSize,
