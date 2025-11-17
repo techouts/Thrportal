@@ -126,7 +126,7 @@ export function CRMOpportunitiesPage() {
       id: 'client',
       header: 'Client & Project',
       accessor: (opportunity: CrmOpportunity) => opportunity.client?.name || '',
-      cell: (value: string, opportunity: CrmOpportunity) => (
+      cell: (opportunity: CrmOpportunity) => (
         <div>
           <div className="font-medium">
             <Link 
@@ -148,7 +148,7 @@ export function CRMOpportunitiesPage() {
       id: 'requirements',
       header: 'Requirements',
       accessor: (opportunity: CrmOpportunity) => `${opportunity.ft_count}-${opportunity.contract_count}`,
-      cell: (value: string, opportunity: CrmOpportunity) => (
+      cell: (opportunity: CrmOpportunity) => (
         <div className="text-sm">
           <div>FT: {opportunity.ft_count}</div>
           <div>Contract: {opportunity.contract_count}</div>
@@ -164,12 +164,12 @@ export function CRMOpportunitiesPage() {
       id: 'level',
       header: 'Level',
       accessor: (opportunity: CrmOpportunity) => getOpportunityLevel(opportunity),
-      cell: (value: string, opportunity: CrmOpportunity) => (
+      cell: (opportunity: CrmOpportunity) => (
             <Badge variant={
-              value === 'Large' ? 'default' :
-              value === 'Medium' ? 'secondary' : 'outline'
+              getOpportunityLevel(opportunity) === 'Large' ? 'default' :
+              getOpportunityLevel(opportunity) === 'Medium' ? 'secondary' : 'outline'
             }>
-              {value}
+              {getOpportunityLevel(opportunity)}
         </Badge>
       )
     },
@@ -177,13 +177,13 @@ export function CRMOpportunitiesPage() {
       id: 'status',
       header: 'Status',
       accessor: (opportunity: CrmOpportunity) => opportunity.status || '',
-      cell: (value: string, opportunity: CrmOpportunity) => (
+      cell: (opportunity: CrmOpportunity) => (
         <Badge variant={
-          value === 'Open' ? 'default' :
-          value === 'In Progress' ? 'secondary' :
-          value === 'Closed' ? 'outline' : 'destructive'
+          opportunity.status === 'Open' ? 'default' :
+          opportunity.status === 'In Progress' ? 'secondary' :
+          opportunity.status === 'Closed' ? 'outline' : 'destructive'
         }>
-          {value}
+          {opportunity.status}
         </Badge>
       )
     },
@@ -191,19 +191,22 @@ export function CRMOpportunitiesPage() {
       id: 'aging',
       header: 'Aging',
       accessor: (opportunity: CrmOpportunity) => getAgingDays(opportunity.updated_at),
-      cell: (value: number, opportunity: CrmOpportunity) => (
-        <div className="text-sm">
-          <div className={value > 30 ? 'text-orange-600' : ''}>
-            {value} days
+      cell: (opportunity: CrmOpportunity) => {
+        const days = getAgingDays(opportunity.updated_at);
+        return (
+          <div className="text-sm">
+            <div className={days > 30 ? 'text-orange-600' : ''}>
+              {days} days
+            </div>
           </div>
-        </div>
-      )
+        );
+      }
     },
     {
       id: 'actions',
       header: 'Actions',
       accessor: (opportunity: CrmOpportunity) => opportunity.id,
-      cell: (value: string, opportunity: CrmOpportunity) => (
+      cell: (opportunity: CrmOpportunity) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
