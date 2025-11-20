@@ -2263,6 +2263,58 @@ export type Database = {
           },
         ]
       }
+      recruiter_manager_mappings: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          created_at: string
+          id: string
+          manager_id: string | null
+          recruiter_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          manager_id?: string | null
+          recruiter_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          manager_id?: string | null
+          recruiter_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_manager_mappings_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiter_manager_mappings_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiter_manager_mappings_recruiter_id_fkey"
+            columns: ["recruiter_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles_catalog: {
         Row: {
           created_at: string
@@ -2626,6 +2678,21 @@ export type Database = {
           staffing_manager_id: string
           staffing_manager_name: string
           status: string
+        }[]
+      }
+      get_recruiter_manager_mappings: {
+        Args: never
+        Returns: {
+          active_candidates: number
+          active_jds: number
+          assigned_at: string
+          assigned_by: string
+          id: string
+          manager_id: string
+          manager_name: string
+          recruiter_id: string
+          recruiter_name: string
+          workload_score: number
         }[]
       }
       get_recruiter_profiles: {
