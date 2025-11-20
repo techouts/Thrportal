@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { Users, TrendingUp, AlertTriangle, UserPlus, MoreHorizontal } from 'lucide-react';
 import { ownershipService } from '@/services/ownershipService';
 import { RecruiterManagerMapping } from '@/types/ownership';
@@ -27,9 +28,15 @@ export function RecruiterManagerMappingTab() {
   const [loading, setLoading] = useState(true);
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [selectedMapping, setSelectedMapping] = useState<RecruiterManagerMapping | null>(null);
+  const [selectedRecruiters, setSelectedRecruiters] = useState<string[]>([]);
+  const [managers, setManagers] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  const [newManagerId, setNewManagerId] = useState<string>('');
+  const [reassignReason, setReassignReason] = useState<string>('');
+  const [isBulkMode, setIsBulkMode] = useState(false);
 
   useEffect(() => {
     loadMappings();
+    loadManagers();
   }, []);
 
   const loadMappings = async () => {
@@ -44,14 +51,54 @@ export function RecruiterManagerMappingTab() {
     }
   };
 
-  const handleReassign = async (recruiterId: string, newManagerId: string) => {
+  const loadManagers = async () => {
     try {
-      await ownershipService.updateRecruiterManagerMapping(recruiterId, newManagerId);
-      loadMappings();
-      setShowReassignDialog(false);
+      const managersData = await ownershipService.getManagers();
+      setManagers(managersData);
     } catch (error) {
-      console.error('Failed to reassign recruiter:', error);
+      console.error('Failed to load managers:', error);
     }
+  };
+
+  const handleReassign = async () => {
+    try {
+      if (isBulkMode && selectedRecruiters.length > 0) {
+        await ownershipService.bulkUpdateRecruiterManagerMapping(selectedRecruiters, newManagerId);
+      } else if (selectedMapping) {
+        await ownershipService.updateRecruiterManagerMapping(selectedMapping.recruiterId, newManagerId);
+      }
+      
+      setShowReassignDialog(false);
+      setSelectedRecruiters([]);
+      setNewManagerId('');
+      setReassignReason('');
+      setIsBulkMode(false);
+      setSelectedMapping(null);
+      loadMappings();
+    } catch (error) {
+      console.error('Failed to reassign:', error);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRecruiters(mappings.map(m => m.recruiterId));
+    } else {
+      setSelectedRecruiters([]);
+    }
+  };
+
+  const handleSelectRecruiter = (recruiterId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedRecruiters(prev => [...prev, recruiterId]);
+    } else {
+      setSelectedRecruiters(prev => prev.filter(id => id !== recruiterId));
+    }
+  };
+
+  const handleBulkReassignClick = () => {
+    setIsBulkMode(true);
+    setShowReassignDialog(true);
   };
 
   const getWorkloadColor = (score: number) => {
@@ -60,10 +107,8 @@ export function RecruiterManagerMappingTab() {
     return 'text-green-600';
   };
 
-  const getWorkloadVariant = (score: number) => {
-    if (score >= 80) return 'destructive';
-    if (score >= 60) return 'secondary';
-    return 'default';
+  const getWorkloadVariant = (_score: number) => {
+    return 'secondary';
   };
 
   return (
@@ -79,12 +124,14 @@ export function RecruiterManagerMappingTab() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleBulkReassignClick}
+                disabled={selectedRecruiters.length === 0}
+              >
                 <UserPlus className="mr-2 h-4 w-4" />
-                Bulk Reassign
-              </Button>
-              <Button variant="outline" size="sm">
-                Balance Workload
+                Bulk Reassign ({selectedRecruiters.length})
               </Button>
             </div>
           </div>
@@ -133,17 +180,6 @@ export function RecruiterManagerMappingTab() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Balance Index</p>
-                <p className="text-2xl font-bold">0.85</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Mappings Table */}
@@ -161,6 +197,12 @@ export function RecruiterManagerMappingTab() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
+                    <th className="text-left p-3 w-12">
+                      <Checkbox
+                        checked={selectedRecruiters.length === mappings.length && mappings.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </th>
                     <th className="text-left p-3">Recruiter</th>
                     <th className="text-left p-3">Assigned Manager</th>
                     <th className="text-left p-3">Active JDs</th>
@@ -174,6 +216,12 @@ export function RecruiterManagerMappingTab() {
                   {mappings.map((mapping) => (
                     <tr key={mapping.id} className="border-b hover:bg-muted/50">
                       <td className="p-3">
+                        <Checkbox
+                          checked={selectedRecruiters.includes(mapping.recruiterId)}
+                          onCheckedChange={(checked) => handleSelectRecruiter(mapping.recruiterId, checked as boolean)}
+                        />
+                      </td>
+                      <td className="p-3">
                         <div>
                           <div className="font-medium">{mapping.recruiterName}</div>
                           <div className="text-xs text-muted-foreground">
@@ -183,10 +231,18 @@ export function RecruiterManagerMappingTab() {
                       </td>
                       <td className="p-3">
                         <div>
-                          <div className="font-medium">{mapping.staffingManagerName}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Since: {new Date(mapping.assignedAt).toLocaleDateString()}
+                          <div className="font-medium">
+                            {mapping.staffingManagerName === 'Unassigned' ? (
+                              <Badge variant="outline" className="text-muted-foreground">Unassigned</Badge>
+                            ) : (
+                              mapping.staffingManagerName
+                            )}
                           </div>
+                          {mapping.staffingManagerName !== 'Unassigned' && (
+                            <div className="text-xs text-muted-foreground">
+                              Since: {new Date(mapping.assignedAt).toLocaleDateString()}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="p-3">
@@ -196,17 +252,15 @@ export function RecruiterManagerMappingTab() {
                         <Badge variant="secondary">{mapping.activeCandidates}</Badge>
                       </td>
                       <td className="p-3">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant={getWorkloadVariant(mapping.workloadScore)}>
-                              {mapping.workloadScore}%
-                            </Badge>
-                          </div>
-                          <Progress value={mapping.workloadScore} className="h-1 w-20" />
-                        </div>
+                        <Badge variant="secondary">
+                          {mapping.workloadScore}
+                        </Badge>
                       </td>
                       <td className="p-3 text-sm">
-                        {new Date(mapping.assignedAt).toLocaleDateString()}
+                        {mapping.staffingManagerName === 'Unassigned' 
+                          ? <span className="text-muted-foreground">-</span>
+                          : new Date(mapping.assignedAt).toLocaleDateString()
+                        }
                       </td>
                       <td className="p-3">
                         <DropdownMenu>
@@ -219,6 +273,8 @@ export function RecruiterManagerMappingTab() {
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedMapping(mapping);
+                                setIsBulkMode(false);
+                                setNewManagerId('');
                                 setShowReassignDialog(true);
                               }}
                             >
@@ -265,7 +321,7 @@ export function RecruiterManagerMappingTab() {
                         {managerMappings.length} recruiters
                       </p>
                     </div>
-                    <Badge variant={getWorkloadVariant(avgWorkload)}>
+                    <Badge variant={getWorkloadVariant(avgWorkload) as any}>
                       Avg Load: {avgWorkload}%
                     </Badge>
                   </div>
@@ -300,10 +356,10 @@ export function RecruiterManagerMappingTab() {
                         >
                           <span>{mapping.recruiterName}</span>
                           <Badge
-                            variant={getWorkloadVariant(mapping.workloadScore)}
+                            variant={'secondary' as const}
                             className="text-xs"
                           >
-                            {mapping.workloadScore}%
+                            {mapping.workloadScore}
                           </Badge>
                         </div>
                       ))}
@@ -320,59 +376,67 @@ export function RecruiterManagerMappingTab() {
       <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Reassign Manager</DialogTitle>
+            <DialogTitle>
+              {isBulkMode ? 'Bulk Reassign Manager' : 'Reassign Manager'}
+            </DialogTitle>
             <DialogDescription>
-              Reassign "{selectedMapping?.recruiterName}" to a new staffing manager
+              {isBulkMode 
+                ? `Reassign ${selectedRecruiters.length} recruiters to a new staffing manager`
+                : `Reassign "${selectedMapping?.recruiterName}" to a new staffing manager`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {!isBulkMode && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Current Manager</label>
+                <Badge variant="outline">{selectedMapping?.staffingManagerName}</Badge>
+              </div>
+            )}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Current Manager</label>
-              <Badge variant="outline">{selectedMapping?.staffingManagerName}</Badge>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">New Manager</label>
-              <Select>
+              <label className="text-sm font-medium">New Manager *</label>
+              <Select value={newManagerId} onValueChange={setNewManagerId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select new manager" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manager-1">Mike Rodriguez</SelectItem>
-                  <SelectItem value="manager-2">Lisa Thompson</SelectItem>
-                  <SelectItem value="manager-3">John Anderson</SelectItem>
+                  {managers.map((manager) => (
+                    <SelectItem key={manager.id} value={manager.id}>
+                      {manager.name} ({manager.role})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Reason</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select reason" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="workload-balancing">Workload Balancing</SelectItem>
-                  <SelectItem value="skill-alignment">Skill Alignment</SelectItem>
-                  <SelectItem value="performance-improvement">Performance Improvement</SelectItem>
-                  <SelectItem value="organizational-change">Organizational Change</SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium">Reason (Optional)</label>
+              <Textarea
+                placeholder="Enter reason for reassignment..."
+                value={reassignReason}
+                onChange={(e) => setReassignReason(e.target.value)}
+                rows={3}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowReassignDialog(false)}
+              onClick={() => {
+                setShowReassignDialog(false);
+                setSelectedRecruiters([]);
+                setNewManagerId('');
+                setReassignReason('');
+                setIsBulkMode(false);
+                setSelectedMapping(null);
+              }}
             >
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                if (selectedMapping) {
-                  handleReassign(selectedMapping.recruiterId, 'manager-2');
-                }
-              }}
+              onClick={handleReassign}
+              disabled={!newManagerId}
             >
-              Reassign
+              {isBulkMode ? 'Reassign All' : 'Reassign'}
             </Button>
           </DialogFooter>
         </DialogContent>

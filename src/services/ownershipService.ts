@@ -26,6 +26,7 @@ import {
   NoSubmissionReport,
   NoSubmissionWidget
 } from '@/types/ownership';
+import { supabase } from '@/integrations/supabase/client';
 
 class OwnershipService {
   private static instance: OwnershipService;
@@ -480,33 +481,77 @@ class OwnershipService {
 
   // Recruiter Manager Mapping
   async getRecruiterManagerMappings(): Promise<RecruiterManagerMapping[]> {
-    return [...this.mockRecruiterManagerMappings];
+    const { data, error } = await supabase.rpc('get_recruiter_manager_mappings');
+    if (error) throw error;
+    return (data || []).map(row => ({
+      id: row.id,
+      recruiterId: row.recruiter_id,
+      recruiterName: row.recruiter_name,
+      staffingManagerId: row.manager_id || '',
+      staffingManagerName: row.manager_name,
+      activeJDs: row.active_jds,
+      activeCandidates: row.active_candidates,
+      workloadScore: row.workload_score,
+      assignedAt: row.assigned_at || new Date().toISOString(),
+      assignedBy: row.assigned_by || ''
+    }));
   }
 
   async updateRecruiterManagerMapping(recruiterId: string, managerId: string): Promise<RecruiterManagerMapping> {
-    const index = this.mockRecruiterManagerMappings.findIndex(m => m.recruiterId === recruiterId);
-    if (index === -1) throw new Error('Recruiter manager mapping not found');
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { error } = await supabase
+      .from('recruiter_manager_mappings')
+      .update({
+        manager_id: managerId,
+        assigned_at: new Date().toISOString(),
+        assigned_by: user?.id
+      })
+      .eq('recruiter_id', recruiterId);
 
-    const oldManagerId = this.mockRecruiterManagerMappings[index].staffingManagerId;
-    this.mockRecruiterManagerMappings[index] = {
-      ...this.mockRecruiterManagerMappings[index],
-      staffingManagerId: managerId,
-      assignedAt: new Date().toISOString()
-    };
+    if (error) throw error;
 
-    // Log the change
-    await this.logOwnershipChange({
-      resourceType: 'RecruiterMapping',
-      resourceId: recruiterId,
-      resourceName: this.mockRecruiterManagerMappings[index].recruiterName,
-      changeType: 'Reassign',
-      fromValue: oldManagerId,
-      toValue: managerId,
-      changedBy: 'current-user',
-      changedAt: new Date().toISOString()
-    });
+    const mappings = await this.getRecruiterManagerMappings();
+    const updated = mappings.find(m => m.recruiterId === recruiterId);
+    if (!updated) throw new Error('Failed to retrieve updated mapping');
+    return updated;
+  }
 
-    return this.mockRecruiterManagerMappings[index];
+  async bulkUpdateRecruiterManagerMapping(recruiterIds: string[], managerId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { error } = await supabase
+      .from('recruiter_manager_mappings')
+      .update({
+        manager_id: managerId,
+        assigned_at: new Date().toISOString(),
+        assigned_by: user?.id
+      })
+      .in('recruiter_id', recruiterIds);
+
+    if (error) throw error;
+  }
+
+  async getManagers(): Promise<Array<{ id: string; name: string; role: string }>> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        display_name,
+        first_name,
+        last_name,
+        user_roles!inner(role)
+      `)
+      .in('user_roles.role', ['STAFFING_MANAGER', 'HR_MANAGER'])
+      .order('display_name');
+
+    if (error) throw error;
+
+    return (data || []).map(profile => ({
+      id: profile.id,
+      name: profile.display_name || `${profile.first_name} ${profile.last_name}`.trim(),
+      role: (profile.user_roles as any[])[0]?.role || 'STAFFING_MANAGER'
+    }));
   }
 
   // Talent Pool Ownership
