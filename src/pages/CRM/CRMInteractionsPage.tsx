@@ -41,11 +41,14 @@ export function CRMInteractionsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [interactionsData, clientsData, spocsData] = await Promise.all([
+      const [interactionsResponse, clientsData, spocsData] = await Promise.all([
         CrmService.getInteractions(),
         CrmService.getClients(),
         CrmService.getAllSpocs()
       ]);
+      const interactionsData = Array.isArray(interactionsResponse) 
+        ? interactionsResponse 
+        : interactionsResponse.data;
       setInteractions(interactionsData);
       setClients(clientsData);
       setSpocs(spocsData);

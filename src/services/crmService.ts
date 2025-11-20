@@ -529,8 +529,8 @@ export class CrmService {
   }
 
   // Interactions
-  static async getInteractions(limit = 50) {
-    const { data, error } = await supabase
+  static async getInteractions(filters?: { page?: number; limit?: number }) {
+    let query = supabase
       .from("crm_interactions")
       .select(
         `
@@ -539,22 +539,61 @@ export class CrmService {
         account:crm_accounts(*),
         project:crm_projects(*),
         spoc:crm_spocs(*)
-      `
+      `,
+        { count: 'exact' }
       )
-      .order("date", { ascending: false })
-      .limit(limit);
+      .order("date", { ascending: false });
 
-    if (error) throw error;
-    return (data || []).map((interaction) => ({
-      ...interaction,
-      interaction_type: interaction.interaction_type as
-        | "call"
-        | "meeting"
-        | "email"
-        | "whatsapp"
-        | "linkedin"
-        | "onsite",
-    })) as CrmInteraction[];
+    // Apply pagination ONLY if explicitly requested
+    if (filters?.page && filters?.limit) {
+      const page = filters.page;
+      const limit = filters.limit;
+      const offset = (page - 1) * limit;
+      query = query.range(offset, offset + limit - 1);
+      
+      const { data, error, count } = await query;
+
+      if (error) throw error;
+
+      const mappedData = (data || []).map((interaction) => ({
+        ...interaction,
+        interaction_type: interaction.interaction_type as
+          | "call"
+          | "meeting"
+          | "email"
+          | "whatsapp"
+          | "linkedin"
+          | "onsite",
+      })) as CrmInteraction[];
+
+      // Return paginated response
+      return {
+        data: mappedData,
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / limit),
+        }
+      };
+    } else {
+      // No pagination - return all data
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Return just the data array (no pagination metadata)
+      return (data || []).map((interaction) => ({
+        ...interaction,
+        interaction_type: interaction.interaction_type as
+          | "call"
+          | "meeting"
+          | "email"
+          | "whatsapp"
+          | "linkedin"
+          | "onsite",
+      })) as CrmInteraction[];
+    }
   }
 
   static async createInteraction(

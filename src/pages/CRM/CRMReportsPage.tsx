@@ -46,7 +46,7 @@ export default function CRMReportsPage() {
       setClients(clientsData);
       setProjects(projectsData);
       setOpportunities(Array.isArray(opportunitiesResponse) ? opportunitiesResponse : opportunitiesResponse.data);
-      setInteractions(interactionsData);
+      setInteractions(Array.isArray(interactionsData) ? interactionsData : interactionsData.data);
       setMetrics(metricsData);
     } catch (error) {
       console.error('Error loading report data:', error);

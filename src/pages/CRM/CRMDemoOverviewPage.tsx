@@ -47,7 +47,7 @@ export default function CRMDemoOverviewPage() {
         accounts,
         projects,
         opportunities: Array.isArray(opportunitiesResponse) ? opportunitiesResponse : opportunitiesResponse.data,
-        interactions,
+        interactions: Array.isArray(interactions) ? interactions : interactions.data,
         documents
       });
     } catch (error) {
