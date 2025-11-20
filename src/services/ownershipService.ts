@@ -534,23 +534,14 @@ class OwnershipService {
 
   async getManagers(): Promise<Array<{ id: string; name: string; role: string }>> {
     const { data, error } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        display_name,
-        first_name,
-        last_name,
-        user_roles!inner(role)
-      `)
-      .in('user_roles.role', ['STAFFING_MANAGER', 'HR_MANAGER'])
-      .order('display_name');
+      .rpc('get_manager_profiles');
 
     if (error) throw error;
 
     return (data || []).map(profile => ({
       id: profile.id,
-      name: profile.display_name || `${profile.first_name} ${profile.last_name}`.trim(),
-      role: (profile.user_roles as any[])[0]?.role || 'STAFFING_MANAGER'
+      name: profile.display_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+      role: profile.role
     }));
   }
 
