@@ -2680,6 +2680,16 @@ export type Database = {
           status: string
         }[]
       }
+      get_manager_profiles: {
+        Args: never
+        Returns: {
+          display_name: string
+          first_name: string
+          id: string
+          last_name: string
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       get_recruiter_manager_mappings: {
         Args: never
         Returns: {
