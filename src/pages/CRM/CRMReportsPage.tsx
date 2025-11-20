@@ -45,7 +45,7 @@ export default function CRMReportsPage() {
       
       setClients(clientsData);
       setProjects(projectsData);
-      setOpportunities(opportunitiesResponse.data);
+      setOpportunities(Array.isArray(opportunitiesResponse) ? opportunitiesResponse : opportunitiesResponse.data);
       setInteractions(interactionsData);
       setMetrics(metricsData);
     } catch (error) {
