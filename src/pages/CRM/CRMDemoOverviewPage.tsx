@@ -46,7 +46,7 @@ export default function CRMDemoOverviewPage() {
         clients,
         accounts,
         projects,
-        opportunities: opportunitiesResponse.data,
+        opportunities: Array.isArray(opportunitiesResponse) ? opportunitiesResponse : opportunitiesResponse.data,
         interactions,
         documents
       });

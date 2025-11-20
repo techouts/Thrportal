@@ -449,28 +449,42 @@ export class CrmService {
         );
       }
 
-      // Apply pagination
-      const page = filters?.page || 1;
-      const limit = filters?.limit || 10;
-      const offset = (page - 1) * limit;
-      query = query.range(offset, offset + limit - 1);
+      // Apply pagination ONLY if explicitly requested
+      if (filters?.page && filters?.limit) {
+        const page = filters.page;
+        const limit = filters.limit;
+        const offset = (page - 1) * limit;
+        query = query.range(offset, offset + limit - 1);
+        
+        const { data, error, count } = await query;
 
-      const { data, error, count } = await query;
-
-      if (error) {
-        console.error('Supabase error fetching opportunities:', error);
-        throw error;
-      }
-
-      return {
-        data: (data || []) as unknown as CrmOpportunity[],
-        pagination: {
-          page,
-          limit,
-          total: count || 0,
-          totalPages: Math.ceil((count || 0) / limit),
+        if (error) {
+          console.error('Supabase error fetching opportunities:', error);
+          throw error;
         }
-      };
+
+        // Return paginated response
+        return {
+          data: (data || []) as unknown as CrmOpportunity[],
+          pagination: {
+            page,
+            limit,
+            total: count || 0,
+            totalPages: Math.ceil((count || 0) / limit),
+          }
+        };
+      } else {
+        // No pagination - return all data
+        const { data, error } = await query;
+
+        if (error) {
+          console.error('Supabase error fetching opportunities:', error);
+          throw error;
+        }
+
+        // Return just the data array (no pagination metadata)
+        return (data || []) as unknown as CrmOpportunity[];
+      }
     } catch (error) {
       console.error('Error fetching opportunities from Supabase:', error);
       throw error;
