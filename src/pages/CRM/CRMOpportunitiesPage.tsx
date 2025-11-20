@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, DollarSign, TrendingUp, Target, MoreHorizontal } from 'lucide-react';
+import { Plus, DollarSign, TrendingUp, Target, MoreHorizontal, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
@@ -25,36 +27,32 @@ export function CRMOpportunitiesPage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
 
   // Reset to page 1 when filters change
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
+    setCurrentPage(1);
   }, [debouncedSearchQuery, statusFilter]);
 
-  // Load data when dependencies change
+  // Load data when filters change ONLY (NOT on page change)
   useEffect(() => {
     loadData();
-  }, [debouncedSearchQuery, statusFilter, currentPage, pageSize]);
+  }, [debouncedSearchQuery, statusFilter]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [opportunitiesResponse, clientsData] = await Promise.all([
+      const [opportunitiesData, clientsData] = await Promise.all([
         CrmService.getOpportunities({
           search: debouncedSearchQuery,
           status: statusFilter,
-          page: currentPage,
-          limit: pageSize,
+          // Fetch ALL data - no page/limit params
         }),
         CrmService.getClients()
       ]);
-      setOpportunities(opportunitiesResponse.data);
-      setTotalItems(opportunitiesResponse.pagination.total);
+      // Store ALL opportunities
+      setOpportunities(Array.isArray(opportunitiesData) ? opportunitiesData : opportunitiesData.data);
       setClients(clientsData);
     } catch (error) {
       toast({
@@ -90,6 +88,19 @@ export function CRMOpportunitiesPage() {
     const diff = now.getTime() - updated.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
+
+  // Client-side pagination calculations
+  const totalPages = Math.ceil(opportunities.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOpportunities = opportunities.slice(startIndex, endIndex);
+
+  // Reset to page 1 if current page exceeds total pages
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -234,13 +245,13 @@ export function CRMOpportunitiesPage() {
   const stats = [
     {
       title: 'Total Opportunities',
-      value: totalItems,
+      value: opportunities.length,
       icon: Target,
       description: 'All tracked opportunities'
     },
     {
       title: 'Open Opportunities',
-      value: statusFilter === 'Open' ? totalItems : opportunities.filter(o => o.status === 'Open').length,
+      value: opportunities.filter(o => o.status === 'Open').length,
       icon: TrendingUp,
       description: 'Currently active opportunities'
     }
@@ -284,26 +295,20 @@ export function CRMOpportunitiesPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable
-            data={opportunities}
-            columns={columns}
-            loading={loading}
-            searchable
-            searchPlaceholder="Search by client, project, or notes..."
-            onSearch={(query) => setSearchQuery(query)}
-            pagination={{
-              page: currentPage,
-              pageSize: pageSize,
-              total: totalItems,
-              onPageChange: (page) => setCurrentPage(page),
-              onPageSizeChange: (size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }
-            }}
-            filters={
+          <div className="space-y-4">
+            {/* Search and Filter Row */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by client, project, or notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,9 +319,75 @@ export function CRMOpportunitiesPage() {
                   <SelectItem value="Lost">Lost</SelectItem>
                 </SelectContent>
               </Select>
-            }
-            emptyMessage="No opportunities found"
-          />
+            </div>
+
+            {/* DataTable without built-in pagination */}
+            <DataTable
+              data={paginatedOpportunities}
+              columns={columns}
+              loading={loading}
+              emptyMessage="No opportunities found"
+            />
+
+            {/* Custom Pagination UI */}
+            {opportunities.length > 0 && (
+              <div className="flex items-center justify-between border-t pt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[70px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}-{Math.min(endIndex, opportunities.length)} of {opportunities.length}
+                  </span>
+                </div>
+                
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
