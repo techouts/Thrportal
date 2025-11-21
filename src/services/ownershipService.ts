@@ -518,27 +518,47 @@ class OwnershipService {
     try {
       const { data, error } = await supabase
         .from('candidates')
-        .select('pool_tag')
-        .order('pool_tag');
+        .select('pool_tag, recruiter_owner')
+        .not('pool_tag', 'is', null);
 
       if (error) throw error;
 
-      // Group by pool_tag and count
-      const poolMap = new Map<string, number>();
+      // Group by pool_tag and track distinct owners
+      const poolMap = new Map<string, { count: number; owners: Set<string> }>();
       data?.forEach((row) => {
         const tag = row.pool_tag;
-        poolMap.set(tag, (poolMap.get(tag) || 0) + 1);
+        if (!poolMap.has(tag)) {
+          poolMap.set(tag, { count: 0, owners: new Set() });
+        }
+        const poolData = poolMap.get(tag)!;
+        poolData.count += 1;
+        if (row.recruiter_owner) {
+          poolData.owners.add(row.recruiter_owner);
+        }
       });
 
       // Convert to TalentPoolOwnership array
-      return Array.from(poolMap.entries()).map(([poolName, count], index) => ({
-        id: `pool-${index}`,
-        poolId: `pool-${poolName.replace(/\s+/g, '-').toLowerCase()}`,
-        poolName,
-        owner: 'System',
-        candidateCount: count,
-        createdAt: new Date().toISOString(),
-      })).sort((a, b) => b.candidateCount - a.candidateCount);
+      return Array.from(poolMap.entries()).map(([poolName, poolData], index) => {
+        const ownersArray = Array.from(poolData.owners);
+        let owner: string;
+        
+        if (ownersArray.length === 0) {
+          owner = 'Unassigned';
+        } else if (ownersArray.length === 1) {
+          owner = ownersArray[0];
+        } else {
+          owner = 'Multiple Owners';
+        }
+
+        return {
+          id: `pool-${index}`,
+          poolId: `pool-${poolName.replace(/\s+/g, '-').toLowerCase()}`,
+          poolName,
+          owner,
+          candidateCount: poolData.count,
+          createdAt: new Date().toISOString(),
+        };
+      }).sort((a, b) => b.candidateCount - a.candidateCount);
     } catch (error) {
       console.error('Failed to fetch talent pool ownerships:', error);
       return [];
