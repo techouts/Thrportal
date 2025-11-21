@@ -10,9 +10,7 @@ import { RecruiterManagerMappingTab } from './tabs/RecruiterManagerMappingTab';
 import { TalentPoolsOwnershipTab } from './tabs/TalentPoolsOwnershipTab';
 import { EscalationRulesTab } from './tabs/EscalationRulesTab';
 import { OwnershipReportsTab } from './tabs/OwnershipReportsTab';
-import { PrimaryFollowUpQueue } from './tabs/PrimaryFollowUpQueue';
 import { OwnershipSettingsTab } from './tabs/OwnershipSettingsTab';
-import { EscalationsTab } from './tabs/EscalationsTab';
 
 export function OwnershipModule() {
   const [showMigrationBanner, setShowMigrationBanner] = useState(true);
@@ -48,9 +46,7 @@ export function OwnershipModule() {
             <TabsTrigger value="recruiter-manager">Recruiter-Manager</TabsTrigger>
             <TabsTrigger value="talent-pools">Talent Pools</TabsTrigger>
           </TabsList>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="primary-queue">Primary Queues</TabsTrigger>
-            <TabsTrigger value="escalations">Escalations</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -74,14 +70,6 @@ export function OwnershipModule() {
         
         <TabsContent value="talent-pools" className="space-y-6">
           <TalentPoolsOwnershipTab />
-        </TabsContent>
-        
-        <TabsContent value="primary-queue" className="space-y-6">
-          <PrimaryFollowUpQueue />
-        </TabsContent>
-        
-        <TabsContent value="escalations" className="space-y-6">
-          <EscalationsTab />
         </TabsContent>
         
         <TabsContent value="reports" className="space-y-6">
