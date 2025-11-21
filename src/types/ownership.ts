@@ -76,16 +76,8 @@ export interface TalentPoolOwnership {
   poolId: string;
   poolName: string;
   owner: string;
-  accessLevel: PoolAccessLevel;
-  allowedUsers: string[];
-  restrictedUsers: string[];
-  tags: string[];
   candidateCount: number;
-  usageCount: number;
-  lastUsed: string;
   createdAt: string;
-  isLocked: boolean;
-  lockedBy?: string;
 }
 
 export type PoolAccessLevel = 'Private' | 'Team' | 'Department' | 'Public';
