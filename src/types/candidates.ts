@@ -21,6 +21,9 @@ export interface CandidateProfile {
   consent: boolean;
   gdprCompliant: boolean;
   
+  // Pool tag
+  poolTag: string;
+  
   // Phase 2 fields - Name breakdown
   firstName?: string;
   middleName?: string;

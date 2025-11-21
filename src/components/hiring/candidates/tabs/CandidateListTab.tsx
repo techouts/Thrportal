@@ -211,13 +211,12 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
       ),
     },
     {
-      accessorKey: 'poolTags',
-      header: 'Pool Tags',
+      accessorKey: 'poolTag',
+      header: 'Pool Tag',
       cell: ({ row }: any) => (
-        <div className="flex flex-wrap gap-1">
-          <Badge variant="secondary" className="text-xs">Frontend</Badge>
-          <Badge variant="secondary" className="text-xs">Senior</Badge>
-        </div>
+        <Badge variant="secondary" className="text-xs">
+          {row.original.poolTag || 'Frontend Engineer'}
+        </Badge>
       ),
     },
     {
@@ -478,7 +477,7 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                   <th className="text-left p-2">Location</th>
                   <th className="text-left p-2">Recruiter Owner</th>
                   <th className="text-left p-2">Source</th>
-                  <th className="text-left p-2">Pool Tags</th>
+                  <th className="text-left p-2">Pool Tag</th>
                   <th className="text-left p-2">Consent</th>
                   <th className="text-left p-2">Last Updated</th>
                   <th className="text-left p-2">Actions</th>
@@ -508,10 +507,9 @@ export function CandidateListTab({ onViewCandidate }: CandidateListTabProps) {
                         <Badge variant="outline">{candidate.source}</Badge>
                       </td>
                       <td className="p-2">
-                        <div className="flex flex-wrap gap-1">
-                          <Badge variant="secondary" className="text-xs">Frontend</Badge>
-                          <Badge variant="secondary" className="text-xs">Senior</Badge>
-                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {candidate.poolTag || 'Frontend Engineer'}
+                        </Badge>
                       </td>
                       <td className="p-2">
                         <Badge variant={candidate.consent ? 'default' : 'destructive'}>

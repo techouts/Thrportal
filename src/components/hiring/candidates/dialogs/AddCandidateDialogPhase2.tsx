@@ -337,6 +337,26 @@ export function AddCandidateDialogPhase2({ open, onOpenChange, onSuccess }: AddC
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="poolTag">Pool Tag *</Label>
+                  <Select defaultValue="Frontend Engineer" onValueChange={(value) => setValue('poolTag', value as any)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select pool tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Frontend Engineer">Frontend Engineer</SelectItem>
+                      <SelectItem value="Backend Engineer">Backend Engineer</SelectItem>
+                      <SelectItem value="Full Stack Engineer">Full Stack Engineer</SelectItem>
+                      <SelectItem value="DevOps Engineer">DevOps Engineer</SelectItem>
+                      <SelectItem value="Data Engineer">Data Engineer</SelectItem>
+                      <SelectItem value="QA Engineer">QA Engineer</SelectItem>
+                      <SelectItem value="Product Manager">Product Manager</SelectItem>
+                      <SelectItem value="UI/UX Designer">UI/UX Designer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.poolTag && <p className="text-sm text-destructive">{errors.poolTag.message}</p>}
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="jobType">Job Type</Label>
                   <Select onValueChange={(value) => setValue('jobType', value as any)}>
                     <SelectTrigger>

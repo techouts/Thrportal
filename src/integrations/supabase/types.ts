@@ -625,6 +625,7 @@ export type Database = {
           passport_number: string | null
           phone: string | null
           pincode: string | null
+          pool_tag: string
           preferred_shift: string | null
           recruiter_owner: string | null
           skills: string[] | null
@@ -668,6 +669,7 @@ export type Database = {
           passport_number?: string | null
           phone?: string | null
           pincode?: string | null
+          pool_tag?: string
           preferred_shift?: string | null
           recruiter_owner?: string | null
           skills?: string[] | null
@@ -711,6 +713,7 @@ export type Database = {
           passport_number?: string | null
           phone?: string | null
           pincode?: string | null
+          pool_tag?: string
           preferred_shift?: string | null
           recruiter_owner?: string | null
           skills?: string[] | null
