@@ -29,6 +29,18 @@ export const candidateSchemaPhase1 = z.object({
   // Compliance
   consent: z.boolean().default(true),
   gdprCompliant: z.boolean().default(true),
+  
+  // Pool Tag
+  poolTag: z.enum([
+    'Frontend Engineer',
+    'Backend Engineer',
+    'Full Stack Engineer',
+    'DevOps Engineer',
+    'Data Engineer',
+    'QA Engineer',
+    'Product Manager',
+    'UI/UX Designer'
+  ]).default('Frontend Engineer'),
 });
 
 export const candidateSchemaPhase2 = candidateSchemaPhase1.extend({

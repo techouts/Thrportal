@@ -47,6 +47,7 @@ class CandidatesService {
       avatarUrl: row.avatar_url,
       consent: row.consent,
       gdprCompliant: row.gdpr_compliant,
+      poolTag: row.pool_tag || 'Frontend Engineer',
       
       // Phase 2 fields
       firstName: row.first_name,
@@ -149,6 +150,7 @@ class CandidatesService {
       preferred_shift: candidate.preferredShift,
       expected_ctc_type: candidate.expectedCtcType,
       status_extended: candidate.statusExtended,
+      pool_tag: candidate.poolTag,
     };
     
     console.log('Insert data:', insertData);
