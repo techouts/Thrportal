@@ -565,6 +565,37 @@ class OwnershipService {
     }
   }
 
+  async updatePoolOwner(poolTag: string, newOwner: string): Promise<void> {
+    const { error } = await supabase
+      .from('candidates')
+      .update({ recruiter_owner: newOwner, updated_at: new Date().toISOString() })
+      .eq('pool_tag', poolTag);
+
+    if (error) throw error;
+  }
+
+  async getCandidatesByPoolTag(poolTag: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('pool_tag', poolTag)
+      .order('name');
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getRecruiters(): Promise<Array<{ id: string; name: string }>> {
+    const { data, error } = await supabase.rpc('get_recruiter_profiles');
+
+    if (error) throw error;
+
+    return (data || []).map((r: any) => ({
+      id: r.id,
+      name: r.display_name || `${r.first_name} ${r.last_name}`.trim() || 'Unknown',
+    }));
+  }
+
   async updateTalentPoolAccess(poolId: string, updates: Partial<TalentPoolOwnership>): Promise<TalentPoolOwnership> {
     const index = this.mockTalentPoolOwnerships.findIndex(p => p.poolId === poolId);
     if (index === -1) throw new Error('Talent pool ownership not found');
