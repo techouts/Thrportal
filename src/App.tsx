@@ -17,6 +17,7 @@ import DashboardPage from "./pages/DashboardPage";
 import HomePage from "./pages/Home/HomePage";
 import MePage from "./pages/Me/MePage";
 import MyTeamPage from "./pages/MyTeam/MyTeamPage";
+import ManagementPage from "./pages/Management/ManagementPage";
 import HiringPage from "./pages/Hiring/HiringPage";
 import SchedulingPage from "./pages/Hiring/SchedulingPage";
 import HiringSettingsPage from "./pages/Hiring/HiringSettingsPage";
@@ -191,6 +192,28 @@ function App() {
                 <Route path="/MyTeam/*" element={
                   <ProtectedRoute required={["attendance.team.read", "leave.team.calendar.read", "performance.reviews.create"]}>
                     <MainLayout><MyTeamPage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+
+                {/* Management Section */}
+                <Route path="/Management/Dashboard" element={
+                  <ProtectedRoute required={["management.*", "ownership.*"]}>
+                    <MainLayout><ManagementPage defaultTab="Dashboard" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Management/PrimaryQueues" element={
+                  <ProtectedRoute required={["management.*", "ownership.*"]}>
+                    <MainLayout><ManagementPage defaultTab="PrimaryQueues" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Management/Escalations" element={
+                  <ProtectedRoute required={["management.*", "ownership.*"]}>
+                    <MainLayout><ManagementPage defaultTab="Escalations" /></MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/Management/*" element={
+                  <ProtectedRoute required={["management.*", "ownership.*"]}>
+                    <MainLayout><ManagementPage defaultTab="Dashboard" /></MainLayout>
                   </ProtectedRoute>
                 } />
 

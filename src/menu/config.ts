@@ -49,6 +49,15 @@ export const MENU: MenuSection[] = [
     ] 
   },
   { 
+    label: "Management", 
+    requiresAny: ["management.*", "ownership.*"],
+    items: [
+      { label: "Dashboard", route: "/Management/Dashboard" },
+      { label: "Primary Queues", route: "/Management/PrimaryQueues" },
+      { label: "Escalations", route: "/Management/Escalations" }
+    ] 
+  },
+  { 
     label: "Hiring", 
     requiresAny: ["hiring.*", "applications.*"],
     items: [
