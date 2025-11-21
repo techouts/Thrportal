@@ -243,40 +243,8 @@ class OwnershipService {
       }
     ];
 
-    // Initialize Talent Pool Ownerships
-    this.mockTalentPoolOwnerships = [
-      {
-        id: 'pool-own-1',
-        poolId: 'pool-1',
-        poolName: 'Frontend Developers - SF',
-        owner: 'recruiter-1',
-        accessLevel: 'Team',
-        allowedUsers: ['recruiter-2', 'manager-1'],
-        restrictedUsers: [],
-        tags: ['React', 'JavaScript', 'San Francisco'],
-        candidateCount: 25,
-        usageCount: 12,
-        lastUsed: '2024-01-15T14:20:00Z',
-        createdAt: '2024-01-01T10:00:00Z',
-        isLocked: false
-      },
-      {
-        id: 'pool-own-2',
-        poolId: 'pool-2',
-        poolName: 'Backend Engineers - Remote',
-        owner: 'recruiter-3',
-        accessLevel: 'Public',
-        allowedUsers: [],
-        restrictedUsers: [],
-        tags: ['Python', 'Node.js', 'Remote'],
-        candidateCount: 18,
-        usageCount: 8,
-        lastUsed: '2024-01-14T11:30:00Z',
-        createdAt: '2024-01-02T09:00:00Z',
-        isLocked: true,
-        lockedBy: 'manager-2'
-      }
-    ];
+    // Initialize Talent Pool Ownerships (now fetched from database)
+    this.mockTalentPoolOwnerships = [];
 
     // Initialize Escalation Rules
     this.mockEscalationRules = [
@@ -547,7 +515,34 @@ class OwnershipService {
 
   // Talent Pool Ownership
   async getTalentPoolOwnerships(): Promise<TalentPoolOwnership[]> {
-    return [...this.mockTalentPoolOwnerships];
+    try {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('pool_tag')
+        .order('pool_tag');
+
+      if (error) throw error;
+
+      // Group by pool_tag and count
+      const poolMap = new Map<string, number>();
+      data?.forEach((row) => {
+        const tag = row.pool_tag;
+        poolMap.set(tag, (poolMap.get(tag) || 0) + 1);
+      });
+
+      // Convert to TalentPoolOwnership array
+      return Array.from(poolMap.entries()).map(([poolName, count], index) => ({
+        id: `pool-${index}`,
+        poolId: `pool-${poolName.replace(/\s+/g, '-').toLowerCase()}`,
+        poolName,
+        owner: 'System',
+        candidateCount: count,
+        createdAt: new Date().toISOString(),
+      })).sort((a, b) => b.candidateCount - a.candidateCount);
+    } catch (error) {
+      console.error('Failed to fetch talent pool ownerships:', error);
+      return [];
+    }
   }
 
   async updateTalentPoolAccess(poolId: string, updates: Partial<TalentPoolOwnership>): Promise<TalentPoolOwnership> {
