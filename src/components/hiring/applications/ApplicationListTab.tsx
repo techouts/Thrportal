@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DataTable } from '@/components/shared/DataTable'
-import { Search, Filter, Download, RefreshCw } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Search, Filter, Download, RefreshCw, Plus } from 'lucide-react'
 import { Application } from '@/types/applications'
 import { ApplicationsService } from '@/services/applicationsService'
 import { toast } from 'sonner'
@@ -33,6 +35,14 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<ApplicationFilters>({})
+  
+  // Create Application Dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [candidates, setCandidates] = useState<Array<{ id: string; name: string; email: string; status: string }>>([])
+  const [activeJDs, setActiveJDs] = useState<Array<{ id: string; title: string; client: string }>>([])
+  const [selectedCandidate, setSelectedCandidate] = useState('')
+  const [selectedJD, setSelectedJD] = useState('')
+  const [creating, setCreating] = useState(false)
 
   const loadApplications = async () => {
     try {
@@ -63,6 +73,53 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
   useEffect(() => {
     loadApplications()
   }, [filters])
+
+  const handleOpenCreateDialog = async () => {
+    try {
+      const [candidatesData, jdsData] = await Promise.all([
+        ApplicationsService.getAllCandidates(),
+        ApplicationsService.getActiveJDs()
+      ])
+      setCandidates(candidatesData)
+      setActiveJDs(jdsData)
+      setCreateDialogOpen(true)
+    } catch (error) {
+      console.error('Error loading create dialog data:', error)
+      toast.error('Failed to load candidates and JDs')
+    }
+  }
+
+  const handleCreateApplication = async () => {
+    if (!selectedCandidate || !selectedJD) {
+      toast.error('Please select both candidate and JD')
+      return
+    }
+
+    try {
+      setCreating(true)
+      
+      // Check for duplicates
+      const isDuplicate = await ApplicationsService.checkDuplicateApplication(selectedCandidate, selectedJD)
+      if (isDuplicate) {
+        toast.error('Application already exists for this candidate and JD')
+        return
+      }
+
+      // Create application
+      await ApplicationsService.createApplication(selectedCandidate, selectedJD)
+      
+      toast.success('Application created successfully')
+      setCreateDialogOpen(false)
+      setSelectedCandidate('')
+      setSelectedJD('')
+      loadApplications()
+    } catch (error) {
+      console.error('Error creating application:', error)
+      toast.error('Failed to create application')
+    } finally {
+      setCreating(false)
+    }
+  }
 
   const getSLABadgeColor = (status: string) => {
     switch (status) {
@@ -298,8 +355,12 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
 
       {/* Applications Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Applications ({applications.length})</CardTitle>
+          <Button onClick={handleOpenCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Application
+          </Button>
         </CardHeader>
         <CardContent>
           <DataTable
@@ -310,6 +371,82 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
           />
         </CardContent>
       </Card>
+
+      {/* Create Application Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Application</DialogTitle>
+            <DialogDescription>
+              Select a candidate and job description to create an application
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label>Candidate *</Label>
+              <Select value={selectedCandidate} onValueChange={setSelectedCandidate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select candidate" />
+                </SelectTrigger>
+                <SelectContent>
+                  {candidates.map(candidate => (
+                    <SelectItem key={candidate.id} value={candidate.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{candidate.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {candidate.email} • {candidate.status}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Job Description *</Label>
+              <Select value={selectedJD} onValueChange={setSelectedJD}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select JD" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeJDs.map(jd => (
+                    <SelectItem key={jd.id} value={jd.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{jd.title}</span>
+                        <span className="text-xs text-muted-foreground">{jd.client}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="bg-muted p-3 rounded-md">
+              <p className="text-sm text-muted-foreground">
+                ℹ️ Primary recruiter will be auto-assigned from the JD's ownership
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setCreateDialogOpen(false)}
+              disabled={creating}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateApplication}
+              disabled={!selectedCandidate || !selectedJD || creating}
+            >
+              {creating ? 'Creating...' : 'Create Application'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

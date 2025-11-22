@@ -81,6 +81,85 @@ export type Database = {
           },
         ]
       }
+      applications: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          created_via_mapping: boolean
+          id: string
+          jd_id: string
+          last_updated_at: string
+          notes: string | null
+          primary_recruiter_id: string | null
+          round: string | null
+          sla_status: string
+          stage: string
+          status: string
+          status_reason: string | null
+          submitted_at: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          created_via_mapping?: boolean
+          id?: string
+          jd_id: string
+          last_updated_at?: string
+          notes?: string | null
+          primary_recruiter_id?: string | null
+          round?: string | null
+          sla_status?: string
+          stage?: string
+          status?: string
+          status_reason?: string | null
+          submitted_at?: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          created_via_mapping?: boolean
+          id?: string
+          jd_id?: string
+          last_updated_at?: string
+          notes?: string | null
+          primary_recruiter_id?: string | null
+          round?: string | null
+          sla_status?: string
+          stage?: string
+          status?: string
+          status_reason?: string | null
+          submitted_at?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_jd_id_fkey"
+            columns: ["jd_id"]
+            isOneToOne: false
+            referencedRelation: "jd_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_primary_recruiter_id_fkey"
+            columns: ["primary_recruiter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_logs: {
         Row: {
           approved_at: string | null
