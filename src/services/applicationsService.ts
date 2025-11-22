@@ -8,8 +8,10 @@ import {
   ApplicationsMetrics,
   RecruiterStats,
   VendorStats,
-  UploadConfig
+  UploadConfig,
+  Application
 } from '@/types/applications'
+import { supabase } from '@/integrations/supabase/client'
 
 export class ApplicationsService {
   private static readonly BASE_URL = '/api/applications'
@@ -327,5 +329,106 @@ export class ApplicationsService {
   static async exportVendorReport(filters?: ApplicationsFilters): Promise<void> {
     // Mock implementation
     console.log('Exporting vendor report:', filters)
+  }
+
+  // Create Application feature methods
+  static async getActiveJDs(): Promise<Array<{ id: string; title: string; client: string; primaryRecruiterId?: string }>> {
+    const { data, error } = await supabase
+      .from('jd_approvals')
+      .select(`
+        id,
+        job_title,
+        client_name,
+        jd_ownership_assignments (
+          primary_recruiter_id
+        )
+      `)
+      .eq('status', 'Active')
+      .eq('approval_status', 'approved')
+      .order('job_title')
+
+    if (error) throw error
+
+    return (data || []).map(jd => ({
+      id: jd.id,
+      title: jd.job_title || 'Untitled',
+      client: jd.client_name || 'Unknown Client',
+      primaryRecruiterId: (jd.jd_ownership_assignments as any)?.[0]?.primary_recruiter_id
+    }))
+  }
+
+  static async getAllCandidates(): Promise<Array<{ id: string; name: string; email: string; status: string; skills: string[] }>> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('id, name, first_name, last_name, email, status, skills')
+      .order('name')
+
+    if (error) throw error
+
+    return (data || []).map(c => ({
+      id: c.id,
+      name: c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Unnamed',
+      email: c.email,
+      status: c.status,
+      skills: c.skills || []
+    }))
+  }
+
+  static async checkDuplicateApplication(candidateId: string, jdId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('candidate_id', candidateId)
+      .eq('jd_id', jdId)
+      .maybeSingle()
+
+    if (error) throw error
+    return !!data
+  }
+
+  static async createApplication(candidateId: string, jdId: string): Promise<Application> {
+    // Get primary recruiter from JD ownership
+    const { data: ownership } = await supabase
+      .from('jd_ownership_assignments')
+      .select('primary_recruiter_id')
+      .eq('jd_id', jdId)
+      .maybeSingle()
+
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    // Insert application
+    const { data, error } = await supabase
+      .from('applications')
+      .insert({
+        candidate_id: candidateId,
+        jd_id: jdId,
+        primary_recruiter_id: ownership?.primary_recruiter_id || null,
+        submitted_by: user.id,
+        stage: 'Submitted',
+        status: 'New',
+        sla_status: 'Green'
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return {
+      id: data.id,
+      jdId: data.jd_id,
+      candidateId: data.candidate_id,
+      submittedBy: data.submitted_by,
+      primaryRecruiter: data.primary_recruiter_id || 'Unassigned',
+      submittedAt: data.submitted_at,
+      stage: data.stage as Application['stage'],
+      round: data.round,
+      statusReason: data.status_reason,
+      notes: data.notes,
+      slaStatus: data.sla_status as Application['slaStatus'],
+      lastUpdatedAt: data.last_updated_at,
+      createdViaMapping: data.created_via_mapping
+    }
   }
 }
