@@ -83,6 +83,7 @@ export type Database = {
       }
       applications: {
         Row: {
+          approval_status: Database["public"]["Enums"]["approval_status_type"]
           candidate_id: string
           created_at: string
           created_via_mapping: boolean
@@ -101,6 +102,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_status?: Database["public"]["Enums"]["approval_status_type"]
           candidate_id: string
           created_at?: string
           created_via_mapping?: boolean
@@ -119,6 +121,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_status?: Database["public"]["Enums"]["approval_status_type"]
           candidate_id?: string
           created_at?: string
           created_via_mapping?: boolean
@@ -2832,6 +2835,7 @@ export type Database = {
         | "reassign"
         | "override"
       approval_status: "pending" | "approved" | "rejected"
+      approval_status_type: "Pending" | "Approved" | "Rejected"
       approval_step_status:
         | "pending"
         | "approved"
@@ -3009,6 +3013,7 @@ export const Constants = {
         "override",
       ],
       approval_status: ["pending", "approved", "rejected"],
+      approval_status_type: ["Pending", "Approved", "Rejected"],
       approval_step_status: [
         "pending",
         "approved",
