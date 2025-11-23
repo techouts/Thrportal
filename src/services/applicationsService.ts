@@ -519,4 +519,115 @@ export class ApplicationsService {
       return null
     }
   }
+
+  // Get application timeline events
+  static async getApplicationTimeline(applicationId: string): Promise<Array<{
+    id: string
+    timestamp: string
+    actor: string
+    action: string
+    details: string
+    type: string
+    fromStatus?: string
+    toStatus: string
+    reason?: string
+  }>> {
+    try {
+      // First get the application to get candidate_id and jd_id
+      const { data: app, error: appError } = await supabase
+        .from('applications')
+        .select('candidate_id, jd_id')
+        .eq('id', applicationId)
+        .single()
+
+      if (appError || !app) {
+        console.error('Error fetching application:', appError)
+        return []
+      }
+
+      // Fetch timeline events for this candidate and JD
+      const { data, error } = await supabase
+        .from('candidate_timeline')
+        .select(`
+          id,
+          timestamp,
+          from_status,
+          to_status,
+          reason,
+          notes,
+          automatic_change,
+          changed_by,
+          profiles:changed_by (
+            display_name,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('candidate_id', app.candidate_id)
+        .eq('jd_id', app.jd_id)
+        .order('timestamp', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching timeline:', error)
+        return []
+      }
+
+      return (data || []).map(event => {
+        const profile = event.profiles as any
+        const actorName = profile?.display_name || 
+                         `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 
+                         (event.automatic_change ? 'System' : 'Unknown')
+
+        let action = 'Status Changed'
+        let type = 'stage_change'
+        let details = ''
+
+        if (event.from_status && event.to_status) {
+          action = 'Stage Changed'
+          details = `${event.from_status} → ${event.to_status}`
+          type = 'stage_change'
+        } else if (event.notes) {
+          action = 'Note Added'
+          details = event.notes
+          type = 'note'
+        } else {
+          action = 'Status Updated'
+          details = event.to_status
+          type = 'status_update'
+        }
+
+        if (event.reason) {
+          details = `${details}${details ? ': ' : ''}${event.reason}`
+        }
+
+        return {
+          id: event.id,
+          timestamp: event.timestamp,
+          actor: actorName,
+          action,
+          details,
+          type,
+          fromStatus: event.from_status || undefined,
+          toStatus: event.to_status,
+          reason: event.reason || undefined
+        }
+      })
+    } catch (error) {
+      console.error('Error in getApplicationTimeline:', error)
+      return []
+    }
+  }
+
+  // Update application notes
+  static async updateApplicationNotes(applicationId: string, notes: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .update({ notes })
+      .eq('id', applicationId)
+
+    if (error) {
+      console.error('Error updating notes:', error)
+      throw error
+    }
+  }
 }
