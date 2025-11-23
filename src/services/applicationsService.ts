@@ -76,58 +76,62 @@ export class ApplicationsService {
 
   // Submissions Management
   static async getSubmissions(filters?: ApplicationsFilters): Promise<Submission[]> {
-    // Mock data for now
-    return [
-      {
-        id: 'sub-001',
-        candidateId: 'candidate-001',
-        jdId: 'jd-001',
-        resumeId: 'resume-001',
-        submittedBy: 'John Recruiter',
-        primaryRecruiter: 'recruiter-1',
-        submittedAt: '2024-01-16T14:30:00Z',
-        stage: 'Submitted',
-        status: 'New',
-        slaStatus: 'Green',
-        lastUpdatedAt: '2024-01-16T14:30:00Z',
+    const { data, error } = await supabase
+      .from('applications')
+      .select(`
+        *,
+        candidate:candidates(id, name, email, skills),
+        jd:jd_approvals(id, job_title, client_name, required_skills),
+        primary_recruiter_profile:profiles!applications_primary_recruiter_id_fkey(id, display_name, first_name, last_name)
+      `)
+      .order('submitted_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Fetch submitter profiles separately if needed
+    const submitterIds = [...new Set(data?.map(app => app.submitted_by).filter(Boolean) || [])];
+    const { data: submitterProfiles } = await supabase
+      .from('profiles')
+      .select('id, display_name, first_name, last_name')
+      .in('id', submitterIds);
+
+    const submitterMap = new Map(submitterProfiles?.map(p => [p.id, p]) || []);
+
+    return (data || []).map(app => {
+      const submitter = submitterMap.get(app.submitted_by);
+      return {
+        id: app.id,
+        candidateId: app.candidate_id,
+        jdId: app.jd_id,
+        resumeId: '',
+        submittedBy: submitter?.display_name || 
+                     `${submitter?.first_name || ''} ${submitter?.last_name || ''}`.trim() || 
+                     'Unknown',
+        primaryRecruiter: app.primary_recruiter_profile?.display_name || 
+                         `${app.primary_recruiter_profile?.first_name || ''} ${app.primary_recruiter_profile?.last_name || ''}`.trim() || 
+                         'Unassigned',
+        submittedAt: app.submitted_at,
+        stage: app.stage as Submission['stage'],
+        status: app.status as Submission['status'],
+        statusReason: app.status_reason,
+        notes: app.notes,
+        slaStatus: app.sla_status as Submission['slaStatus'],
+        lastUpdatedAt: app.last_updated_at,
+        createdViaMapping: app.created_via_mapping,
+        round: app.round,
+        candidateName: app.candidate?.name || 'Unknown',
+        candidateEmail: app.candidate?.email || '',
+        jdTitle: app.jd?.job_title || 'Unknown JD',
+        jdClient: app.jd?.client_name || 'Unknown Client',
         match: {
-          score: 85,
-          matched: ['React', 'TypeScript', 'Node.js'],
-          missing: ['GraphQL'],
-          extra: ['Vue.js', 'Python'],
-          dims: { skills: 80, exp: 90, edu: 85 }
+          score: 0,
+          matched: [],
+          missing: [],
+          extra: []
         },
-        tat: {
-          jdToFirstSubmissionHrs: 28,
-          submissionToFeedbackHrs: undefined
-        }
-      },
-      {
-        id: 'sub-002',
-        candidateId: 'candidate-002',
-        jdId: 'jd-002',
-        resumeId: 'resume-002',
-        submittedBy: 'Sarah Staffing',
-        primaryRecruiter: 'recruiter-2',
-        submittedAt: '2024-01-15T16:45:00Z',
-        stage: 'Shortlisted',
-        status: 'Shortlisted',
-        statusReason: 'Strong AWS and Kubernetes experience',
-        slaStatus: 'Amber',
-        lastUpdatedAt: '2024-01-15T18:00:00Z',
-        match: {
-          score: 78,
-          matched: ['AWS', 'Docker', 'Kubernetes'],
-          missing: ['Terraform'],
-          extra: ['Jenkins', 'Ansible'],
-          dims: { skills: 75, exp: 85, edu: 75 }
-        },
-        tat: {
-          jdToFirstSubmissionHrs: 18,
-          submissionToFeedbackHrs: 24
-        }
-      }
-    ]
+        tat: {}
+      };
+    });
   }
 
   static async updateSubmissionStatus(

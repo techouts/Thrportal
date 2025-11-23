@@ -162,10 +162,10 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       id: 'candidate',
       header: 'Candidate',
       accessor: 'candidateId' as const,
-      cell: (value: string) => (
+      cell: (value: string, row: any) => (
         <div>
-          <div className="font-medium">Candidate {value?.slice(-3) || 'N/A'}</div>
-          <div className="text-sm text-muted-foreground">candidate@email.com</div>
+          <div className="font-medium">{row.candidateName || 'Unknown'}</div>
+          <div className="text-sm text-muted-foreground">{row.candidateEmail || 'N/A'}</div>
         </div>
       )
     },
@@ -173,10 +173,10 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       id: 'jd',
       header: 'JD',
       accessor: 'jdId' as const,
-      cell: (value: string) => (
+      cell: (value: string, row: any) => (
         <div>
-          <div className="font-medium">JD {value?.slice(-3) || 'N/A'}</div>
-          <div className="text-sm text-muted-foreground">TechCorp</div>
+          <div className="font-medium">{row.jdTitle || 'Unknown JD'}</div>
+          <div className="text-sm text-muted-foreground">{row.jdClient || 'N/A'}</div>
         </div>
       )
     },
@@ -184,7 +184,7 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       id: 'client',
       header: 'Client',
       accessor: 'jdId' as const,
-      cell: () => 'TechCorp'
+      cell: (value: string, row: any) => row.jdClient || 'N/A'
     },
     {
       id: 'stage',
