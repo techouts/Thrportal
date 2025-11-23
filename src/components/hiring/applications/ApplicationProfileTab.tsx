@@ -10,7 +10,6 @@ import { Application } from '@/types/applications'
 import { ApplicationsService } from '@/services/applicationsService'
 import { ApplicationTimelineTab } from './profile/ApplicationTimelineTab'
 import { ApplicationNotesTab } from './profile/ApplicationNotesTab'
-import { ApplicationDocumentsTab } from './profile/ApplicationDocumentsTab'
 import { toast } from 'sonner'
 
 interface ApplicationProfileTabProps {
@@ -212,7 +211,7 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
 
       {/* Application Profile Tabs */}
       <Tabs value={activeProfileTab} onValueChange={setActiveProfileTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="timeline" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Timeline
@@ -220,10 +219,6 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
           <TabsTrigger value="notes" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Notes
-          </TabsTrigger>
-          <TabsTrigger value="documents" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Documents
           </TabsTrigger>
         </TabsList>
 
@@ -233,10 +228,6 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
 
         <TabsContent value="notes" className="space-y-6">
           <ApplicationNotesTab applicationId={applicationId} />
-        </TabsContent>
-
-        <TabsContent value="documents" className="space-y-6">
-          <ApplicationDocumentsTab applicationId={applicationId} />
         </TabsContent>
       </Tabs>
     </div>

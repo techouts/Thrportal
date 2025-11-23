@@ -40,7 +40,12 @@ export const ApplicationsModule: React.FC = () => {
           {selectedApplicationId ? (
             <ApplicationProfileTab 
               applicationId={selectedApplicationId}
-              onApplicationChange={setSelectedApplicationId}
+              onApplicationChange={(id) => {
+                setSelectedApplicationId(id)
+                if (id === null) {
+                  setActiveTab('list')
+                }
+              }}
             />
           ) : (
             <div className="text-center py-12">
