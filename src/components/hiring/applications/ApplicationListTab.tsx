@@ -48,7 +48,7 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
     try {
       setLoading(true)
       const submissions = await ApplicationsService.getSubmissions()
-      // Convert submissions to applications format
+      // Convert submissions to applications format - preserve enriched fields
       const apps: Application[] = submissions.map(sub => ({
         id: sub.id,
         jdId: sub.jdId,
@@ -57,10 +57,14 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
         primaryRecruiter: sub.primaryRecruiter,
         submittedAt: sub.submittedAt,
         stage: sub.stage,
-        round: 'Round 1',
+        round: sub.round || 'Round 1',
         slaStatus: sub.slaStatus,
         lastUpdatedAt: sub.lastUpdatedAt,
-        createdViaMapping: sub.createdViaMapping
+        createdViaMapping: sub.createdViaMapping,
+        candidateName: sub.candidateName,
+        candidateEmail: sub.candidateEmail,
+        jdTitle: sub.jdTitle,
+        jdClient: sub.jdClient
       }))
       setApplications(apps)
     } catch (error: any) {
