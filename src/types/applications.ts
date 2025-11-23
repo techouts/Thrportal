@@ -89,6 +89,10 @@ export interface Submission extends Application {
     jdToFirstSubmissionHrs?: number
     submissionToFeedbackHrs?: number
   }
+  candidateName?: string
+  candidateEmail?: string
+  jdTitle?: string
+  jdClient?: string
 }
 
 export interface ApplicationsFilters {
