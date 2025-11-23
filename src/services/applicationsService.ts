@@ -438,4 +438,94 @@ export class ApplicationsService {
       createdViaMapping: data.created_via_mapping
     }
   }
+
+  static async getApplicationById(id: string): Promise<Submission | null> {
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          candidates:candidate_id (
+            id,
+            name,
+            email,
+            phone,
+            location,
+            skills,
+            experience,
+            status
+          ),
+          jd_approvals:jd_id (
+            id,
+            job_title,
+            client_name,
+            department,
+            status,
+            employment_type
+          ),
+          submitted_by_profile:profiles!applications_submitted_by_fkey (
+            id,
+            display_name,
+            first_name,
+            last_name
+          ),
+          primary_recruiter_profile:profiles!applications_primary_recruiter_id_fkey (
+            id,
+            display_name,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching application:', error)
+        return null
+      }
+
+      if (!data) return null
+
+      const candidate = data.candidates as any
+      const jd = data.jd_approvals as any
+      const submitterProfile = data.submitted_by_profile as any
+      const recruiterProfile = data.primary_recruiter_profile as any
+
+      return {
+        id: data.id,
+        jdId: data.jd_id,
+        candidateId: data.candidate_id,
+        resumeId: data.candidate_id,
+        submittedBy: submitterProfile?.display_name || 
+                     `${submitterProfile?.first_name || ''} ${submitterProfile?.last_name || ''}`.trim() || 
+                     'Unknown',
+        primaryRecruiter: recruiterProfile?.display_name || 
+                          `${recruiterProfile?.first_name || ''} ${recruiterProfile?.last_name || ''}`.trim() || 
+                          'Unassigned',
+        submittedAt: data.submitted_at,
+        stage: data.stage as Submission['stage'],
+        round: data.round || 'Round 1',
+        status: data.status as Submission['status'],
+        statusReason: data.status_reason,
+        notes: data.notes,
+        slaStatus: data.sla_status as Submission['slaStatus'],
+        lastUpdatedAt: data.last_updated_at,
+        createdViaMapping: data.created_via_mapping || false,
+        candidateName: candidate?.name || 'Unknown Candidate',
+        candidateEmail: candidate?.email || '',
+        jdTitle: jd?.job_title || 'Unknown Position',
+        jdClient: jd?.client_name || 'Unknown Client',
+        match: {
+          score: 0,
+          matched: [],
+          missing: [],
+          extra: []
+        },
+        tat: {}
+      }
+    } catch (error) {
+      console.error('Error in getApplicationById:', error)
+      return null
+    }
+  }
 }
