@@ -398,9 +398,12 @@ export class ApplicationsService {
       .eq('jd_id', jdId)
       .maybeSingle()
 
-    // Get current user (relaxed for dev - allows null)
+    // Get current user
     const { data: { user } } = await supabase.auth.getUser()
-    const submittedBy = user?.id ?? null
+    
+    // DEV-ONLY fallback: use a dummy UUID when no user is logged in
+    const FALLBACK_SUBMITTER_ID = '00000000-0000-0000-0000-000000000000'
+    const submittedBy = user?.id ?? FALLBACK_SUBMITTER_ID
 
     // Insert application
     const { data, error } = await supabase
