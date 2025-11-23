@@ -8,7 +8,7 @@ import { DataTable } from '@/components/shared/DataTable'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Search, Filter, Download, RefreshCw, Plus } from 'lucide-react'
-import { Application } from '@/types/applications'
+import { Application, Submission } from '@/types/applications'
 import { ApplicationsService } from '@/services/applicationsService'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -32,7 +32,7 @@ interface ApplicationFilters {
 }
 
 export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplicationSelect }) => {
-  const [applications, setApplications] = useState<Application[]>([])
+  const [applications, setApplications] = useState<Submission[]>([])
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<ApplicationFilters>({})
   
@@ -48,24 +48,48 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
     try {
       setLoading(true)
       const submissions = await ApplicationsService.getSubmissions()
-      // Convert submissions to applications format - preserve enriched fields
-      const apps: Application[] = submissions.map(sub => ({
-        id: sub.id,
-        jdId: sub.jdId,
-        candidateId: sub.candidateId,
-        submittedBy: sub.submittedBy,
-        primaryRecruiter: sub.primaryRecruiter,
-        submittedAt: sub.submittedAt,
-        stage: sub.stage,
-        round: sub.round || 'Round 1',
-        slaStatus: sub.slaStatus,
-        lastUpdatedAt: sub.lastUpdatedAt,
-        createdViaMapping: sub.createdViaMapping,
-        candidateName: sub.candidateName,
-        candidateEmail: sub.candidateEmail,
-        jdTitle: sub.jdTitle,
-        jdClient: sub.jdClient
+      
+      let apps: Submission[] = submissions.map(sub => ({
+        ...sub,
+        round: sub.round || 'Round 1'
       }))
+
+      // Apply filters
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase()
+        apps = apps.filter(app =>
+          app.candidateName?.toLowerCase().includes(searchLower) ||
+          app.candidateEmail?.toLowerCase().includes(searchLower) ||
+          app.jdTitle?.toLowerCase().includes(searchLower) ||
+          app.jdClient?.toLowerCase().includes(searchLower)
+        )
+      }
+
+      if (filters.client && filters.client !== 'all') {
+        apps = apps.filter(app => app.jdClient === filters.client)
+      }
+
+      if (filters.stage && filters.stage !== 'all') {
+        apps = apps.filter(app => app.stage.toLowerCase() === filters.stage?.toLowerCase())
+      }
+
+      if (filters.round && filters.round !== 'all') {
+        apps = apps.filter(app => app.round?.toLowerCase() === filters.round?.toLowerCase())
+      }
+
+      if (filters.recruiter && filters.recruiter !== 'all') {
+        apps = apps.filter(app => app.primaryRecruiter === filters.recruiter)
+      }
+
+      if (filters.sla && filters.sla !== 'all') {
+        const slaMap: Record<string, string> = {
+          'green': 'Green',
+          'amber': 'Amber',
+          'red': 'Red'
+        }
+        apps = apps.filter(app => app.slaStatus === slaMap[filters.sla || ''])
+      }
+
       setApplications(apps)
     } catch (error: any) {
       toast.error('Failed to load applications')
@@ -381,6 +405,7 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
             data={applications}
             columns={columns}
             loading={loading}
+            searchable={false}
             emptyMessage="No applications found"
           />
         </CardContent>
