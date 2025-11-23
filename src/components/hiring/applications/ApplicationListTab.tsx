@@ -12,6 +12,8 @@ import { Application, Submission } from '@/types/applications'
 import { ApplicationsService } from '@/services/applicationsService'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import { Checkbox } from '@/components/ui/checkbox'
+import * as XLSX from 'xlsx'
 
 interface ApplicationListTabProps {
   onApplicationSelect: (applicationId: string) => void
@@ -35,6 +37,9 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
   const [applications, setApplications] = useState<Submission[]>([])
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<ApplicationFilters>({})
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   
   // Create Application Dialog state
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -100,7 +105,84 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
 
   useEffect(() => {
     loadApplications()
+    setCurrentPage(1)
+    setSelectedRows(new Set())
   }, [filters])
+
+  // Calculate paginated data
+  const paginatedApplications = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return applications.slice(startIndex, endIndex)
+  }, [applications, currentPage, pageSize])
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(new Set(applications.map(app => app.id)))
+    } else {
+      setSelectedRows(new Set())
+    }
+  }
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedRows)
+    if (checked) {
+      newSelected.add(id)
+    } else {
+      newSelected.delete(id)
+    }
+    setSelectedRows(newSelected)
+  }
+
+  const clearSelection = () => setSelectedRows(new Set())
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    setSelectedRows(new Set())
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+    setSelectedRows(new Set())
+  }
+
+  // Export handler
+  const handleExport = () => {
+    if (selectedRows.size === 0) {
+      toast.error('Please select at least one row to export')
+      return
+    }
+
+    const selectedApps = applications.filter(app => selectedRows.has(app.id))
+    
+    const exportData = selectedApps.map(app => ({
+      'Candidate Name': app.candidateName || 'N/A',
+      'Email': app.candidateEmail || 'N/A',
+      'JD Title': app.jdTitle || 'N/A',
+      'Client': app.jdClient || 'N/A',
+      'Stage': app.stage || 'N/A',
+      'Round': app.round || 'N/A',
+      'Submitter': app.submittedBy || 'N/A',
+      'Primary Recruiter': app.primaryRecruiter || 'N/A'
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Applications')
+
+    const fileName = `applications_export_${format(new Date(), 'yyyy-MM-dd_HH-mm-ss')}.xlsx`
+    
+    XLSX.writeFile(wb, fileName)
+
+    const mailtoLink = `mailto:?subject=Application Export - ${format(new Date(), 'MMM dd, yyyy')}&body=Please find the attached Excel file with ${selectedRows.size} application(s).%0A%0ANote: The Excel file has been downloaded to your Downloads folder. Please attach it manually to this email.`
+    window.open(mailtoLink, '_blank')
+
+    toast.success(`Exported ${selectedRows.size} application(s) to Excel`)
+    clearSelection()
+  }
 
   const handleOpenCreateDialog = async () => {
     try {
@@ -173,14 +255,18 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
 
   const columns = [
     {
-      id: 'appId',
-      header: 'App ID',
+      id: 'select',
+      header: 'Select',
       accessor: 'id' as const,
       cell: (value: string) => (
-        <span className="font-mono text-sm">
-          ...{value?.slice(-8) || 'N/A'}
-        </span>
-      )
+        <Checkbox
+          checked={selectedRows.has(value)}
+          onCheckedChange={(checked) => handleSelectRow(value, checked as boolean)}
+          aria-label={`Select row ${value}`}
+        />
+      ),
+      sortable: false,
+      width: 'w-12'
     },
     {
       id: 'candidate',
@@ -374,6 +460,17 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mr-2">
+              <Checkbox
+                checked={selectedRows.size === applications.length && applications.length > 0}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all visible"
+                id="select-all"
+              />
+              <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                Select All ({applications.length})
+              </label>
+            </div>
             <Button 
               variant="outline" 
               size="sm" 
@@ -383,10 +480,24 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleExport}
+              disabled={selectedRows.size === 0}
+            >
               <Download className="h-4 w-4 mr-2" />
-              Export
+              Export ({selectedRows.size})
             </Button>
+            {selectedRows.size > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={clearSelection}
+              >
+                Clear Selection
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -402,10 +513,17 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
         </CardHeader>
         <CardContent>
           <DataTable
-            data={applications}
+            data={paginatedApplications}
             columns={columns}
             loading={loading}
             searchable={false}
+            pagination={{
+              page: currentPage,
+              pageSize: pageSize,
+              total: applications.length,
+              onPageChange: handlePageChange,
+              onPageSizeChange: handlePageSizeChange
+            }}
             emptyMessage="No applications found"
           />
         </CardContent>
