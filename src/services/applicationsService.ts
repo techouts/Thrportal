@@ -463,12 +463,6 @@ export class ApplicationsService {
             status,
             employment_type
           ),
-          submitted_by_profile:profiles!applications_submitted_by_fkey (
-            id,
-            display_name,
-            first_name,
-            last_name
-          ),
           primary_recruiter_profile:profiles!applications_primary_recruiter_id_fkey (
             id,
             display_name,
@@ -488,7 +482,6 @@ export class ApplicationsService {
 
       const candidate = data.candidates as any
       const jd = data.jd_approvals as any
-      const submitterProfile = data.submitted_by_profile as any
       const recruiterProfile = data.primary_recruiter_profile as any
 
       return {
@@ -496,9 +489,7 @@ export class ApplicationsService {
         jdId: data.jd_id,
         candidateId: data.candidate_id,
         resumeId: data.candidate_id,
-        submittedBy: submitterProfile?.display_name || 
-                     `${submitterProfile?.first_name || ''} ${submitterProfile?.last_name || ''}`.trim() || 
-                     'Unknown',
+        submittedBy: 'System',
         primaryRecruiter: recruiterProfile?.display_name || 
                           `${recruiterProfile?.first_name || ''} ${recruiterProfile?.last_name || ''}`.trim() || 
                           'Unassigned',
