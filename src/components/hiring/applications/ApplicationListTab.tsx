@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DataTable } from '@/components/shared/DataTable'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Search, Filter, Download, RefreshCw, Plus } from 'lucide-react'
+import { Search, Filter, Download, RefreshCw, Plus, Check, X, RefreshCw as RefreshCwIcon } from 'lucide-react'
 import { Application, Submission } from '@/types/applications'
 import { ApplicationsService } from '@/services/applicationsService'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { Checkbox } from '@/components/ui/checkbox'
 import * as XLSX from 'xlsx'
+import { useAuth } from '@/auth/AuthContext'
 
 interface ApplicationListTabProps {
   onApplicationSelect: (applicationId: string) => void
@@ -26,6 +27,7 @@ interface ApplicationFilters {
   round?: string
   recruiter?: string
   sla?: string
+  approvalStatus?: string
   search?: string
   dateRange?: {
     start: string
@@ -34,6 +36,7 @@ interface ApplicationFilters {
 }
 
 export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplicationSelect }) => {
+  const { can } = useAuth()
   const [applications, setApplications] = useState<Submission[]>([])
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<ApplicationFilters>({})
@@ -48,6 +51,10 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
   const [selectedCandidate, setSelectedCandidate] = useState('')
   const [selectedJD, setSelectedJD] = useState('')
   const [creating, setCreating] = useState(false)
+  
+  // Permission checks
+  const canApprove = can('applications.update') || can('applications.*')
+  const canRequestReApproval = can('applications.submissions.create')
 
   const loadApplications = async () => {
     try {
@@ -93,6 +100,10 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
           'red': 'Red'
         }
         apps = apps.filter(app => app.slaStatus === slaMap[filters.sla || ''])
+      }
+
+      if (filters.approvalStatus && filters.approvalStatus !== 'all') {
+        apps = apps.filter(app => app.approvalStatus === filters.approvalStatus)
       }
 
       setApplications(apps)
@@ -253,6 +264,57 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
     }
   }
 
+  const getStatusBadge = (status?: string) => {
+    if (!status) return 'bg-gray-100 text-gray-800'
+    switch (status) {
+      case 'New': return 'bg-blue-100 text-blue-800'
+      case 'Shortlisted': return 'bg-purple-100 text-purple-800'
+      case 'Rejected': return 'bg-red-100 text-red-800'
+      case 'Interview Scheduled': return 'bg-orange-100 text-orange-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getApprovalStatusBadge = (status?: string) => {
+    if (!status) return 'bg-gray-100 text-gray-800'
+    switch (status) {
+      case 'Approved': return 'bg-green-100 text-green-800 border-green-200'
+      case 'Rejected': return 'bg-red-100 text-red-800 border-red-200'
+      case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const handleApprove = async (applicationId: string) => {
+    try {
+      await ApplicationsService.approveApplication(applicationId)
+      toast.success('Application approved')
+      loadApplications()
+    } catch (error) {
+      toast.error('Failed to approve application')
+    }
+  }
+
+  const handleReject = async (applicationId: string) => {
+    try {
+      await ApplicationsService.rejectApplication(applicationId)
+      toast.success('Application rejected')
+      loadApplications()
+    } catch (error) {
+      toast.error('Failed to reject application')
+    }
+  }
+
+  const handleRequestReApproval = async (applicationId: string) => {
+    try {
+      await ApplicationsService.requestReApproval(applicationId)
+      toast.success('Re-approval requested')
+      loadApplications()
+    } catch (error) {
+      toast.error('Failed to request re-approval')
+    }
+  }
+
   const columns = [
     {
       id: 'select',
@@ -310,6 +372,28 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       )
     },
     {
+      id: 'status',
+      header: 'Status',
+      accessor: 'status' as const,
+      cell: (value?: string) => (
+        <Badge className={getStatusBadge(value)}>
+          {value || 'N/A'}
+        </Badge>
+      ),
+      sortable: true
+    },
+    {
+      id: 'approvalStatus',
+      header: 'Approval Status',
+      accessor: 'approvalStatus' as const,
+      cell: (value?: string) => (
+        <Badge className={getApprovalStatusBadge(value)}>
+          {value || 'Pending'}
+        </Badge>
+      ),
+      sortable: true
+    },
+    {
       id: 'submitter',
       header: 'Submitter',
       accessor: 'submittedBy' as const,
@@ -349,15 +433,53 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       id: 'actions',
       header: 'Actions',
       accessor: 'id' as const,
-      cell: (value: string) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onApplicationSelect(value)}
-        >
-          View
-        </Button>
-      )
+      cell: (value: string, row: Application) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onApplicationSelect(value)}
+          >
+            View
+          </Button>
+          
+          {canApprove && row.approvalStatus === 'Pending' && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-green-600 hover:bg-green-50"
+                onClick={() => handleApprove(value)}
+              >
+                <Check className="h-4 w-4 mr-1" />
+                Approve
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:bg-red-50"
+                onClick={() => handleReject(value)}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Reject
+              </Button>
+            </>
+          )}
+          
+          {canRequestReApproval && !canApprove && row.approvalStatus === 'Rejected' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-blue-600 hover:bg-blue-50"
+              onClick={() => handleRequestReApproval(value)}
+            >
+              <RefreshCwIcon className="h-4 w-4 mr-1" />
+              Re-submit
+            </Button>
+          )}
+        </div>
+      ),
+      sortable: false
     }
   ]
 
@@ -454,6 +576,18 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
                 <SelectItem value="green">On-time</SelectItem>
                 <SelectItem value="amber">Amber</SelectItem>
                 <SelectItem value="red">Red</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.approvalStatus} onValueChange={(value) => setFilters({ ...filters, approvalStatus: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Approval Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Approvals</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
           </div>

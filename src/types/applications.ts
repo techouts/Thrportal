@@ -63,6 +63,8 @@ export interface Application {
   primaryRecruiter: string
   submittedAt: string
   stage: 'Submitted' | 'Shortlisted' | 'Interview' | 'Offer' | 'Client' | 'HR' | 'Joined' | 'Rejected'
+  status?: 'New' | 'Shortlisted' | 'Rejected' | 'Interview Scheduled'
+  approvalStatus?: 'Pending' | 'Approved' | 'Rejected'
   round?: string
   statusReason?: string
   notes?: string

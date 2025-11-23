@@ -80,6 +80,7 @@ export class ApplicationsService {
       .from('applications')
       .select(`
         *,
+        approval_status,
         candidate:candidates(id, name, email, skills),
         jd:jd_approvals(id, job_title, client_name, required_skills),
         primary_recruiter_profile:profiles!applications_primary_recruiter_id_fkey(id, display_name, first_name, last_name)
@@ -113,6 +114,7 @@ export class ApplicationsService {
         submittedAt: app.submitted_at,
         stage: app.stage as Submission['stage'],
         status: app.status as Submission['status'],
+        approvalStatus: app.approval_status as Submission['approvalStatus'],
         statusReason: app.status_reason,
         notes: app.notes,
         slaStatus: app.sla_status as Submission['slaStatus'],
@@ -629,5 +631,44 @@ export class ApplicationsService {
       console.error('Error updating notes:', error)
       throw error
     }
+  }
+
+  // Approval methods
+  static async approveApplication(applicationId: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .update({ 
+        approval_status: 'Approved',
+        status: 'Shortlisted',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', applicationId)
+    
+    if (error) throw error
+  }
+
+  static async rejectApplication(applicationId: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .update({ 
+        approval_status: 'Rejected',
+        status: 'Rejected',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', applicationId)
+    
+    if (error) throw error
+  }
+
+  static async requestReApproval(applicationId: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .update({ 
+        approval_status: 'Pending',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', applicationId)
+    
+    if (error) throw error
   }
 }
