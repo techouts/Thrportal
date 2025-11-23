@@ -113,9 +113,10 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       setSelectedCandidate('')
       setSelectedJD('')
       loadApplications()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating application:', error)
-      toast.error('Failed to create application')
+      const message = error?.message || error?.details || 'Failed to create application'
+      toast.error(message)
     } finally {
       setCreating(false)
     }
