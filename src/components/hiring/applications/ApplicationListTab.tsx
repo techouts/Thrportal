@@ -153,14 +153,9 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
       header: 'App ID',
       accessor: 'id' as const,
       cell: (value: string) => (
-        <Button 
-          variant="link" 
-          size="sm"
-          onClick={() => onApplicationSelect(value)}
-          className="p-0 h-auto font-mono text-sm"
-        >
-          {value?.slice(-8) || 'N/A'}
-        </Button>
+        <span className="font-mono text-sm">
+          ...{value?.slice(-8) || 'N/A'}
+        </span>
       )
     },
     {
@@ -238,6 +233,20 @@ export const ApplicationListTab: React.FC<ApplicationListTabProps> = ({ onApplic
         <div className="text-sm">
           {format(new Date(value), 'MMM dd, yyyy')}
         </div>
+      )
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      accessor: 'id' as const,
+      cell: (value: string) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onApplicationSelect(value)}
+        >
+          View
+        </Button>
       )
     }
   ]

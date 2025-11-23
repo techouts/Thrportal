@@ -30,24 +30,17 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
   const loadApplication = async () => {
     try {
       setLoading(true)
-      // Mock application data - in real app, fetch by applicationId
-      const mockApplication: Application = {
-        id: applicationId,
-        jdId: 'jd-001',
-        candidateId: 'candidate-001',
-        submittedBy: 'John Recruiter',
-        primaryRecruiter: 'recruiter-1',
-        submittedAt: '2024-01-16T14:30:00Z',
-        stage: 'Interview',
-        round: 'Round 2',
-        slaStatus: 'Green',
-        lastUpdatedAt: '2024-01-18T10:00:00Z',
-        createdViaMapping: true,
-        notes: 'Strong technical background, good cultural fit'
+      const data = await ApplicationsService.getApplicationById(applicationId)
+      
+      if (!data) {
+        toast.error('Application not found')
+        return
       }
-      setApplication(mockApplication)
+      
+      setApplication(data)
     } catch (error: any) {
-      toast.error('Failed to load application')
+      console.error('Error loading application:', error)
+      toast.error(error?.message || 'Failed to load application')
     } finally {
       setLoading(false)
     }
@@ -171,13 +164,13 @@ export const ApplicationProfileTab: React.FC<ApplicationProfileTabProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">Candidate</div>
-              <div className="font-medium">Alice Johnson</div>
-              <div className="text-sm text-muted-foreground">alice.johnson@email.com</div>
+              <div className="font-medium">{(application as any).candidateName || 'Unknown'}</div>
+              <div className="text-sm text-muted-foreground">{(application as any).candidateEmail || 'No email'}</div>
             </div>
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">Job Description</div>
-              <div className="font-medium">Senior React Developer</div>
-              <div className="text-sm text-muted-foreground">TechCorp</div>
+              <div className="font-medium">{(application as any).jdTitle || 'Unknown Position'}</div>
+              <div className="text-sm text-muted-foreground">{(application as any).jdClient || 'Unknown Client'}</div>
             </div>
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">Current Stage</div>
