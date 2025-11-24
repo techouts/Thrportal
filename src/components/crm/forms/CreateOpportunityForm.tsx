@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,14 +27,15 @@ type OpportunityFormData = z.infer<typeof opportunitySchema>;
 
 interface CreateOpportunityFormProps {
   clients: CrmClient[];
-  accounts: CrmAccount[];
-  projects: CrmProject[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function CreateOpportunityForm({ clients, accounts, projects, onSuccess, onCancel }: CreateOpportunityFormProps) {
+export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOpportunityFormProps) {
   const [loading, setLoading] = useState(false);
+  const [accounts, setAccounts] = useState<CrmAccount[]>([]);
+  const [projects, setProjects] = useState<CrmProject[]>([]);
+  const [loadingRelatedData, setLoadingRelatedData] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<OpportunityFormData>({
@@ -51,6 +52,46 @@ export function CreateOpportunityForm({ clients, accounts, projects, onSuccess, 
       notes: ''
     }
   });
+
+  const selectedClientId = form.watch('client_id');
+
+  useEffect(() => {
+    if (!selectedClientId) {
+      setAccounts([]);
+      setProjects([]);
+      return;
+    }
+
+    const fetchRelatedData = async () => {
+      try {
+        setLoadingRelatedData(true);
+        
+        const [accountsData, allProjects] = await Promise.all([
+          CrmService.getAccountsByClient(selectedClientId),
+          CrmService.getProjects()
+        ]);
+        
+        const clientProjects = allProjects.filter(p => p.client_id === selectedClientId);
+        
+        setAccounts(accountsData as CrmAccount[]);
+        setProjects(clientProjects as CrmProject[]);
+        
+        form.setValue('account_id', '');
+        form.setValue('project_id', '');
+      } catch (error) {
+        console.error('Failed to fetch related data:', error);
+        toast({
+          title: 'Warning',
+          description: 'Could not load accounts and projects for this client',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoadingRelatedData(false);
+      }
+    };
+
+    fetchRelatedData();
+  }, [selectedClientId, form, toast]);
 
   const onSubmit = async (data: OpportunityFormData) => {
     try {
@@ -123,10 +164,19 @@ export function CreateOpportunityForm({ clients, accounts, projects, onSuccess, 
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || undefined}
+                  disabled={!selectedClientId || loadingRelatedData}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select account (optional)" />
+                      <SelectValue placeholder={
+                        !selectedClientId ? "Select client first" :
+                        loadingRelatedData ? "Loading..." :
+                        accounts.length === 0 ? "No accounts found" :
+                        "Select account (optional)"
+                      } />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -148,10 +198,19 @@ export function CreateOpportunityForm({ clients, accounts, projects, onSuccess, 
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Project (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || undefined}
+                  disabled={!selectedClientId || loadingRelatedData}
+                >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select project (optional)" />
+                      <SelectValue placeholder={
+                        !selectedClientId ? "Select client first" :
+                        loadingRelatedData ? "Loading..." :
+                        projects.length === 0 ? "No projects found" :
+                        "Select project (optional)"
+                      } />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

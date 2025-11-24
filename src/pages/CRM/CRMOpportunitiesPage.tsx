@@ -399,8 +399,6 @@ export function CRMOpportunitiesPage() {
             </DialogHeader>
             <CreateOpportunityForm
               clients={clients}
-              accounts={[]}
-              projects={[]}
               onSuccess={() => {
                 setShowCreateDialog(false);
                 loadData();
