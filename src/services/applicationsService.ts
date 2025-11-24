@@ -137,13 +137,42 @@ export class ApplicationsService {
   }
 
   static async updateSubmissionStatus(
-    id: string, 
-    status: Submission['status'], 
-    reason?: string,
-    notes?: string
+    id: string,
+    updates: {
+      stage?: string
+      round?: string
+      status_reason?: string
+      notes?: string
+    }
   ): Promise<void> {
-    // Mock implementation
-    console.log('Updating submission status:', { id, status, reason, notes })
+    const { error } = await supabase
+      .from('applications')
+      .update({
+        ...updates,
+        last_updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+
+  static async bulkUpdateApplications(
+    ids: string[],
+    updates: {
+      stage?: string
+      round?: string
+      notes?: string
+    }
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .update({
+        ...updates,
+        last_updated_at: new Date().toISOString()
+      })
+      .in('id', ids)
+    
+    if (error) throw error
   }
 
   static async createSubmission(submission: Partial<Submission>): Promise<Submission> {
