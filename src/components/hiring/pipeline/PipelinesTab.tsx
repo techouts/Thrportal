@@ -1,91 +1,117 @@
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Filter, Search } from 'lucide-react'
-import { DataTable } from '@/components/shared/DataTable'
-import { ApplicationsService } from '@/services/applicationsService'
-import { Submission } from '@/types/applications'
-import { useToast } from '@/hooks/use-toast'
+import React, { useState, useEffect } from 'react';
+import { ApplicationsService } from '@/services/applicationsService';
+import { Submission } from '@/types/applications';
+import { DataTable } from '@/components/shared/DataTable';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Filter, Search } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { UpdateApplicationDialog } from './UpdateApplicationDialog';
+import { BulkReassignDialog } from './BulkReassignDialog';
 
-export function PipelinesTab() {
-  const [applications, setApplications] = useState<Submission[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+export const PipelinesTab: React.FC = () => {
+  const [applications, setApplications] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState({
     client: undefined as string | undefined,
     jdTitle: undefined as string | undefined,
     recruiter: undefined as string | undefined,
     stage: undefined as string | undefined,
     sla: undefined as string | undefined
-  })
-  const { toast } = useToast()
+  });
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [bulkReassignOpen, setBulkReassignOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<Submission | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadApplications()
-  }, [])
+    loadApplications();
+  }, []);
 
   const loadApplications = async () => {
     try {
-      setLoading(true)
-      const allSubmissions = await ApplicationsService.getSubmissions()
-      const approvedApplications = allSubmissions.filter(app => app.approvalStatus === 'Approved')
-      setApplications(approvedApplications)
+      setLoading(true);
+      const allSubmissions = await ApplicationsService.getSubmissions();
+      const approvedApplications = allSubmissions.filter(app => app.approvalStatus === 'Approved');
+      setApplications(approvedApplications);
     } catch (error) {
-      console.error('Failed to load applications:', error)
+      console.error('Failed to load applications:', error);
       toast({
         title: "Error",
         description: "Failed to load pipeline data",
         variant: "destructive"
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-    setPage(1) // Reset to first page when filters change
-  }
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
 
   // Filter applications based on search and filters
   const filteredApplications = applications.filter(app => {
     const matchesSearch = !searchTerm || 
       app.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.jdTitle.toLowerCase().includes(searchTerm.toLowerCase())
+      app.jdTitle.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesClient = !filters.client || filters.client === 'all' || 
-      app.jdClient === filters.client
+      app.jdClient === filters.client;
     
     const matchesJD = !filters.jdTitle || 
-      app.jdTitle.toLowerCase().includes(filters.jdTitle.toLowerCase())
+      app.jdTitle.toLowerCase().includes(filters.jdTitle.toLowerCase());
     
     const matchesRecruiter = !filters.recruiter || filters.recruiter === 'all' || 
-      app.primaryRecruiter === filters.recruiter
+      app.primaryRecruiter === filters.recruiter;
     
     const matchesStage = !filters.stage || filters.stage === 'all' || 
-      app.stage === filters.stage
+      app.stage === filters.stage;
     
     const matchesSLA = !filters.sla || filters.sla === 'all' || 
-      app.slaStatus.toLowerCase() === filters.sla.toLowerCase()
+      app.slaStatus.toLowerCase() === filters.sla.toLowerCase();
     
     return matchesSearch && matchesClient && matchesJD && 
-           matchesRecruiter && matchesStage && matchesSLA
-  })
+           matchesRecruiter && matchesStage && matchesSLA;
+  });
 
   // Paginate filtered data
   const paginatedApplications = filteredApplications.slice(
     (page - 1) * pageSize,
     page * pageSize
-  )
+  );
 
   // Define columns for table
   const columns = [
+    {
+      id: 'select',
+      header: '',
+      accessor: 'id' as keyof Submission,
+      cell: (value: any, row: Submission) => (
+        <Checkbox
+          checked={selectedRows.has(row.id)}
+          onCheckedChange={(checked) => {
+            const newSelected = new Set(selectedRows);
+            if (checked) {
+              newSelected.add(row.id);
+            } else {
+              newSelected.delete(row.id);
+            }
+            setSelectedRows(newSelected);
+          }}
+        />
+      )
+    },
     {
       id: 'candidate',
       header: 'Candidate',
@@ -93,7 +119,7 @@ export function PipelinesTab() {
       cell: (value: any, row: Submission) => (
         <div>
           <div className="font-medium">{value}</div>
-          <div className="text-sm text-muted-foreground">{row.jdClient}</div>
+          <div className="text-sm text-muted-foreground">{row.candidateEmail}</div>
         </div>
       )
     },
@@ -128,8 +154,8 @@ export function PipelinesTab() {
       header: 'Ageing',
       accessor: 'submittedAt' as keyof Submission,
       cell: (value: any) => {
-        const days = Math.floor((Date.now() - new Date(value).getTime()) / (1000 * 60 * 60 * 24))
-        return `${days} days`
+        const days = Math.floor((Date.now() - new Date(value).getTime()) / (1000 * 60 * 60 * 24));
+        return `${days} days`;
       }
     },
     {
@@ -137,8 +163,8 @@ export function PipelinesTab() {
       header: 'SLA',
       accessor: 'slaStatus' as keyof Submission,
       cell: (value: any) => {
-        const variant = value === 'Green' ? 'default' : value === 'Amber' ? 'secondary' : 'destructive'
-        return <Badge variant={variant}>{value}</Badge>
+        const variant = value === 'Green' ? 'default' : value === 'Amber' ? 'secondary' : 'destructive';
+        return <Badge variant={variant}>{value}</Badge>;
       }
     },
     {
@@ -151,13 +177,19 @@ export function PipelinesTab() {
       header: 'Actions',
       accessor: 'id' as keyof Submission,
       cell: (value: any, row: Submission) => (
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline">Update</Button>
-          <Button size="sm" variant="outline">Remind</Button>
-        </div>
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => {
+            setSelectedApplication(row);
+            setUpdateDialogOpen(true);
+          }}
+        >
+          Update
+        </Button>
       )
     }
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -179,8 +211,8 @@ export function PipelinesTab() {
                   placeholder="Candidate, JD..."
                   value={searchTerm}
                   onChange={(e) => {
-                    setSearchTerm(e.target.value)
-                    setPage(1)
+                    setSearchTerm(e.target.value);
+                    setPage(1);
                   }}
                   className="pl-9"
                 />
@@ -264,7 +296,17 @@ export function PipelinesTab() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Pipeline</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Pipeline</CardTitle>
+              {selectedRows.size > 0 && (
+                <Button
+                  size="sm"
+                  onClick={() => setBulkReassignOpen(true)}
+                >
+                  Bulk Reassign ({selectedRows.size})
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <DataTable 
@@ -277,14 +319,43 @@ export function PipelinesTab() {
                 total: filteredApplications.length,
                 onPageChange: setPage,
                 onPageSizeChange: (size) => {
-                  setPageSize(size)
-                  setPage(1)
+                  setPageSize(size);
+                  setPage(1);
                 }
               }}
             />
           </CardContent>
         </Card>
       )}
+
+      <UpdateApplicationDialog
+        open={updateDialogOpen}
+        onOpenChange={setUpdateDialogOpen}
+        application={selectedApplication}
+        onSuccess={() => {
+          loadApplications();
+          setUpdateDialogOpen(false);
+          toast({
+            title: "Success",
+            description: "Application updated successfully"
+          });
+        }}
+      />
+
+      <BulkReassignDialog
+        open={bulkReassignOpen}
+        onOpenChange={setBulkReassignOpen}
+        selectedIds={Array.from(selectedRows)}
+        onSuccess={(count) => {
+          setSelectedRows(new Set());
+          loadApplications();
+          setBulkReassignOpen(false);
+          toast({
+            title: "Success",
+            description: `${count} application${count !== 1 ? 's' : ''} updated successfully`
+          });
+        }}
+      />
     </div>
-  )
-}
+  );
+};

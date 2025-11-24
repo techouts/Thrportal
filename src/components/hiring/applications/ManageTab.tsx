@@ -39,7 +39,7 @@ export function ManageTab() {
 
   const handleStatusUpdate = async (id: string, status: Submission['status'], reason?: string) => {
     try {
-      await ApplicationsService.updateSubmissionStatus(id, status, reason)
+      await ApplicationsService.updateSubmissionStatus(id, { status_reason: reason })
       toast({
         title: "Success",
         description: "Status updated successfully"
