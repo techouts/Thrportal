@@ -588,8 +588,6 @@ export default function ClientDetailPage() {
                     </DialogHeader>
                     <CreateOpportunityForm 
                       clients={[client]}
-                      accounts={client.accounts || []}
-                      projects={client.projects || []}
                       onSuccess={() => {
                         setShowOpportunityForm(false);
                         loadClientDetails();
