@@ -1,0 +1,207 @@
+{
+  "organization": [
+    {
+      "rank": 1,
+      "employeeId": "emp_001",
+      "employeeName": "John Doe",
+      "department": "Engineering",
+      "totalPoints": 325,
+      "recognitionsReceived": 8,
+      "recognitionsGiven": 12,
+      "avatar": "/avatars/john-doe.jpg",
+      "pointsThisMonth": 95,
+      "lastRecognition": "2024-01-15T10:30:00Z"
+    },
+    {
+      "rank": 2,
+      "employeeId": "emp_002",
+      "employeeName": "Sarah Johnson",
+      "department": "Product",
+      "totalPoints": 285,
+      "recognitionsReceived": 6,
+      "recognitionsGiven": 15,
+      "avatar": "/avatars/sarah-johnson.jpg",
+      "pointsThisMonth": 110,
+      "lastRecognition": "2024-01-14T16:20:00Z"
+    },
+    {
+      "rank": 3,
+      "employeeId": "emp_003",
+      "employeeName": "Mike Chen",
+      "department": "Engineering",
+      "totalPoints": 260,
+      "recognitionsReceived": 5,
+      "recognitionsGiven": 8,
+      "avatar": "/avatars/mike-chen.jpg",
+      "pointsThisMonth": 75,
+      "lastRecognition": "2024-01-12T11:45:00Z"
+    },
+    {
+      "rank": 4,
+      "employeeId": "emp_004",
+      "employeeName": "Emily Davis",
+      "department": "Design",
+      "totalPoints": 235,
+      "recognitionsReceived": 4,
+      "recognitionsGiven": 9,
+      "avatar": "/avatars/emily-davis.jpg",
+      "pointsThisMonth": 85,
+      "lastRecognition": "2024-01-10T14:30:00Z"
+    },
+    {
+      "rank": 5,
+      "employeeId": "emp_005",
+      "employeeName": "David Wilson",
+      "department": "Management",
+      "totalPoints": 220,
+      "recognitionsReceived": 3,
+      "recognitionsGiven": 18,
+      "avatar": "/avatars/david-wilson.jpg",
+      "pointsThisMonth": 60,
+      "lastRecognition": "2024-01-08T09:15:00Z"
+    },
+    {
+      "rank": 6,
+      "employeeId": "emp_006",
+      "employeeName": "Lisa Brown",
+      "department": "Sales",
+      "totalPoints": 195,
+      "recognitionsReceived": 4,
+      "recognitionsGiven": 7,
+      "avatar": "/avatars/lisa-brown.jpg",
+      "pointsThisMonth": 55,
+      "lastRecognition": "2024-01-07T13:20:00Z"
+    },
+    {
+      "rank": 7,
+      "employeeId": "emp_007",
+      "employeeName": "Tom Anderson",
+      "department": "Engineering",
+      "totalPoints": 180,
+      "recognitionsReceived": 3,
+      "recognitionsGiven": 5,
+      "avatar": "/avatars/tom-anderson.jpg",
+      "pointsThisMonth": 50,
+      "lastRecognition": "2024-01-05T10:45:00Z"
+    },
+    {
+      "rank": 8,
+      "employeeId": "emp_008",
+      "employeeName": "Anna Taylor",
+      "department": "Marketing",
+      "totalPoints": 165,
+      "recognitionsReceived": 3,
+      "recognitionsGiven": 6,
+      "avatar": "/avatars/anna-taylor.jpg",
+      "pointsThisMonth": 70,
+      "lastRecognition": "2024-01-04T15:10:00Z"
+    },
+    {
+      "rank": 9,
+      "employeeId": "emp_009",
+      "employeeName": "Robert Garcia",
+      "department": "Operations",
+      "totalPoints": 150,
+      "recognitionsReceived": 2,
+      "recognitionsGiven": 4,
+      "avatar": "/avatars/robert-garcia.jpg",
+      "pointsThisMonth": 45,
+      "lastRecognition": "2024-01-03T12:30:00Z"
+    },
+    {
+      "rank": 10,
+      "employeeId": "emp_010",
+      "employeeName": "Jessica Lee",
+      "department": "HR",
+      "totalPoints": 135,
+      "recognitionsReceived": 2,
+      "recognitionsGiven": 11,
+      "avatar": "/avatars/jessica-lee.jpg",
+      "pointsThisMonth": 40,
+      "lastRecognition": "2024-01-02T08:45:00Z"
+    }
+  ],
+  "departments": {
+    "Engineering": [
+      {
+        "rank": 1,
+        "employeeId": "emp_001",
+        "employeeName": "John Doe",
+        "totalPoints": 325,
+        "recognitionsReceived": 8,
+        "recognitionsGiven": 12,
+        "avatar": "/avatars/john-doe.jpg"
+      },
+      {
+        "rank": 2,
+        "employeeId": "emp_003",
+        "employeeName": "Mike Chen",
+        "totalPoints": 260,
+        "recognitionsReceived": 5,
+        "recognitionsGiven": 8,
+        "avatar": "/avatars/mike-chen.jpg"
+      },
+      {
+        "rank": 3,
+        "employeeId": "emp_007",
+        "employeeName": "Tom Anderson",
+        "totalPoints": 180,
+        "recognitionsReceived": 3,
+        "recognitionsGiven": 5,
+        "avatar": "/avatars/tom-anderson.jpg"
+      }
+    ],
+    "Product": [
+      {
+        "rank": 1,
+        "employeeId": "emp_002",
+        "employeeName": "Sarah Johnson",
+        "totalPoints": 285,
+        "recognitionsReceived": 6,
+        "recognitionsGiven": 15,
+        "avatar": "/avatars/sarah-johnson.jpg"
+      }
+    ],
+    "Design": [
+      {
+        "rank": 1,
+        "employeeId": "emp_004",
+        "employeeName": "Emily Davis",
+        "totalPoints": 235,
+        "recognitionsReceived": 4,
+        "recognitionsGiven": 9,
+        "avatar": "/avatars/emily-davis.jpg"
+      }
+    ],
+    "Sales": [
+      {
+        "rank": 1,
+        "employeeId": "emp_006",
+        "employeeName": "Lisa Brown",
+        "totalPoints": 195,
+        "recognitionsReceived": 4,
+        "recognitionsGiven": 7,
+        "avatar": "/avatars/lisa-brown.jpg"
+      }
+    ],
+    "Marketing": [
+      {
+        "rank": 1,
+        "employeeId": "emp_008",
+        "employeeName": "Anna Taylor",
+        "totalPoints": 165,
+        "recognitionsReceived": 3,
+        "recognitionsGiven": 6,
+        "avatar": "/avatars/anna-taylor.jpg"
+      }
+    ]
+  },
+  "stats": {
+    "totalRecognitions": 156,
+    "totalPointsAwarded": 8420,
+    "activeParticipants": 85,
+    "topCategory": "Excellence",
+    "averagePointsPerEmployee": 99,
+    "monthOverMonthGrowth": 15.2
+  }
+}

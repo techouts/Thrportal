@@ -1,3 +1,0 @@
-// myteam validators placeholder
-
-

@@ -1,3 +1,0 @@
-// myteam models placeholder
-
-

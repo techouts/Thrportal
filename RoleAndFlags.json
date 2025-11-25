@@ -1,0 +1,13 @@
+{
+  "roles": [
+    "EMPLOYEE",
+    "MANAGER", 
+    "HR",
+    "FINANCE",
+    "ADMIN",
+    "IT",
+    "FACILITIES",
+    "RECRUITER"
+  ],
+  "feature_flags": []
+}

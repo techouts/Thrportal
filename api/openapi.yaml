@@ -1,0 +1,378 @@
+openapi: 3.0.0
+info:
+  title: T-HR Management API
+  description: Comprehensive HR management system API
+  version: 1.0.0
+  contact:
+    name: T-HR API Support
+    email: api-support@t-hr.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.t-hr.com
+    description: Production server
+
+paths:
+  # Portal endpoints
+  /portal/announcements:
+    get:
+      summary: Get announcements
+      tags: [Portal]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/AnnouncementList'
+
+  # Employee endpoints
+  /employees:
+    get:
+      summary: Get employees list
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: department
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, pending]
+      responses:
+        '200':
+          $ref: '#/components/responses/EmployeeList'
+    post:
+      summary: Create new employee
+      tags: [Employees]
+      requestBody:
+        $ref: '#/components/requestBodies/CreateEmployee'
+      responses:
+        '201':
+          $ref: '#/components/responses/Employee'
+
+  /employees/{id}:
+    get:
+      summary: Get employee by ID
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Employee'
+    put:
+      summary: Update employee
+      tags: [Employees]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateEmployee'
+      responses:
+        '200':
+          $ref: '#/components/responses/Employee'
+
+  # Leave endpoints
+  /leave/requests:
+    get:
+      summary: Get leave requests
+      tags: [Leave]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+      responses:
+        '200':
+          $ref: '#/components/responses/LeaveRequestList'
+    post:
+      summary: Submit leave request
+      tags: [Leave]
+      requestBody:
+        $ref: '#/components/requestBodies/CreateLeaveRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/LeaveRequest'
+
+  # Attendance endpoints
+  /attendance:
+    get:
+      summary: Get attendance records
+      tags: [Attendance]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: employeeId
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          $ref: '#/components/responses/AttendanceList'
+
+  # Project endpoints
+  /projects:
+    get:
+      summary: Get projects
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/ProjectList'
+
+  # Hiring endpoints
+  /hiring/requisitions:
+    get:
+      summary: Get job requisitions
+      tags: [Hiring]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/JobRequisitionList'
+
+  /hiring/applications:
+    get:
+      summary: Get job applications
+      tags: [Hiring]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApplicationList'
+
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    EmployeeId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        department:
+          type: string
+        position:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, pending]
+
+    LeaveRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        type:
+          type: string
+          enum: [vacation, sick, personal, maternity, paternity]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+
+    Attendance:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        date:
+          type: string
+          format: date
+        checkIn:
+          type: string
+          format: date-time
+        checkOut:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [present, absent, half-day, late]
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+  requestBodies:
+    CreateEmployee:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Employee'
+    UpdateEmployee:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Employee'
+    CreateLeaveRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LeaveRequest'
+
+  responses:
+    Employee:
+      description: Employee object
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/Employee'
+              success:
+                type: boolean
+
+    EmployeeList:
+      description: List of employees
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PaginatedResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+
+    LeaveRequest:
+      description: Leave request object
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/LeaveRequest'
+              success:
+                type: boolean
+
+    LeaveRequestList:
+      description: List of leave requests
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PaginatedResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveRequest'
+
+    AttendanceList:
+      description: List of attendance records
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PaginatedResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attendance'
+
+    ProjectList:
+      description: List of projects
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaginatedResponse'
+
+    JobRequisitionList:
+      description: List of job requisitions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaginatedResponse'
+
+    ApplicationList:
+      description: List of job applications
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaginatedResponse'
+
+    AnnouncementList:
+      description: List of announcements
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaginatedResponse'

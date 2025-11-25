@@ -1,3 +1,0 @@
-// myteam services placeholder
-
-

@@ -1,3 +1,0 @@
-// projects validators placeholder
-
-

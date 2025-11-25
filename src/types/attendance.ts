@@ -1,0 +1,84 @@
+export interface AttendanceRecord {
+  id: string;
+  employeeId: string;
+  date: string;
+  checkIn?: string;
+  checkOut?: string;
+  breakTime: number; // minutes
+  totalHours: number;
+  status: 'present' | 'absent' | 'late' | 'half_day' | 'work_from_home';
+  location: 'Office' | 'Remote' | 'Field';
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  notes?: string;
+  approvedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttendancePolicy {
+  id: string;
+  name: string;
+  officeStartTime: string;
+  officeEndTime: string;
+  lateGracePeriod: number; // minutes
+  workingDays: string[];
+  minimumHours: number;
+  isActive: boolean;
+  geofenceEnabled: boolean;
+  geofenceRadius: number; // meters
+  officeLocation?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+}
+
+export interface AttendanceStats {
+  presentDays: number;
+  absentDays: number;
+  lateDays: number;
+  totalWorkingDays: number;
+  averageHours: number;
+  currentStreak: number;
+  monthlyStats: {
+    month: string;
+    present: number;
+    absent: number;
+    late: number;
+    totalHours: number;
+  }[];
+}
+
+export interface ClockInRequest {
+  employeeId: string;
+  location: 'Office' | 'Remote' | 'Field';
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  notes?: string;
+}
+
+export interface AttendanceApproval {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  requestType: 'late_arrival' | 'early_departure' | 'work_from_home' | 'manual_entry';
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedBy: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  comments?: string;
+}
+
+export type ApiResponse<T> = {
+  data: T;
+  message: string;
+  success: boolean;
+  timestamp: string;
+};

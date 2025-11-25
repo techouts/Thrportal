@@ -1,0 +1,30 @@
+[
+  {
+    "email": "john.smith@thr.com",
+    "role": "EMPLOYEE"
+  },
+  {
+    "email": "sarah.johnson@thr.com",
+    "role": "EMPLOYEE"
+  },
+  {
+    "email": "michael.chen@thr.com",
+    "role": "MANAGER"
+  },
+  {
+    "email": "emily.davis@thr.com",
+    "role": "MANAGER"
+  },
+  {
+    "email": "david.wilson@thr.com",
+    "role": "HR"
+  },
+  {
+    "email": "amanda.rodriguez@thr.com",
+    "role": "ADMIN"
+  },
+  {
+    "email": "demo@company.com",
+    "role": "MANAGER"
+  }
+]

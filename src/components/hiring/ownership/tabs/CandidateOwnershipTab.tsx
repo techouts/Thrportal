@@ -1,0 +1,581 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, Filter, UserX, Users, Link2, Unlink, MoreHorizontal } from 'lucide-react';
+import { candidatesService } from '@/services/candidatesService';
+import { jdOwnershipService } from '@/services/jdOwnershipService';
+import { CandidateOwnership, CandidateStage } from '@/types/ownership';
+import { toast } from 'sonner';
+import { LinkJdDialog } from '../dialogs/LinkJdDialog';
+import { UnlinkJdDialog } from '../dialogs/UnlinkJdDialog';
+import { BulkLinkJdDialog } from '../dialogs/BulkLinkJdDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+
+export function CandidateOwnershipTab() {
+  const [candidateOwnerships, setCandidateOwnerships] = useState<CandidateOwnership[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  const [showReassignDialog, setShowReassignDialog] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<CandidateOwnership | null>(null);
+  const [recruiters, setRecruiters] = useState<Array<{ id: string; name: string }>>([]);
+  const [newOwnerId, setNewOwnerId] = useState<string>('');
+  const [showBulkReassignDialog, setShowBulkReassignDialog] = useState(false);
+  const [bulkNewOwnerId, setBulkNewOwnerId] = useState<string>('');
+  const [showLinkJdDialog, setShowLinkJdDialog] = useState(false);
+  const [showUnlinkJdDialog, setShowUnlinkJdDialog] = useState(false);
+  const [showBulkLinkJdDialog, setShowBulkLinkJdDialog] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<string>('all');
+  const [selectedRecruiter, setSelectedRecruiter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    loadCandidateOwnerships();
+    loadRecruiters();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStage, selectedRecruiter]);
+
+  const loadRecruiters = async () => {
+    try {
+      const recruitersList = await jdOwnershipService.getRecruiters();
+      setRecruiters(recruitersList);
+    } catch (error) {
+      console.error('Error loading recruiters:', error);
+      toast.error('Failed to load recruiters');
+    }
+  };
+
+  const loadCandidateOwnerships = async () => {
+    setLoading(true);
+    try {
+      const data = await candidatesService.getCandidateOwnershipsFromDB();
+      setCandidateOwnerships(data);
+    } catch (error) {
+      console.error('Failed to load candidate ownerships:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReassign = async (candidateId: string, newOwnerId: string, reason?: string) => {
+    try {
+      // Update recruiter_owner in database
+      await candidatesService.updateCandidate(candidateId, {
+        recruiterOwner: newOwnerId,
+      } as any);
+      loadCandidateOwnerships();
+      setShowReassignDialog(false);
+    } catch (error) {
+      console.error('Failed to reassign candidate:', error);
+    }
+  };
+
+  const handleBulkReassign = async (newOwner: string, reason: string) => {
+    try {
+      console.log(`Bulk reassigning ${selectedCandidates.length} candidates to ${newOwner}`);
+      await Promise.all(
+        selectedCandidates.map(candidateId =>
+          candidatesService.updateCandidateOwnership(candidateId, {
+            recruiterOwner: newOwner
+          })
+        )
+      );
+      toast.success(`Successfully reassigned ${selectedCandidates.length} candidates`);
+      setSelectedCandidates([]);
+      setShowBulkReassignDialog(false);
+      setBulkNewOwnerId('');
+      loadCandidateOwnerships();
+    } catch (error) {
+      console.error('Error in bulk reassign:', error);
+      toast.error('Failed to reassign candidates');
+    }
+  };
+
+  const getStageBadgeVariant = (stage: CandidateStage) => {
+    switch (stage) {
+      case 'New': return 'secondary';
+      case 'Shortlisted': return 'default';
+      case 'Submitted': return 'default';
+      case 'Interview': return 'default';
+      case 'Offer': return 'default';
+      case 'Joined': return 'default';
+      case 'Rejected': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const uniqueRecruiters = useMemo(() => {
+    const recruitersSet = new Set(candidateOwnerships.map(c => c.recruiterOwner));
+    return Array.from(recruitersSet).sort();
+  }, [candidateOwnerships]);
+
+  const filteredCandidates = candidateOwnerships.filter(candidate => {
+    const matchesSearch = candidate.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      candidate.recruiterOwner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      candidate.jdLinks.some(jd => jd.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || jd.clientName.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStage = selectedStage === 'all' || candidate.currentStage === selectedStage;
+    const matchesRecruiter = selectedRecruiter === 'all' || candidate.recruiterOwner === selectedRecruiter;
+    
+    return matchesSearch && matchesStage && matchesRecruiter;
+  });
+
+  const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
+
+  return (
+    <div className="space-y-6">
+      {/* Header Actions */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Candidate Ownership Management</CardTitle>
+            <div className="flex items-center gap-2">
+              {selectedCandidates.length > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setShowBulkReassignDialog(true)}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Bulk Reassign ({selectedCandidates.length})
+                </Button>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={selectedCandidates.length === 0}
+                onClick={() => setShowBulkLinkJdDialog(true)}
+              >
+                <Link2 className="mr-2 h-4 w-4" />
+                Bulk Link to JDs
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Search and Filters */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by candidate name, recruiter, or JD..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={selectedStage} onValueChange={setSelectedStage}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stages</SelectItem>
+                <SelectItem value="New">New</SelectItem>
+                <SelectItem value="Shortlisted">Shortlisted</SelectItem>
+                <SelectItem value="Interview">Interview</SelectItem>
+                <SelectItem value="Offer">Offer</SelectItem>
+                <SelectItem value="Joined">Joined</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedRecruiter} onValueChange={setSelectedRecruiter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Recruiter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Recruiters</SelectItem>
+                {uniqueRecruiters.map((recruiter) => (
+                  <SelectItem key={recruiter} value={recruiter}>
+                    {recruiter}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline">
+              <Filter className="mr-2 h-4 w-4" />
+              More Filters
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Candidate Ownership Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Candidates ({filteredCandidates.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">
+                      <Checkbox
+                        checked={paginatedCandidates.length > 0 && paginatedCandidates.every(c => selectedCandidates.includes(c.candidateId))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            const newSelections = [...selectedCandidates, ...paginatedCandidates.map(c => c.candidateId).filter(id => !selectedCandidates.includes(id))];
+                            setSelectedCandidates(newSelections);
+                          } else {
+                            setSelectedCandidates(selectedCandidates.filter(id => !paginatedCandidates.map(c => c.candidateId).includes(id)));
+                          }
+                        }}
+                      />
+                    </th>
+                    <th className="text-left p-2">Candidate Name</th>
+                    <th className="text-left p-2">Recruiter Owner</th>
+                    <th className="text-left p-2">JD Link(s)</th>
+                    <th className="text-left p-2">Current Stage</th>
+                    <th className="text-left p-2">Last Updated</th>
+                    <th className="text-left p-2">Assigned Since</th>
+                    <th className="text-left p-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedCandidates.map((candidate) => (
+                    <tr key={candidate.id} className="border-b hover:bg-muted/50">
+                      <td className="p-2">
+                        <Checkbox
+                          checked={selectedCandidates.includes(candidate.candidateId)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCandidates([...selectedCandidates, candidate.candidateId]);
+                            } else {
+                              setSelectedCandidates(selectedCandidates.filter(id => id !== candidate.candidateId));
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <div>
+                          <div className="font-medium">{candidate.candidateName}</div>
+                          <div className="text-xs text-muted-foreground">
+                            ID: {candidate.candidateId}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <Badge variant="outline">{candidate.recruiterOwner}</Badge>
+                      </td>
+                      <td className="p-2">
+                        <div className="space-y-1">
+                          {candidate.jdLinks.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">No JD linked</span>
+                          ) : (
+                            candidate.jdLinks.map((link) => (
+                              <div key={link.jdId} className="text-sm">
+                                <div className="font-medium">{link.jobTitle}</div>
+                                <div className="text-xs text-muted-foreground">{link.clientName}</div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <Badge variant={getStageBadgeVariant(candidate.currentStage)}>
+                          {candidate.currentStage}
+                        </Badge>
+                      </td>
+                      <td className="p-2 text-sm">
+                        {new Date(candidate.lastUpdated).toLocaleDateString()}
+                      </td>
+                      <td className="p-2 text-sm">
+                        {Math.floor((Date.now() - new Date(candidate.assignedAt).getTime()) / (1000 * 60 * 60 * 24))} days
+                      </td>
+                      <td className="p-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedCandidate(candidate);
+                                setShowReassignDialog(true);
+                              }}
+                            >
+                              <UserX className="mr-2 h-4 w-4" />
+                              Reassign Recruiter
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedCandidate(candidate);
+                              setShowLinkJdDialog(true);
+                            }}>
+                              <Link2 className="mr-2 h-4 w-4" />
+                              Link to JD
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedCandidate(candidate);
+                              setShowUnlinkJdDialog(true);
+                            }}>
+                              <Unlink className="mr-2 h-4 w-4" />
+                              Unlink from JD
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {filteredCandidates.length === 0 && (
+                <div className="text-center py-8">
+                  <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No candidate ownerships found</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredCandidates.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              {/* Left: Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Show</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger className="w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredCandidates.length)} of {filteredCandidates.length}
+                </span>
+              </div>
+
+              {/* Right: Page navigation */}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    const showPage = page === 1 || 
+                                    page === totalPages || 
+                                    (page >= currentPage - 1 && page <= currentPage + 1);
+                    
+                    if (!showPage) {
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Reassign Dialog */}
+      <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reassign Candidate</DialogTitle>
+            <DialogDescription>
+              Reassign "{selectedCandidate?.candidateName}" to a new recruiter
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Recruiter</label>
+              <Badge variant="outline">{selectedCandidate?.recruiterOwner}</Badge>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Recruiter</label>
+              <Select onValueChange={(value) => setNewOwnerId(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select new recruiter" />
+                </SelectTrigger>
+                <SelectContent>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={recruiter.id} value={recruiter.name}>
+                      {recruiter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Reason</label>
+              <Input placeholder="Reason for reassignment" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowReassignDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedCandidate && newOwnerId) {
+                  handleReassign(selectedCandidate.candidateId, newOwnerId, 'Workload balancing');
+                }
+              }}
+              disabled={!newOwnerId}
+            >
+              Reassign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Reassign Dialog */}
+      <Dialog open={showBulkReassignDialog} onOpenChange={setShowBulkReassignDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bulk Reassign Candidates</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm">
+                You are about to reassign <strong>{selectedCandidates.length}</strong> candidate(s)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Recruiter</label>
+              <Select onValueChange={(value) => setBulkNewOwnerId(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select new recruiter" />
+                </SelectTrigger>
+                <SelectContent>
+                  {recruiters.map((recruiter) => (
+                    <SelectItem key={recruiter.id} value={recruiter.name}>
+                      {recruiter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBulkReassignDialog(false);
+                setBulkNewOwnerId('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleBulkReassign(bulkNewOwnerId, 'Bulk reassignment')}
+              disabled={!bulkNewOwnerId}
+            >
+              Reassign All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Link JD Dialog */}
+      {showLinkJdDialog && selectedCandidate && (
+        <LinkJdDialog
+          open={showLinkJdDialog}
+          onOpenChange={setShowLinkJdDialog}
+          candidateId={selectedCandidate.candidateId}
+          candidateName={selectedCandidate.candidateName}
+          onSuccess={loadCandidateOwnerships}
+        />
+      )}
+
+      {/* Unlink JD Dialog */}
+      {showUnlinkJdDialog && selectedCandidate && (
+        <UnlinkJdDialog
+          open={showUnlinkJdDialog}
+          onOpenChange={setShowUnlinkJdDialog}
+          candidateId={selectedCandidate.candidateId}
+          candidateName={selectedCandidate.candidateName}
+          onSuccess={loadCandidateOwnerships}
+        />
+      )}
+
+      {/* Bulk Link JD Dialog */}
+      {showBulkLinkJdDialog && (
+        <BulkLinkJdDialog
+          open={showBulkLinkJdDialog}
+          onOpenChange={setShowBulkLinkJdDialog}
+          selectedCandidateIds={selectedCandidates}
+          selectedCandidateCount={selectedCandidates.length}
+          onSuccess={loadCandidateOwnerships}
+        />
+      )}
+    </div>
+  );
+}

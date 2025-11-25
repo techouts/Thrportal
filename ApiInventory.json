@@ -1,0 +1,1381 @@
+[
+  {
+    "endpoint": "/api/portal/announcements",
+    "method": "GET",
+    "resource": "portal",
+    "action_key": "portal.announcements.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/employees",
+    "method": "GET",
+    "resource": "employees",
+    "action_key": "employees.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,MANAGER"]
+  },
+  {
+    "endpoint": "/api/employees",
+    "method": "POST",
+    "resource": "employees",
+    "action_key": "employees.create",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/employees/{id}",
+    "method": "GET",
+    "resource": "employees",
+    "action_key": "employees.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/employees/{id}",
+    "method": "PUT",
+    "resource": "employees",
+    "action_key": "employees.update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/balances",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.balances.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/calendars",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.calendars.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/policy/preview",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.policy.preview",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/requests",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.requests.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/requests",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.requests.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/requests/{id}",
+    "method": "PATCH",
+    "resource": "leave",
+    "action_key": "leave.requests.update",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/compoff",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.compoff.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/my-requests",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.requests.read_own",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/pending-l1",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.approvals.read_l1",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l1/{id}",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.approve_l1",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l1/reject/{id}",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.reject_l1",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l1/delegate/{id}",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.delegate_l1",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l1/bulk",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.bulk_approve_l1",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l1/reject/bulk",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.bulk_reject_l1",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/team/calendar",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.team.calendar.read",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/pending-l2",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.approvals.read_l2",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l2/{id}",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.approve_l2",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l2/reject/{id}",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.reject_l2",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/approvals/l2/override/{id}",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.approvals.override_l2",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/policies",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.policies.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/policies",
+    "method": "PUT",
+    "resource": "leave",
+    "action_key": "leave.policies.update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/allocations/upload",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.allocations.upload",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/allocations/apply",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.allocations.apply",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/holidays",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.holidays.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/holidays/{calendarId}/import",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.holidays.import",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/reports",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.reports.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/reports/export",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.reports.export",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/settings",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.settings.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/settings",
+    "method": "PUT",
+    "resource": "leave",
+    "action_key": "leave.settings.update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/integrations/outlook/tentative",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.integrations.outlook.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/integrations/outlook/busy",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.integrations.outlook.update",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/integrations/outlook/{requestId}",
+    "method": "DELETE",
+    "resource": "leave",
+    "action_key": "leave.integrations.outlook.delete",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/leave/integrations/attendance",
+    "method": "POST",
+    "resource": "leave",
+    "action_key": "leave.integrations.attendance.excuse",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/leave/integrations/payroll",
+    "method": "GET",
+    "resource": "leave",
+    "action_key": "leave.integrations.payroll.export",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/attendance",
+    "method": "GET",
+    "resource": "attendance",
+    "action_key": "attendance.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/attendance/clock-in",
+    "method": "POST",
+    "resource": "attendance",
+    "action_key": "attendance.clock_in",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/attendance/clock-out",
+    "method": "POST",
+    "resource": "attendance",
+    "action_key": "attendance.clock_out",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/attendance/team",
+    "method": "GET",
+    "resource": "attendance",
+    "action_key": "attendance.team.read",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/attendance/approvals",
+    "method": "GET",
+    "resource": "attendance",
+    "action_key": "attendance.approvals.read",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/attendance/policies",
+    "method": "GET",
+    "resource": "attendance",
+    "action_key": "attendance.policies.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/postings",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.postings.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/postings/{id}",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.postings.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/postings/{id}/save",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.postings.save",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/applications",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.applications.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/my",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.applications.read_own",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/{id}",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.applications.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/{id}/advance",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.applications.advance",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/{id}/withdraw",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.applications.withdraw",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/{id}/approve",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.applications.approve",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/{id}/reject",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.applications.reject",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/team",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.applications.read_team",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/pending-approvals",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.applications.read_pending",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/applications/by-stage",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.applications.read_by_stage",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/interviews",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.interviews.create",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/interviews/{id}",
+    "method": "PUT",
+    "resource": "ijp",
+    "action_key": "ijp.interviews.update",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/interviews/slots",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.interviews.slots",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/feedback",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.feedback.create",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/feedback/{interviewId}",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.feedback.read",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/offers",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.offers.create",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/offers/{id}",
+    "method": "PUT",
+    "resource": "ijp",
+    "action_key": "ijp.offers.update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/offers/{id}/decision",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.offers.decision",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/settings",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.settings.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/settings",
+    "method": "PUT",
+    "resource": "ijp",
+    "action_key": "ijp.settings.update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/reports",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.reports.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/exports",
+    "method": "GET",
+    "resource": "ijp",
+    "action_key": "ijp.data.export",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/ijp/analytics",
+    "method": "POST",
+    "resource": "ijp",
+    "action_key": "ijp.analytics.track",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/payroll/runs",
+    "method": "GET",
+    "resource": "payroll",
+    "action_key": "payroll.runs.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/runs",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.runs.create",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/runs/{id}/simulate",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.runs.simulate",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/runs/{id}/validate",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.runs.validate",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/runs/{id}/approve",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.runs.approve",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/runs/{id}/lock",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.runs.lock",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/runs/{id}/exceptions",
+    "method": "GET",
+    "resource": "payroll",
+    "action_key": "payroll.exceptions.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/bank-file/{id}",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.bank_file.generate",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/statutory/{type}/{runId}",
+    "method": "GET",
+    "resource": "payroll",
+    "action_key": "payroll.statutory.generate",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/payroll/fnf/{employeeId}",
+    "method": "POST",
+    "resource": "payroll",
+    "action_key": "payroll.fnf.calculate",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/finance/payslips",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.payslips.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/payslips/{id}/download",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.payslips.download",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/form16",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.form16.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/tax-declarations",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.tax_declarations.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/tax-declarations",
+    "method": "POST",
+    "resource": "finance",
+    "action_key": "finance.tax_declarations.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/tax-projections",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.tax_projections.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/investment-planner",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.investment_planner.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/finance/jv/{runId}",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.jv.export",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/finance/bank-batches",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.bank_batches.read",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/finance/bank-batches/{id}/mark-paid",
+    "method": "POST",
+    "resource": "finance",
+    "action_key": "finance.bank_batches.mark_paid",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/finance/reconcile",
+    "method": "POST",
+    "resource": "finance",
+    "action_key": "finance.reconcile.perform",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/finance/audit-logs",
+    "method": "GET",
+    "resource": "finance",
+    "action_key": "finance.audit_logs.read",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/finance/audit-logs/export",
+    "method": "POST",
+    "resource": "finance",
+    "action_key": "finance.audit_logs.export",
+    "guards": ["requireAuth", "requireRole:FINANCE_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/requisitions",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.requisitions.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN,MANAGER"]
+  },
+  {
+    "endpoint": "/api/hiring/applications",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.applications.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/dashboard/stats",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.dashboard.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/job-descriptions",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.jds.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/submissions",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.submissions.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/clients",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.clients.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/recruiters",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.recruiters.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/bench-resources",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.bench.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/aging-buckets",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.aging.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/tat-metrics",
+    "method": "GET",
+    "resource": "hiring",
+    "action_key": "hiring.tat.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/hiring/export",
+    "method": "POST",
+    "resource": "hiring",
+    "action_key": "hiring.data.export",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/jds",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.jds.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/jds/{id}",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.jds.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/submissions",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.submissions.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/submissions",
+    "method": "POST",
+    "resource": "applications",
+    "action_key": "applications.submissions.create",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/submissions/{id}/status",
+    "method": "PUT",
+    "resource": "applications",
+    "action_key": "applications.submissions.update_status",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/resumes",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.resumes.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/resumes/{id}",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.resumes.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/resumes/upload",
+    "method": "POST",
+    "resource": "applications",
+    "action_key": "applications.resumes.upload",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/resumes/duplicate-check",
+    "method": "POST",
+    "resource": "applications",
+    "action_key": "applications.resumes.duplicate_check",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/matches",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.matches.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/metrics",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.metrics.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/recruiter-stats",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.recruiter_stats.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/vendor-stats",
+    "method": "GET",
+    "resource": "applications",
+    "action_key": "applications.vendor_stats.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/export/jd-summary",
+    "method": "POST",
+    "resource": "applications",
+    "action_key": "applications.export.jd_summary",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/export/recruiter-report",
+    "method": "POST",
+    "resource": "applications",
+    "action_key": "applications.export.recruiter_report",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/applications/export/vendor-report",
+    "method": "POST",
+    "resource": "applications",
+    "action_key": "applications.export.vendor_report",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/cases",
+    "method": "GET",
+    "resource": "bgv",
+    "action_key": "bgv.cases.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/cases",
+    "method": "POST",
+    "resource": "bgv",
+    "action_key": "bgv.cases.create",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/cases/{id}",
+    "method": "PUT",
+    "resource": "bgv",
+    "action_key": "bgv.cases.update",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/exceptions",
+    "method": "GET",
+    "resource": "bgv",
+    "action_key": "bgv.exceptions.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/exceptions",
+    "method": "POST",
+    "resource": "bgv",
+    "action_key": "bgv.exceptions.create",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/exceptions/{id}/approve",
+    "method": "POST",
+    "resource": "bgv",
+    "action_key": "bgv.exceptions.approve",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/settings",
+    "method": "GET",
+    "resource": "bgv",
+    "action_key": "bgv.settings.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/settings",
+    "method": "PUT",
+    "resource": "bgv",
+    "action_key": "bgv.settings.update",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/packages",
+    "method": "GET",
+    "resource": "bgv",
+    "action_key": "bgv.packages.read",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/documents/upload",
+    "method": "POST",
+    "resource": "bgv",
+    "action_key": "bgv.documents.upload",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/bgv/consent/generate",
+    "method": "POST",
+    "resource": "bgv",
+    "action_key": "bgv.consent.generate",
+    "guards": ["requireAuth", "requireRole:HIRING_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/cycles",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.cycles.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/cycles",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.cycles.create",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/cycles/{id}",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.cycles.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/cycles/{id}",
+    "method": "PUT",
+    "resource": "performance",
+    "action_key": "performance.cycles.update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/goals",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.goals.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/goals",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.goals.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/goals/{id}",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.goals.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/goals/{id}",
+    "method": "PUT",
+    "resource": "performance",
+    "action_key": "performance.goals.update",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/goals/{id}",
+    "method": "DELETE",
+    "resource": "performance",
+    "action_key": "performance.goals.delete",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/reviews",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.reviews.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/reviews",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.reviews.create",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/reviews/{id}",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.reviews.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/reviews/{id}",
+    "method": "PUT",
+    "resource": "performance",
+    "action_key": "performance.reviews.update",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/reviews/{id}/submit",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.reviews.submit",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/meetings",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.meetings.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/meetings",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.meetings.create",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/performance/meetings/{id}",
+    "method": "PUT",
+    "resource": "performance",
+    "action_key": "performance.meetings.update",
+    "guards": ["requireAuth", "requireRole:MANAGER"]
+  },
+  {
+    "endpoint": "/api/performance/feedback-requests",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.feedback_requests.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/feedback-requests",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.feedback_requests.create",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/feedback-responses",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.feedback_responses.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/performance/pips",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.pips.read",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/pips",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.pips.create",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/pips/{id}",
+    "method": "PUT",
+    "resource": "performance",
+    "action_key": "performance.pips.update",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/calibration/{cycleId}/pools",
+    "method": "GET",
+    "resource": "performance",
+    "action_key": "performance.calibration.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/calibration/move-rating",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.calibration.move_rating",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/calibration/{cycleId}/lock",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.calibration.lock",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/calibration/{cycleId}/publish",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.calibration.publish",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/performance/nudge",
+    "method": "POST",
+    "resource": "performance",
+    "action_key": "performance.nudge.send",
+    "guards": ["requireAuth", "requireRole:MANAGER,HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets",
+    "method": "POST",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.create",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/my",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.read_own",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/queue/{department}",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.read_queue",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/wip/{department}",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.read_wip",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/{id}/assign",
+    "method": "POST",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.assign",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/{id}/status",
+    "method": "PUT",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.update_status",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/{id}/comments",
+    "method": "POST",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.add_comment",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/{id}/escalate",
+    "method": "POST",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.escalate",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/tickets/bulk-update",
+    "method": "POST",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.tickets.bulk_update",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/dashboard/{department}",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.dashboard.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN,IT_ADMIN"]
+  },
+  {
+    "endpoint": "/api/helpdesk/faqs",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.faqs.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/helpdesk/subcategories/{category}",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.subcategories.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/helpdesk/priority-suggestion",
+    "method": "GET",
+    "resource": "helpdesk",
+    "action_key": "helpdesk.priority.suggest",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/projects",
+    "method": "GET",
+    "resource": "projects",
+    "action_key": "projects.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{employeeId}/{weekStart}",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{id}/save",
+    "method": "POST",
+    "resource": "timesheets",
+    "action_key": "timesheets.save",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{id}/submit",
+    "method": "POST",
+    "resource": "timesheets",
+    "action_key": "timesheets.submit",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{id}/recall",
+    "method": "POST",
+    "resource": "timesheets",
+    "action_key": "timesheets.recall",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{id}/entries",
+    "method": "PUT",
+    "resource": "timesheets",
+    "action_key": "timesheets.update_entries",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{employeeId}/history",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.read_history",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/non-billable-categories",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.non_billable_categories.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{employeeId}/projects",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.projects.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{employeeId}/projects/{projectId}/tasks",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.tasks.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/export/profiles",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.export_profiles.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/export/preview",
+    "method": "POST",
+    "resource": "timesheets",
+    "action_key": "timesheets.export.preview",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/export/run",
+    "method": "POST",
+    "resource": "timesheets",
+    "action_key": "timesheets.export.run",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/{employeeId}/export/logs",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.export.logs",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/timesheets/policy",
+    "method": "GET",
+    "resource": "timesheets",
+    "action_key": "timesheets.policy.read",
+    "guards": ["requireAuth"]
+  },
+  {
+    "endpoint": "/api/onboarding/employees",
+    "method": "GET",
+    "resource": "onboarding",
+    "action_key": "onboarding.employees.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/onboarding/stats",
+    "method": "GET",
+    "resource": "onboarding",
+    "action_key": "onboarding.stats.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/employees",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.employees.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/stats",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.stats.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/checklists",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.checklists.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/tasks",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.tasks.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/exit-interviews",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.exit_interviews.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/documents",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.documents.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  },
+  {
+    "endpoint": "/api/offboarding/approvals",
+    "method": "GET",
+    "resource": "offboarding",
+    "action_key": "offboarding.approvals.read",
+    "guards": ["requireAuth", "requireRole:HR_ADMIN"]
+  }
+]

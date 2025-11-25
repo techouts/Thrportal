@@ -1,3 +1,0 @@
-// myteam controllers placeholder
-
-
