@@ -21,7 +21,6 @@ import { Pencil, Trash2 } from 'lucide-react';
 export function CRMInteractionsPage() {
   const [interactions, setInteractions] = useState<CrmInteraction[]>([]);
   const [clients, setClients] = useState<CrmClient[]>([]);
-  const [spocs, setSpocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -41,17 +40,15 @@ export function CRMInteractionsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [interactionsResponse, clientsData, spocsData] = await Promise.all([
+      const [interactionsResponse, clientsData] = await Promise.all([
         CrmService.getInteractions(),
-        CrmService.getClients(),
-        CrmService.getAllSpocs()
+        CrmService.getClients()
       ]);
       const interactionsData = Array.isArray(interactionsResponse) 
         ? interactionsResponse 
         : interactionsResponse.data;
       setInteractions(interactionsData);
       setClients(clientsData);
-      setSpocs(spocsData);
     } catch (error) {
       toast({
         title: 'Error',
@@ -344,7 +341,6 @@ export function CRMInteractionsPage() {
           </DialogHeader>
           <CreateInteractionForm
             clients={clients}
-            spocs={spocs}
             onSuccess={() => {
               setShowCreateDialog(false);
               loadData();
