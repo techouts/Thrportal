@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable, Column } from '@/components/shared/DataTable';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
 import { CreateInteractionForm } from '@/components/crm/forms/CreateInteractionForm';
 import { EditInteractionForm } from '@/components/crm/forms/EditInteractionForm';
 import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
@@ -33,15 +34,21 @@ export function CRMInteractionsPage() {
   const itemsPerPage = 10;
   const { toast } = useToast();
 
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async (search?: string) => {
+  useEffect(() => {
+    loadData(debouncedSearch, typeFilter);
+  }, [debouncedSearch, typeFilter]);
+
+  const loadData = async (search?: string, type?: string) => {
     try {
       setLoading(true);
       const [interactionsResponse, clientsData] = await Promise.all([
-        CrmService.getInteractions({ search }),
+        CrmService.getInteractions({ search, type }),
         CrmService.getClients()
       ]);
       const interactionsData = Array.isArray(interactionsResponse) 
@@ -87,10 +94,7 @@ export function CRMInteractionsPage() {
     await loadData();
   };
 
-  const filteredInteractions = interactions.filter(interaction => {
-    const matchesType = typeFilter === 'all' || interaction.interaction_type === typeFilter;
-    return matchesType;
-  });
+  const filteredInteractions = interactions;
 
   // Paginated data
   const paginatedInteractions = filteredInteractions.slice(
@@ -297,10 +301,7 @@ export function CRMInteractionsPage() {
             columns={columns}
             loading={loading}
             searchable
-            onSearch={(value) => {
-              setSearchQuery(value);
-              loadData(value);
-            }}
+            onSearch={setSearchQuery}
             exportable={false}
             emptyMessage="No interactions found"
             filters={
