@@ -28,7 +28,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
 # Expose the port your app runs on
-EXPOSE 3004
+EXPOSE 3000
 
 # Start the app
-CMD ["node", "dist/server.js", "-p", "3004"]
+CMD ["node", "dist/server.js", "-p", "3000"]
