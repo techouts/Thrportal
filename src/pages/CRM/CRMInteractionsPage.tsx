@@ -37,11 +37,11 @@ export function CRMInteractionsPage() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (search?: string) => {
     try {
       setLoading(true);
       const [interactionsResponse, clientsData] = await Promise.all([
-        CrmService.getInteractions(),
+        CrmService.getInteractions({ search }),
         CrmService.getClients()
       ]);
       const interactionsData = Array.isArray(interactionsResponse) 
@@ -88,14 +88,8 @@ export function CRMInteractionsPage() {
   };
 
   const filteredInteractions = interactions.filter(interaction => {
-    const matchesSearch = interaction.client?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      interaction.spoc?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      interaction.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      interaction.outcome?.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesType = typeFilter === 'all' || interaction.interaction_type === typeFilter;
-    
-    return matchesSearch && matchesType;
+    return matchesType;
   });
 
   // Paginated data
@@ -303,7 +297,10 @@ export function CRMInteractionsPage() {
             columns={columns}
             loading={loading}
             searchable
-            onSearch={setSearchQuery}
+            onSearch={(value) => {
+              setSearchQuery(value);
+              loadData(value);
+            }}
             exportable={false}
             emptyMessage="No interactions found"
             filters={
