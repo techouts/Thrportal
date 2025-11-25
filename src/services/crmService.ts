@@ -529,7 +529,7 @@ export class CrmService {
   }
 
   // Interactions
-  static async getInteractions(filters?: { page?: number; limit?: number }) {
+  static async getInteractions(filters?: { page?: number; limit?: number; search?: string }) {
     let query = supabase
       .from("crm_interactions")
       .select(
@@ -541,8 +541,14 @@ export class CrmService {
         spoc:crm_spocs(*)
       `,
         { count: 'exact' }
-      )
-      .order("date", { ascending: false });
+      );
+
+    // Apply search filter
+    if (filters?.search) {
+      query = query.or(`notes.ilike.%${filters.search}%,outcome.ilike.%${filters.search}%,next_step.ilike.%${filters.search}%`);
+    }
+
+    query = query.order("date", { ascending: false });
 
     // Apply pagination ONLY if explicitly requested
     if (filters?.page && filters?.limit) {
