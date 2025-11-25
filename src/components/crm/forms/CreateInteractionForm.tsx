@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,19 +32,19 @@ type InteractionFormData = z.infer<typeof interactionSchema>;
 interface CreateInteractionFormProps {
   clientId?: string;
   clients: CrmClient[];
-  spocs?: CrmSpoc[];
   onSuccess: () => void;
   onCancel?: () => void;
 }
 
 export function CreateInteractionForm({ 
   clientId, 
-  clients, 
-  spocs = [],
+  clients,
   onSuccess,
   onCancel
 }: CreateInteractionFormProps) {
   const [loading, setLoading] = useState(false);
+  const [spocs, setSpocs] = useState<CrmSpoc[]>([]);
+  const [loadingSpocs, setLoadingSpocs] = useState(false);
   
   const form = useForm<InteractionFormData>({
     resolver: zodResolver(interactionSchema),
@@ -61,6 +61,30 @@ export function CreateInteractionForm({
   });
 
   const selectedClientId = form.watch('client_id');
+
+  useEffect(() => {
+    if (!selectedClientId) {
+      setSpocs([]);
+      return;
+    }
+
+    const fetchSpocs = async () => {
+      try {
+        setLoadingSpocs(true);
+        const spocsData = await CrmService.getSpocsByClient(selectedClientId);
+        setSpocs(spocsData);
+        form.setValue('spoc_id', '');
+      } catch (error) {
+        console.error('Failed to fetch SPOCs:', error);
+        toast.error('Could not load SPOCs for this client');
+        setSpocs([]);
+      } finally {
+        setLoadingSpocs(false);
+      }
+    };
+
+    fetchSpocs();
+  }, [selectedClientId, form]);
 
   const onSubmit = async (data: InteractionFormData) => {
     try {
@@ -128,21 +152,35 @@ export function CreateInteractionForm({
               <Select 
                 onValueChange={field.onChange} 
                 value={field.value}
-                disabled={!selectedClientId}
+                disabled={!selectedClientId || loadingSpocs}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select SPOC" />
+                    <SelectValue 
+                      placeholder={
+                        loadingSpocs 
+                          ? "Loading SPOCs..." 
+                          : !selectedClientId
+                          ? "Select a client first"
+                          : spocs.length === 0
+                          ? "No SPOCs available for this client"
+                          : "Select SPOC"
+                      } 
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {spocs
-                    .filter(spoc => spoc.client_id === selectedClientId)
-                    .map((spoc) => (
+                  {spocs.length === 0 && !loadingSpocs ? (
+                    <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                      No SPOCs available for this client
+                    </div>
+                  ) : (
+                    spocs.map((spoc) => (
                       <SelectItem key={spoc.id} value={spoc.id}>
                         {spoc.name} {spoc.role ? `(${spoc.role})` : ''}
                       </SelectItem>
-                    ))}
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
