@@ -1,26 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { CrmService } from '@/services/crmService';
-import { useToast } from '@/hooks/use-toast';
-import type { CrmAccount, CrmProject, CrmClient } from '@/types/crm';
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { CrmService } from "@/services/crmService";
+import { useToast } from "@/hooks/use-toast";
+import type { CrmAccount, CrmProject, CrmClient } from "@/types/crm";
 
 const opportunitySchema = z.object({
-  client_id: z.string().min(1, 'Please select a client'),
+  client_id: z.string().min(1, "Please select a client"),
   account_id: z.string().optional(),
   project_id: z.string().optional(),
   ft_count: z.number().min(0).default(0),
   contract_count: z.number().min(0).default(0),
   estimation_cost: z.number().min(0).optional(),
-  currency: z.string().default('INR'),
-  status: z.enum(['Open', 'In Progress', 'Closed', 'Lost']).default('Open'),
-  notes: z.string().min(10, 'Notes must be at least 10 characters')
+  currency: z.string().default("INR"),
+  status: z.enum(["Open", "In Progress", "Closed", "Lost"]).default("Open"),
+  notes: z.string().min(10, "Notes must be at least 10 characters"),
 });
 
 type OpportunityFormData = z.infer<typeof opportunitySchema>;
@@ -31,7 +44,11 @@ interface CreateOpportunityFormProps {
   onCancel: () => void;
 }
 
-export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOpportunityFormProps) {
+export function CreateOpportunityForm({
+  clients,
+  onSuccess,
+  onCancel,
+}: CreateOpportunityFormProps) {
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<CrmAccount[]>([]);
   const [projects, setProjects] = useState<CrmProject[]>([]);
@@ -41,19 +58,19 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
   const form = useForm<OpportunityFormData>({
     resolver: zodResolver(opportunitySchema),
     defaultValues: {
-      client_id: '',
-      account_id: '',
-      project_id: '',
+      client_id: "",
+      account_id: "",
+      project_id: "",
       ft_count: 0,
       contract_count: 0,
       estimation_cost: undefined,
-      currency: 'INR',
-      status: 'Open',
-      notes: ''
-    }
+      currency: "INR",
+      status: "Open",
+      notes: "",
+    },
   });
 
-  const selectedClientId = form.watch('client_id');
+  const selectedClientId = form.watch("client_id");
 
   useEffect(() => {
     if (!selectedClientId) {
@@ -65,25 +82,27 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
     const fetchRelatedData = async () => {
       try {
         setLoadingRelatedData(true);
-        
+
         const [accountsData, allProjects] = await Promise.all([
           CrmService.getAccountsByClient(selectedClientId),
-          CrmService.getProjects()
+          CrmService.getProjectsByClient(selectedClientId),
         ]);
-        
-        const clientProjects = allProjects.filter(p => p.client_id === selectedClientId);
-        
+
+        const clientProjects = allProjects.filter(
+          (p) => p.client_id === selectedClientId
+        );
+
         setAccounts(accountsData as CrmAccount[]);
-        setProjects(clientProjects as CrmProject[]);
-        
-        form.setValue('account_id', '');
-        form.setValue('project_id', '');
+        setProjects(allProjects as []);
+
+        form.setValue("account_id", "");
+        form.setValue("project_id", "");
       } catch (error) {
-        console.error('Failed to fetch related data:', error);
+        console.error("Failed to fetch related data:", error);
         toast({
-          title: 'Warning',
-          description: 'Could not load accounts and projects for this client',
-          variant: 'destructive'
+          title: "Warning",
+          description: "Could not load accounts and projects for this client",
+          variant: "destructive",
         });
       } finally {
         setLoadingRelatedData(false);
@@ -92,11 +111,11 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
 
     fetchRelatedData();
   }, [selectedClientId, form, toast]);
-
+  console.log(projects, "projects");
   const onSubmit = async (data: OpportunityFormData) => {
     try {
       setLoading(true);
-      
+
       await CrmService.createOpportunity({
         client_id: data.client_id,
         account_id: data.account_id || undefined,
@@ -106,27 +125,27 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
         estimation_cost: data.estimation_cost,
         currency: data.currency,
         status: data.status,
-        notes: data.notes
+        notes: data.notes,
       });
-      
+
       toast({
-        title: 'Success',
-        description: 'Opportunity created successfully.'
+        title: "Success",
+        description: "Opportunity created successfully.",
       });
-      
+
       onSuccess();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to create opportunity. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to create opportunity. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const statuses = ['Open', 'In Progress', 'Closed', 'Lost'];
+  const statuses = ["Open", "In Progress", "Closed", "Lost"];
 
   return (
     <Form {...form}>
@@ -145,7 +164,7 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {clients.map(client => (
+                  {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -164,23 +183,28 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account (Optional)</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   value={field.value || undefined}
                   disabled={!selectedClientId || loadingRelatedData}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={
-                        !selectedClientId ? "Select client first" :
-                        loadingRelatedData ? "Loading..." :
-                        accounts.length === 0 ? "No accounts found" :
-                        "Select account (optional)"
-                      } />
+                      <SelectValue
+                        placeholder={
+                          !selectedClientId
+                            ? "Select client first"
+                            : loadingRelatedData
+                            ? "Loading..."
+                            : accounts.length === 0
+                            ? "No accounts found"
+                            : "Select account (optional)"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {accounts.map(account => (
+                    {accounts.map((account) => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
                       </SelectItem>
@@ -198,23 +222,28 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Project (Optional)</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   value={field.value || undefined}
                   disabled={!selectedClientId || loadingRelatedData}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={
-                        !selectedClientId ? "Select client first" :
-                        loadingRelatedData ? "Loading..." :
-                        projects.length === 0 ? "No projects found" :
-                        "Select project (optional)"
-                      } />
+                      <SelectValue
+                        placeholder={
+                          !selectedClientId
+                            ? "Select client first"
+                            : loadingRelatedData
+                            ? "Loading..."
+                            : projects.length === 0
+                            ? "No projects found"
+                            : "Select project (optional)"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {projects.map(project => (
+                    {projects.map((project) => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
                       </SelectItem>
@@ -235,9 +264,9 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
               <FormItem>
                 <FormLabel>Full-Time Positions</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    {...field}
+                    type="number"
                     min="0"
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
@@ -254,9 +283,9 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
               <FormItem>
                 <FormLabel>Contract Positions</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    {...field}
+                    type="number"
                     min="0"
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
@@ -275,14 +304,18 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
               <FormItem>
                 <FormLabel>Project Estimation Cost (Optional)</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    {...field}
+                    type="number"
                     min="0"
                     step="0.01"
                     placeholder="e.g., 500000"
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -328,7 +361,7 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {statuses.map(status => (
+                  {statuses.map((status) => (
                     <SelectItem key={status} value={status}>
                       {status}
                     </SelectItem>
@@ -347,8 +380,8 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
             <FormItem>
               <FormLabel>Notes *</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field} 
+                <Textarea
+                  {...field}
                   placeholder="Provide details about this opportunity (minimum 10 characters)..."
                   rows={3}
                 />
@@ -363,7 +396,7 @@ export function CreateOpportunityForm({ clients, onSuccess, onCancel }: CreateOp
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Opportunity'}
+            {loading ? "Creating..." : "Create Opportunity"}
           </Button>
         </div>
       </form>
