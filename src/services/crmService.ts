@@ -529,7 +529,7 @@ export class CrmService {
   }
 
   // Interactions
-  static async getInteractions(filters?: { page?: number; limit?: number; search?: string }) {
+  static async getInteractions(filters?: { page?: number; limit?: number; search?: string; type?: string }) {
     let query = supabase
       .from("crm_interactions")
       .select(
@@ -546,6 +546,11 @@ export class CrmService {
     // Apply search filter
     if (filters?.search) {
       query = query.or(`notes.ilike.%${filters.search}%,outcome.ilike.%${filters.search}%,next_step.ilike.%${filters.search}%`);
+    }
+
+    // Apply type filter
+    if (filters?.type && filters.type !== 'all') {
+      query = query.eq('interaction_type', filters.type);
     }
 
     query = query.order("date", { ascending: false });
