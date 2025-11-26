@@ -30,6 +30,7 @@ export interface JDApproval {
   cost_center?: string | null;
   project_name?: string | null;
   client_name?: string | null;
+  account_name?: string | null;
   salary_band_min?: number | null;
   salary_band_max?: number | null;
   currency: string | null;
@@ -131,6 +132,7 @@ export interface CreateJDApproval {
   cost_center?: string;
   project_name?: string;
   client_name?: string;
+  account_name?: string;
   salary_band_min?: number;
   salary_band_max?: number;
   currency?: string;
