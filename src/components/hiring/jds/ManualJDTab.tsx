@@ -13,6 +13,8 @@ import { CalendarIcon, Plus, X } from 'lucide-react';
 import { approvalsService } from '@/services/approvalsService';
 import { useToast } from '@/hooks/use-toast';
 import type { CreateJDApproval, JobType, PayType } from '@/types/approvals';
+import { CrmService } from '@/services/crmService';
+import type { CrmClient, CrmAccount, CrmProject } from '@/types/crm';
 
 export function ManualJDTab() {
   const [formData, setFormData] = useState<Partial<CreateJDApproval>>({
@@ -41,6 +43,12 @@ export function ManualJDTab() {
   const [contractPeriod, setContractPeriod] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  
+  const [clients, setClients] = useState<CrmClient[]>([]);
+  const [accounts, setAccounts] = useState<CrmAccount[]>([]);
+  const [projects, setProjects] = useState<CrmProject[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
 
   useEffect(() => {
     const loadApprovers = async () => {
@@ -48,7 +56,21 @@ export function ManualJDTab() {
       setApproverNames(names);
     };
     loadApprovers();
+    CrmService.getClients().then(setClients).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (selectedClientId) {
+      CrmService.getAccountsByClient(selectedClientId).then(setAccounts).catch(console.error);
+      CrmService.getProjectsByClient(selectedClientId).then(setProjects).catch(console.error);
+    } else {
+      setAccounts([]);
+      setProjects([]);
+    }
+    setSelectedAccountId('');
+    handleInputChange('account_name', '');
+    handleInputChange('project_name', '');
+  }, [selectedClientId]);
 
   const handleInputChange = (field: keyof CreateJDApproval, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -144,6 +166,8 @@ export function ManualJDTab() {
     setCtcMin('');
     setCtcMax('');
     setContractPeriod('');
+    setSelectedClientId('');
+    setSelectedAccountId('');
   };
 
   const handleCreate = async () => {
@@ -315,17 +339,66 @@ export function ManualJDTab() {
               </Select>
             </div>
 
-            {!formData.is_internal && (
-              <div className="space-y-2">
-                <Label htmlFor="client_name">Client Name *</Label>
-                <Input
-                  id="client_name"
-                  value={formData.client_name || ''}
-                  onChange={(e) => handleInputChange('client_name', e.target.value)}
-                  placeholder="e.g. TechCorp"
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Client Name</Label>
+              <Select
+                value={selectedClientId}
+                onValueChange={(clientId) => {
+                  setSelectedClientId(clientId);
+                  const client = clients.find(c => c.id === clientId);
+                  handleInputChange('client_name', client?.name || '');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select client..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Account Name</Label>
+              <Select
+                value={selectedAccountId}
+                onValueChange={(accountId) => {
+                  setSelectedAccountId(accountId);
+                  const account = accounts.find(a => a.id === accountId);
+                  handleInputChange('account_name', account?.name || '');
+                }}
+                disabled={!selectedClientId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedClientId ? "Select account..." : "Select client first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map(account => (
+                    <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Project Name</Label>
+              <Select
+                value={formData.project_name || ''}
+                onValueChange={(projectName) => handleInputChange('project_name', projectName)}
+                disabled={!selectedClientId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedClientId ? "Select project..." : "Select client first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map(project => (
+                    <SelectItem key={project.id} value={project.name}>{project.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
