@@ -1,3 +1,9 @@
+export interface InterviewerDetail {
+  name: string
+  email?: string
+  phone?: string
+}
+
 export interface InterviewSlot {
   id: string
   client_id: string
@@ -11,6 +17,7 @@ export interface InterviewSlot {
   notes?: string
   status: 'available' | 'booked' | 'used' | 'expired' | 'cancelled'
   invite_id?: string
+  interviewer_details?: InterviewerDetail[]
   created_by: string
   created_at: string
   updated_by?: string
@@ -95,6 +102,7 @@ export interface CreateSlotRequest {
   to_time: string
   mode: 'virtual' | 'onsite'
   notes?: string
+  interviewer_details?: InterviewerDetail[]
 }
 
 export interface AssignCandidateRequest {
