@@ -637,7 +637,7 @@ export class CrmService {
   }
 
   // Interactions
-  static async getInteractions(filters?: { page?: number; limit?: number }) {
+  static async getInteractions(filters?: { page?: number; limit?: number; search?: string; type?: string }) {
     try {
       // const mappedFilters: Record<string, string> = {};
 
