@@ -432,6 +432,7 @@ export class ApplicationsService {
   // Search JDs for application creation
   static async searchJDsForApplication(filters: {
     jdId?: string
+    jobTitle?: string
     clientName?: string
     accountName?: string
     projectName?: string
@@ -444,6 +445,9 @@ export class ApplicationsService {
 
     if (filters.jdId) {
       query = query.ilike('id', `%${filters.jdId}%`)
+    }
+    if (filters.jobTitle) {
+      query = query.ilike('job_title', `%${filters.jobTitle}%`)
     }
     if (filters.clientName) {
       query = query.ilike('client_name', `%${filters.clientName}%`)

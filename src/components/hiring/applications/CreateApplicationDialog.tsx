@@ -56,6 +56,7 @@ export const CreateApplicationDialog: React.FC<CreateApplicationDialogProps> = (
   // JD search state
   const [jdFilters, setJdFilters] = useState({
     jdId: '',
+    jobTitle: '',
     clientName: '',
     accountName: '',
     projectName: ''
@@ -125,6 +126,7 @@ export const CreateApplicationDialog: React.FC<CreateApplicationDialogProps> = (
       setJdSearching(true)
       const results = await ApplicationsService.searchJDsForApplication({
         jdId: jdFilters.jdId || undefined,
+        jobTitle: jdFilters.jobTitle || undefined,
         clientName: jdFilters.clientName || undefined,
         accountName: jdFilters.accountName || undefined,
         projectName: jdFilters.projectName || undefined
@@ -175,7 +177,7 @@ export const CreateApplicationDialog: React.FC<CreateApplicationDialogProps> = (
   const resetDialogState = () => {
     setActiveTab('candidate')
     setCandidateFilters({ candidateId: '', name: '', poolTag: '', skills: '' })
-    setJdFilters({ jdId: '', clientName: '', accountName: '', projectName: '' })
+    setJdFilters({ jdId: '', jobTitle: '', clientName: '', accountName: '', projectName: '' })
     setCandidateResults([])
     setJdResults([])
     setSelectedCandidateId(null)
@@ -333,13 +335,21 @@ export const CreateApplicationDialog: React.FC<CreateApplicationDialogProps> = (
               </div>
             )}
             
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               <div>
                 <Label className="text-xs">JD ID</Label>
                 <Input 
                   placeholder="Enter ID" 
                   value={jdFilters.jdId}
                   onChange={(e) => setJdFilters(f => ({ ...f, jdId: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Job Title</Label>
+                <Input 
+                  placeholder="Enter job title" 
+                  value={jdFilters.jobTitle}
+                  onChange={(e) => setJdFilters(f => ({ ...f, jobTitle: e.target.value }))}
                 />
               </div>
               <div>
