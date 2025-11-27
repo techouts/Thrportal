@@ -9,7 +9,8 @@ import type {
   CreateSlotRequest,
   AssignCandidateRequest,
   UpdateSlotStatusRequest,
-  BulkSlotEntry
+  BulkSlotEntry,
+  InterviewerDetail
 } from '@/types/scheduling'
 
 class SchedulingService {
@@ -64,6 +65,7 @@ class SchedulingService {
     // For now, return the base data. We'll enhance with joins later
     return (data || []).map(slot => ({
       ...slot,
+      interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined,
       client_name: undefined,
       project_name: undefined,
       created_by_name: undefined,
@@ -148,7 +150,16 @@ class SchedulingService {
     const { data, error } = await supabase
       .from('interview_slots')
       .insert({
-        ...request,
+        client_id: request.client_id,
+        project_id: request.project_id,
+        jd_id: request.jd_id,
+        panel_text: request.panel_text,
+        date: request.date,
+        from_time: request.from_time,
+        to_time: request.to_time,
+        mode: request.mode,
+        notes: request.notes,
+        interviewer_details: request.interviewer_details as any,
         created_by: user.user.id
       })
       .select()
@@ -162,7 +173,10 @@ class SchedulingService {
     // Log the creation
     await this.logSlotChange(data.id, 'created', user.user.id)
 
-    return data
+    return {
+      ...data,
+      interviewer_details: (data.interviewer_details as unknown) as InterviewerDetail[] | undefined
+    }
   }
 
   // Create multiple slots (bulk)
@@ -192,7 +206,10 @@ class SchedulingService {
       await this.logSlotChange(slot.id, 'created', user.user.id)
     }
 
-    return data
+    return data.map(slot => ({
+      ...slot,
+      interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined
+    }))
   }
 
   // Assign candidate to slot
@@ -338,6 +355,22 @@ class SchedulingService {
       console.error('Error logging slot change:', error)
       // Don't throw here as it shouldn't block the main operation
     }
+  }
+
+  // Get panel types from master table
+  async getPanelTypes(): Promise<Array<{ id: string; name: string }>> {
+    const { data, error } = await supabase
+      .from('interview_panel_types')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('display_order')
+
+    if (error) {
+      console.error('Error fetching panel types:', error)
+      throw error
+    }
+
+    return data || []
   }
 
   // Export slots data

@@ -1498,6 +1498,33 @@ export type Database = {
           },
         ]
       }
+      interview_panel_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       interview_slots: {
         Row: {
           client_id: string
@@ -1506,6 +1533,7 @@ export type Database = {
           date: string
           from_time: string
           id: string
+          interviewer_details: Json | null
           invite_id: string | null
           jd_id: string | null
           mode: Database["public"]["Enums"]["interview_mode"]
@@ -1524,6 +1552,7 @@ export type Database = {
           date: string
           from_time: string
           id?: string
+          interviewer_details?: Json | null
           invite_id?: string | null
           jd_id?: string | null
           mode?: Database["public"]["Enums"]["interview_mode"]
@@ -1542,6 +1571,7 @@ export type Database = {
           date?: string
           from_time?: string
           id?: string
+          interviewer_details?: Json | null
           invite_id?: string | null
           jd_id?: string | null
           mode?: Database["public"]["Enums"]["interview_mode"]
