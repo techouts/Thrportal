@@ -26,7 +26,7 @@ class SchedulingService {
   // Get current user ID with DEV user fallback
   private async getCurrentUserId(): Promise<string> {
     // Check for DEV user first
-    const storedDevUser = localStorage.getItem('lovable-dev-user')
+    const storedDevUser = localStorage.getItem('dev_user')
     if (storedDevUser) {
       const devUser = JSON.parse(storedDevUser)
       return devUser.id
