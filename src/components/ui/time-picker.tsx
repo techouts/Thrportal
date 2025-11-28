@@ -68,11 +68,16 @@ export function TimePicker({
           {value ? formatDisplayTime(value) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-popover pointer-events-auto" align="start">
-        <div className="flex">
+      <PopoverContent 
+        className="w-[200px] p-0" 
+        align="start"
+        side="bottom"
+        sideOffset={4}
+      >
+        <div className="flex border rounded-md bg-popover">
           {/* Hours Column */}
-          <div className="border-r">
-            <div className="px-3 py-2 text-sm font-medium text-muted-foreground border-b">
+          <div className="flex-1 border-r">
+            <div className="px-2 py-2 text-xs font-medium text-muted-foreground border-b text-center bg-muted/50">
               Hour
             </div>
             <ScrollArea className="h-[200px]">
@@ -83,8 +88,8 @@ export function TimePicker({
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-center font-normal",
-                      selectedHour === hour && "bg-primary text-primary-foreground"
+                      "w-full h-8 justify-center font-normal text-sm",
+                      selectedHour === hour && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                     )}
                     onClick={() => handleTimeSelect(hour, selectedMinute ?? 0)}
                   >
@@ -96,8 +101,8 @@ export function TimePicker({
           </div>
           
           {/* Minutes Column */}
-          <div>
-            <div className="px-3 py-2 text-sm font-medium text-muted-foreground border-b">
+          <div className="flex-1">
+            <div className="px-2 py-2 text-xs font-medium text-muted-foreground border-b text-center bg-muted/50">
               Min
             </div>
             <ScrollArea className="h-[200px]">
@@ -108,8 +113,8 @@ export function TimePicker({
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-center font-normal",
-                      selectedMinute === minute && "bg-primary text-primary-foreground"
+                      "w-full h-8 justify-center font-normal text-sm",
+                      selectedMinute === minute && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                     )}
                     onClick={() => handleTimeSelect(selectedHour ?? 9, minute)}
                   >
