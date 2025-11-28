@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, Monitor, User, Phone, Mail, MoreHorizontal } f
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AssignCandidateDialog } from './AssignCandidateDialog'
 import { UpdateSlotStatusDialog } from './UpdateSlotStatusDialog'
+import { schedulingService } from '@/services/schedulingService'
 import type { InterviewSlot } from '@/types/scheduling'
 
 interface SlotsListProps {
@@ -20,18 +21,37 @@ export function SlotsList({ slots, loading, onSlotUpdated }: SlotsListProps) {
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [showStatusDialog, setShowStatusDialog] = useState(false)
 
+  // Auto-expire slots on mount
+  useEffect(() => {
+    const expireSlots = async () => {
+      try {
+        await schedulingService.autoExpireSlots()
+        onSlotUpdated()
+      } catch (error) {
+        console.error('Error auto-expiring slots:', error)
+      }
+    }
+    expireSlots()
+  }, [])
+
   const getStatusBadge = (status: string) => {
-    const variants = {
+    const variants: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
       available: 'default',
       booked: 'secondary',
-      used: 'default',
       expired: 'outline',
       cancelled: 'destructive'
-    } as const
+    }
+
+    const labels: Record<string, string> = {
+      available: 'Available',
+      booked: 'Booked',
+      expired: 'Expired',
+      cancelled: 'Cancelled'
+    }
 
     return (
-      <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
-        {status}
+      <Badge variant={variants[status] || 'outline'}>
+        {labels[status] || status}
       </Badge>
     )
   }
@@ -58,7 +78,7 @@ export function SlotsList({ slots, loading, onSlotUpdated }: SlotsListProps) {
     setShowAssignDialog(true)
   }
 
-  const handleUpdateStatus = (slot: InterviewSlot) => {
+  const handleChangeStatus = (slot: InterviewSlot) => {
     setSelectedSlot(slot)
     setShowStatusDialog(true)
   }
@@ -207,19 +227,9 @@ export function SlotsList({ slots, loading, onSlotUpdated }: SlotsListProps) {
                               Assign Candidate
                             </DropdownMenuItem>
                           )}
-                          {slot.status === 'booked' && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(slot)}>
-                                Mark as Used
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(slot)}>
-                                Mark No-Show
-                              </DropdownMenuItem>
-                            </>
-                          )}
                           {(slot.status === 'available' || slot.status === 'booked') && (
-                            <DropdownMenuItem onClick={() => handleUpdateStatus(slot)}>
-                              Cancel Slot
+                            <DropdownMenuItem onClick={() => handleChangeStatus(slot)}>
+                              Change Status
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>

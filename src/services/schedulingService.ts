@@ -234,7 +234,14 @@ class SchedulingService {
     const { data: assignment, error: assignmentError } = await supabase
       .from('slot_assignments')
       .insert({
-        ...request,
+        slot_id: request.slot_id,
+        candidate_id: request.candidate_id,
+        candidate_name: request.candidate_name,
+        candidate_email: request.candidate_email,
+        candidate_phone: request.candidate_phone,
+        interview_level: request.interview_level || 'screening',
+        panel_text: request.panel_text,
+        notes: request.notes,
         recruiter_id: request.recruiter_id || user.user.id
       })
       .select()
@@ -264,6 +271,49 @@ class SchedulingService {
     await this.logSlotChange(request.slot_id, 'assigned', user.user.id)
 
     return assignment
+  }
+
+  // Assign candidate to slot with interview level (new method)
+  async assignCandidateToSlot(data: {
+    slot_id: string
+    candidate_id: string
+    candidate_name: string
+    candidate_email?: string
+    candidate_phone?: string
+    interview_level: string
+  }): Promise<SlotAssignment> {
+    return this.assignCandidate({
+      slot_id: data.slot_id,
+      candidate_id: data.candidate_id,
+      candidate_name: data.candidate_name,
+      candidate_email: data.candidate_email,
+      candidate_phone: data.candidate_phone,
+      interview_level: data.interview_level
+    })
+  }
+
+  // Cancel slot with reason
+  async cancelSlot(slotId: string, reason: string): Promise<void> {
+    const { data: user } = await supabase.auth.getUser()
+    if (!user.user) throw new Error('User not authenticated')
+
+    const { error } = await supabase
+      .from('interview_slots')
+      .update({ 
+        status: 'cancelled' as any,
+        cancellation_reason: reason,
+        updated_by: user.user.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', slotId)
+
+    if (error) {
+      console.error('Error cancelling slot:', error)
+      throw error
+    }
+
+    // Log the cancellation
+    await this.logSlotChange(slotId, 'cancelled', user.user.id, reason)
   }
 
   // Update slot status (used, no-show, cancelled, etc.)
