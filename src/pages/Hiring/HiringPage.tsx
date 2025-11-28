@@ -4,7 +4,6 @@ import { JobRequisitionsModule } from '@/components/hiring/requisitions/JobRequi
 
 import { ApplicationsModule } from '@/components/hiring/applications/ApplicationsModule'
 import { PipelineModule } from '@/components/hiring/pipeline/PipelineModule'
-import { FollowupModule } from '@/components/hiring/followup/FollowupModule'
 
 import { JDManagementModule } from '@/components/hiring/jds/JDManagementModule'
 import { ApprovalsModule } from '@/components/hiring/approvals/ApprovalsModule'
@@ -38,8 +37,6 @@ export default function HiringPage({ defaultTab }: HiringPageProps) {
       return <ApplicationsModule />
     case 'Pipeline':
       return <PipelineModule />
-    case 'FollowUp':
-      return <FollowupModule />
     case 'Settings':
       // Redirect to new settings structure
       return (
