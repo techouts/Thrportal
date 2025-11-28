@@ -87,7 +87,7 @@ export function AssignCandidateDialog({ open, onOpenChange, slot, onAssigned }: 
         query = query.ilike('name', `%${searchName.trim()}%`)
       }
 
-      if (searchPoolTag) {
+      if (searchPoolTag && searchPoolTag !== '__all__') {
         query = query.eq('pool_tag', searchPoolTag)
       }
 
@@ -183,7 +183,7 @@ export function AssignCandidateDialog({ open, onOpenChange, slot, onAssigned }: 
                     <SelectValue placeholder="Select pool tag" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="__all__">All</SelectItem>
                     {POOL_TAG_OPTIONS.map((tag) => (
                       <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                     ))}
