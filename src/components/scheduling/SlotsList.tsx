@@ -227,6 +227,11 @@ export function SlotsList({ slots, loading, onSlotUpdated }: SlotsListProps) {
                               Assign Candidate
                             </DropdownMenuItem>
                           )}
+                          {slot.status === 'booked' && (
+                            <DropdownMenuItem onClick={() => handleAssignCandidate(slot)}>
+                              Change Candidate
+                            </DropdownMenuItem>
+                          )}
                           {(slot.status === 'available' || slot.status === 'booked') && (
                             <DropdownMenuItem onClick={() => handleChangeStatus(slot)}>
                               Change Status
