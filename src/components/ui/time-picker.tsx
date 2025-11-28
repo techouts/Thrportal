@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface TimePickerProps {
   value?: string
@@ -53,7 +52,7 @@ export function TimePicker({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -69,7 +68,7 @@ export function TimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[200px] p-0" 
+        className="w-[200px] p-0 pointer-events-auto" 
         align="start"
         side="bottom"
         sideOffset={4}
@@ -80,7 +79,7 @@ export function TimePicker({
             <div className="px-2 py-2 text-xs font-medium text-muted-foreground border-b text-center bg-muted/50">
               Hour
             </div>
-            <ScrollArea className="h-[200px]">
+            <div className="h-[200px] overflow-y-auto">
               <div className="p-1">
                 {hours.map((hour) => (
                   <Button
@@ -97,7 +96,7 @@ export function TimePicker({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
           
           {/* Minutes Column */}
@@ -105,7 +104,7 @@ export function TimePicker({
             <div className="px-2 py-2 text-xs font-medium text-muted-foreground border-b text-center bg-muted/50">
               Min
             </div>
-            <ScrollArea className="h-[200px]">
+            <div className="h-[200px] overflow-y-auto">
               <div className="p-1">
                 {minutes.map((minute) => (
                   <Button
@@ -122,7 +121,7 @@ export function TimePicker({
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
       </PopoverContent>
