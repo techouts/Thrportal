@@ -83,15 +83,31 @@ class SchedulingService {
       throw error
     }
 
-    // Map slot_assignments to assignment field
-    return (data || []).map(slot => {
+    if (!data || data.length === 0) {
+      return []
+    }
+
+    // Fetch client and project names
+    const clientIds = [...new Set(data.map(slot => slot.client_id))]
+    const projectIds = [...new Set(data.map(slot => slot.project_id))]
+
+    const [clientsResult, projectsResult] = await Promise.all([
+      supabase.from('crm_clients').select('id, name').in('id', clientIds),
+      supabase.from('crm_projects').select('id, name').in('id', projectIds)
+    ])
+
+    const clientMap = new Map(clientsResult.data?.map(c => [c.id, c.name]) || [])
+    const projectMap = new Map(projectsResult.data?.map(p => [p.id, p.name]) || [])
+
+    // Map slot_assignments to assignment field with client/project names
+    return data.map(slot => {
       const assignments = (slot as any).slot_assignments as any[] | null
       const assignment = assignments && assignments.length > 0 ? assignments[0] : undefined
       return {
         ...slot,
         interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined,
-        client_name: undefined,
-        project_name: undefined,
+        client_name: clientMap.get(slot.client_id) || 'Unknown Client',
+        project_name: projectMap.get(slot.project_id) || 'Unknown Project',
         created_by_name: undefined,
         assignment: assignment ? {
           id: assignment.id,
