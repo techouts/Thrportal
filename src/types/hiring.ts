@@ -20,7 +20,6 @@ export interface JobDescription {
   lastActivity: string
   feedback?: string
   feedbackDate?: string
-  followUpTags: ('email' | 'whatsapp' | 'call')[]
   escalated: boolean
   slaBreached: boolean
 }
@@ -82,16 +81,6 @@ export interface InternalJob {
   postedDate: string
   closedDate?: string
   timeToClosure?: number
-}
-
-export interface FollowUp {
-  id: string
-  jdId: string
-  type: 'email' | 'whatsapp' | 'call'
-  date: string
-  recruiter: string
-  notes: string
-  effectiveness: 'high' | 'medium' | 'low'
 }
 
 export interface HiringFilters {

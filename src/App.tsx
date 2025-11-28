@@ -262,11 +262,6 @@ function App() {
                     <MainLayout><HiringPage defaultTab="Pipeline" /></MainLayout>
                   </ProtectedRoute>
                 } />
-                 <Route path="/Hiring/FollowUp" element={
-                   <ProtectedRoute required={["applications.pipeline.read", "followup.tasks.*"]}>
-                     <MainLayout><HiringPage defaultTab="FollowUp" /></MainLayout>
-                   </ProtectedRoute>
-                 } />
                  <Route path="/Hiring/Scheduling" element={
                    <ProtectedRoute required={["hiring.*", "applications.*"]}>
                      <MainLayout><SchedulingPage /></MainLayout>
