@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import { TimePicker } from '@/components/ui/time-picker'
 import { CalendarIcon, Search, Plus, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { schedulingService } from '@/services/schedulingService'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/auth/AuthContext'
 import type { InterviewerDetail } from '@/types/scheduling'
 
 const createSlotSchema = z.object({
@@ -82,6 +84,7 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
   const [spocSearch, setSpocSearch] = useState('')
   const [panelSearch, setPanelSearch] = useState('')
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const form = useForm<CreateSlotForm>({
     resolver: zodResolver(createSlotSchema),
@@ -205,6 +208,15 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
   }
 
   const onSubmit = async (data: CreateSlotForm) => {
+    if (!user?.id) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to create a slot',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
     try {
       // Filter out empty interviewer entries
@@ -220,7 +232,7 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
         panel_text: data.panel_type,
         notes: data.notes || undefined,
         interviewer_details: validInterviewers.length > 0 ? validInterviewers : undefined,
-      })
+      }, user.id)
 
       toast({
         title: 'Success',
@@ -231,11 +243,11 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
       setInterviewers([])
       onSlotCreated()
       onOpenChange(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create slot:', error)
       toast({
         title: 'Error',
-        description: 'Failed to create interview slot',
+        description: error?.message || 'Failed to create interview slot',
         variant: 'destructive',
       })
     } finally {
@@ -419,7 +431,11 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                   <FormItem>
                     <FormLabel>From Time *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select start time"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -433,7 +449,11 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                   <FormItem>
                     <FormLabel>To Time *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select end time"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
