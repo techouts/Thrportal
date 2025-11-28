@@ -18,6 +18,7 @@ export interface InterviewSlot {
   status: 'available' | 'booked' | 'used' | 'expired' | 'cancelled'
   invite_id?: string
   interviewer_details?: InterviewerDetail[]
+  cancellation_reason?: string
   created_by: string
   created_at: string
   updated_by?: string
@@ -33,10 +34,12 @@ export interface InterviewSlot {
 export interface SlotAssignment {
   id: string
   slot_id: string
+  candidate_id?: string
   candidate_name: string
   candidate_email?: string
   candidate_phone?: string
   recruiter_id: string
+  interview_level?: string
   panel_text?: string
   notes?: string
   booked_at: string
@@ -107,10 +110,12 @@ export interface CreateSlotRequest {
 
 export interface AssignCandidateRequest {
   slot_id: string
+  candidate_id?: string
   candidate_name: string
   candidate_email?: string
   candidate_phone?: string
-  recruiter_id: string
+  recruiter_id?: string
+  interview_level?: string
   panel_text?: string
   notes?: string
 }

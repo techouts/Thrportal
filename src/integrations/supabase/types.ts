@@ -1527,6 +1527,7 @@ export type Database = {
       }
       interview_slots: {
         Row: {
+          cancellation_reason: string | null
           client_id: string
           created_at: string
           created_by: string
@@ -1546,6 +1547,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          cancellation_reason?: string | null
           client_id: string
           created_at?: string
           created_by: string
@@ -1565,6 +1567,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          cancellation_reason?: string | null
           client_id?: string
           created_at?: string
           created_by?: string
@@ -2461,9 +2464,11 @@ export type Database = {
         Row: {
           booked_at: string
           candidate_email: string | null
+          candidate_id: string | null
           candidate_name: string
           candidate_phone: string | null
           id: string
+          interview_level: string
           notes: string | null
           panel_text: string | null
           recruiter_id: string
@@ -2472,9 +2477,11 @@ export type Database = {
         Insert: {
           booked_at?: string
           candidate_email?: string | null
+          candidate_id?: string | null
           candidate_name: string
           candidate_phone?: string | null
           id?: string
+          interview_level?: string
           notes?: string | null
           panel_text?: string | null
           recruiter_id: string
@@ -2483,15 +2490,24 @@ export type Database = {
         Update: {
           booked_at?: string
           candidate_email?: string | null
+          candidate_id?: string | null
           candidate_name?: string
           candidate_phone?: string | null
           id?: string
+          interview_level?: string
           notes?: string | null
           panel_text?: string | null
           recruiter_id?: string
           slot_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "slot_assignments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "slot_assignments_slot_id_fkey"
             columns: ["slot_id"]
