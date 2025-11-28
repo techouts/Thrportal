@@ -23,6 +23,21 @@ class SchedulingService {
     return SchedulingService.instance
   }
 
+  // Get current user ID with DEV user fallback
+  private async getCurrentUserId(): Promise<string> {
+    // Check for DEV user first
+    const storedDevUser = localStorage.getItem('lovable-dev-user')
+    if (storedDevUser) {
+      const devUser = JSON.parse(storedDevUser)
+      return devUser.id
+    }
+    
+    // Fall back to Supabase auth
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+    return user.id
+  }
+
   // Get interview slots with filters
   async getInterviewSlots(filters?: SchedulingFilters): Promise<InterviewSlot[]> {
     let query = supabase
@@ -234,8 +249,7 @@ class SchedulingService {
 
   // Assign candidate to slot
   async assignCandidate(request: AssignCandidateRequest): Promise<SlotAssignment> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+    const userId = await this.getCurrentUserId()
 
     // Check if slot is still available
     const { data: slot, error: slotError } = await supabase
@@ -264,7 +278,7 @@ class SchedulingService {
         interview_level: request.interview_level || 'screening',
         panel_text: request.panel_text,
         notes: request.notes,
-        recruiter_id: request.recruiter_id || user.user.id
+        recruiter_id: request.recruiter_id || userId
       })
       .select()
       .single()
@@ -279,7 +293,7 @@ class SchedulingService {
       .from('interview_slots')
       .update({ 
         status: 'booked',
-        updated_by: user.user.id,
+        updated_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', request.slot_id)
@@ -290,7 +304,7 @@ class SchedulingService {
     }
 
     // Log the assignment
-    await this.logSlotChange(request.slot_id, 'assigned', user.user.id)
+    await this.logSlotChange(request.slot_id, 'assigned', userId)
 
     return assignment
   }
@@ -316,15 +330,14 @@ class SchedulingService {
 
   // Cancel slot with reason
   async cancelSlot(slotId: string, reason: string): Promise<void> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+    const userId = await this.getCurrentUserId()
 
     const { error } = await supabase
       .from('interview_slots')
       .update({ 
         status: 'cancelled' as any,
         cancellation_reason: reason,
-        updated_by: user.user.id,
+        updated_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', slotId)
@@ -335,13 +348,12 @@ class SchedulingService {
     }
 
     // Log the cancellation
-    await this.logSlotChange(slotId, 'cancelled', user.user.id, reason)
+    await this.logSlotChange(slotId, 'cancelled', userId, reason)
   }
 
   // Update slot status (used, no-show, cancelled, etc.)
   async updateSlotStatus(request: UpdateSlotStatusRequest): Promise<void> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+    const userId = await this.getCurrentUserId()
 
     // Map no_show to used status in database
     const dbStatus = request.status === 'no_show' ? 'used' : request.status
@@ -350,7 +362,7 @@ class SchedulingService {
       .from('interview_slots')
       .update({ 
         status: dbStatus as any,
-        updated_by: user.user.id,
+        updated_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', request.slot_id)
@@ -364,7 +376,7 @@ class SchedulingService {
     await this.logSlotChange(
       request.slot_id, 
       request.status === 'no_show' ? 'no_show' : request.status as any,
-      user.user.id,
+      userId,
       request.reason_code,
       request.reason_text,
       request.no_show_type
