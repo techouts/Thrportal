@@ -143,9 +143,8 @@ class SchedulingService {
   }
 
   // Create single slot
-  async createSlot(request: CreateSlotRequest): Promise<InterviewSlot> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+  async createSlot(request: CreateSlotRequest, userId: string): Promise<InterviewSlot> {
+    if (!userId) throw new Error('User not authenticated')
 
     const { data, error } = await supabase
       .from('interview_slots')
@@ -160,7 +159,7 @@ class SchedulingService {
         mode: request.mode,
         notes: request.notes,
         interviewer_details: request.interviewer_details as any,
-        created_by: user.user.id
+        created_by: userId
       })
       .select()
       .single()
@@ -171,7 +170,7 @@ class SchedulingService {
     }
 
     // Log the creation
-    await this.logSlotChange(data.id, 'created', user.user.id)
+    await this.logSlotChange(data.id, 'created', userId)
 
     return {
       ...data,
@@ -180,15 +179,14 @@ class SchedulingService {
   }
 
   // Create multiple slots (bulk)
-  async createBulkSlots(request: BulkSlotEntry): Promise<InterviewSlot[]> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+  async createBulkSlots(request: BulkSlotEntry, userId: string): Promise<InterviewSlot[]> {
+    if (!userId) throw new Error('User not authenticated')
 
     const slotsToCreate = request.slots.map(slot => ({
       client_id: request.client_id,
       project_id: request.project_id,
       ...slot,
-      created_by: user.user.id
+      created_by: userId
     }))
 
     const { data, error } = await supabase
@@ -203,7 +201,7 @@ class SchedulingService {
 
     // Log all creations
     for (const slot of data) {
-      await this.logSlotChange(slot.id, 'created', user.user.id)
+      await this.logSlotChange(slot.id, 'created', userId)
     }
 
     return data.map(slot => ({
