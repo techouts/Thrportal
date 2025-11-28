@@ -27,7 +27,13 @@ class SchedulingService {
   async getInterviewSlots(filters?: SchedulingFilters): Promise<InterviewSlot[]> {
     let query = supabase
       .from('interview_slots')
-      .select('*')
+      .select(`
+        *,
+        slot_assignments (
+          id, slot_id, candidate_id, candidate_name, candidate_email, 
+          candidate_phone, recruiter_id, interview_level, panel_text, notes, booked_at
+        )
+      `)
       .order('date', { ascending: true })
       .order('from_time', { ascending: true })
 
@@ -62,15 +68,31 @@ class SchedulingService {
       throw error
     }
 
-    // For now, return the base data. We'll enhance with joins later
-    return (data || []).map(slot => ({
-      ...slot,
-      interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined,
-      client_name: undefined,
-      project_name: undefined,
-      created_by_name: undefined,
-      assignment: undefined
-    }))
+    // Map slot_assignments to assignment field
+    return (data || []).map(slot => {
+      const assignments = (slot as any).slot_assignments as any[] | null
+      const assignment = assignments && assignments.length > 0 ? assignments[0] : undefined
+      return {
+        ...slot,
+        interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined,
+        client_name: undefined,
+        project_name: undefined,
+        created_by_name: undefined,
+        assignment: assignment ? {
+          id: assignment.id,
+          slot_id: assignment.slot_id,
+          candidate_id: assignment.candidate_id,
+          candidate_name: assignment.candidate_name,
+          candidate_email: assignment.candidate_email,
+          candidate_phone: assignment.candidate_phone,
+          recruiter_id: assignment.recruiter_id,
+          interview_level: assignment.interview_level,
+          panel_text: assignment.panel_text,
+          notes: assignment.notes,
+          booked_at: assignment.booked_at
+        } : undefined
+      }
+    })
   }
 
   // Get upcoming slots for dashboard
