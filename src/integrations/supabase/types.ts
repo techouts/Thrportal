@@ -2159,51 +2159,83 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about: string | null
           avatar_url: string | null
           business_unit: string | null
+          city: string | null
+          cost_center: string | null
+          country: string | null
           created_at: string
           department: string | null
           display_name: string | null
           email: string
+          employee_code: string | null
           first_name: string | null
           id: string
+          interests: string[] | null
           is_active: boolean
           last_name: string | null
+          manager_employee_id: string | null
           phone: string | null
           role: string
+          role_title: string | null
           updated_at: string
         }
         Insert: {
+          about?: string | null
           avatar_url?: string | null
           business_unit?: string | null
+          city?: string | null
+          cost_center?: string | null
+          country?: string | null
           created_at?: string
           department?: string | null
           display_name?: string | null
           email: string
+          employee_code?: string | null
           first_name?: string | null
           id: string
+          interests?: string[] | null
           is_active?: boolean
           last_name?: string | null
+          manager_employee_id?: string | null
           phone?: string | null
           role?: string
+          role_title?: string | null
           updated_at?: string
         }
         Update: {
+          about?: string | null
           avatar_url?: string | null
           business_unit?: string | null
+          city?: string | null
+          cost_center?: string | null
+          country?: string | null
           created_at?: string
           department?: string | null
           display_name?: string | null
           email?: string
+          employee_code?: string | null
           first_name?: string | null
           id?: string
+          interests?: string[] | null
           is_active?: boolean
           last_name?: string | null
+          manager_employee_id?: string | null
           phone?: string | null
           role?: string
+          role_title?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_manager_employee_id_fkey"
+            columns: ["manager_employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_sow_links: {
         Row: {
