@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,10 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
 import { 
-  User, 
   Phone, 
   Mail, 
   MapPin, 
@@ -22,11 +20,13 @@ import {
   Plus,
   ExternalLink,
   Users,
-  Crown
+  Crown,
+  Loader2
 } from 'lucide-react'
-import { sampleEmployeeProfile } from '@/mocks/profileData'
 import { VALIDATION_RULES } from '@/types/profile'
 import type { EmployeeProfile, ProfileUpdateData } from '@/types/profile'
+import { useAuth } from '@/auth/AuthContext'
+import { getCurrentProfile, getProfileById, updateProfile } from '@/services/profileService'
 
 interface ProfileProps {
   isOwnProfile?: boolean
@@ -35,12 +35,45 @@ interface ProfileProps {
 
 export default function Profile({ isOwnProfile = true, employeeId }: ProfileProps) {
   const { toast } = useToast()
-  const [profile, setProfile] = useState<EmployeeProfile>(sampleEmployeeProfile)
+  const { user } = useAuth()
+  const [profile, setProfile] = useState<EmployeeProfile | null>(null)
+  const [loading, setLoading] = useState(true)
   const [editingSection, setEditingSection] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<ProfileUpdateData>>({})
   const [newInterest, setNewInterest] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user?.id) {
+        setLoading(false)
+        return
+      }
+
+      setLoading(true)
+      try {
+        const profileData = employeeId 
+          ? await getProfileById(employeeId)
+          : await getCurrentProfile(user.id)
+        
+        setProfile(profileData)
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load profile data.",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [user?.id, employeeId, toast])
 
   const handleEdit = useCallback((section: string) => {
+    if (!profile) return
     setEditingSection(section)
     if (section === 'contacts') {
       setEditData({
@@ -57,6 +90,8 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
   }, [profile])
 
   const handleSave = useCallback(async (section: string) => {
+    if (!user?.id || !profile) return
+
     try {
       // Validation
       if (section === 'contacts') {
@@ -97,31 +132,36 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
         }
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      setSaving(true)
+      const success = await updateProfile(user.id, editData as ProfileUpdateData)
       
-      // Update profile
-      setProfile(prev => ({
-        ...prev,
-        ...editData,
-        updated_at: new Date().toISOString()
-      }))
-      
-      setEditingSection(null)
-      setEditData({})
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your changes have been saved successfully."
-      })
+      if (success) {
+        setProfile(prev => prev ? {
+          ...prev,
+          ...editData,
+          updated_at: new Date().toISOString()
+        } : null)
+        
+        setEditingSection(null)
+        setEditData({})
+        
+        toast({
+          title: "Profile Updated",
+          description: "Your changes have been saved successfully."
+        })
+      } else {
+        throw new Error('Update failed')
+      }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update profile. Please try again.",
         variant: "destructive"
       })
+    } finally {
+      setSaving(false)
     }
-  }, [editData, toast])
+  }, [editData, toast, user?.id, profile])
 
   const handleCancel = useCallback(() => {
     setEditingSection(null)
@@ -141,7 +181,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
       return
     }
 
-    const currentInterests = editData.interests || profile.interests || []
+    const currentInterests = editData.interests || profile?.interests || []
     if (currentInterests.includes(newInterest.trim())) {
       toast({
         title: "Duplicate Interest",
@@ -156,17 +196,37 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
       interests: [...currentInterests, newInterest.trim()]
     }))
     setNewInterest('')
-  }, [newInterest, editData.interests, profile.interests, toast])
+  }, [newInterest, editData.interests, profile?.interests, toast])
 
   const handleRemoveInterest = useCallback((interest: string) => {
     setEditData(prev => ({
       ...prev,
-      interests: (prev.interests || profile.interests || []).filter(i => i !== interest)
+      interests: (prev.interests || profile?.interests || []).filter(i => i !== interest)
     }))
-  }, [profile.interests])
+  }, [profile?.interests])
 
-  const getDisplayName = (firstName: string, lastName: string) => `${firstName} ${lastName}`
-  const getInitials = (firstName: string, lastName: string) => `${firstName[0]}${lastName[0]}`
+  const getDisplayName = (firstName: string, lastName: string) => `${firstName} ${lastName}`.trim() || 'Unknown'
+  const getInitials = (firstName: string, lastName: string) => {
+    const f = firstName?.[0] || ''
+    const l = lastName?.[0] || ''
+    return (f + l).toUpperCase() || '?'
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Profile not found</p>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -202,8 +262,10 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <h2 className="text-2xl font-bold">{getDisplayName(profile.first_name, profile.last_name)}</h2>
                     <p className="text-lg text-muted-foreground">{profile.role_title}</p>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{profile.department?.name}</Badge>
-                      <Badge variant="outline">{profile.city}, {profile.country}</Badge>
+                      {profile.department?.name && <Badge variant="secondary">{profile.department.name}</Badge>}
+                      {(profile.city || profile.country) && (
+                        <Badge variant="outline">{[profile.city, profile.country].filter(Boolean).join(', ')}</Badge>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -231,14 +293,18 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     </a>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <Building className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{profile.business_unit?.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{profile.cost_center?.code}</span>
-                </div>
+                {profile.business_unit?.name && (
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{profile.business_unit.name}</span>
+                  </div>
+                )}
+                {profile.cost_center?.code && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{profile.cost_center.code}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -261,18 +327,24 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   <Label className="text-sm font-medium text-muted-foreground">Role</Label>
                   <p>{profile.role_title}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-muted-foreground">Business Unit</Label>
-                  <p>{profile.business_unit?.name}</p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-muted-foreground">Department</Label>
-                  <p>{profile.department?.name}</p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-muted-foreground">Cost Center</Label>
-                  <p>{profile.cost_center?.code} - {profile.cost_center?.name}</p>
-                </div>
+                {profile.business_unit?.name && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Business Unit</Label>
+                    <p>{profile.business_unit.name}</p>
+                  </div>
+                )}
+                {profile.department?.name && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Department</Label>
+                    <p>{profile.department.name}</p>
+                  </div>
+                )}
+                {profile.cost_center?.code && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Cost Center</Label>
+                    <p>{profile.cost_center.code}{profile.cost_center.name ? ` - ${profile.cost_center.name}` : ''}</p>
+                  </div>
+                )}
                 {profile.manager && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-muted-foreground">Reporting Manager</Label>
@@ -353,11 +425,11 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => handleSave('contacts')}>
-                      <Save className="h-4 w-4 mr-2" />
+                    <Button onClick={() => handleSave('contacts')} disabled={saving}>
+                      {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                       Save Changes
                     </Button>
-                    <Button variant="outline" onClick={handleCancel}>
+                    <Button variant="outline" onClick={handleCancel} disabled={saving}>
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
@@ -445,32 +517,30 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                         onChange={(e) => setNewInterest(e.target.value)}
                         placeholder="Add an interest..."
                         maxLength={VALIDATION_RULES.interest.maxLength}
-                        onKeyDown={(e) => e.key === 'Enter' && handleAddInterest()}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddInterest())}
                       />
-                      <Button onClick={handleAddInterest} disabled={!newInterest.trim()}>
+                      <Button type="button" variant="outline" onClick={handleAddInterest}>
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button onClick={() => handleSave('about')}>
-                      <Save className="h-4 w-4 mr-2" />
+                    <Button onClick={() => handleSave('about')} disabled={saving}>
+                      {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                       Save Changes
                     </Button>
-                    <Button variant="outline" onClick={handleCancel}>
+                    <Button variant="outline" onClick={handleCancel} disabled={saving}>
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-muted-foreground">About</Label>
-                    <p className="text-sm leading-relaxed">
-                      {profile.about || 'No information provided yet.'}
-                    </p>
+                    <p className="text-sm">{profile.about || 'No information provided yet.'}</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -478,14 +548,14 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <div className="flex flex-wrap gap-2">
                       {profile.interests && profile.interests.length > 0 ? (
                         profile.interests.map((interest, index) => (
-                          <Badge key={index} variant="outline">{interest}</Badge>
+                          <Badge key={index} variant="secondary">{interest}</Badge>
                         ))
                       ) : (
                         <p className="text-sm text-muted-foreground">No interests added yet.</p>
                       )}
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -493,81 +563,65 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
 
         {/* Team Tab */}
         <TabsContent value="team" className="space-y-4">
-          <div className="grid gap-6">
-            {/* Reporting Manager */}
-            {profile.manager && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Crown className="h-5 w-5" />
-                    Reporting Manager
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={profile.manager.photo_url} />
-                      <AvatarFallback>
-                        {getInitials(profile.manager.first_name, profile.manager.last_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h4 className="font-medium">{getDisplayName(profile.manager.first_name, profile.manager.last_name)}</h4>
-                      <p className="text-sm text-muted-foreground">{profile.manager.role_title}</p>
-                      <p className="text-sm text-muted-foreground">{profile.manager.email}</p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View Profile
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Direct Reports */}
+          {profile.manager && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Team Members
-                  {profile.reports && profile.reports.length > 0 && (
-                    <Badge variant="secondary">{profile.reports.length}</Badge>
-                  )}
+                  <Crown className="h-5 w-5 text-amber-500" />
+                  Reporting Manager
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {profile.reports && profile.reports.length > 0 ? (
-                  <div className="space-y-4">
-                    {profile.reports.map((report) => (
-                      <div key={report.id} className="flex items-center gap-4 p-3 rounded-lg border">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={report.photo_url} />
-                          <AvatarFallback>
-                            {getInitials(report.first_name, report.last_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h5 className="font-medium">{getDisplayName(report.first_name, report.last_name)}</h5>
-                          <p className="text-sm text-muted-foreground">{report.role_title}</p>
-                          <p className="text-sm text-muted-foreground">{report.email}</p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          View Profile
-                        </Button>
-                      </div>
-                    ))}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={profile.manager.photo_url} />
+                    <AvatarFallback>
+                      {getInitials(profile.manager.first_name, profile.manager.last_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{getDisplayName(profile.manager.first_name, profile.manager.last_name)}</p>
+                    <p className="text-sm text-muted-foreground">{profile.manager.role_title}</p>
+                    <p className="text-sm text-muted-foreground">{profile.manager.email}</p>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                    <p className="text-muted-foreground">No direct reports.</p>
-                  </div>
-                )}
+                </div>
               </CardContent>
             </Card>
-          </div>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Direct Reports ({profile.reports?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profile.reports && profile.reports.length > 0 ? (
+                <div className="space-y-3">
+                  {profile.reports.map((report) => (
+                    <div key={report.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={report.photo_url} />
+                        <AvatarFallback>
+                          {getInitials(report.first_name, report.last_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">{getDisplayName(report.first_name, report.last_name)}</p>
+                        <p className="text-sm text-muted-foreground">{report.role_title}</p>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No direct reports</p>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
