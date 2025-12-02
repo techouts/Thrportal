@@ -171,7 +171,7 @@ export async function updateProfile(userId: string, data: ProfileUpdateData): Pr
       temporary_address: data.temporary_address,
       permanent_address: data.permanent_address,
       alternate_phone: data.alternate_phone,
-      date_of_birth: data.date_of_birth,
+      date_of_birth: data.date_of_birth || null,
       blood_group: data.blood_group,
       family_details: data.family_details as any,
       updated_at: new Date().toISOString()
