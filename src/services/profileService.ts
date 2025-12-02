@@ -20,6 +20,13 @@ export interface ProfileRow {
   manager_employee_id: string | null
   about: string | null
   interests: string[] | null
+  date_of_joining: string | null
+  notice_period: string | null
+  band: string | null
+  personal_email: string | null
+  temporary_address: string | null
+  permanent_address: string | null
+  alternate_phone: string | null
   created_at: string
   updated_at: string
 }
@@ -44,6 +51,13 @@ function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, r
     photo_url: row.avatar_url || undefined,
     created_at: row.created_at,
     updated_at: row.updated_at,
+    date_of_joining: row.date_of_joining || undefined,
+    notice_period: row.notice_period || undefined,
+    band: row.band || undefined,
+    personal_email: row.personal_email || undefined,
+    temporary_address: row.temporary_address || undefined,
+    permanent_address: row.permanent_address || undefined,
+    alternate_phone: row.alternate_phone || undefined,
     business_unit: row.business_unit ? { id: '1', name: row.business_unit } : undefined,
     department: row.department ? { id: '1', name: row.department } : undefined,
     cost_center: row.cost_center ? { id: '1', code: row.cost_center, name: row.cost_center } : undefined,
@@ -147,6 +161,10 @@ export async function updateProfile(userId: string, data: ProfileUpdateData): Pr
       country: data.country,
       about: data.about,
       interests: data.interests,
+      personal_email: data.personal_email,
+      temporary_address: data.temporary_address,
+      permanent_address: data.permanent_address,
+      alternate_phone: data.alternate_phone,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId)

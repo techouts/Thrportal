@@ -35,6 +35,13 @@ export interface EmployeeProfile {
   photo_url?: string
   created_at: string
   updated_at: string
+  date_of_joining?: string
+  notice_period?: string
+  band?: string
+  personal_email?: string
+  temporary_address?: string
+  permanent_address?: string
+  alternate_phone?: string
 
   // Related data (populated)
   manager?: {
@@ -64,6 +71,10 @@ export interface ProfileUpdateData {
   country?: string
   about?: string
   interests?: string[]
+  personal_email?: string
+  temporary_address?: string
+  permanent_address?: string
+  alternate_phone?: string
 }
 
 export interface ProfileCorrectionRequest {
