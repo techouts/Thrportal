@@ -243,6 +243,72 @@ export type Database = {
           },
         ]
       }
+      attendance_records: {
+        Row: {
+          approved_by: string | null
+          break_time: number | null
+          check_in: string | null
+          check_out: string | null
+          coordinates: Json | null
+          created_at: string | null
+          date: string
+          employee_id: string
+          id: string
+          location: string
+          notes: string | null
+          status: string
+          total_hours: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          break_time?: number | null
+          check_in?: string | null
+          check_out?: string | null
+          coordinates?: Json | null
+          created_at?: string | null
+          date: string
+          employee_id: string
+          id?: string
+          location: string
+          notes?: string | null
+          status: string
+          total_hours?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          break_time?: number | null
+          check_in?: string | null
+          check_out?: string | null
+          coordinates?: Json | null
+          created_at?: string | null
+          date?: string
+          employee_id?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          status?: string
+          total_hours?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_communications: {
         Row: {
           attachments: string[] | null

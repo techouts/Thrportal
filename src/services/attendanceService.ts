@@ -1,26 +1,18 @@
-import { AttendanceRecord, AttendanceStats, ClockInRequest, AttendanceApproval, AttendancePolicy, ApiResponse } from '@/types/attendance';
-import { format, startOfMonth, endOfMonth, parseISO, differenceInMinutes } from 'date-fns';
+import { AttendanceRecord, AttendanceStats, ClockInRequest, AttendanceApproval, AttendancePolicy, ApiResponse, AttendanceStatsFilter, AttendanceLogsFilter } from '@/types/attendance';
+import { format, startOfMonth, endOfMonth, subMonths, differenceInMinutes, startOfDay, subDays } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 const TIMEZONE = 'Asia/Kolkata';
 
-// Mock data service - in real app this would call APIs
 class AttendanceService {
-  private attendanceData: AttendanceRecord[] = [];
   private policies: AttendancePolicy[] = [];
 
   constructor() {
-    this.loadMockData();
+    this.loadPolicies();
   }
 
-  private async loadMockData() {
-    try {
-      const response = await fetch('/data/attendance.json');
-      this.attendanceData = await response.json();
-    } catch (error) {
-      console.error('Failed to load attendance data:', error);
-    }
-
-    // Mock policies
+  private loadPolicies() {
+    // Mock policies - in production, these would come from database
     this.policies = [
       {
         id: 'pol-001',
@@ -42,31 +34,55 @@ class AttendanceService {
     ];
   }
 
-  // Format time in user timezone (simplified for now)
-  private formatInUserTimezone(date: string | Date, formatStr: string): string {
-    return format(date, formatStr);
-  }
-
-  async getEmployeeAttendance(employeeId: string, month?: string): Promise<ApiResponse<AttendanceRecord[]>> {
+  async getEmployeeAttendance(employeeId: string, filterType: AttendanceLogsFilter = '30_days'): Promise<ApiResponse<AttendanceRecord[]>> {
     try {
-      let filtered = this.attendanceData.filter(record => record.employeeId === employeeId);
-      
-      if (month) {
-        const monthStart = startOfMonth(parseISO(month + '-01'));
-        const monthEnd = endOfMonth(monthStart);
-        filtered = filtered.filter(record => {
-          const recordDate = parseISO(record.date);
-          return recordDate >= monthStart && recordDate <= monthEnd;
-        });
+      let startDate: Date;
+      const endDate = new Date();
+
+      if (filterType === '30_days') {
+        startDate = subDays(endDate, 30);
+      } else {
+        // filterType is a month like '2024-11'
+        const [year, month] = filterType.split('-').map(Number);
+        startDate = new Date(year, month - 1, 1);
+        endDate.setTime(endOfMonth(startDate).getTime());
       }
 
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .gte('date', format(startDate, 'yyyy-MM-dd'))
+        .lte('date', format(endDate, 'yyyy-MM-dd'))
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      const records: AttendanceRecord[] = (data || []).map(record => ({
+        id: record.id,
+        employeeId: record.employee_id,
+        date: record.date,
+        checkIn: record.check_in || undefined,
+        checkOut: record.check_out || undefined,
+        breakTime: record.break_time || 0,
+        totalHours: Number(record.total_hours) || 0,
+        status: record.status as AttendanceRecord['status'],
+        location: record.location as AttendanceRecord['location'],
+        coordinates: record.coordinates as any,
+        notes: record.notes || undefined,
+        approvedBy: record.approved_by || undefined,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at
+      }));
+
       return {
-        data: filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        data: records,
         message: 'Attendance records retrieved successfully',
         success: true,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
+      console.error('Failed to retrieve attendance records:', error);
       return {
         data: [],
         message: 'Failed to retrieve attendance records',
@@ -76,29 +92,52 @@ class AttendanceService {
     }
   }
 
-  async getEmployeeStats(employeeId: string): Promise<ApiResponse<AttendanceStats>> {
+  async getEmployeeStats(employeeId: string, monthsBack: AttendanceStatsFilter = '1month'): Promise<ApiResponse<AttendanceStats>> {
     try {
-      const currentMonth = format(new Date(), 'yyyy-MM');
-      const records = this.attendanceData.filter(record => 
-        record.employeeId === employeeId && 
-        record.date.startsWith(currentMonth)
-      );
+      const endDate = new Date();
+      const startDate = monthsBack === '1month' ? startOfMonth(endDate) : startOfMonth(subMonths(endDate, 2));
 
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .gte('date', format(startDate, 'yyyy-MM-dd'))
+        .lte('date', format(endDate, 'yyyy-MM-dd'))
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      const records = data || [];
       const presentDays = records.filter(r => r.status === 'present').length;
       const absentDays = records.filter(r => r.status === 'absent').length;
       const lateDays = records.filter(r => r.status === 'late').length;
-      const totalHours = records.reduce((sum, r) => sum + r.totalHours, 0);
+      const totalHours = records.reduce((sum, r) => sum + Number(r.total_hours || 0), 0);
 
       const stats: AttendanceStats = {
         presentDays,
         absentDays,
         lateDays,
-        totalWorkingDays: 22, // Mock working days in month
+        totalWorkingDays: monthsBack === '1month' ? 22 : 66, // Approximate working days
         averageHours: records.length > 0 ? totalHours / records.length : 0,
-        currentStreak: this.calculateCurrentStreak(records),
+        currentStreak: this.calculateCurrentStreak(records.map(r => ({
+          id: r.id,
+          employeeId: r.employee_id,
+          date: r.date,
+          checkIn: r.check_in,
+          checkOut: r.check_out,
+          breakTime: r.break_time || 0,
+          totalHours: Number(r.total_hours) || 0,
+          status: r.status as AttendanceRecord['status'],
+          location: r.location as AttendanceRecord['location'],
+          coordinates: r.coordinates as any,
+          notes: r.notes,
+          approvedBy: r.approved_by,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at
+        }))),
         monthlyStats: [
           {
-            month: currentMonth,
+            month: format(startDate, 'yyyy-MM'),
             present: presentDays,
             absent: absentDays,
             late: lateDays,
@@ -114,6 +153,7 @@ class AttendanceService {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
+      console.error('Failed to retrieve attendance stats:', error);
       return {
         data: {} as AttendanceStats,
         message: 'Failed to retrieve attendance stats',
@@ -127,36 +167,58 @@ class AttendanceService {
     try {
       const today = format(new Date(), 'yyyy-MM-dd');
       const now = new Date();
-      
-      // Check if already clocked in today
-      const existingRecord = this.attendanceData.find(
-        record => record.employeeId === request.employeeId && record.date === today
-      );
+      const checkInTime = format(now, 'HH:mm:ss');
 
-      if (existingRecord?.checkIn) {
+      // Check if already clocked in today
+      const { data: existing } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('employee_id', request.employeeId)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (existing?.check_in) {
         throw new Error('Already clocked in today');
       }
 
-      const newRecord: AttendanceRecord = {
-        id: `att-${Date.now()}`,
-        employeeId: request.employeeId,
+      const status = this.determineStatus(now);
+
+      const recordData = {
+        employee_id: request.employeeId,
         date: today,
-        checkIn: this.formatInUserTimezone(now, 'HH:mm:ss'),
-        breakTime: 0,
-        totalHours: 0,
-        status: this.determineStatus(now),
+        check_in: checkInTime,
+        break_time: 0,
+        total_hours: 0,
+        status,
         location: request.location,
-        coordinates: request.coordinates,
-        notes: request.notes,
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString()
+        coordinates: request.coordinates || null,
+        notes: request.notes || null
       };
 
-      if (existingRecord) {
-        Object.assign(existingRecord, newRecord);
-      } else {
-        this.attendanceData.push(newRecord);
-      }
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .upsert(recordData, { onConflict: 'employee_id,date' })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newRecord: AttendanceRecord = {
+        id: data.id,
+        employeeId: data.employee_id,
+        date: data.date,
+        checkIn: data.check_in,
+        checkOut: data.check_out || undefined,
+        breakTime: data.break_time || 0,
+        totalHours: Number(data.total_hours) || 0,
+        status: data.status as AttendanceRecord['status'],
+        location: data.location as AttendanceRecord['location'],
+        coordinates: data.coordinates as any,
+        notes: data.notes || undefined,
+        approvedBy: data.approved_by || undefined,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
 
       return {
         data: newRecord,
@@ -165,6 +227,7 @@ class AttendanceService {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
+      console.error('Failed to clock in:', error);
       return {
         data: {} as AttendanceRecord,
         message: error instanceof Error ? error.message : 'Failed to clock in',
@@ -178,33 +241,64 @@ class AttendanceService {
     try {
       const today = format(new Date(), 'yyyy-MM-dd');
       const now = new Date();
-      
-      const record = this.attendanceData.find(
-        r => r.employeeId === employeeId && r.date === today
-      );
+      const checkOutTime = format(now, 'HH:mm:ss');
 
-      if (!record || !record.checkIn) {
+      const { data: record, error: fetchError } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!record || !record.check_in) {
         throw new Error('No check-in record found for today');
       }
-
-      if (record.checkOut) {
+      if (record.check_out) {
         throw new Error('Already clocked out today');
       }
 
-      const checkInTime = parseISO(`${today}T${record.checkIn}`);
-      const totalMinutes = differenceInMinutes(now, checkInTime) - record.breakTime;
-      
-      record.checkOut = this.formatInUserTimezone(now, 'HH:mm:ss');
-      record.totalHours = Math.max(0, totalMinutes / 60);
-      record.updatedAt = now.toISOString();
+      const checkInTime = new Date(`${today}T${record.check_in}`);
+      const totalMinutes = differenceInMinutes(now, checkInTime) - (record.break_time || 0);
+      const totalHours = Math.max(0, totalMinutes / 60);
+
+      const { data: updated, error: updateError } = await supabase
+        .from('attendance_records')
+        .update({
+          check_out: checkOutTime,
+          total_hours: totalHours
+        })
+        .eq('id', record.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      const updatedRecord: AttendanceRecord = {
+        id: updated.id,
+        employeeId: updated.employee_id,
+        date: updated.date,
+        checkIn: updated.check_in,
+        checkOut: updated.check_out || undefined,
+        breakTime: updated.break_time || 0,
+        totalHours: Number(updated.total_hours) || 0,
+        status: updated.status as AttendanceRecord['status'],
+        location: updated.location as AttendanceRecord['location'],
+        coordinates: updated.coordinates as any,
+        notes: updated.notes || undefined,
+        approvedBy: updated.approved_by || undefined,
+        createdAt: updated.created_at,
+        updatedAt: updated.updated_at
+      };
 
       return {
-        data: record,
+        data: updatedRecord,
         message: 'Clocked out successfully',
         success: true,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
+      console.error('Failed to clock out:', error);
       return {
         data: {} as AttendanceRecord,
         message: error instanceof Error ? error.message : 'Failed to clock out',
@@ -216,17 +310,40 @@ class AttendanceService {
 
   async getTeamAttendance(managerId: string): Promise<ApiResponse<AttendanceRecord[]>> {
     try {
-      // Mock: get team members attendance for today
       const today = format(new Date(), 'yyyy-MM-dd');
-      const teamAttendance = this.attendanceData.filter(record => record.date === today);
+      
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .eq('date', today);
+
+      if (error) throw error;
+
+      const records: AttendanceRecord[] = (data || []).map(record => ({
+        id: record.id,
+        employeeId: record.employee_id,
+        date: record.date,
+        checkIn: record.check_in || undefined,
+        checkOut: record.check_out || undefined,
+        breakTime: record.break_time || 0,
+        totalHours: Number(record.total_hours) || 0,
+        status: record.status as AttendanceRecord['status'],
+        location: record.location as AttendanceRecord['location'],
+        coordinates: record.coordinates as any,
+        notes: record.notes || undefined,
+        approvedBy: record.approved_by || undefined,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at
+      }));
 
       return {
-        data: teamAttendance,
+        data: records,
         message: 'Team attendance retrieved successfully',
         success: true,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
+      console.error('Failed to retrieve team attendance:', error);
       return {
         data: [],
         message: 'Failed to retrieve team attendance',
@@ -238,29 +355,8 @@ class AttendanceService {
 
   async getPendingApprovals(): Promise<ApiResponse<AttendanceApproval[]>> {
     try {
-      // Mock pending approvals
-      const approvals: AttendanceApproval[] = [
-        {
-          id: 'app-001',
-          employeeId: 'emp-002',
-          employeeName: 'Jane Smith',
-          date: '2024-09-03',
-          requestType: 'work_from_home',
-          reason: 'Doctor appointment in the morning',
-          status: 'pending',
-          requestedBy: 'emp-002'
-        },
-        {
-          id: 'app-002',
-          employeeId: 'emp-004',
-          employeeName: 'Mike Wilson',
-          date: '2024-09-02',
-          requestType: 'late_arrival',
-          reason: 'Traffic due to heavy rain',
-          status: 'pending',
-          requestedBy: 'emp-004'
-        }
-      ];
+      // Mock pending approvals for now
+      const approvals: AttendanceApproval[] = [];
 
       return {
         data: approvals,
@@ -297,7 +393,7 @@ class AttendanceService {
   }
 
   private determineStatus(checkInTime: Date): AttendanceRecord['status'] {
-    const policy = this.policies[0]; // Use default policy
+    const policy = this.policies[0];
     if (!policy) return 'present';
 
     const [startHour, startMinute] = policy.officeStartTime.split(':').map(Number);
@@ -313,7 +409,6 @@ class AttendanceService {
   }
 
   private calculateCurrentStreak(records: AttendanceRecord[]): number {
-    // Simple streak calculation - count consecutive present days
     let streak = 0;
     const sortedRecords = records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
