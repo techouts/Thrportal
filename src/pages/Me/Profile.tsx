@@ -419,6 +419,9 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
+                            captionLayout="dropdown"
+                            fromYear={1950}
+                            toYear={new Date().getFullYear()}
                             selected={editData.date_of_birth ? new Date(editData.date_of_birth) : undefined}
                             onSelect={(date) => setEditData(prev => ({ ...prev, date_of_birth: date?.toISOString().split('T')[0] }))}
                             disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
