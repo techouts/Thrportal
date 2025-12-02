@@ -2160,12 +2160,15 @@ export type Database = {
       profiles: {
         Row: {
           about: string | null
+          alternate_phone: string | null
           avatar_url: string | null
+          band: string | null
           business_unit: string | null
           city: string | null
           cost_center: string | null
           country: string | null
           created_at: string
+          date_of_joining: string | null
           department: string | null
           display_name: string | null
           email: string
@@ -2176,19 +2179,26 @@ export type Database = {
           is_active: boolean
           last_name: string | null
           manager_employee_id: string | null
+          notice_period: string | null
+          permanent_address: string | null
+          personal_email: string | null
           phone: string | null
           role: string
           role_title: string | null
+          temporary_address: string | null
           updated_at: string
         }
         Insert: {
           about?: string | null
+          alternate_phone?: string | null
           avatar_url?: string | null
+          band?: string | null
           business_unit?: string | null
           city?: string | null
           cost_center?: string | null
           country?: string | null
           created_at?: string
+          date_of_joining?: string | null
           department?: string | null
           display_name?: string | null
           email: string
@@ -2199,19 +2209,26 @@ export type Database = {
           is_active?: boolean
           last_name?: string | null
           manager_employee_id?: string | null
+          notice_period?: string | null
+          permanent_address?: string | null
+          personal_email?: string | null
           phone?: string | null
           role?: string
           role_title?: string | null
+          temporary_address?: string | null
           updated_at?: string
         }
         Update: {
           about?: string | null
+          alternate_phone?: string | null
           avatar_url?: string | null
+          band?: string | null
           business_unit?: string | null
           city?: string | null
           cost_center?: string | null
           country?: string | null
           created_at?: string
+          date_of_joining?: string | null
           department?: string | null
           display_name?: string | null
           email?: string
@@ -2222,9 +2239,13 @@ export type Database = {
           is_active?: boolean
           last_name?: string | null
           manager_employee_id?: string | null
+          notice_period?: string | null
+          permanent_address?: string | null
+          personal_email?: string | null
           phone?: string | null
           role?: string
           role_title?: string | null
+          temporary_address?: string | null
           updated_at?: string
         }
         Relationships: [

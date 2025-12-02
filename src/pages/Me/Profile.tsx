@@ -79,7 +79,11 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
       setEditData({
         phone: profile.phone || '',
         city: profile.city || '',
-        country: profile.country || ''
+        country: profile.country || '',
+        personal_email: profile.personal_email || '',
+        temporary_address: profile.temporary_address || '',
+        permanent_address: profile.permanent_address || '',
+        alternate_phone: profile.alternate_phone || ''
       })
     } else if (section === 'about') {
       setEditData({
@@ -269,12 +273,6 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     </div>
                   </div>
                 </div>
-                {isOwnProfile && (
-                  <Button onClick={() => handleEdit('contacts')}>
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -327,6 +325,22 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   <Label className="text-sm font-medium text-muted-foreground">Role</Label>
                   <p>{profile.role_title}</p>
                 </div>
+                {profile.date_of_joining && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Date of Joining</Label>
+                    <p>{new Date(profile.date_of_joining).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Notice Period</Label>
+                  <p>{profile.notice_period || '3 months'}</p>
+                </div>
+                {profile.band && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Band</Label>
+                    <p>{profile.band}</p>
+                  </div>
+                )}
                 {profile.business_unit?.name && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-muted-foreground">Business Unit</Label>
@@ -364,13 +378,6 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   </div>
                 )}
               </div>
-              {isOwnProfile && (
-                <div className="pt-4 border-t">
-                  <Button variant="outline" size="sm">
-                    Suggest a correction
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -409,6 +416,25 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="personal_email">Personal Email</Label>
+                    <Input 
+                      id="personal_email" 
+                      type="email"
+                      value={editData.personal_email || ''} 
+                      onChange={(e) => setEditData(prev => ({ ...prev, personal_email: e.target.value }))}
+                      placeholder="personal@example.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="alternate_phone">Alternate Mobile Number</Label>
+                    <Input 
+                      id="alternate_phone" 
+                      value={editData.alternate_phone || ''} 
+                      onChange={(e) => setEditData(prev => ({ ...prev, alternate_phone: e.target.value }))}
+                      placeholder="+1234567890"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
                     <Input 
                       id="city" 
@@ -422,6 +448,26 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                       id="country" 
                       value={editData.country || ''} 
                       onChange={(e) => setEditData(prev => ({ ...prev, country: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="temporary_address">Temporary Address</Label>
+                    <Textarea 
+                      id="temporary_address" 
+                      value={editData.temporary_address || ''} 
+                      onChange={(e) => setEditData(prev => ({ ...prev, temporary_address: e.target.value }))}
+                      placeholder="Enter temporary address"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="permanent_address">Permanent Address</Label>
+                    <Textarea 
+                      id="permanent_address" 
+                      value={editData.permanent_address || ''} 
+                      onChange={(e) => setEditData(prev => ({ ...prev, permanent_address: e.target.value }))}
+                      placeholder="Enter permanent address"
+                      rows={2}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -446,12 +492,28 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <p>{profile.phone || 'Not provided'}</p>
                   </div>
                   <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Personal Email</Label>
+                    <p>{profile.personal_email || 'Not provided'}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Alternate Mobile Number</Label>
+                    <p>{profile.alternate_phone || 'Not provided'}</p>
+                  </div>
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium text-muted-foreground">City</Label>
                     <p>{profile.city || 'Not provided'}</p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-muted-foreground">Country</Label>
                     <p>{profile.country || 'Not provided'}</p>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Temporary Address</Label>
+                    <p>{profile.temporary_address || 'Not provided'}</p>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Permanent Address</Label>
+                    <p>{profile.permanent_address || 'Not provided'}</p>
                   </div>
                 </div>
               )}
