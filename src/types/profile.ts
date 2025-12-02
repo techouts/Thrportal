@@ -87,8 +87,8 @@ export interface ProfileCorrectionRequest {
 // Validation schemas
 export const VALIDATION_RULES = {
   phone: {
-    pattern: /^\+[1-9]\d{1,14}$/, // E.164 format
-    message: 'Phone must be in E.164 format (e.g., +1234567890)'
+    pattern: /^(\+)?[1-9]\d{1,14}$/, // E.164 format (+ optional)
+    message: 'Phone must be valid (e.g., +1234567890 or 1234567890)'
   },
   city: {
     maxLength: 80,

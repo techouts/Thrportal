@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { 
   Phone, 
@@ -42,6 +43,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
   const [editData, setEditData] = useState<Partial<ProfileUpdateData>>({})
   const [newInterest, setNewInterest] = useState('')
   const [saving, setSaving] = useState(false)
+  const [sameAsTemporary, setSameAsTemporary] = useState(false)
 
   useEffect(() => {
     async function fetchProfile() {
@@ -171,6 +173,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
     setEditingSection(null)
     setEditData({})
     setNewInterest('')
+    setSameAsTemporary(false)
   }, [])
 
   const handleAddInterest = useCallback(() => {
@@ -462,12 +465,34 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="permanent_address">Permanent Address</Label>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Checkbox 
+                        id="same-address"
+                        checked={sameAsTemporary}
+                        onCheckedChange={(checked) => {
+                          setSameAsTemporary(checked as boolean);
+                          if (checked) {
+                            setEditData(prev => ({ ...prev, permanent_address: prev.temporary_address || '' }));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="same-address"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Same as Temporary Address
+                      </label>
+                    </div>
                     <Textarea 
                       id="permanent_address" 
                       value={editData.permanent_address || ''} 
-                      onChange={(e) => setEditData(prev => ({ ...prev, permanent_address: e.target.value }))}
+                      onChange={(e) => {
+                        setEditData(prev => ({ ...prev, permanent_address: e.target.value }));
+                        setSameAsTemporary(false);
+                      }}
                       placeholder="Enter permanent address"
                       rows={2}
+                      disabled={sameAsTemporary}
                     />
                   </div>
                   <div className="flex gap-2">
