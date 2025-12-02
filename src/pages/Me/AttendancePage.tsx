@@ -76,7 +76,6 @@ export default function AttendancePage() {
       if (response.success) {
         setTodayRecord(response.data);
         toast.success(response.message);
-        loadData();
       } else {
         toast.error(response.message);
       }
@@ -97,7 +96,6 @@ export default function AttendancePage() {
       if (response.success) {
         setTodayRecord(response.data);
         toast.success(response.message);
-        loadData();
       } else {
         toast.error(response.message);
       }
@@ -118,70 +116,92 @@ export default function AttendancePage() {
     }
   };
 
-  const renderClockInContent = (isRemote: boolean = false) => (
-    <Card className="rounded-2xl shadow-sm max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          {isRemote ? <Wifi className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
-          Today's Attendance {isRemote && '(Remote)'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center">
-          <div className="text-3xl font-bold">
-            {format(new Date(), 'HH:mm')}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {format(new Date(), 'EEEE, MMM dd, yyyy')}
-          </div>
-        </div>
+  const renderClockInContent = (isRemote: boolean = false) => {
+    const expectedLocation = isRemote ? 'Remote' : 'Office';
+    const hasClockedIn = todayRecord?.checkIn;
+    const clockedInFromDifferentLocation = hasClockedIn && todayRecord.location !== expectedLocation;
 
-        {todayRecord ? (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm">Check-in:</span>
-              <span className="font-medium">{todayRecord.checkIn || 'Not recorded'}</span>
+    return (
+      <Card className="rounded-2xl shadow-sm max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center justify-center gap-2">
+            {isRemote ? <Wifi className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+            Today's Attendance {isRemote && '(Remote)'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold">
+              {format(new Date(), 'HH:mm')}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm">Check-out:</span>
-              <span className="font-medium">{todayRecord.checkOut || 'Not recorded'}</span>
+            <div className="text-sm text-muted-foreground">
+              {format(new Date(), 'EEEE, MMM dd, yyyy')}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm">Location:</span>
-              <Badge variant="outline">{todayRecord.location}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm">Status:</span>
-              <Badge className={getStatusColor(todayRecord.status)}>
-                {todayRecord.status.replace('_', ' ')}
-              </Badge>
-            </div>
-            
-            {!todayRecord.checkOut && (
-              <Button 
-                onClick={handleClockOut} 
-                disabled={clockingIn}
-                className="w-full"
-                variant="destructive"
-              >
-                {clockingIn ? 'Clocking Out...' : 'Clock Out'}
-              </Button>
-            )}
           </div>
-        ) : (
-          <Button 
-            onClick={() => handleClockIn(isRemote ? 'Remote' : 'Office')} 
-            disabled={clockingIn}
-            className="w-full"
-            size="lg"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            {clockingIn ? 'Clocking In...' : `Clock In ${isRemote ? '(Remote)' : ''}`}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
+
+          {clockedInFromDifferentLocation ? (
+            <div className="space-y-3">
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  You've already clocked in from <strong>{todayRecord.location}</strong> today at {todayRecord.checkIn}
+                </p>
+              </div>
+              <Button 
+                disabled
+                className="w-full"
+                size="lg"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Already Clocked In
+              </Button>
+            </div>
+          ) : todayRecord ? (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Check-in:</span>
+                <span className="font-medium">{todayRecord.checkIn || 'Not recorded'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Check-out:</span>
+                <span className="font-medium">{todayRecord.checkOut || 'Not recorded'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Location:</span>
+                <Badge variant="outline">{todayRecord.location}</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Status:</span>
+                <Badge className={getStatusColor(todayRecord.status)}>
+                  {todayRecord.status.replace('_', ' ')}
+                </Badge>
+              </div>
+              
+              {!todayRecord.checkOut && (
+                <Button 
+                  onClick={handleClockOut} 
+                  disabled={clockingIn}
+                  className="w-full"
+                  variant="destructive"
+                >
+                  {clockingIn ? 'Clocking Out...' : 'Clock Out'}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Button 
+              onClick={() => handleClockIn(expectedLocation)} 
+              disabled={clockingIn}
+              className="w-full"
+              size="lg"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              {clockingIn ? 'Clocking In...' : `Clock In ${isRemote ? '(Remote)' : ''}`}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (loading) {
     return (
