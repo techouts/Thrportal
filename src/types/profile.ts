@@ -42,6 +42,9 @@ export interface EmployeeProfile {
   temporary_address?: string
   permanent_address?: string
   alternate_phone?: string
+  date_of_birth?: string
+  blood_group?: string
+  family_details?: FamilyMember[]
 
   // Related data (populated)
   manager?: {
@@ -75,6 +78,9 @@ export interface ProfileUpdateData {
   temporary_address?: string
   permanent_address?: string
   alternate_phone?: string
+  date_of_birth?: string
+  blood_group?: string
+  family_details?: FamilyMember[]
 }
 
 export interface ProfileCorrectionRequest {
@@ -83,6 +89,21 @@ export interface ProfileCorrectionRequest {
   requested_value: string
   reason: string
 }
+
+// Family Member interface
+export interface FamilyMember {
+  id: string
+  relationship: 'Father' | 'Mother' | 'Spouse' | 'Child'
+  name: string
+  phone?: string
+  occupation?: string
+  date_of_birth?: string
+  gender?: 'Male' | 'Female' | 'Other'
+}
+
+// Blood group options
+export const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const
+export type BloodGroup = typeof BLOOD_GROUP_OPTIONS[number]
 
 // Validation schemas
 export const VALIDATION_RULES = {
@@ -105,5 +126,9 @@ export const VALIDATION_RULES = {
   interest: {
     maxLength: 40,
     message: 'Each interest must be 40 characters or less'
+  },
+  familyMemberName: {
+    maxLength: 100,
+    message: 'Family member name must be 100 characters or less'
   }
 }

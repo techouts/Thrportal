@@ -22,10 +22,20 @@ import {
   ExternalLink,
   Users,
   Crown,
-  Loader2
+  Loader2,
+  CalendarIcon,
+  Trash2,
+  User,
+  Heart,
+  Baby
 } from 'lucide-react'
-import { VALIDATION_RULES } from '@/types/profile'
-import type { EmployeeProfile, ProfileUpdateData } from '@/types/profile'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { VALIDATION_RULES, BLOOD_GROUP_OPTIONS } from '@/types/profile'
+import type { EmployeeProfile, ProfileUpdateData, FamilyMember } from '@/types/profile'
 import { useAuth } from '@/auth/AuthContext'
 import { getCurrentProfile, getProfileById, updateProfile } from '@/services/profileService'
 
@@ -44,6 +54,11 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
   const [newInterest, setNewInterest] = useState('')
   const [saving, setSaving] = useState(false)
   const [sameAsTemporary, setSameAsTemporary] = useState(false)
+  const [newChild, setNewChild] = useState<Partial<FamilyMember>>({
+    name: '',
+    date_of_birth: '',
+    gender: 'Male'
+  })
 
   useEffect(() => {
     async function fetchProfile() {
@@ -91,6 +106,12 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
       setEditData({
         about: profile.about || '',
         interests: [...(profile.interests || [])]
+      })
+    } else if (section === 'personal') {
+      setEditData({
+        date_of_birth: profile.date_of_birth || '',
+        blood_group: profile.blood_group || '',
+        family_details: [...(profile.family_details || [])]
       })
     }
   }, [profile])
@@ -174,6 +195,59 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
     setEditData({})
     setNewInterest('')
     setSameAsTemporary(false)
+    setNewChild({ name: '', date_of_birth: '', gender: 'Male' })
+  }, [])
+
+  const calculateAge = (dob: string): number => {
+    const birthDate = new Date(dob)
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
+
+  const handleAddChild = useCallback(() => {
+    if (!newChild.name?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Child name is required",
+        variant: "destructive"
+      })
+      return
+    }
+
+    const child: FamilyMember = {
+      id: crypto.randomUUID(),
+      relationship: 'Child',
+      name: newChild.name.trim(),
+      date_of_birth: newChild.date_of_birth,
+      gender: newChild.gender
+    }
+
+    setEditData(prev => ({
+      ...prev,
+      family_details: [...(prev.family_details || []), child]
+    }))
+    setNewChild({ name: '', date_of_birth: '', gender: 'Male' })
+  }, [newChild, toast])
+
+  const handleRemoveFamilyMember = useCallback((id: string) => {
+    setEditData(prev => ({
+      ...prev,
+      family_details: (prev.family_details || []).filter(m => m.id !== id)
+    }))
+  }, [])
+
+  const updateFamilyMember = useCallback((id: string, field: keyof FamilyMember, value: any) => {
+    setEditData(prev => ({
+      ...prev,
+      family_details: (prev.family_details || []).map(m => 
+        m.id === id ? { ...m, [field]: value } : m
+      )
+    }))
   }, [])
 
   const handleAddInterest = useCallback(() => {
@@ -238,8 +312,9 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="personal">Personal Details</TabsTrigger>
           <TabsTrigger value="employment">Employment</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="about">About & Hobbies</TabsTrigger>
@@ -307,6 +382,299 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Personal Details Tab */}
+        <TabsContent value="personal" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Personal Details</CardTitle>
+                  <CardDescription>Your personal information</CardDescription>
+                </div>
+                {isOwnProfile && editingSection !== 'personal' && (
+                  <Button onClick={() => handleEdit('personal')}>
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {editingSection === 'personal' ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Date of Birth</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !editData.date_of_birth && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {editData.date_of_birth ? format(new Date(editData.date_of_birth), "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={editData.date_of_birth ? new Date(editData.date_of_birth) : undefined}
+                            onSelect={(date) => setEditData(prev => ({ ...prev, date_of_birth: date?.toISOString().split('T')[0] }))}
+                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Blood Group</Label>
+                      <Select value={editData.blood_group || ''} onValueChange={(value) => setEditData(prev => ({ ...prev, blood_group: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select blood group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BLOOD_GROUP_OPTIONS.map(group => (
+                            <SelectItem key={group} value={group}>{group}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Family Details</Label>
+                    
+                    {['Father', 'Mother', 'Spouse'].map((rel) => {
+                      const member = (editData.family_details || []).find(m => m.relationship === rel)
+                      return (
+                        <Card key={rel} className="p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            {rel === 'Father' && <User className="h-4 w-4" />}
+                            {rel === 'Mother' && <User className="h-4 w-4" />}
+                            {rel === 'Spouse' && <Heart className="h-4 w-4" />}
+                            <Label className="font-medium">{rel}</Label>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <Input
+                              placeholder="Name"
+                              value={member?.name || ''}
+                              onChange={(e) => {
+                                if (member) {
+                                  updateFamilyMember(member.id, 'name', e.target.value)
+                                } else {
+                                  setEditData(prev => ({
+                                    ...prev,
+                                    family_details: [...(prev.family_details || []), {
+                                      id: crypto.randomUUID(),
+                                      relationship: rel as any,
+                                      name: e.target.value
+                                    }]
+                                  }))
+                                }
+                              }}
+                            />
+                            <Input
+                              placeholder="Phone"
+                              value={member?.phone || ''}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'phone', e.target.value)}
+                            />
+                            <Input
+                              placeholder="Occupation"
+                              value={member?.occupation || ''}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'occupation', e.target.value)}
+                            />
+                            {rel === 'Spouse' && (
+                              <>
+                                <Input
+                                  placeholder="Date of Birth"
+                                  type="date"
+                                  value={member?.date_of_birth || ''}
+                                  onChange={(e) => member && updateFamilyMember(member.id, 'date_of_birth', e.target.value)}
+                                />
+                                <Select
+                                  value={member?.gender || 'Male'}
+                                  onValueChange={(value) => member && updateFamilyMember(member.id, 'gender', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Male">Male</SelectItem>
+                                    <SelectItem value="Female">Female</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </>
+                            )}
+                          </div>
+                        </Card>
+                      )
+                    })}
+
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Baby className="h-4 w-4" />
+                        <Label className="font-medium">Children</Label>
+                      </div>
+                      {(editData.family_details || []).filter(m => m.relationship === 'Child').map((child) => (
+                        <div key={child.id} className="flex items-center gap-2 mb-2 p-2 border rounded">
+                          <Input
+                            placeholder="Name"
+                            value={child.name}
+                            onChange={(e) => updateFamilyMember(child.id, 'name', e.target.value)}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="date"
+                            value={child.date_of_birth || ''}
+                            onChange={(e) => updateFamilyMember(child.id, 'date_of_birth', e.target.value)}
+                            className="w-40"
+                          />
+                          <Select
+                            value={child.gender || 'Male'}
+                            onValueChange={(value) => updateFamilyMember(child.id, 'gender', value)}
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="ghost" size="sm" onClick={() => handleRemoveFamilyMember(child.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <div className="flex items-center gap-2 mt-3">
+                        <Input
+                          placeholder="Child name"
+                          value={newChild.name || ''}
+                          onChange={(e) => setNewChild(prev => ({ ...prev, name: e.target.value }))}
+                        />
+                        <Input
+                          type="date"
+                          value={newChild.date_of_birth || ''}
+                          onChange={(e) => setNewChild(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                          className="w-40"
+                        />
+                        <Select
+                          value={newChild.gender || 'Male'}
+                          onValueChange={(value) => setNewChild(prev => ({ ...prev, gender: value as any }))}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button variant="outline" onClick={handleAddChild}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={() => handleSave('personal')} disabled={saving}>
+                      {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                      Save Changes
+                    </Button>
+                    <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Date of Birth</Label>
+                      <p>
+                        {profile.date_of_birth 
+                          ? `${format(new Date(profile.date_of_birth), "dd MMM yyyy")} (${calculateAge(profile.date_of_birth)} years)`
+                          : 'Not provided'}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Blood Group</Label>
+                      <p>{profile.blood_group || 'Not provided'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Family Details</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['Father', 'Mother'].map((rel) => {
+                        const member = (profile.family_details || []).find(m => m.relationship === rel)
+                        return (
+                          <Card key={rel} className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <User className="h-4 w-4" />
+                              <Label className="font-medium">{rel}</Label>
+                            </div>
+                            {member ? (
+                              <div className="space-y-1 text-sm">
+                                <p className="font-medium">{member.name}</p>
+                                {member.phone && <p className="text-muted-foreground">📞 {member.phone}</p>}
+                                {member.occupation && <p className="text-muted-foreground">💼 {member.occupation}</p>}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">Not provided</p>
+                            )}
+                          </Card>
+                        )
+                      })}
+                    </div>
+
+                    {(() => {
+                      const spouse = (profile.family_details || []).find(m => m.relationship === 'Spouse')
+                      return spouse ? (
+                        <Card className="p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Heart className="h-4 w-4" />
+                            <Label className="font-medium">Spouse</Label>
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            <p className="font-medium">{spouse.name} {spouse.gender && `(${spouse.gender})`}</p>
+                            {spouse.phone && <p className="text-muted-foreground">📞 {spouse.phone}</p>}
+                            {spouse.occupation && <p className="text-muted-foreground">💼 {spouse.occupation}</p>}
+                            {spouse.date_of_birth && <p className="text-muted-foreground">🎂 {format(new Date(spouse.date_of_birth), "dd MMM yyyy")}</p>}
+                          </div>
+                        </Card>
+                      ) : null
+                    })()}
+
+                    {(() => {
+                      const children = (profile.family_details || []).filter(m => m.relationship === 'Child')
+                      return children.length > 0 ? (
+                        <div>
+                          <Label className="flex items-center gap-2 mb-3">
+                            <Baby className="h-4 w-4" />
+                            Children ({children.length})
+                          </Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {children.map((child) => (
+                              <Card key={child.id} className="p-3">
+                                <p className="font-medium text-sm">{child.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {child.gender} {child.date_of_birth && `• ${calculateAge(child.date_of_birth)} years`}
+                                </p>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null
+                    })()}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

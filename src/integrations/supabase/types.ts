@@ -2163,16 +2163,19 @@ export type Database = {
           alternate_phone: string | null
           avatar_url: string | null
           band: string | null
+          blood_group: string | null
           business_unit: string | null
           city: string | null
           cost_center: string | null
           country: string | null
           created_at: string
+          date_of_birth: string | null
           date_of_joining: string | null
           department: string | null
           display_name: string | null
           email: string
           employee_code: string | null
+          family_details: Json | null
           first_name: string | null
           id: string
           interests: string[] | null
@@ -2193,16 +2196,19 @@ export type Database = {
           alternate_phone?: string | null
           avatar_url?: string | null
           band?: string | null
+          blood_group?: string | null
           business_unit?: string | null
           city?: string | null
           cost_center?: string | null
           country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           date_of_joining?: string | null
           department?: string | null
           display_name?: string | null
           email: string
           employee_code?: string | null
+          family_details?: Json | null
           first_name?: string | null
           id: string
           interests?: string[] | null
@@ -2223,16 +2229,19 @@ export type Database = {
           alternate_phone?: string | null
           avatar_url?: string | null
           band?: string | null
+          blood_group?: string | null
           business_unit?: string | null
           city?: string | null
           cost_center?: string | null
           country?: string | null
           created_at?: string
+          date_of_birth?: string | null
           date_of_joining?: string | null
           department?: string | null
           display_name?: string | null
           email?: string
           employee_code?: string | null
+          family_details?: Json | null
           first_name?: string | null
           id?: string
           interests?: string[] | null
