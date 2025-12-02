@@ -82,3 +82,7 @@ export type ApiResponse<T> = {
   success: boolean;
   timestamp: string;
 };
+
+// Filter types for attendance
+export type AttendanceStatsFilter = '1month' | '3months';
+export type AttendanceLogsFilter = '30_days' | string; // string for month like '2024-11'
