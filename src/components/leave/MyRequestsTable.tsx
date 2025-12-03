@@ -33,6 +33,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { LeaveRequestDetailsSheet } from './LeaveRequestDetailsSheet';
+import { CancelRequestDialog } from './CancelRequestDialog';
 
 interface LeaveRequest {
   id: string;
@@ -75,6 +77,12 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Sheet and dialog state
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [showDetailsSheet, setShowDetailsSheet] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [requestToCancel, setRequestToCancel] = useState<string | null>(null);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -121,6 +129,24 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
         <div className="text-xs text-muted-foreground">{totalDays} days</div>
       </div>
     );
+  };
+
+  const handleViewRequest = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setShowDetailsSheet(true);
+  };
+
+  const handleCancelClick = (requestId: string) => {
+    setRequestToCancel(requestId);
+    setShowCancelDialog(true);
+  };
+
+  const handleConfirmCancel = () => {
+    if (requestToCancel && onCancel) {
+      onCancel(requestToCancel);
+    }
+    setShowCancelDialog(false);
+    setRequestToCancel(null);
   };
 
   if (isLoading) {
@@ -232,15 +258,17 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewRequest(request)}>
+                          View Request
+                        </DropdownMenuItem>
                         {request.status === 'pending' && onCancel && (
                           <DropdownMenuItem 
-                            onClick={() => onCancel(request.id)}
+                            onClick={() => handleCancelClick(request.id)}
                             className="text-destructive"
                           >
                             Cancel Request
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -284,6 +312,20 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
           </PaginationContent>
         </Pagination>
       </div>
+
+      {/* Details Sheet */}
+      <LeaveRequestDetailsSheet
+        request={selectedRequest}
+        open={showDetailsSheet}
+        onOpenChange={setShowDetailsSheet}
+      />
+
+      {/* Cancel Confirmation Dialog */}
+      <CancelRequestDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }
