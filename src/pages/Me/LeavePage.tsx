@@ -105,11 +105,9 @@ export default function LeavePage() {
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="request">Request Leave</TabsTrigger>
             <TabsTrigger value="history">My Requests</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -274,29 +272,6 @@ export default function LeavePage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="request">
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Leave</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Use the buttons below to submit a new leave or comp-off request.
-                </p>
-                <div className="flex gap-4">
-                  <Button onClick={() => setShowLeaveDialog(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Request Leave
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowCompOffDialog(true)}>
-                    <Clock className="h-4 w-4 mr-2" />
-                    Request Comp-Off
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="history">
             <Card>
               <CardHeader>
@@ -308,19 +283,6 @@ export default function LeavePage() {
                   isLoading={requestsLoading}
                   onCancel={handleCancelRequest}
                 />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="calendar">
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Calendar</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Calendar view will be implemented here.
-                </p>
               </CardContent>
             </Card>
           </TabsContent>

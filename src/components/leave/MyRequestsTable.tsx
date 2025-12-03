@@ -252,7 +252,10 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Page {currentPage} of {Math.max(1, totalPages)} ({filteredRequests.length} items)
+        </div>
         <Pagination>
           <PaginationContent>
             <PaginationItem>
@@ -261,7 +264,7 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
                 className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            {Array.from({ length: Math.max(1, totalPages) }, (_, i) => i + 1).map((page) => (
               <PaginationItem key={page}>
                 <PaginationLink
                   onClick={() => setCurrentPage(page)}
@@ -274,13 +277,13 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
             ))}
             <PaginationItem>
               <PaginationNext 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                onClick={() => setCurrentPage(p => Math.min(Math.max(1, totalPages), p + 1))}
+                className={currentPage === totalPages || totalPages === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
               />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
-      )}
+      </div>
     </div>
   );
 }
