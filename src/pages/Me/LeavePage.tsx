@@ -4,24 +4,82 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Plus, Clock, TrendingUp, BarChart3 } from "lucide-react";
+import { Calendar, Plus, Clock, BarChart3 } from "lucide-react";
 import { format, startOfYear, endOfYear } from "date-fns";
 import { 
   useLeaveBalances, 
-  useMyLeaveRequests, 
   useHolidayCalendars 
 } from "@/hooks/useLeave";
+import { 
+  useMyLeaveRequests, 
+  useProfiles, 
+  useCreateLeaveRequest,
+  useCreateCompOffRequest,
+  useCancelLeaveRequest
+} from "@/hooks/useLeaveSupabase";
 import { LeaveBalanceCard } from "@/components/leave/LeaveBalanceCard";
+import { RequestLeaveDialog, LeaveRequestData } from "@/components/leave/RequestLeaveDialog";
+import { RequestCompOffDialog, CompOffRequestData } from "@/components/leave/RequestCompOffDialog";
+import { MyRequestsTable } from "@/components/leave/MyRequestsTable";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
+import { useAuth } from "@/auth/AuthContext";
 
 export default function LeavePage() {
+  const { user } = useAuth();
   const [selectedYear] = useState(new Date().getFullYear().toString());
   const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
   const yearEnd = format(endOfYear(new Date()), 'yyyy-MM-dd');
 
+  // Dialog states
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [showCompOffDialog, setShowCompOffDialog] = useState(false);
+
+  // Data hooks
   const { data: balances, isLoading: balancesLoading } = useLeaveBalances(selectedYear);
-  const { data: requests, isLoading: requestsLoading } = useMyLeaveRequests();
+  const { data: leaveRequests, isLoading: requestsLoading } = useMyLeaveRequests(user?.id);
   const { data: calendars, isLoading: calendarsLoading } = useHolidayCalendars(yearStart, yearEnd);
+  const { data: profiles } = useProfiles();
+
+  // Mutations
+  const createLeaveRequest = useCreateLeaveRequest();
+  const createCompOffRequest = useCreateCompOffRequest();
+  const cancelLeaveRequest = useCancelLeaveRequest();
+
+  // Get user display name
+  const userName = user?.display_name || 
+    `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 
+    user?.email || '';
+
+  const handleLeaveSubmit = async (data: LeaveRequestData) => {
+    if (!user?.id) return;
+    
+    await createLeaveRequest.mutateAsync({
+      employee_id: user.id,
+      leave_type: data.leave_type,
+      start_date: format(data.start_date, 'yyyy-MM-dd'),
+      end_date: format(data.end_date, 'yyyy-MM-dd'),
+      total_days: data.total_days,
+      reason: data.reason,
+      notify_employee_id: data.notify_employee_id,
+      requested_by: userName,
+    });
+  };
+
+  const handleCompOffSubmit = async (data: CompOffRequestData) => {
+    if (!user?.id) return;
+    
+    await createCompOffRequest.mutateAsync({
+      employee_id: user.id,
+      comp_off_date: format(data.comp_off_date, 'yyyy-MM-dd'),
+      is_half_day: data.is_half_day,
+      reason: data.reason,
+      evidence_url: data.evidence_url,
+    });
+  };
+
+  const handleCancelRequest = (requestId: string) => {
+    cancelLeaveRequest.mutate(requestId);
+  };
 
   return (
     <RBACGuard requiredRoles={["EMPLOYEE", "MANAGER", "HR", "ADMIN"]}>
@@ -35,11 +93,11 @@ export default function LeavePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setShowCompOffDialog(true)}>
               <Clock className="h-4 w-4 mr-2" />
               Request Comp-Off
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setShowLeaveDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Request Leave
             </Button>
@@ -147,12 +205,12 @@ export default function LeavePage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {requests?.data?.slice(0, 3)?.map((request) => (
+                      {leaveRequests?.slice(0, 3)?.map((request) => (
                         <div key={request.id} className="flex justify-between items-center">
                           <div>
-                            <p className="text-sm font-medium">{request.type}</p>
+                            <p className="text-sm font-medium">{request.leave_type}</p>
                             <p className="text-xs text-muted-foreground">
-                              {format(new Date(request.startDate), 'MMM dd')} - {format(new Date(request.endDate), 'MMM dd')}
+                              {format(new Date(request.start_date), 'MMM dd')} - {format(new Date(request.end_date), 'MMM dd')}
                             </p>
                           </div>
                           <Badge 
@@ -163,11 +221,11 @@ export default function LeavePage() {
                             }
                             className="text-xs"
                           >
-                            {request.status.replace('_', ' ')}
+                            {request.status}
                           </Badge>
                         </div>
                       ))}
-                      {(!requests?.data || requests.data.length === 0) && (
+                      {(!leaveRequests || leaveRequests.length === 0) && (
                         <p className="text-sm text-muted-foreground">No recent requests</p>
                       )}
                     </div>
@@ -221,10 +279,20 @@ export default function LeavePage() {
               <CardHeader>
                 <CardTitle>Request Leave</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Leave request form will be implemented here.
+                  Use the buttons below to submit a new leave or comp-off request.
                 </p>
+                <div className="flex gap-4">
+                  <Button onClick={() => setShowLeaveDialog(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Request Leave
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowCompOffDialog(true)}>
+                    <Clock className="h-4 w-4 mr-2" />
+                    Request Comp-Off
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -235,9 +303,11 @@ export default function LeavePage() {
                 <CardTitle>My Leave Requests</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Leave history table will be implemented here.
-                </p>
+                <MyRequestsTable 
+                  requests={leaveRequests || []}
+                  isLoading={requestsLoading}
+                  onCancel={handleCancelRequest}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -255,6 +325,19 @@ export default function LeavePage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Dialogs */}
+        <RequestLeaveDialog
+          open={showLeaveDialog}
+          onOpenChange={setShowLeaveDialog}
+          onSubmit={handleLeaveSubmit}
+          profiles={profiles || []}
+        />
+        <RequestCompOffDialog
+          open={showCompOffDialog}
+          onOpenChange={setShowCompOffDialog}
+          onSubmit={handleCompOffSubmit}
+        />
       </div>
     </RBACGuard>
   );

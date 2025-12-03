@@ -944,6 +944,63 @@ export type Database = {
           },
         ]
       }
+      comp_off_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          comp_off_date: string
+          created_at: string
+          employee_id: string
+          evidence_url: string | null
+          id: string
+          is_half_day: boolean
+          reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comp_off_date: string
+          created_at?: string
+          employee_id: string
+          evidence_url?: string | null
+          id?: string
+          is_half_day?: boolean
+          reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comp_off_date?: string
+          created_at?: string
+          employee_id?: string
+          evidence_url?: string | null
+          id?: string
+          is_half_day?: boolean
+          reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comp_off_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comp_off_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_assignments: {
         Row: {
           allocation_pct: number | null
@@ -2170,6 +2227,82 @@ export type Database = {
           {
             foreignKeyName: "jd_ownership_metadata_locked_by_fkey"
             columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: string
+          notify_employee_id: string | null
+          reason: string | null
+          rejection_reason: string | null
+          requested_by: string | null
+          start_date: string
+          status: string
+          total_days: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type: string
+          notify_employee_id?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          start_date: string
+          status?: string
+          total_days?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          notify_employee_id?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          start_date?: string
+          status?: string
+          total_days?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_notify_employee_id_fkey"
+            columns: ["notify_employee_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
