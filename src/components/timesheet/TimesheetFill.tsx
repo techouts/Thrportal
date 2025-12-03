@@ -10,6 +10,7 @@ import { WeekPicker } from './WeekPicker'
 import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
 import { TimesheetService } from '@/services/timesheetService'
+import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
 import type { 
   Timesheet, 
   TimesheetEntry, 
@@ -38,6 +39,9 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
 
   const timesheetService = TimesheetService.getInstance()
   const policy = timesheetService.getPolicy()
+  
+  // Fetch attendance hours for the selected week
+  const { attendanceHours } = useWeeklyAttendance(employeeId, selectedWeek)
 
   useEffect(() => {
     loadTimesheet()
@@ -352,6 +356,8 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
         warnings={warnings}
         categories={categories}
         readonly={isReadonly}
+        attendanceHours={attendanceHours}
+        dailyTotals={totals.byDay}
       />
 
       {/* Submission Comment */}
