@@ -60,7 +60,6 @@ export default function LeavePage() {
       end_date: format(data.end_date, 'yyyy-MM-dd'),
       total_days: data.total_days,
       reason: data.reason,
-      notify_employee_id: data.notify_employee_id,
       requested_by: userName,
     });
   };
@@ -70,8 +69,9 @@ export default function LeavePage() {
     
     await createCompOffRequest.mutateAsync({
       employee_id: user.id,
-      comp_off_date: format(data.comp_off_date, 'yyyy-MM-dd'),
-      is_half_day: data.is_half_day,
+      start_date: format(data.start_date, 'yyyy-MM-dd'),
+      end_date: format(data.end_date, 'yyyy-MM-dd'),
+      total_days: data.total_days,
       reason: data.reason,
       evidence_url: data.evidence_url,
     });
@@ -93,7 +93,7 @@ export default function LeavePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowCompOffDialog(true)}>
+            <Button size="sm" onClick={() => setShowCompOffDialog(true)}>
               <Clock className="h-4 w-4 mr-2" />
               Request Comp-Off
             </Button>
@@ -331,7 +331,6 @@ export default function LeavePage() {
           open={showLeaveDialog}
           onOpenChange={setShowLeaveDialog}
           onSubmit={handleLeaveSubmit}
-          profiles={profiles || []}
         />
         <RequestCompOffDialog
           open={showCompOffDialog}

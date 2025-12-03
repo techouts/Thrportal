@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { CalendarIcon, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 interface RequestCompOffDialogProps {
@@ -29,8 +28,9 @@ interface RequestCompOffDialogProps {
 }
 
 export interface CompOffRequestData {
-  comp_off_date: Date;
-  is_half_day: boolean;
+  start_date: Date;
+  end_date: Date;
+  total_days: number;
   reason: string;
   evidence_url?: string;
 }
@@ -38,14 +38,18 @@ export interface CompOffRequestData {
 export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCompOffDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [compOffDate, setCompOffDate] = useState<Date>();
-  const [isHalfDay, setIsHalfDay] = useState(false);
+  const [fromDate, setFromDate] = useState<Date>();
+  const [toDate, setToDate] = useState<Date>();
   const [reason, setReason] = useState('');
   const [file, setFile] = useState<File | null>(null);
 
+  const totalDays = fromDate && toDate 
+    ? differenceInDays(toDate, fromDate) + 1 
+    : 0;
+
   const resetForm = () => {
-    setCompOffDate(undefined);
-    setIsHalfDay(false);
+    setFromDate(undefined);
+    setToDate(undefined);
     setReason('');
     setFile(null);
   };
@@ -57,10 +61,19 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
   };
 
   const handleSubmit = async () => {
-    if (!compOffDate) {
+    if (!fromDate || !toDate) {
       toast({
         title: 'Validation Error',
-        description: 'Please select a date for compensatory off',
+        description: 'Please select from and to dates for compensatory off',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (toDate < fromDate) {
+      toast({
+        title: 'Validation Error',
+        description: 'End date cannot be before start date',
         variant: 'destructive',
       });
       return;
@@ -69,10 +82,11 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
     setIsSubmitting(true);
     try {
       await onSubmit({
-        comp_off_date: compOffDate,
-        is_half_day: isHalfDay,
+        start_date: fromDate,
+        end_date: toDate,
+        total_days: totalDays,
         reason,
-        evidence_url: file ? file.name : undefined, // In real app, upload file first
+        evidence_url: file ? file.name : undefined,
       });
       resetForm();
       onOpenChange(false);
@@ -91,7 +105,7 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Request Credit for Compensatory Off</DialogTitle>
           <DialogDescription>
@@ -100,44 +114,67 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Comp Off Date */}
-          <div className="space-y-2">
-            <Label>Compensatory Off Date *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !compOffDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {compOffDate ? format(compOffDate, 'dd MMM yyyy') : 'Select date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={compOffDate}
-                  onSelect={setCompOffDate}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          {/* Date Range with Days Count */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <Label className="text-xs text-muted-foreground">From *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !fromDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {fromDate ? format(fromDate, 'dd MMM yyyy') : 'Select date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={fromDate}
+                    onSelect={setFromDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          {/* Half Day Checkbox */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="halfDay"
-              checked={isHalfDay}
-              onCheckedChange={(checked) => setIsHalfDay(checked === true)}
-            />
-            <Label htmlFor="halfDay" className="font-normal cursor-pointer">
-              Request Half Day
-            </Label>
+            <div className="flex flex-col items-center justify-center px-4 py-2 bg-muted rounded-md min-w-[60px]">
+              <span className="text-2xl font-bold">{totalDays}</span>
+              <span className="text-xs text-muted-foreground">Days</span>
+            </div>
+
+            <div className="flex-1">
+              <Label className="text-xs text-muted-foreground">To *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !toDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {toDate ? format(toDate, 'dd MMM yyyy') : 'Select date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={toDate}
+                    onSelect={setToDate}
+                    disabled={(date) => fromDate ? date < fromDate : false}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {/* Note */}

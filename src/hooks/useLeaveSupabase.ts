@@ -16,14 +16,14 @@ interface LeaveRequestInsert {
   end_date: string;
   total_days: number;
   reason?: string;
-  notify_employee_id?: string;
   requested_by?: string;
 }
 
 interface CompOffRequestInsert {
   employee_id: string;
-  comp_off_date: string;
-  is_half_day: boolean;
+  start_date: string;
+  end_date: string;
+  total_days: number;
   reason?: string;
   evidence_url?: string;
 }

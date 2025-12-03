@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { format, differenceInDays, addDays } from 'date-fns';
-import { CalendarIcon, Search } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -25,22 +25,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import { useToast } from '@/hooks/use-toast';
 
 interface RequestLeaveDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: LeaveRequestData) => Promise<void>;
-  profiles?: Array<{ id: string; display_name: string | null; first_name: string | null; last_name: string | null }>;
 }
 
 export interface LeaveRequestData {
@@ -49,51 +39,32 @@ export interface LeaveRequestData {
   end_date: Date;
   total_days: number;
   reason: string;
-  notify_employee_id?: string;
 }
 
 const LEAVE_TYPES = [
   { value: 'CL', label: 'Casual Leave' },
-  { value: 'SL', label: 'Sick Leave' },
-  { value: 'PL', label: 'Privilege Leave' },
   { value: 'ML', label: 'Maternity Leave' },
   { value: 'PL_PATERNITY', label: 'Paternity Leave' },
-  { value: 'COMP_OFF', label: 'Compensatory Off' },
-  { value: 'LOP', label: 'Loss of Pay' },
+  { value: 'COMP_OFF', label: 'Comp Offs' },
 ];
 
-export function RequestLeaveDialog({ open, onOpenChange, onSubmit, profiles = [] }: RequestLeaveDialogProps) {
+export function RequestLeaveDialog({ open, onOpenChange, onSubmit }: RequestLeaveDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fromDate, setFromDate] = useState<Date>();
   const [toDate, setToDate] = useState<Date>();
   const [leaveType, setLeaveType] = useState<string>('');
   const [reason, setReason] = useState('');
-  const [notifyEmployeeId, setNotifyEmployeeId] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showEmployeeSearch, setShowEmployeeSearch] = useState(false);
 
   const totalDays = fromDate && toDate 
     ? differenceInDays(toDate, fromDate) + 1 
     : 0;
-
-  const filteredProfiles = profiles.filter(profile => {
-    const name = profile.display_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-    return name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  const selectedEmployee = profiles.find(p => p.id === notifyEmployeeId);
-  const selectedEmployeeName = selectedEmployee 
-    ? (selectedEmployee.display_name || `${selectedEmployee.first_name || ''} ${selectedEmployee.last_name || ''}`.trim())
-    : '';
 
   const resetForm = () => {
     setFromDate(undefined);
     setToDate(undefined);
     setLeaveType('');
     setReason('');
-    setNotifyEmployeeId('');
-    setSearchQuery('');
   };
 
   const handleSubmit = async () => {
@@ -123,7 +94,6 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, profiles = []
         end_date: toDate,
         total_days: totalDays,
         reason,
-        notify_employee_id: notifyEmployeeId || undefined,
       });
       resetForm();
       onOpenChange(false);
@@ -237,52 +207,6 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, profiles = []
               onChange={(e) => setReason(e.target.value)}
               rows={3}
             />
-          </div>
-
-          {/* Notify Employee */}
-          <div className="space-y-2">
-            <Label>Notify Employee</Label>
-            <Popover open={showEmployeeSearch} onOpenChange={setShowEmployeeSearch}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className="w-full justify-between"
-                >
-                  {selectedEmployeeName || 'Search employee...'}
-                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
-                  <CommandInput 
-                    placeholder="Search employee..." 
-                    value={searchQuery}
-                    onValueChange={setSearchQuery}
-                  />
-                  <CommandList>
-                    <CommandEmpty>No employee found.</CommandEmpty>
-                    <CommandGroup>
-                      {filteredProfiles.slice(0, 10).map((profile) => {
-                        const name = profile.display_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-                        return (
-                          <CommandItem
-                            key={profile.id}
-                            value={profile.id}
-                            onSelect={() => {
-                              setNotifyEmployeeId(profile.id);
-                              setShowEmployeeSearch(false);
-                            }}
-                          >
-                            {name || 'Unknown'}
-                          </CommandItem>
-                        );
-                      })}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
           </div>
         </div>
 
