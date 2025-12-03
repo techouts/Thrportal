@@ -951,11 +951,14 @@ export type Database = {
           comp_off_date: string
           created_at: string
           employee_id: string
+          end_date: string
           evidence_url: string | null
           id: string
           is_half_day: boolean
           reason: string | null
+          start_date: string
           status: string
+          total_days: number | null
           updated_at: string
         }
         Insert: {
@@ -964,11 +967,14 @@ export type Database = {
           comp_off_date: string
           created_at?: string
           employee_id: string
+          end_date: string
           evidence_url?: string | null
           id?: string
           is_half_day?: boolean
           reason?: string | null
+          start_date: string
           status?: string
+          total_days?: number | null
           updated_at?: string
         }
         Update: {
@@ -977,11 +983,14 @@ export type Database = {
           comp_off_date?: string
           created_at?: string
           employee_id?: string
+          end_date?: string
           evidence_url?: string | null
           id?: string
           is_half_day?: boolean
           reason?: string | null
+          start_date?: string
           status?: string
+          total_days?: number | null
           updated_at?: string
         }
         Relationships: [

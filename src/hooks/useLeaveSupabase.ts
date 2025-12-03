@@ -28,6 +28,17 @@ interface CompOffRequestInsert {
   evidence_url?: string;
 }
 
+interface CompOffRequestDB {
+  employee_id: string;
+  comp_off_date: string;
+  start_date: string;
+  end_date: string;
+  total_days: number;
+  is_half_day: boolean;
+  reason?: string;
+  evidence_url?: string;
+}
+
 // Fetch leave requests for current user
 export function useMyLeaveRequests(employeeId: string | undefined) {
   return useQuery({
@@ -124,9 +135,21 @@ export function useCreateCompOffRequest() {
 
   return useMutation({
     mutationFn: async (request: CompOffRequestInsert) => {
+      // Map to DB schema (includes legacy fields for compatibility)
+      const dbRequest: CompOffRequestDB = {
+        employee_id: request.employee_id,
+        comp_off_date: request.start_date, // Use start_date as comp_off_date for legacy compatibility
+        start_date: request.start_date,
+        end_date: request.end_date,
+        total_days: request.total_days,
+        is_half_day: false,
+        reason: request.reason,
+        evidence_url: request.evidence_url,
+      };
+      
       const { data, error } = await supabase
         .from('comp_off_requests')
-        .insert(request)
+        .insert(dbRequest as any)
         .select()
         .single();
 
