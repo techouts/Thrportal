@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { format, startOfWeek, addDays, subWeeks } from 'date-fns'
 import { Save, Send, Copy, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast'
 import { WeekPicker } from './WeekPicker'
 import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
+import { AddTimeEntryPopover } from './AddTimeEntryPopover'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
 import type { 
@@ -200,6 +201,27 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     setEntries(prev => [...prev, newEntry])
   }
 
+  const handleAddEntry = (project: ProjectAssignment, task: ProjectTask) => {
+    const newEntry: TimesheetEntry = {
+      rowId: `row-${Date.now()}`,
+      projectId: project.projectId,
+      projectName: project.name,
+      taskId: task.taskId,
+      taskName: task.name,
+      billable: task.billable,
+      daily: [0, 0, 0, 0, 0, 0, 0]
+    }
+    setEntries(prev => [...prev, newEntry])
+    toast({
+      title: "Entry added",
+      description: `${project.name} - ${task.name}`
+    })
+  }
+
+  const getTasks = useCallback(async (projectId: string): Promise<ProjectTask[]> => {
+    return timesheetService.getAssignedTasks(employeeId, projectId)
+  }, [employeeId])
+
   const handleSave = async () => {
     if (!timesheet) return
     
@@ -358,6 +380,14 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
         readonly={isReadonly}
         attendanceHours={attendanceHours}
         dailyTotals={totals.byDay}
+        addTimeEntryContent={
+          <AddTimeEntryPopover
+            projects={projects}
+            onSelectEntry={handleAddEntry}
+            getTasks={getTasks}
+            disabled={!canEdit}
+          />
+        }
       />
 
       {/* Submission Comment */}

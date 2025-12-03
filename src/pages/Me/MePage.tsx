@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { useAuth } from '@/auth/AuthContext'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -53,6 +54,7 @@ const tabConfig = {
 }
 
 export default function MePage({ defaultTab }: MePageProps) {
+  const { user: currentUser } = useAuth()
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   // Sync activeTab with defaultTab when URL changes
@@ -402,7 +404,7 @@ export default function MePage({ defaultTab }: MePageProps) {
       case 'Timesheet':
         return (
           <div className="min-h-screen">
-            <TimesheetModule employeeId="demo-user" />
+            <TimesheetModule employeeId={currentUser?.id || ''} />
           </div>
         )
       case 'Performance':
