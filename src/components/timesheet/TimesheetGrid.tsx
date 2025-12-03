@@ -26,6 +26,7 @@ interface TimesheetGridProps {
   readonly?: boolean
   attendanceHours?: AttendanceHours
   dailyTotals?: number[]
+  addTimeEntryContent?: React.ReactNode
 }
 
 const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -41,7 +42,8 @@ export function TimesheetGrid({
   categories,
   readonly = false,
   attendanceHours,
-  dailyTotals = []
+  dailyTotals = [],
+  addTimeEntryContent
 }: TimesheetGridProps) {
   const [editingCell, setEditingCell] = useState<{rowId: string, dayIndex: number} | null>(null)
 
@@ -243,9 +245,26 @@ export function TimesheetGrid({
                 </tr>
               ))}
 
+              {/* Add Time Entry Row - between data rows and total row */}
+              {!readonly && (
+                <tr className="border-b">
+                  <td colSpan={10} className="p-3">
+                    {addTimeEntryContent || (
+                      <button
+                        onClick={onAddRow}
+                        className="flex items-center gap-1 text-cyan-600 hover:text-cyan-700 text-sm font-medium transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Time Entry
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )}
+
               {/* Total Hours/Day Row */}
               {dailyTotals.length > 0 && (
-                <tr className="border-b bg-muted/30">
+                <tr className="bg-muted/30">
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -272,21 +291,6 @@ export function TimesheetGrid({
                     <span className="text-sm font-bold">{formatDecimalToTime(weekTotalHours)}</span>
                   </td>
                   <td className="p-3"></td>
-                </tr>
-              )}
-              
-              {/* Add Time Entry Link */}
-              {!readonly && (
-                <tr>
-                  <td colSpan={10} className="p-3">
-                    <button
-                      onClick={onAddRow}
-                      className="flex items-center gap-1 text-cyan-600 hover:text-cyan-700 text-sm font-medium transition-colors"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Time Entry
-                    </button>
-                  </td>
                 </tr>
               )}
             </tbody>
