@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { MoreHorizontal, Search } from 'lucide-react';
 import {
@@ -56,12 +56,9 @@ interface MyRequestsTableProps {
 
 const LEAVE_TYPE_LABELS: Record<string, string> = {
   CL: 'Casual Leave',
-  SL: 'Sick Leave',
-  PL: 'Privilege Leave',
   ML: 'Maternity Leave',
   PL_PATERNITY: 'Paternity Leave',
-  COMP_OFF: 'Compensatory Off',
-  LOP: 'Loss of Pay',
+  COMP_OFF: 'Comp Offs',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -78,6 +75,11 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, leaveTypeFilter, statusFilter]);
 
   // Filter requests
   const filteredRequests = requests.filter((request) => {
