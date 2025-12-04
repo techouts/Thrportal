@@ -1,6 +1,7 @@
 // Timesheet service with mock data
 
 import { format, startOfWeek, addDays, subWeeks, parseISO } from 'date-fns'
+import { supabase } from '@/integrations/supabase/client'
 import type { 
   Timesheet, 
   TimesheetEntry, 
@@ -163,7 +164,41 @@ export class TimesheetService {
   }
 
   async getAssignedProjects(employeeId: string): Promise<ProjectAssignment[]> {
-    return mockProjects
+    try {
+      const { data, error } = await supabase
+        .from('crm_projects')
+        .select(`
+          id,
+          name,
+          start_date,
+          end_date,
+          client:crm_clients(name)
+        `)
+        .in('status', ['Planned', 'Active'])
+        .order('name')
+
+      if (error) {
+        console.error('Error fetching projects:', error)
+        return mockProjects // Fallback to mock data
+      }
+
+      if (!data || data.length === 0) {
+        return mockProjects // Fallback to mock data if no projects
+      }
+
+      return data.map(project => ({
+        projectId: project.id,
+        code: project.id.slice(0, 8).toUpperCase(),
+        name: project.name,
+        client: (project.client as any)?.name || 'Unknown',
+        billable: true,
+        allocStart: project.start_date || undefined,
+        allocEnd: project.end_date || undefined
+      }))
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+      return mockProjects // Fallback to mock data
+    }
   }
 
   async getAssignedTasks(employeeId: string, projectId: string): Promise<ProjectTask[]> {

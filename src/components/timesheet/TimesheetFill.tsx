@@ -113,10 +113,14 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     }
   }
 
-  const handleCellChange = (rowId: string, dayIndex: number, value: number) => {
+  const handleCellChange = (rowId: string, dayIndex: number, value: number, comment?: string) => {
     setEntries(prev => prev.map(entry => 
       entry.rowId === rowId 
-        ? { ...entry, daily: entry.daily.map((h, i) => i === dayIndex ? value : h) }
+        ? { 
+            ...entry, 
+            daily: entry.daily.map((h, i) => i === dayIndex ? value : h),
+            note: comment || entry.note
+          }
         : entry
     ))
     
