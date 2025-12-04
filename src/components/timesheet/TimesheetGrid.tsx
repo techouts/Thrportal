@@ -1,12 +1,10 @@
-import React, { useState, useCallback } from 'react'
-import { MoreHorizontal, Plus, Trash2, Copy, ArrowRight, DivideSquare, Info } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import React, { useCallback } from 'react'
+import { Plus, Info } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { TimeEntryPopover } from './TimeEntryPopover'
 import type { TimesheetEntry, TimesheetWarning, TimesheetPolicy, NonBillableCategory } from '@/types/timesheet'
 
 interface AttendanceHours {
@@ -16,7 +14,7 @@ interface AttendanceHours {
 
 interface TimesheetGridProps {
   rows: TimesheetEntry[]
-  onChangeCell: (rowId: string, dayIndex: number, value: number) => void
+  onChangeCell: (rowId: string, dayIndex: number, value: number, comment?: string) => void
   onChangeCategory: (rowId: string, categoryId: string) => void
   onRowAction: (rowId: string, action: 'fillAcross' | 'splitEvenly' | 'duplicate' | 'delete') => void
   onAddRow: () => void
@@ -45,28 +43,12 @@ export function TimesheetGrid({
   dailyTotals = [],
   addTimeEntryContent
 }: TimesheetGridProps) {
-  const [editingCell, setEditingCell] = useState<{rowId: string, dayIndex: number} | null>(null)
 
   const getWarningsForCell = useCallback((rowId: string, dayIndex?: number) => {
     return warnings.filter(w => 
       w.rowId === rowId && (dayIndex === undefined || w.dayIndex === dayIndex)
     )
   }, [warnings])
-
-  const handleCellClick = (rowId: string, dayIndex: number) => {
-    if (!readonly) {
-      setEditingCell({ rowId, dayIndex })
-    }
-  }
-
-  const handleCellBlur = () => {
-    setEditingCell(null)
-  }
-
-  const handleCellChange = (rowId: string, dayIndex: number, value: string) => {
-    const numValue = Math.max(0, Math.min(24, parseFloat(value) || 0))
-    onChangeCell(rowId, dayIndex, numValue)
-  }
 
   const calculateRowTotal = (row: TimesheetEntry) => {
     return row.daily.reduce((sum, hours) => sum + hours, 0)
@@ -76,7 +58,7 @@ export function TimesheetGrid({
     return hours % 1 === 0 ? hours.toString() : hours.toFixed(1)
   }
 
-  // Convert decimal hours to HH:MM format for total row
+  // Convert decimal hours to HH:MM format
   const formatDecimalToTime = (decimal: number): string => {
     if (!decimal || decimal === 0) return '0:00'
     const hours = Math.floor(decimal)
@@ -98,7 +80,6 @@ export function TimesheetGrid({
                   <th key={day} className="text-center p-3 font-medium w-20">{day}</th>
                 ))}
                 <th className="text-center p-3 font-medium w-20">Total</th>
-                <th className="text-center p-3 font-medium w-16">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -120,7 +101,6 @@ export function TimesheetGrid({
                       {attendanceHours.weekTotal}
                     </span>
                   </td>
-                  <td className="p-3"></td>
                 </tr>
               )}
 
@@ -164,30 +144,17 @@ export function TimesheetGrid({
                   
                   {row.daily.map((hours, dayIndex) => {
                     const cellWarnings = getWarningsForCell(row.rowId, dayIndex)
-                    const isEditing = editingCell?.rowId === row.rowId && editingCell?.dayIndex === dayIndex
                     
                     return (
                       <td key={dayIndex} className="p-1 text-center">
                         <div className="relative">
-                          {isEditing ? (
-                            <Input
-                              type="number"
-                              value={hours.toString()}
-                              onChange={(e) => handleCellChange(row.rowId, dayIndex, e.target.value)}
-                              onBlur={handleCellBlur}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleCellBlur()
-                                if (e.key === 'Escape') handleCellBlur()
-                              }}
-                              className="h-8 text-center text-sm border-primary"
-                              step="0.1"
-                              min="0"
-                              max="24"
-                              autoFocus
-                            />
-                          ) : (
+                          <TimeEntryPopover
+                            value={hours}
+                            comment={row.note}
+                            onChange={(value, comment) => onChangeCell(row.rowId, dayIndex, value, comment)}
+                            disabled={readonly}
+                          >
                             <div
-                              onClick={() => handleCellClick(row.rowId, dayIndex)}
                               className={cn(
                                 "h-8 flex items-center justify-center text-sm cursor-pointer rounded border-2 border-transparent hover:border-muted transition-colors",
                                 cellWarnings.length > 0 && "bg-destructive/10 text-destructive",
@@ -195,9 +162,9 @@ export function TimesheetGrid({
                               )}
                               data-testid={`cell-${row.rowId}-${dayIndex}`}
                             >
-                              {hours > 0 ? formatHours(hours) : ''}
+                              {hours > 0 ? formatDecimalToTime(hours) : '0:00'}
                             </div>
-                          )}
+                          </TimeEntryPopover>
                           {cellWarnings.length > 0 && (
                             <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
                           )}
@@ -207,48 +174,15 @@ export function TimesheetGrid({
                   })}
                   
                   <td className="p-3 text-center font-medium">
-                    {formatHours(calculateRowTotal(row))}
-                  </td>
-                  
-                  <td className="p-1 text-center">
-                    {!readonly && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onRowAction(row.rowId, 'fillAcross')}>
-                            <ArrowRight className="mr-2 h-4 w-4" />
-                            Fill Mon→Fri
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onRowAction(row.rowId, 'splitEvenly')}>
-                            <DivideSquare className="mr-2 h-4 w-4" />
-                            Split evenly
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onRowAction(row.rowId, 'duplicate')}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicate row
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => onRowAction(row.rowId, 'delete')}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete row
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                    {formatDecimalToTime(calculateRowTotal(row))}
                   </td>
                 </tr>
               ))}
 
-              {/* Add Time Entry Row - between data rows and total row */}
+              {/* Add Time Entry Row */}
               {!readonly && (
                 <tr className="border-b">
-                  <td colSpan={10} className="p-3">
+                  <td colSpan={9} className="p-3">
                     {addTimeEntryContent || (
                       <button
                         onClick={onAddRow}
@@ -290,7 +224,6 @@ export function TimesheetGrid({
                   <td className="p-3 text-center">
                     <span className="text-sm font-bold">{formatDecimalToTime(weekTotalHours)}</span>
                   </td>
-                  <td className="p-3"></td>
                 </tr>
               )}
             </tbody>
