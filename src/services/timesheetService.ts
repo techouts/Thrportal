@@ -35,21 +35,18 @@ const mockProjects: ProjectAssignment[] = [
   { projectId: 'p3', code: 'INT001', name: 'Internal Project', client: 'Internal', billable: false }
 ]
 
-const mockTasks: Record<string, ProjectTask[]> = {
-  'p1': [
-    { taskId: 't1', code: 'DEV', name: 'Development', billable: true },
-    { taskId: 't2', code: 'TEST', name: 'Testing', billable: true },
-    { taskId: 't3', code: 'DOC', name: 'Documentation', billable: false }
-  ],
-  'p2': [
-    { taskId: 't4', code: 'ARCH', name: 'Architecture', billable: true },
-    { taskId: 't5', code: 'IMPL', name: 'Implementation', billable: true }
-  ],
-  'p3': [
-    { taskId: 't6', code: 'TRAIN', name: 'Training', billable: false },
-    { taskId: 't7', code: 'MEET', name: 'Meetings', billable: false }
-  ]
-}
+const genericTasks: ProjectTask[] = [
+  { taskId: 't1', code: 'DEV', name: 'Development', billable: true },
+  { taskId: 't2', code: 'TEST', name: 'Testing', billable: true },
+  { taskId: 't3', code: 'DESIGN', name: 'Design', billable: true },
+  { taskId: 't4', code: 'REQ', name: 'Requirements', billable: true },
+  { taskId: 't5', code: 'DOC', name: 'Documentation', billable: false },
+  { taskId: 't6', code: 'DEPLOY', name: 'Deployment', billable: true },
+  { taskId: 't7', code: 'REVIEW', name: 'Code Review', billable: true },
+  { taskId: 't8', code: 'MEET', name: 'Meetings', billable: false },
+  { taskId: 't9', code: 'SUPPORT', name: 'Support', billable: true },
+  { taskId: 't10', code: 'PLAN', name: 'Planning', billable: true },
+]
 
 const mockExportProfiles: ClientExportProfile[] = [
   { id: 'clientA', name: 'Client A Format', format: 'XLSX', isActive: true },
@@ -202,7 +199,7 @@ export class TimesheetService {
   }
 
   async getAssignedTasks(employeeId: string, projectId: string): Promise<ProjectTask[]> {
-    return mockTasks[projectId] || []
+    return genericTasks
   }
 
   async getActiveExportProfiles(): Promise<ClientExportProfile[]> {
