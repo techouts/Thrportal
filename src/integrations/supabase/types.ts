@@ -3020,6 +3020,132 @@ export type Database = {
           },
         ]
       }
+      timesheet_entries: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          entry_date: string
+          hours: number
+          id: string
+          is_billable: boolean | null
+          project_id: string | null
+          task_id: string | null
+          task_name: string | null
+          timesheet_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          entry_date: string
+          hours?: number
+          id?: string
+          is_billable?: boolean | null
+          project_id?: string | null
+          task_id?: string | null
+          task_name?: string | null
+          timesheet_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          entry_date?: string
+          hours?: number
+          id?: string
+          is_billable?: boolean | null
+          project_id?: string | null
+          task_id?: string | null
+          task_name?: string | null
+          timesheet_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "crm_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheet_entries_timesheet_id_fkey"
+            columns: ["timesheet_id"]
+            isOneToOne: false
+            referencedRelation: "timesheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timesheets: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approver_comment: string | null
+          billable_hours: number | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          rejected_at: string | null
+          status: string
+          submission_comment: string | null
+          submitted_at: string | null
+          total_hours: number | null
+          updated_at: string | null
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approver_comment?: string | null
+          billable_hours?: number | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          rejected_at?: string | null
+          status?: string
+          submission_comment?: string | null
+          submitted_at?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approver_comment?: string | null
+          billable_hours?: number | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          rejected_at?: string | null
+          status?: string
+          submission_comment?: string | null
+          submitted_at?: string | null
+          total_hours?: number | null
+          updated_at?: string | null
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheets_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
