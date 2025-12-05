@@ -9,6 +9,7 @@ import { WeekPicker } from './WeekPicker'
 import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
 import { AddTimeEntryPopover } from './AddTimeEntryPopover'
+import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
 import type { 
@@ -26,6 +27,15 @@ interface TimesheetFillProps {
   employeeId: string
 }
 
+interface DeleteDialogState {
+  open: boolean
+  type: 'cell' | 'row'
+  rowId: string
+  dayIndex?: number
+  projectName?: string
+  taskName?: string
+}
+
 export function TimesheetFill({ employeeId }: TimesheetFillProps) {
   const [selectedWeek, setSelectedWeek] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -37,12 +47,20 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
   const [projects, setProjects] = useState<ProjectAssignment[]>([])
   const [warnings, setWarnings] = useState<TimesheetWarning[]>([])
   const [missingComments, setMissingComments] = useState<{ rowId: string; dayIndex: number }[]>([])
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
+    open: false,
+    type: 'cell',
+    rowId: '',
+    dayIndex: undefined
+  })
 
   const timesheetService = TimesheetService.getInstance()
   const policy = timesheetService.getPolicy()
   
   // Fetch attendance hours for the selected week
   const { attendanceHours } = useWeeklyAttendance(employeeId, selectedWeek)
+
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
   useEffect(() => {
     loadTimesheet()
@@ -252,6 +270,85 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     return timesheetService.getAssignedTasks(employeeId, projectId)
   }, [employeeId])
 
+  // Delete handlers
+  const handleDeleteEntryClick = (rowId: string, dayIndex: number) => {
+    const entry = entries.find(e => e.rowId === rowId)
+    if (!entry) return
+    
+    setDeleteDialog({
+      open: true,
+      type: 'cell',
+      rowId,
+      dayIndex,
+      projectName: entry.projectName,
+      taskName: entry.taskName
+    })
+  }
+
+  const handleDeleteRowClick = (rowId: string) => {
+    const entry = entries.find(e => e.rowId === rowId)
+    if (!entry) return
+    
+    setDeleteDialog({
+      open: true,
+      type: 'row',
+      rowId,
+      projectName: entry.projectName,
+      taskName: entry.taskName
+    })
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteDialog.type === 'cell' && deleteDialog.dayIndex !== undefined) {
+      // Clear individual cell
+      setEntries(prev => prev.map(entry => 
+        entry.rowId === deleteDialog.rowId 
+          ? { 
+              ...entry, 
+              daily: entry.daily.map((d, i) => 
+                i === deleteDialog.dayIndex ? { hours: 0, comment: '' } : d
+              )
+            }
+          : entry
+      ))
+      toast({
+        title: "Entry deleted",
+        description: "Time entry has been cleared"
+      })
+    } else if (deleteDialog.type === 'row') {
+      // Clear all hours in the row
+      setEntries(prev => prev.map(entry => 
+        entry.rowId === deleteDialog.rowId 
+          ? { 
+              ...entry, 
+              daily: entry.daily.map(() => ({ hours: 0, comment: '' }))
+            }
+          : entry
+      ))
+      toast({
+        title: "Row cleared",
+        description: "All time entries in this row have been cleared"
+      })
+    }
+    
+    setDeleteDialog(prev => ({ ...prev, open: false }))
+  }
+
+  const getDeleteDialogContent = () => {
+    if (deleteDialog.type === 'cell' && deleteDialog.dayIndex !== undefined) {
+      const dayName = dayNames[deleteDialog.dayIndex]
+      return {
+        description: `Are you sure you want to delete the time entry for ${dayName}?`,
+        warning: `This will clear the hours and comment for ${deleteDialog.projectName} - ${deleteDialog.taskName} on ${dayName}.`
+      }
+    } else {
+      return {
+        description: `Are you sure you want to clear all time entries for this row?`,
+        warning: `This will clear all hours and comments for ${deleteDialog.projectName} - ${deleteDialog.taskName} across all days.`
+      }
+    }
+  }
+
   const handleSave = async () => {
     try {
       setLoading(true)
@@ -408,6 +505,7 @@ const handleCopyLastWeek = async () => {
   const totals = calculateTotals()
   const isReadonly = timesheet?.status === 'APPROVED' || timesheet?.status === 'SUBMITTED'
   const canEdit = !isReadonly && !loading
+  const dialogContent = getDeleteDialogContent()
 
   return (
     <div className="space-y-6" data-testid="timesheet-grid">
@@ -488,6 +586,9 @@ const handleCopyLastWeek = async () => {
         attendanceHours={attendanceHours}
         dailyTotals={totals.byDay}
         missingComments={missingComments}
+        weekStart={selectedWeek}
+        onDeleteEntry={canEdit ? handleDeleteEntryClick : undefined}
+        onDeleteRow={canEdit ? handleDeleteRowClick : undefined}
         addTimeEntryContent={
           <AddTimeEntryPopover
             projects={projects}
@@ -496,6 +597,15 @@ const handleCopyLastWeek = async () => {
             disabled={!canEdit}
           />
         }
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        description={dialogContent.description}
+        warningMessage={dialogContent.warning}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   )
