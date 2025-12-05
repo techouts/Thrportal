@@ -192,27 +192,32 @@ export function EntityDetailsForm({
                   className="mt-1"
                 />
               </div>
-              <div className="flex items-center justify-between  gap-3 mt-2">
-                <div>
-                  <Label className="font-medium">Uploaded Document:</Label>
+              {formData.file_download_url && (
+                <div className="flex items-center justify-between  gap-3 mt-2 p-2 bg-muted rounded">
+                  <div>
+                    <Label className="font-medium">
+                      Uploaded Document: {formData.fileName}
+                    </Label>
 
-                  <span className="text-sm text-gray-700 truncate max-w-xs">
+                    {/* <span className="text-sm text-gray-700 truncate max-w-xs">
                     {formData.fileName}
-                  </span>
+                  </span> */}
+                  </div>
+                  <div>
+                    {formData.file_download_url && (
+                      <a
+                        href={`https://hrportal.coventic.com:7783${formData.file_download_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Download
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  {formData.file_download_url && (
-                    <a
-                      href={`https://hrportal.coventic.com:7783${formData.file_download_url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-                    >
-                      Download
-                    </a>
-                  )}
-                </div>
-              </div>
+              )}
             </>
           )}
 

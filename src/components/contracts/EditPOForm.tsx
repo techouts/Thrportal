@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
-import { format, parse } from 'date-fns';
-import { CalendarIcon, X, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { CrmService } from '@/services/crmService';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from "react";
+import { format, parse } from "date-fns";
+import { CalendarIcon, X, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { CrmService } from "@/services/crmService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditPOFormProps {
   po: any;
@@ -23,16 +33,20 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const [formData, setFormData] = useState({
-    po_number: po.po_number || '',
-    valid_from: po.valid_from ? parse(po.valid_from, 'yyyy-MM-dd', new Date()) : undefined,
-    valid_to: po.valid_to ? parse(po.valid_to, 'yyyy-MM-dd', new Date()) : undefined,
-    total_amount: po.total_amount || '',
-    remaining_amount: po.remaining_amount || '',
-    currency: po.currency || 'INR',
-    status: po.status || 'Active',
-    doc_link: po.doc_link || '',
+    po_number: po.po_number || "",
+    valid_from: po.valid_from
+      ? parse(po.valid_from, "yyyy-MM-dd", new Date())
+      : undefined,
+    valid_to: po.valid_to
+      ? parse(po.valid_to, "yyyy-MM-dd", new Date())
+      : undefined,
+    total_amount: po.total_amount || "",
+    remaining_amount: po.remaining_amount || "",
+    currency: po.currency || "INR",
+    status: po.status || "Active",
+    doc_link: po.doc_link || "",
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,61 +54,66 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast({
-          title: 'Error',
-          description: 'File size must be less than 10MB',
-          variant: 'destructive'
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
         });
         return;
       }
-      
+
       const allowedTypes = [
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/png',
-        'image/jpeg'
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/png",
+        "image/jpeg",
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         toast({
-          title: 'Error',
-          description: 'Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG',
-          variant: 'destructive'
+          title: "Error",
+          description: "Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG",
+          variant: "destructive",
         });
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
 
   const uploadDocument = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `purchase_orders/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('contracts')
+      .from("contracts")
       .upload(filePath, file);
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('contracts')
-      .getPublicUrl(filePath);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("contracts").getPublicUrl(filePath);
 
     return publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.po_number || !formData.valid_from || !formData.valid_to || !formData.total_amount) {
+
+    if (
+      !formData.po_number ||
+      !formData.valid_from ||
+      !formData.valid_to ||
+      !formData.total_amount
+    ) {
       toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive'
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
       return;
     }
@@ -103,17 +122,17 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
 
     try {
       // let doc_link = formData.doc_link;
-      
+
       // if (selectedFile) {
       //   setUploading(true);
       //   doc_link = await uploadDocument(selectedFile);
       //   setUploading(false);
       // }
 
-      const updatePayload:any = {
+      const updatePayload: any = {
         poNumber: formData.po_number,
-        validFrom: format(formData.valid_from, 'yyyy-MM-dd'),
-        validTo: format(formData.valid_to, 'yyyy-MM-dd'),
+        validFrom: format(formData.valid_from, "yyyy-MM-dd"),
+        validTo: format(formData.valid_to, "yyyy-MM-dd"),
         totalAmount: parseFloat(formData.total_amount),
         remainingAmount: parseFloat(formData.remaining_amount),
         currency: formData.currency,
@@ -122,7 +141,7 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
       };
 
       await CrmService.updatePO(po.id, updatePayload);
-      
+
       toast({
         title: "Success",
         description: "Purchase Order updated successfully",
@@ -147,7 +166,9 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
         <Input
           id="po_number"
           value={formData.po_number}
-          onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, po_number: e.target.value })
+          }
           required
         />
       </div>
@@ -176,7 +197,9 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
               <Calendar
                 mode="single"
                 selected={formData.valid_from}
-                onSelect={(date) => setFormData({ ...formData, valid_from: date })}
+                onSelect={(date) =>
+                  setFormData({ ...formData, valid_from: date })
+                }
                 initialFocus
                 className="pointer-events-auto"
               />
@@ -207,9 +230,13 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
               <Calendar
                 mode="single"
                 selected={formData.valid_to}
-                onSelect={(date) => setFormData({ ...formData, valid_to: date })}
+                onSelect={(date) =>
+                  setFormData({ ...formData, valid_to: date })
+                }
                 initialFocus
-                disabled={(date) => formData.valid_from ? date < formData.valid_from : false}
+                disabled={(date) =>
+                  formData.valid_from ? date < formData.valid_from : false
+                }
                 className="pointer-events-auto"
               />
             </PopoverContent>
@@ -225,7 +252,9 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
             type="number"
             step="0.01"
             value={formData.total_amount}
-            onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, total_amount: e.target.value })
+            }
             required
             placeholder="500000.00"
           />
@@ -237,7 +266,9 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
             type="number"
             step="0.01"
             value={formData.remaining_amount}
-            onChange={(e) => setFormData({ ...formData, remaining_amount: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, remaining_amount: e.target.value })
+            }
             placeholder="500000.00"
           />
         </div>
@@ -246,7 +277,12 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="currency">Currency</Label>
-          <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+          <Select
+            value={formData.currency}
+            onValueChange={(value) =>
+              setFormData({ ...formData, currency: value })
+            }
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -260,7 +296,12 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
         </div>
         <div>
           <Label htmlFor="status">Status</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+          <Select
+            value={formData.status}
+            onValueChange={(value) =>
+              setFormData({ ...formData, status: value })
+            }
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -276,21 +317,23 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
 
       <div className="space-y-2">
         <Label>Add New Document</Label>
-        {formData.doc_link && !selectedFile && (
+        {po.file_name && !selectedFile && (
           <div className="flex items-center gap-2 p-2 bg-muted rounded">
-            <span className="text-sm flex-1">Current Document</span>
-            <a 
-              href={formData.doc_link} 
-              target="_blank" 
+            <span className="text-sm flex-1">
+              Current Document: {po.file_name}
+            </span>
+            <a
+              href={`https://hrportal.coventic.com:7783${po.file_download_url}`}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline flex items-center gap-1"
             >
-              <ExternalLink className="h-4 w-4" />
-              View
+              <ExternalLink className="h-3 w-3" />
+              Download
             </a>
           </div>
         )}
-        
+
         {!selectedFile ? (
           <Input
             type="file"
@@ -316,11 +359,20 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={loading}
+        >
           Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? (uploading ? 'Uploading...' : 'Saving...') : 'Save Changes'}
+          {loading
+            ? uploading
+              ? "Uploading..."
+              : "Saving..."
+            : "Save Changes"}
         </Button>
       </div>
     </form>
