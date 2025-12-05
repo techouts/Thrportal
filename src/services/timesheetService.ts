@@ -488,4 +488,69 @@ export class TimesheetService {
       missingComments
     }
   }
+
+  // Get the status of a timesheet for a specific week
+  async getTimesheetStatus(employeeId: string, weekStart: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('timesheets')
+      .select('status')
+      .eq('employee_id', employeeId)
+      .eq('week_start', weekStart)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error fetching timesheet status:', error)
+      return null
+    }
+
+    return data?.status || null
+  }
+
+  // Get incomplete weeks (DRAFT, REJECTED, or no record) for History tab
+  async getIncompleteWeeks(employeeId: string, backdateLimit: number = 6): Promise<{ weekStart: string; status: string | null }[]> {
+    const now = new Date()
+    const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 })
+    const incompleteWeeks: { weekStart: string; status: string | null }[] = []
+
+    // Generate all weeks within backdate limit (excluding current week)
+    const allWeeks: string[] = []
+    for (let i = 1; i <= backdateLimit; i++) {
+      const weekStart = format(subWeeks(currentWeekStart, i), 'yyyy-MM-dd')
+      allWeeks.push(weekStart)
+    }
+
+    if (allWeeks.length === 0) {
+      return []
+    }
+
+    // Fetch existing timesheets for these weeks
+    const { data: existingTimesheets, error } = await supabase
+      .from('timesheets')
+      .select('week_start, status')
+      .eq('employee_id', employeeId)
+      .in('week_start', allWeeks)
+
+    if (error) {
+      console.error('Error fetching timesheets for incomplete weeks:', error)
+      // Return all weeks as incomplete if query fails
+      return allWeeks.map(weekStart => ({ weekStart, status: null }))
+    }
+
+    // Create a map of existing timesheets
+    const timesheetMap = new Map(
+      (existingTimesheets || []).map(ts => [ts.week_start, ts.status])
+    )
+
+    // Filter to only incomplete weeks (no record, DRAFT, or REJECTED)
+    for (const weekStart of allWeeks) {
+      const status = timesheetMap.get(weekStart) || null
+      
+      // Include if: no record, DRAFT, or REJECTED
+      if (!status || status === 'DRAFT' || status === 'REJECTED') {
+        incompleteWeeks.push({ weekStart, status })
+      }
+    }
+
+    return incompleteWeeks
+  }
 }

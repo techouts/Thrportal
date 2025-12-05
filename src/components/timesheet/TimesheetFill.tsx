@@ -55,6 +55,7 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     rowId: '',
     dayIndex: undefined
   })
+  const [canCopyLastWeek, setCanCopyLastWeek] = useState(false)
 
   const timesheetService = TimesheetService.getInstance()
   const policy = timesheetService.getPolicy()
@@ -68,7 +69,22 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     loadTimesheet()
     loadCategories()
     loadProjects()
+    checkCanCopyLastWeek()
   }, [selectedWeek, employeeId])
+
+  const checkCanCopyLastWeek = async () => {
+    try {
+      const lastWeekDate = subWeeks(selectedWeek, 1)
+      const lastWeek = format(lastWeekDate, 'yyyy-MM-dd')
+      const status = await timesheetService.getTimesheetStatus(employeeId, lastWeek)
+      
+      // Only allow copy if last week is SAVED, SUBMITTED, or APPROVED
+      setCanCopyLastWeek(status !== null && ['SAVED', 'SUBMITTED', 'APPROVED'].includes(status))
+    } catch (error) {
+      console.error('Error checking last week status:', error)
+      setCanCopyLastWeek(false)
+    }
+  }
 
   const loadTimesheet = async () => {
     try {
@@ -537,10 +553,12 @@ const handleCopyLastWeek = async () => {
         <div className="flex gap-2">
           {canEdit && (
             <>
-              <Button variant="outline" size="sm" onClick={handleCopyLastWeek} disabled={loading}>
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Last Week
-              </Button>
+              {canCopyLastWeek && (
+                <Button variant="outline" size="sm" onClick={handleCopyLastWeek} disabled={loading}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy Last Week
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={handleSave} disabled={loading}>
                 <Save className="mr-2 h-4 w-4" />
                 Save Draft
