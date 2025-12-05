@@ -1,5 +1,5 @@
 import { AttendanceRecord, AttendanceStats, ClockInRequest, AttendanceApproval, AttendancePolicy, ApiResponse, AttendanceStatsFilter, AttendanceLogsFilter } from '@/types/attendance';
-import { format, startOfMonth, endOfMonth, subMonths, differenceInMinutes, startOfDay, subDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, differenceInMinutes, startOfDay, subDays, getDay, addDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
 const TIMEZONE = 'Asia/Kolkata';
@@ -37,7 +37,7 @@ class AttendanceService {
   async getEmployeeAttendance(employeeId: string, filterType: AttendanceLogsFilter = '30_days'): Promise<ApiResponse<AttendanceRecord[]>> {
     try {
       let startDate: Date;
-      const endDate = new Date();
+      let endDate = new Date();
 
       if (filterType === '30_days') {
         startDate = subDays(endDate, 30);
@@ -45,7 +45,7 @@ class AttendanceService {
         // filterType is a month like '2024-11'
         const [year, month] = filterType.split('-').map(Number);
         startDate = new Date(year, month - 1, 1);
-        endDate.setTime(endOfMonth(startDate).getTime());
+        endDate = endOfMonth(startDate);
       }
 
       const { data, error } = await supabase
@@ -58,25 +58,68 @@ class AttendanceService {
 
       if (error) throw error;
 
-      const records: AttendanceRecord[] = (data || []).map(record => ({
-        id: record.id,
-        employeeId: record.employee_id,
-        date: record.date,
-        checkIn: record.check_in || undefined,
-        checkOut: record.check_out || undefined,
-        breakTime: record.break_time || 0,
-        totalHours: Number(record.total_hours) || 0,
-        status: record.status as AttendanceRecord['status'],
-        location: record.location as AttendanceRecord['location'],
-        coordinates: record.coordinates as any,
-        notes: record.notes || undefined,
-        approvedBy: record.approved_by || undefined,
-        createdAt: record.created_at,
-        updatedAt: record.updated_at
-      }));
+      // Create a map of existing records by date
+      const recordsByDate = new Map<string, any>();
+      (data || []).forEach(record => {
+        recordsByDate.set(record.date, record);
+      });
+
+      // Generate all dates in range and fill missing weekdays as "absent"
+      const allRecords: AttendanceRecord[] = [];
+      const today = startOfDay(new Date());
+      let currentDate = new Date(startDate);
+
+      while (currentDate <= endDate) {
+        const dateStr = format(currentDate, 'yyyy-MM-dd');
+        const existingRecord = recordsByDate.get(dateStr);
+
+        if (existingRecord) {
+          // Use existing record from database
+          allRecords.push({
+            id: existingRecord.id,
+            employeeId: existingRecord.employee_id,
+            date: existingRecord.date,
+            checkIn: existingRecord.check_in || undefined,
+            checkOut: existingRecord.check_out || undefined,
+            breakTime: existingRecord.break_time || 0,
+            totalHours: Number(existingRecord.total_hours) || 0,
+            status: existingRecord.status as AttendanceRecord['status'],
+            location: existingRecord.location as AttendanceRecord['location'],
+            coordinates: existingRecord.coordinates as any,
+            notes: existingRecord.notes || undefined,
+            approvedBy: existingRecord.approved_by || undefined,
+            createdAt: existingRecord.created_at,
+            updatedAt: existingRecord.updated_at
+          });
+        } else if (currentDate < today) {
+          // Only add "absent" for past dates (not today or future)
+          // Skip weekends (Saturday = 6, Sunday = 0)
+          const dayOfWeek = getDay(currentDate);
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            allRecords.push({
+              id: `absent-${dateStr}`,
+              employeeId,
+              date: dateStr,
+              checkIn: undefined,
+              checkOut: undefined,
+              breakTime: 0,
+              totalHours: 0,
+              status: 'absent',
+              location: 'Office',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            });
+          }
+        }
+
+        currentDate = addDays(currentDate, 1);
+      }
+
+      // Sort by date descending
+      allRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       return {
-        data: records,
+        data: allRecords,
         message: 'Attendance records retrieved successfully',
         success: true,
         timestamp: new Date().toISOString()

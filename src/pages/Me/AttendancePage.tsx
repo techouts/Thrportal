@@ -9,7 +9,7 @@ import { attendanceService } from '@/services/attendanceService';
 import { AttendanceRecord, AttendanceStats, AttendanceStatsFilter, AttendanceLogsFilter } from '@/types/attendance';
 import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
-import { format, subMonths } from 'date-fns';
+import { format, subMonths, startOfDay } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AttendancePage() {
@@ -114,6 +114,27 @@ export default function AttendancePage() {
       case 'work_from_home': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
+  };
+
+  const formatCheckOutDisplay = (record: AttendanceRecord) => {
+    if (record.checkOut) return record.checkOut;
+    
+    const recordDate = startOfDay(new Date(record.date));
+    const today = startOfDay(new Date());
+    
+    // If date is in the past and no check-out, show "Missing Clock Out"
+    if (recordDate < today) {
+      return 'Missing Clock Out';
+    }
+    
+    return 'Ongoing';
+  };
+
+  const formatTimeDisplay = (record: AttendanceRecord) => {
+    if (!record.checkIn) {
+      return '— No attendance recorded';
+    }
+    return `${record.checkIn} - ${formatCheckOutDisplay(record)}`;
   };
 
   const renderClockInContent = (isRemote: boolean = false) => {
@@ -347,7 +368,7 @@ export default function AttendancePage() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Timer className="w-3 h-3" />
-                          {record.checkIn} - {record.checkOut || 'Ongoing'}
+                          {formatTimeDisplay(record)}
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
