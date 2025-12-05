@@ -10,6 +10,8 @@ import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
 import { AddTimeEntryPopover } from './AddTimeEntryPopover'
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
+import { CommentSummary } from './CommentSummary'
+import { TimesheetActivity } from './TimesheetActivity'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
 import type { 
@@ -598,6 +600,20 @@ const handleCopyLastWeek = async () => {
           />
         }
       />
+
+      {/* Comment Summary & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CommentSummary 
+          entries={entries} 
+          weekStart={selectedWeek}
+        />
+        <TimesheetActivity 
+          timesheet={timesheet}
+          entries={entries}
+          weekStart={selectedWeek}
+          weekEnd={addDays(selectedWeek, 6)}
+        />
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

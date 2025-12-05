@@ -202,24 +202,16 @@ export function TimesheetGrid({
                                   </TimeEntryPopover>
                                 </div>
                               </TooltipTrigger>
-                              {hasHours && (
-                                <TooltipContent 
-                                  side="top" 
-                                  className={cn(
-                                    "max-w-xs",
-                                    hasComment ? "bg-foreground text-background" : "bg-amber-100 text-amber-800 border-amber-300"
-                                  )}
-                                >
-                                  {hasComment ? (
-                                    <p>{dailyEntry.comment}</p>
-                                  ) : (
-                                    <p className="flex items-center gap-1">
-                                      <AlertTriangle className="h-3 w-3" />
-                                      No comment added
-                                    </p>
-                                  )}
-                                </TooltipContent>
-                              )}
+                              <TooltipContent 
+                                side="top" 
+                                className="bg-slate-800 text-white min-w-[60px] min-h-[24px]"
+                              >
+                                {hasComment ? (
+                                  <p>{dailyEntry.comment}</p>
+                                ) : (
+                                  <span className="text-slate-400 text-xs">No comment</span>
+                                )}
+                              </TooltipContent>
                             </Tooltip>
                             
                             {/* Delete icon for individual cell */}
