@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { toast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface TimeEntryPopoverProps {
   value: number
@@ -21,30 +21,43 @@ export function TimeEntryPopover({
   children
 }: TimeEntryPopoverProps) {
   const [open, setOpen] = useState(false)
-  const [hours, setHours] = useState(0)
-  const [minutes, setMinutes] = useState(0)
+  const [hoursInput, setHoursInput] = useState('')
   const [entryComment, setEntryComment] = useState('')
+
+  // Convert decimal hours to HH:MM format
+  const formatDecimalToTime = (decimal: number): string => {
+    if (!decimal || decimal === 0) return ''
+    const hours = Math.floor(decimal)
+    const minutes = Math.round((decimal - hours) * 60)
+    return `${hours}:${minutes.toString().padStart(2, '0')}`
+  }
+
+  // Parse time input (accepts "8", "8:00", "8:30", etc.)
+  const parseTimeInput = (input: string): number => {
+    if (!input.trim()) return 0
+    
+    // If it contains a colon, parse as HH:MM
+    if (input.includes(':')) {
+      const [hours, minutes] = input.split(':').map(s => parseInt(s, 10) || 0)
+      return hours + (minutes / 60)
+    }
+    
+    // Otherwise parse as decimal hours
+    const parsed = parseFloat(input)
+    return isNaN(parsed) ? 0 : parsed
+  }
 
   // Initialize values when popover opens
   useEffect(() => {
     if (open) {
-      setHours(Math.floor(value))
-      setMinutes(Math.round((value - Math.floor(value)) * 60))
+      setHoursInput(formatDecimalToTime(value))
       setEntryComment(comment)
     }
   }, [open, value, comment])
 
   const handleSave = () => {
-    if (!entryComment.trim()) {
-      toast({
-        title: "Comment required",
-        description: "Please add a comment before saving",
-        variant: "destructive"
-      })
-      return
-    }
-    const decimalHours = hours + (minutes / 60)
-    onChange(decimalHours, entryComment)
+    const decimalHours = parseTimeInput(hoursInput)
+    onChange(decimalHours, entryComment.trim())
     setOpen(false)
   }
 
@@ -52,10 +65,12 @@ export function TimeEntryPopover({
     setOpen(false)
   }
 
-  const incrementHours = () => setHours(prev => Math.min(24, prev + 1))
-  const decrementHours = () => setHours(prev => Math.max(0, prev - 1))
-  const incrementMinutes = () => setMinutes(prev => (prev + 15) % 60)
-  const decrementMinutes = () => setMinutes(prev => (prev - 15 + 60) % 60)
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSave()
+    }
+  }
 
   if (disabled) {
     return <>{children}</>
@@ -67,84 +82,39 @@ export function TimeEntryPopover({
         {children}
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4" align="center">
-        {/* Time Display */}
-        <div className="text-center mb-4">
-          <div className="text-5xl font-mono font-light text-foreground">
-            {hours}:{minutes.toString().padStart(2, '0')}
-          </div>
-        </div>
-
-        {/* Time Controls */}
-        <div className="flex justify-center gap-8 mb-4">
-          {/* Hours Control */}
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={incrementHours}
-              className="h-8 w-8 p-0"
-            >
-              ▲
-            </Button>
-            <span className="text-xs text-muted-foreground">Hours</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={decrementHours}
-              className="h-8 w-8 p-0"
-            >
-              ▼
-            </Button>
-          </div>
-
-          {/* Minutes Control */}
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={incrementMinutes}
-              className="h-8 w-8 p-0"
-            >
-              ▲
-            </Button>
-            <span className="text-xs text-muted-foreground">Minutes</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={decrementMinutes}
-              className="h-8 w-8 p-0"
-            >
-              ▼
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick Time Buttons */}
-        <div className="flex gap-1 mb-4 justify-center">
-          {[1, 2, 4, 8].map(h => (
-            <Button
-              key={h}
-              variant="outline"
-              size="sm"
-              onClick={() => { setHours(h); setMinutes(0); }}
-              className={cn(
-                "h-7 px-2 text-xs",
-                hours === h && minutes === 0 && "bg-primary text-primary-foreground"
-              )}
-            >
-              {h}h
-            </Button>
-          ))}
+        {/* Hours Input */}
+        <div className="space-y-2 mb-4">
+          <Label htmlFor="hours-input" className="text-sm font-medium">
+            Hours
+          </Label>
+          <Input
+            id="hours-input"
+            value={hoursInput}
+            onChange={(e) => setHoursInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. 8 or 8:00"
+            className="text-center text-lg"
+            autoFocus
+          />
+          <p className="text-xs text-muted-foreground">
+            Enter hours (e.g., 8 or 8:30)
+          </p>
         </div>
 
         {/* Comment Field */}
-        <Textarea
-          placeholder="Add comment (required)"
-          value={entryComment}
-          onChange={(e) => setEntryComment(e.target.value)}
-          className="mb-3 text-sm"
-          rows={2}
-        />
+        <div className="space-y-2 mb-4">
+          <Label htmlFor="comment-input" className="text-sm font-medium">
+            Add comment
+          </Label>
+          <Textarea
+            id="comment-input"
+            placeholder="Add comment (optional)"
+            value={entryComment}
+            onChange={(e) => setEntryComment(e.target.value)}
+            className="text-sm"
+            rows={2}
+          />
+        </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2">

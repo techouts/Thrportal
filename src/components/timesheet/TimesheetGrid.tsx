@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { Plus, Info } from 'lucide-react'
+import { Plus, Info, AlertTriangle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -14,7 +14,7 @@ interface AttendanceHours {
 
 interface TimesheetGridProps {
   rows: TimesheetEntry[]
-  onChangeCell: (rowId: string, dayIndex: number, value: number, comment?: string) => void
+  onChangeCell: (rowId: string, dayIndex: number, value: number, comment: string) => void
   onChangeCategory: (rowId: string, categoryId: string) => void
   onRowAction: (rowId: string, action: 'fillAcross' | 'splitEvenly' | 'duplicate' | 'delete') => void
   onAddRow: () => void
@@ -25,6 +25,7 @@ interface TimesheetGridProps {
   attendanceHours?: AttendanceHours
   dailyTotals?: number[]
   addTimeEntryContent?: React.ReactNode
+  missingComments?: { rowId: string; dayIndex: number }[]
 }
 
 const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -41,7 +42,8 @@ export function TimesheetGrid({
   readonly = false,
   attendanceHours,
   dailyTotals = [],
-  addTimeEntryContent
+  addTimeEntryContent,
+  missingComments = []
 }: TimesheetGridProps) {
 
   const getWarningsForCell = useCallback((rowId: string, dayIndex?: number) => {
@@ -50,12 +52,12 @@ export function TimesheetGrid({
     )
   }, [warnings])
 
-  const calculateRowTotal = (row: TimesheetEntry) => {
-    return row.daily.reduce((sum, hours) => sum + hours, 0)
-  }
+  const isMissingComment = useCallback((rowId: string, dayIndex: number) => {
+    return missingComments.some(mc => mc.rowId === rowId && mc.dayIndex === dayIndex)
+  }, [missingComments])
 
-  const formatHours = (hours: number) => {
-    return hours % 1 === 0 ? hours.toString() : hours.toFixed(1)
+  const calculateRowTotal = (row: TimesheetEntry) => {
+    return row.daily.reduce((sum, d) => sum + d.hours, 0)
   }
 
   // Convert decimal hours to HH:MM format
@@ -142,15 +144,16 @@ export function TimesheetGrid({
                     </div>
                   </td>
                   
-                  {row.daily.map((hours, dayIndex) => {
+                  {row.daily.map((dailyEntry, dayIndex) => {
                     const cellWarnings = getWarningsForCell(row.rowId, dayIndex)
+                    const hasMissingComment = isMissingComment(row.rowId, dayIndex)
                     
                     return (
                       <td key={dayIndex} className="p-1 text-center">
                         <div className="relative">
                           <TimeEntryPopover
-                            value={hours}
-                            comment={row.note}
+                            value={dailyEntry.hours}
+                            comment={dailyEntry.comment}
                             onChange={(value, comment) => onChangeCell(row.rowId, dayIndex, value, comment)}
                             disabled={readonly}
                           >
@@ -158,15 +161,25 @@ export function TimesheetGrid({
                               className={cn(
                                 "h-8 flex items-center justify-center text-sm cursor-pointer rounded border-2 border-transparent hover:border-muted transition-colors",
                                 cellWarnings.length > 0 && "bg-destructive/10 text-destructive",
+                                hasMissingComment && "border-amber-500 bg-amber-50",
                                 readonly && "cursor-default hover:border-transparent"
                               )}
                               data-testid={`cell-${row.rowId}-${dayIndex}`}
                             >
-                              {hours > 0 ? formatDecimalToTime(hours) : '0:00'}
+                              {dailyEntry.hours > 0 ? formatDecimalToTime(dailyEntry.hours) : '0:00'}
                             </div>
                           </TimeEntryPopover>
                           {cellWarnings.length > 0 && (
                             <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
+                          )}
+                          {/* Missing comment warning */}
+                          {hasMissingComment && (
+                            <div className="mt-0.5">
+                              <span className="text-[10px] text-amber-600 font-medium flex items-center justify-center gap-0.5">
+                                <AlertTriangle className="h-2.5 w-2.5" />
+                                COMMENT
+                              </span>
+                            </div>
                           )}
                         </div>
                       </td>

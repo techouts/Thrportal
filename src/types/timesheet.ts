@@ -1,5 +1,10 @@
 // Timesheet module types
 
+export interface DailyEntry {
+  hours: number
+  comment: string
+}
+
 export interface TimesheetEntry {
   id?: string
   rowId: string
@@ -9,14 +14,14 @@ export interface TimesheetEntry {
   taskName: string
   billable: boolean
   nonBillableCategoryId?: string
-  daily: number[] // 7 days, Mon-Sun
-  note?: string
+  daily: DailyEntry[] // 7 days, Mon-Sun with hours and comment per day
 }
 
 export interface Timesheet {
   id: string
   employeeId: string
   weekStart: string // YYYY-MM-DD format (Monday)
+  weekEnd?: string
   status: 'DRAFT' | 'SAVED' | 'SUBMITTED' | 'APPROVED' | 'REJECTED'
   approverId?: string
   submittedAt?: string
@@ -24,6 +29,7 @@ export interface Timesheet {
   rejectedAt?: string
   approverComment?: string
   totalHours: number
+  billableHours?: number
   entries: TimesheetEntry[]
   submissionComment?: string
 }
@@ -31,7 +37,7 @@ export interface Timesheet {
 export interface TimesheetWarning {
   rowId: string
   dayIndex?: number // 0-6 for Mon-Sun
-  type: 'LEAVE' | 'ALLOCATION' | 'CAP_DAY' | 'CAP_WEEK'
+  type: 'LEAVE' | 'ALLOCATION' | 'CAP_DAY' | 'CAP_WEEK' | 'MISSING_COMMENT'
   message: string
 }
 

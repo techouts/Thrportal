@@ -1,4 +1,4 @@
-// Timesheet service with mock data
+// Timesheet service with database integration
 
 import { format, startOfWeek, addDays, subWeeks, parseISO } from 'date-fns'
 import { supabase } from '@/integrations/supabase/client'
@@ -16,10 +16,11 @@ import type {
   TimesheetWarning,
   TimesheetPolicy,
   HistoryFilter,
-  ExportFilters
+  ExportFilters,
+  DailyEntry
 } from '@/types/timesheet'
 
-// Mock data
+// Mock data for categories and tasks (will be replaced with DB later)
 const mockNonBillableCategories: NonBillableCategory[] = [
   { id: 'training', name: 'Training', isActive: true },
   { id: 'presales', name: 'Pre-sales', isActive: true },
@@ -63,7 +64,6 @@ const mockPolicy: TimesheetPolicy = {
 
 export class TimesheetService {
   private static instance: TimesheetService
-  private timesheets: Map<string, Timesheet> = new Map()
 
   static getInstance(): TimesheetService {
     if (!TimesheetService.instance) {
@@ -72,73 +72,277 @@ export class TimesheetService {
     return TimesheetService.instance
   }
 
+  // Helper to create empty daily entries
+  private createEmptyDailyEntries(): DailyEntry[] {
+    return Array(7).fill(null).map(() => ({ hours: 0, comment: '' }))
+  }
+
+  // Fetch timesheet from database
   async getTimesheet(employeeId: string, weekStart: string): Promise<Timesheet> {
-    const key = `${employeeId}-${weekStart}`
-    
-    if (!this.timesheets.has(key)) {
-      // Create new timesheet
-      const timesheet: Timesheet = {
-        id: `ts-${Date.now()}`,
+    const weekEnd = format(addDays(parseISO(weekStart), 6), 'yyyy-MM-dd')
+
+    // Try to fetch existing timesheet
+    const { data: timesheetData, error: timesheetError } = await supabase
+      .from('timesheets')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('week_start', weekStart)
+      .maybeSingle()
+
+    if (timesheetError) {
+      console.error('Error fetching timesheet:', timesheetError)
+      throw timesheetError
+    }
+
+    // If no timesheet exists, return a new draft
+    if (!timesheetData) {
+      return {
+        id: '',
         employeeId,
         weekStart,
+        weekEnd,
         status: 'DRAFT',
         totalHours: 0,
+        billableHours: 0,
         entries: []
       }
-      this.timesheets.set(key, timesheet)
     }
 
-    return this.timesheets.get(key)!
-  }
+    // Fetch entries for the timesheet
+    const { data: entriesData, error: entriesError } = await supabase
+      .from('timesheet_entries')
+      .select('*')
+      .eq('timesheet_id', timesheetData.id)
+      .order('entry_date')
 
-  async saveTimesheet(timesheetId: string, status: 'SAVED' | 'SUBMITTED', comment?: string): Promise<{ ok: boolean }> {
-    for (const timesheet of this.timesheets.values()) {
-      if (timesheet.id === timesheetId) {
-        timesheet.status = status
-        if (comment) timesheet.submissionComment = comment
-        if (status === 'SUBMITTED') {
-          timesheet.submittedAt = new Date().toISOString()
-        }
-        break
+    if (entriesError) {
+      console.error('Error fetching entries:', entriesError)
+      throw entriesError
+    }
+
+    // Group entries by project+task to build TimesheetEntry rows
+    const entryMap = new Map<string, TimesheetEntry>()
+    
+    for (const entry of (entriesData || [])) {
+      const key = `${entry.project_id || 'none'}-${entry.task_id || 'none'}`
+      const entryDate = parseISO(entry.entry_date)
+      const dayIndex = (entryDate.getDay() + 6) % 7 // Convert Sun=0 to Mon=0
+      
+      if (!entryMap.has(key)) {
+        entryMap.set(key, {
+          id: entry.id,
+          rowId: `row-${entry.project_id}-${entry.task_id}`,
+          projectId: entry.project_id || '',
+          projectName: '', // Will be populated below
+          taskId: entry.task_id || '',
+          taskName: entry.task_name || '',
+          billable: entry.is_billable ?? true,
+          daily: this.createEmptyDailyEntries()
+        })
+      }
+      
+      const timesheetEntry = entryMap.get(key)!
+      timesheetEntry.daily[dayIndex] = {
+        hours: Number(entry.hours) || 0,
+        comment: entry.comment || ''
       }
     }
-    return { ok: true }
+
+    // Populate project names
+    const entries = Array.from(entryMap.values())
+    const projectIds = [...new Set(entries.map(e => e.projectId).filter(Boolean))]
+    
+    if (projectIds.length > 0) {
+      const { data: projectsData } = await supabase
+        .from('crm_projects')
+        .select('id, name')
+        .in('id', projectIds)
+      
+      const projectMap = new Map((projectsData || []).map(p => [p.id, p.name]))
+      
+      for (const entry of entries) {
+        entry.projectName = projectMap.get(entry.projectId) || 'Unknown Project'
+      }
+    }
+
+    return {
+      id: timesheetData.id,
+      employeeId: timesheetData.employee_id,
+      weekStart: timesheetData.week_start,
+      weekEnd: timesheetData.week_end,
+      status: timesheetData.status as Timesheet['status'],
+      totalHours: Number(timesheetData.total_hours) || 0,
+      billableHours: Number(timesheetData.billable_hours) || 0,
+      submittedAt: timesheetData.submitted_at || undefined,
+      approvedAt: timesheetData.approved_at || undefined,
+      approverComment: timesheetData.approver_comment || undefined,
+      submissionComment: timesheetData.submission_comment || undefined,
+      entries
+    }
   }
 
-  async bulkUpsertEntries(timesheetId: string, entries: any[]): Promise<{ ok: boolean; totals: TimesheetTotals }> {
-    // Mock implementation
-    const totals: TimesheetTotals = {
-      week: entries.reduce((sum, entry) => sum + (entry.hours || 0), 0),
-      byDay: Array(7).fill(0).map((_, i) => 
-        entries.filter(e => new Date(e.day).getDay() === (i + 1) % 7).reduce((sum, e) => sum + (e.hours || 0), 0)
-      ),
-      billable: entries.filter(e => e.workType === 'BILLABLE').reduce((sum, e) => sum + (e.hours || 0), 0),
-      nonBillable: entries.filter(e => e.workType === 'NON_BILLABLE').reduce((sum, e) => sum + (e.hours || 0), 0),
-      timeOff: entries.filter(e => e.workType === 'TIME_OFF').reduce((sum, e) => sum + (e.hours || 0), 0)
-    }
+  // Save timesheet to database
+  async saveTimesheet(
+    employeeId: string,
+    weekStart: string,
+    entries: TimesheetEntry[],
+    status: 'SAVED' | 'SUBMITTED',
+    submissionComment?: string
+  ): Promise<{ ok: boolean; timesheet: Timesheet }> {
+    const weekEnd = format(addDays(parseISO(weekStart), 6), 'yyyy-MM-dd')
     
-    return { ok: true, totals }
+    // Calculate totals
+    let totalHours = 0
+    let billableHours = 0
+    
+    for (const entry of entries) {
+      const entryTotal = entry.daily.reduce((sum, d) => sum + d.hours, 0)
+      totalHours += entryTotal
+      if (entry.billable) {
+        billableHours += entryTotal
+      }
+    }
+
+    // Upsert timesheet
+    const { data: timesheetData, error: timesheetError } = await supabase
+      .from('timesheets')
+      .upsert({
+        employee_id: employeeId,
+        week_start: weekStart,
+        week_end: weekEnd,
+        status,
+        total_hours: totalHours,
+        billable_hours: billableHours,
+        submission_comment: submissionComment || null,
+        submitted_at: status === 'SUBMITTED' ? new Date().toISOString() : null
+      }, {
+        onConflict: 'employee_id,week_start'
+      })
+      .select()
+      .single()
+
+    if (timesheetError) {
+      console.error('Error saving timesheet:', timesheetError)
+      throw timesheetError
+    }
+
+    const timesheetId = timesheetData.id
+
+    // Delete existing entries and insert new ones
+    await supabase
+      .from('timesheet_entries')
+      .delete()
+      .eq('timesheet_id', timesheetId)
+
+    // Prepare entries for insert
+    const entriesToInsert: any[] = []
+    
+    for (const entry of entries) {
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const dailyEntry = entry.daily[dayIndex]
+        if (dailyEntry.hours > 0 || dailyEntry.comment) {
+          const entryDate = format(addDays(parseISO(weekStart), dayIndex), 'yyyy-MM-dd')
+          
+          entriesToInsert.push({
+            timesheet_id: timesheetId,
+            project_id: entry.projectId || null,
+            task_id: entry.taskId,
+            task_name: entry.taskName,
+            entry_date: entryDate,
+            hours: dailyEntry.hours,
+            comment: dailyEntry.comment || null,
+            is_billable: entry.billable
+          })
+        }
+      }
+    }
+
+    if (entriesToInsert.length > 0) {
+      const { error: entriesError } = await supabase
+        .from('timesheet_entries')
+        .insert(entriesToInsert)
+
+      if (entriesError) {
+        console.error('Error saving entries:', entriesError)
+        throw entriesError
+      }
+    }
+
+    return {
+      ok: true,
+      timesheet: {
+        id: timesheetId,
+        employeeId,
+        weekStart,
+        weekEnd,
+        status,
+        totalHours,
+        billableHours,
+        submissionComment,
+        submittedAt: status === 'SUBMITTED' ? new Date().toISOString() : undefined,
+        entries
+      }
+    }
   }
 
   async recallTimesheet(timesheetId: string): Promise<{ ok: boolean }> {
-    for (const timesheet of this.timesheets.values()) {
-      if (timesheet.id === timesheetId && timesheet.status === 'SUBMITTED') {
-        timesheet.status = 'SAVED'
-        timesheet.submittedAt = undefined
-        break
-      }
+    const { error } = await supabase
+      .from('timesheets')
+      .update({
+        status: 'SAVED',
+        submitted_at: null
+      })
+      .eq('id', timesheetId)
+      .eq('status', 'SUBMITTED')
+
+    if (error) {
+      console.error('Error recalling timesheet:', error)
+      throw error
     }
+
     return { ok: true }
   }
 
   async getHistory(employeeId: string, filter: HistoryFilter): Promise<TimesheetHistoryItem[]> {
+    let query = supabase
+      .from('timesheets')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .order('week_start', { ascending: false })
+      .limit(20)
+
+    if (filter.status && filter.status !== 'All') {
+      query = query.eq('status', filter.status)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching history:', error)
+      // Return mock data as fallback
+      return this.getMockHistory(filter)
+    }
+
+    return (data || []).map(ts => ({
+      weekStart: ts.week_start,
+      status: ts.status,
+      totalHours: Number(ts.total_hours) || 0,
+      billablePercentage: ts.total_hours > 0 
+        ? (Number(ts.billable_hours) / Number(ts.total_hours)) * 100 
+        : 0,
+      flags: [],
+      submittedAt: ts.submitted_at || undefined,
+      approvedAt: ts.approved_at || undefined
+    }))
+  }
+
+  private getMockHistory(filter: HistoryFilter): TimesheetHistoryItem[] {
     const now = new Date()
     const items: TimesheetHistoryItem[] = []
     
-    // Generate mock history for last 12 weeks
     for (let i = 0; i < 12; i++) {
       const weekStart = format(startOfWeek(subWeeks(now, i), { weekStartsOn: 1 }), 'yyyy-MM-dd')
-      const status = i === 0 ? 'DRAFT' : i === 1 ? 'SUBMITTED' : i <= 3 ? 'APPROVED' : 'APPROVED'
+      const status = i === 0 ? 'DRAFT' : i === 1 ? 'SUBMITTED' : 'APPROVED'
       
       if (filter.status && filter.status !== 'All' && status !== filter.status) continue
       
@@ -147,7 +351,7 @@ export class TimesheetService {
         status,
         totalHours: 40 + Math.random() * 8,
         billablePercentage: 80 + Math.random() * 15,
-        flags: i === 1 ? ['WARNINGS'] : [],
+        flags: [],
         submittedAt: i > 0 ? subWeeks(now, i - 0.5).toISOString() : undefined,
         approvedAt: i > 1 ? subWeeks(now, i - 1).toISOString() : undefined
       })
@@ -176,11 +380,11 @@ export class TimesheetService {
 
       if (error) {
         console.error('Error fetching projects:', error)
-        return mockProjects // Fallback to mock data
+        return mockProjects
       }
 
       if (!data || data.length === 0) {
-        return mockProjects // Fallback to mock data if no projects
+        return mockProjects
       }
 
       return data.map(project => ({
@@ -194,7 +398,7 @@ export class TimesheetService {
       }))
     } catch (error) {
       console.error('Error fetching projects:', error)
-      return mockProjects // Fallback to mock data
+      return mockProjects
     }
   }
 
@@ -242,8 +446,8 @@ export class TimesheetService {
     const warnings: TimesheetWarning[] = []
     
     entries.forEach(entry => {
-      entry.daily.forEach((hours, dayIndex) => {
-        if (hours > policy.maxPerDay) {
+      entry.daily.forEach((dailyEntry, dayIndex) => {
+        if (dailyEntry.hours > policy.maxPerDay) {
           warnings.push({
             rowId: entry.rowId,
             dayIndex,
@@ -253,7 +457,7 @@ export class TimesheetService {
         }
       })
       
-      const weekTotal = entry.daily.reduce((sum, hours) => sum + hours, 0)
+      const weekTotal = entry.daily.reduce((sum, d) => sum + d.hours, 0)
       if (weekTotal > policy.maxPerWeek) {
         warnings.push({
           rowId: entry.rowId,
@@ -264,5 +468,24 @@ export class TimesheetService {
     })
     
     return warnings
+  }
+
+  // Validate that all entries with hours have comments (for submission)
+  validateCommentsForSubmit(entries: TimesheetEntry[]): { valid: boolean; missingComments: { rowId: string; dayIndex: number }[] } {
+    const missingComments: { rowId: string; dayIndex: number }[] = []
+    
+    for (const entry of entries) {
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const daily = entry.daily[dayIndex]
+        if (daily.hours > 0 && !daily.comment.trim()) {
+          missingComments.push({ rowId: entry.rowId, dayIndex })
+        }
+      }
+    }
+
+    return {
+      valid: missingComments.length === 0,
+      missingComments
+    }
   }
 }
