@@ -31,6 +31,7 @@ interface RequestLeaveDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: LeaveRequestData) => Promise<void>;
+  initialDate?: Date;
 }
 
 export interface LeaveRequestData {
@@ -48,11 +49,11 @@ const LEAVE_TYPES = [
   { value: 'COMP_OFF', label: 'Comp Offs' },
 ];
 
-export function RequestLeaveDialog({ open, onOpenChange, onSubmit }: RequestLeaveDialogProps) {
+export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate }: RequestLeaveDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fromDate, setFromDate] = useState<Date>();
-  const [toDate, setToDate] = useState<Date>();
+  const [fromDate, setFromDate] = useState<Date | undefined>(initialDate);
+  const [toDate, setToDate] = useState<Date | undefined>(initialDate);
   const [leaveType, setLeaveType] = useState<string>('');
   const [reason, setReason] = useState('');
 
@@ -107,8 +108,11 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit }: RequestLeav
   useEffect(() => {
     if (!open) {
       resetForm();
+    } else if (initialDate) {
+      setFromDate(initialDate);
+      setToDate(initialDate);
     }
-  }, [open]);
+  }, [open, initialDate]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
