@@ -7,7 +7,7 @@ export interface AttendanceRecord {
   breakTime: number; // minutes
   totalHours: number;
   status: 'present' | 'absent' | 'late' | 'half_day' | 'work_from_home';
-  location: 'Office' | 'Remote' | 'Field';
+  location: 'Office' | 'Remote' | 'Field' | 'WFH';
   coordinates?: {
     lat: number;
     lng: number;
@@ -54,7 +54,7 @@ export interface AttendanceStats {
 
 export interface ClockInRequest {
   employeeId: string;
-  location: 'Office' | 'Remote' | 'Field';
+  location: 'Office' | 'Remote' | 'Field' | 'WFH';
   coordinates?: {
     lat: number;
     lng: number;
