@@ -688,15 +688,6 @@ export function ClientDeskPage() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    {selectedNode.type === 'project' && (
-                      <Button 
-                        variant="outline"
-                        onClick={() => navigate(`/Projects/Board?projectId=${selectedNode.data.id}`)}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Open in Project Board
-                      </Button>
-                    )}
                   </div>
                 </div>
                 
@@ -987,10 +978,6 @@ export function ClientDeskPage() {
               <div>
                 <Label className="text-sm font-medium">Quick Actions</Label>
                 <div className="mt-2 space-y-2">
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open in Project Board
-                  </Button>
                   <Button variant="outline" size="sm" className="w-full justify-start">
                     <Globe className="h-4 w-4 mr-2" />
                     Open SharePoint
