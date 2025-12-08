@@ -1,15 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
-import { Plus, Search, Edit, Trash2, Users, DollarSign, Clock, Target } from 'lucide-react';
-import { assignmentService } from '@/services/assignmentService';
+import { Label } from '@/components/ui/label';
+import { Plus, Search, Edit, Trash2, Users } from 'lucide-react';
 import { ScorecardPanel } from '@/components/assignments/ScorecardPanel';
+import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectAllocation {
   id: string;
@@ -17,72 +18,162 @@ interface ProjectAllocation {
   role: string;
   allocationPct: number;
   startDate: string;
-  endDate: string;
-  type: 'Active' | 'Shadow';
+  endDate: string | null;
+  type: string;
   utilizationPct: number;
   skills: string[];
-  avatar?: string;
 }
 
 export function AssignmentProjectSection() {
   const { toast } = useToast();
-  const [selectedClient, setSelectedClient] = useState<string>('all');
-  const [selectedAccount, setSelectedAccount] = useState<string>('all');
-  const [selectedProject, setSelectedProject] = useState<string>('all');
-  const [selectedRole, setSelectedRole] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClient, setSelectedClient] = useState<string>('');
+  const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const [selectedProject, setSelectedProject] = useState<string>('');
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [allocations, setAllocations] = useState<ProjectAllocation[]>([]);
   const [editingAllocation, setEditingAllocation] = useState<string | null>(null);
 
-  // Mock data - replace with real service calls
-  const allocations: ProjectAllocation[] = [
-    {
-      id: '1',
-      employeeName: 'Sarah Chen',
-      role: 'Frontend Developer',
-      allocationPct: 100,
-      startDate: '2024-01-01',
-      endDate: '2024-06-30',
-      type: 'Active',
-      utilizationPct: 95,
-      skills: ['React', 'TypeScript', 'UI/UX']
-    },
-    {
-      id: '2',
-      employeeName: 'Mike Johnson',
-      role: 'Backend Developer',
-      allocationPct: 75,
-      startDate: '2024-02-01',
-      endDate: '2024-08-31',
-      type: 'Active',
-      utilizationPct: 80,
-      skills: ['Node.js', 'PostgreSQL', 'Docker']
-    },
-    {
-      id: '3',
-      employeeName: 'Emma Davis',
-      role: 'QA Engineer',
-      allocationPct: 50,
-      startDate: '2024-03-01',
-      endDate: '2024-09-30',
-      type: 'Shadow',
-      utilizationPct: 45,
-      skills: ['Automation', 'Testing', 'Cypress']
+  // Fetch clients from database
+  const { data: clients = [] } = useQuery({
+    queryKey: ['crm-clients-active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('crm_clients')
+        .select('id, name')
+        .eq('status', 'Active')
+        .order('name');
+      if (error) throw error;
+      return data || [];
     }
-  ];
+  });
 
-  const filteredAllocations = useMemo(() => {
-    return allocations.filter(allocation => {
-      const matchesSearch = searchTerm === '' || 
-        allocation.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        allocation.role.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRole = selectedRole === 'all' || allocation.role === selectedRole;
-      return matchesSearch && matchesRole;
-    });
-  }, [allocations, searchTerm, selectedRole]);
+  // Fetch accounts filtered by selected client
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['crm-accounts', selectedClient],
+    queryFn: async () => {
+      if (!selectedClient) return [];
+      const { data, error } = await supabase
+        .from('crm_accounts')
+        .select('id, name')
+        .eq('client_id', selectedClient)
+        .eq('status', 'Active')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedClient
+  });
+
+  // Fetch projects filtered by selected account
+  const { data: projects = [] } = useQuery({
+    queryKey: ['crm-projects', selectedAccount],
+    queryFn: async () => {
+      if (!selectedAccount) return [];
+      const { data, error } = await supabase
+        .from('crm_projects')
+        .select('id, name')
+        .eq('account_id', selectedAccount)
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedAccount
+  });
+
+  // Cascading reset handlers
+  const handleClientChange = (clientId: string) => {
+    setSelectedClient(clientId);
+    setSelectedAccount('');
+    setSelectedProject('');
+    setHasSearched(false);
+    setAllocations([]);
+  };
+
+  const handleAccountChange = (accountId: string) => {
+    setSelectedAccount(accountId);
+    setSelectedProject('');
+    setHasSearched(false);
+    setAllocations([]);
+  };
+
+  const handleProjectChange = (projectId: string) => {
+    setSelectedProject(projectId);
+    setHasSearched(false);
+    setAllocations([]);
+  };
+
+  // Search handler - fetches allocations for selected project
+  const handleSearch = async () => {
+    if (!selectedProject) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('allocations')
+        .select(`
+          id,
+          allocation_pct,
+          type,
+          start_date,
+          end_date,
+          bill_rate,
+          cost_rate,
+          employee_id,
+          role_id,
+          profiles!allocations_employee_id_fkey (id, display_name, first_name, last_name),
+          roles_catalog!allocations_role_id_fkey (name)
+        `)
+        .eq('project_id', selectedProject);
+
+      if (error) throw error;
+
+      const mappedAllocations: ProjectAllocation[] = (data || []).map((alloc: any) => ({
+        id: alloc.id,
+        employeeName: alloc.profiles?.display_name || 
+          `${alloc.profiles?.first_name || ''} ${alloc.profiles?.last_name || ''}`.trim() || 
+          'Unknown',
+        role: alloc.roles_catalog?.name || 'Unknown Role',
+        allocationPct: alloc.allocation_pct || 0,
+        startDate: alloc.start_date,
+        endDate: alloc.end_date,
+        type: alloc.type || 'ACTIVE',
+        utilizationPct: Math.round((alloc.allocation_pct || 0) * 0.9), // Simulated utilization
+        skills: [] // Would need a skills table
+      }));
+
+      setAllocations(mappedAllocations);
+      setHasSearched(true);
+    } catch (error) {
+      console.error('Error fetching allocations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch project allocations",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const scorecardData = useMemo(() => {
+    if (allocations.length === 0) {
+      return {
+        totalEmployees: 0,
+        shadowResources: 0,
+        shadowPct: 0,
+        underAllocated: 0,
+        overAllocated: 0,
+        benchEligibleIn2Weeks: 0,
+        monthlyCost: 0,
+        plannedHours: 0,
+        actualHours: 0,
+        avgUtilization: 0
+      };
+    }
+
     const totalEmployees = allocations.length;
-    const shadowResources = allocations.filter(a => a.type === 'Shadow').length;
+    const shadowResources = allocations.filter(a => a.type === 'SHADOW').length;
     const underAllocated = allocations.filter(a => a.allocationPct < 50).length;
     const overAllocated = allocations.filter(a => a.allocationPct > 100).length;
     const avgUtilization = allocations.reduce((sum, a) => sum + a.utilizationPct, 0) / totalEmployees;
@@ -93,10 +184,10 @@ export function AssignmentProjectSection() {
       shadowPct: (shadowResources / totalEmployees) * 100,
       underAllocated,
       overAllocated,
-      benchEligibleIn2Weeks: 2,
-      monthlyCost: 145000,
-      plannedHours: 1200,
-      actualHours: 1150,
+      benchEligibleIn2Weeks: 0,
+      monthlyCost: 0,
+      plannedHours: 0,
+      actualHours: 0,
       avgUtilization
     };
   }, [allocations]);
@@ -115,152 +206,182 @@ export function AssignmentProjectSection() {
     });
   };
 
+  const isSearchEnabled = selectedClient && selectedAccount && selectedProject;
+
   return (
-    <div className="grid grid-cols-4 gap-6 h-full">
-      {/* Main Content - 3 columns */}
-      <div className="col-span-3 space-y-6">
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search employees..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Client" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tech-corp">Tech Corp</SelectItem>
-                  <SelectItem value="startup-inc">Startup Inc</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Account" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="acc-1">Account 1</SelectItem>
-                  <SelectItem value="acc-2">Account 2</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="proj-1">E-commerce Platform</SelectItem>
-                  <SelectItem value="proj-2">Mobile App</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="Frontend Developer">Frontend Developer</SelectItem>
-                  <SelectItem value="Backend Developer">Backend Developer</SelectItem>
-                  <SelectItem value="QA Engineer">QA Engineer</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleAddResource} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Resource
-              </Button>
+    <div className="space-y-6">
+      {/* Filter Section */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="min-w-[200px] flex-1 max-w-[250px]">
+              <Label className="mb-2 block text-sm font-medium">Client</Label>
+              <Combobox
+                options={clients.map(c => ({ value: c.id, label: c.name }))}
+                value={selectedClient}
+                onChange={handleClientChange}
+                placeholder="Select Client..."
+                searchPlaceholder="Search clients..."
+                emptyMessage="No clients found."
+              />
             </div>
+
+            <div className="min-w-[200px] flex-1 max-w-[250px]">
+              <Label className="mb-2 block text-sm font-medium">Account</Label>
+              <Combobox
+                options={accounts.map(a => ({ value: a.id, label: a.name }))}
+                value={selectedAccount}
+                onChange={handleAccountChange}
+                placeholder="Select Account..."
+                searchPlaceholder="Search accounts..."
+                emptyMessage="No accounts found."
+                disabled={!selectedClient}
+              />
+            </div>
+
+            <div className="min-w-[200px] flex-1 max-w-[250px]">
+              <Label className="mb-2 block text-sm font-medium">Project</Label>
+              <Combobox
+                options={projects.map(p => ({ value: p.id, label: p.name }))}
+                value={selectedProject}
+                onChange={handleProjectChange}
+                placeholder="Select Project..."
+                searchPlaceholder="Search projects..."
+                emptyMessage="No projects found."
+                disabled={!selectedAccount}
+              />
+            </div>
+
+            <Button 
+              onClick={handleSearch}
+              disabled={!isSearchEnabled || isLoading}
+              className="h-10"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              {isLoading ? 'Searching...' : 'Search'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Empty state - before search */}
+      {!hasSearched && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <p className="text-muted-foreground text-center">
+              Select Client, Account, and Project, then click Search to view allocations
+            </p>
           </CardContent>
         </Card>
+      )}
 
-        {/* Allocations Grid */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Project Allocations
-              <Badge variant="secondary">{filteredAllocations.length} resources</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {filteredAllocations.map((allocation) => (
-                <div key={allocation.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium">{allocation.employeeName}</div>
-                    <div className="text-sm text-muted-foreground">{allocation.role}</div>
-                    <div className="flex gap-2 mt-2">
-                      {allocation.skills.map((skill) => (
-                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="w-32">
-                    <div className="text-sm font-medium mb-2">Allocation</div>
-                    {editingAllocation === allocation.id ? (
-                      <Slider
-                        value={[allocation.allocationPct]}
-                        onValueChange={(value) => handleAllocationChange(allocation.id, value)}
-                        max={150}
-                        step={5}
-                        className="w-full"
-                      />
-                    ) : (
-                      <Progress value={allocation.allocationPct} className="w-full" />
-                    )}
-                    <div className="text-xs text-center mt-1">{allocation.allocationPct}%</div>
-                  </div>
-
-                  <div className="w-24">
-                    <div className="text-sm font-medium mb-2">Utilization</div>
-                    <Progress value={allocation.utilizationPct} className="w-full" />
-                    <div className="text-xs text-center mt-1">{allocation.utilizationPct}%</div>
-                  </div>
-
-                  <div className="w-32">
-                    <Badge variant={allocation.type === 'Active' ? 'default' : 'secondary'}>
-                      {allocation.type}
-                    </Badge>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {allocation.startDate} - {allocation.endDate}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setEditingAllocation(
-                        editingAllocation === allocation.id ? null : allocation.id
-                      )}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Trash2 className="h-4 w-4" />
+      {/* Results - after search */}
+      {hasSearched && (
+        <div className="grid grid-cols-4 gap-6">
+          {/* Main Content - 3 columns */}
+          <div className="col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Project Allocations
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{allocations.length} resources</Badge>
+                    <Button onClick={handleAddResource} size="sm" className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Resource
                     </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allocations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground mb-4">No allocations found for this project</p>
+                    <Button onClick={handleAddResource}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Resource
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {allocations.map((allocation) => (
+                      <div key={allocation.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium">{allocation.employeeName}</div>
+                          <div className="text-sm text-muted-foreground">{allocation.role}</div>
+                          {allocation.skills.length > 0 && (
+                            <div className="flex gap-2 mt-2">
+                              {allocation.skills.map((skill) => (
+                                <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="w-32">
+                          <div className="text-sm font-medium mb-2">Allocation</div>
+                          {editingAllocation === allocation.id ? (
+                            <Slider
+                              value={[allocation.allocationPct]}
+                              onValueChange={(value) => handleAllocationChange(allocation.id, value)}
+                              max={150}
+                              step={5}
+                              className="w-full"
+                            />
+                          ) : (
+                            <Progress value={Math.min(allocation.allocationPct, 100)} className="w-full" />
+                          )}
+                          <div className="text-xs text-center mt-1">{allocation.allocationPct}%</div>
+                        </div>
 
-      {/* Scorecard Panel - 1 column */}
-      <div className="col-span-1">
-        <ScorecardPanel
-          type="project"
-          data={scorecardData}
-        />
-      </div>
+                        <div className="w-24">
+                          <div className="text-sm font-medium mb-2">Utilization</div>
+                          <Progress value={Math.min(allocation.utilizationPct, 100)} className="w-full" />
+                          <div className="text-xs text-center mt-1">{allocation.utilizationPct}%</div>
+                        </div>
+
+                        <div className="w-32">
+                          <Badge variant={allocation.type === 'ACTIVE' ? 'default' : 'secondary'}>
+                            {allocation.type}
+                          </Badge>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {allocation.startDate} - {allocation.endDate || 'Ongoing'}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingAllocation(
+                              editingAllocation === allocation.id ? null : allocation.id
+                            )}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Scorecard Panel - 1 column */}
+          <div className="col-span-1">
+            <ScorecardPanel
+              type="project"
+              data={scorecardData}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
