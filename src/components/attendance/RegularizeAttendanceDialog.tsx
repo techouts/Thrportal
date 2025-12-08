@@ -64,6 +64,11 @@ export function RegularizeAttendanceDialog({
     }
   };
 
+  // Helper function to check if string is a valid UUID
+  const isValidUUID = (id: string): boolean => {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  };
+
   const handleSubmit = async () => {
     if (!reason.trim()) {
       toast.error('Please provide a reason for regularization');
@@ -76,6 +81,9 @@ export function RegularizeAttendanceDialog({
     }
 
     setIsSubmitting(true);
+    
+    // Check if this is a synthetic absent record (not a real UUID)
+    const realRecordId = isValidUUID(attendanceRecordId) ? attendanceRecordId : null;
     try {
       let documentUrl: string | null = null;
 
@@ -99,12 +107,12 @@ export function RegularizeAttendanceDialog({
         documentUrl = urlData.publicUrl;
       }
 
-      // Create regularization request
+      // Create regularization request (realRecordId can be null for synthetic absent records)
       const { error } = await supabase
         .from('attendance_regularization_requests')
         .insert({
           employee_id: user.id,
-          attendance_record_id: attendanceRecordId,
+          attendance_record_id: realRecordId,
           attendance_date: attendanceDate,
           reason: reason.trim(),
           document_url: documentUrl,
