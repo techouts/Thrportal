@@ -36,6 +36,9 @@ export default function AttendancePage() {
   
   // Regularization requests for checking pending status
   const [regularizationRequests, setRegularizationRequests] = useState<Record<string, string>>({});
+  
+  // Leave requests for checking pending status by date
+  const [leaveRequestDates, setLeaveRequestDates] = useState<Set<string>>(new Set());
 
   // Generate previous 6 months for filter
   const previousMonths = Array.from({ length: 6 }, (_, i) => {
@@ -70,8 +73,12 @@ export default function AttendancePage() {
         setTodayRecord(todayRec || null);
         setRecentRecords(recordsResponse.data);
         
-        // Fetch regularization requests for these records
-        await loadRegularizationRequests(recordsResponse.data.map(r => r.id));
+        // Fetch regularization requests and leave requests
+        const dates = recordsResponse.data.map(r => r.date);
+        await Promise.all([
+          loadRegularizationRequests(recordsResponse.data.map(r => r.id)),
+          loadLeaveRequests(dates)
+        ]);
       }
     } catch (error) {
       toast.error('Failed to load attendance data');
@@ -99,6 +106,38 @@ export default function AttendancePage() {
       setRegularizationRequests(requestsMap);
     } catch (error) {
       console.error('Error loading regularization requests:', error);
+    }
+  };
+
+  const loadLeaveRequests = async (dates: string[]) => {
+    if (!currentUser || dates.length === 0) return;
+    
+    try {
+      const minDate = dates.reduce((a, b) => a < b ? a : b);
+      const maxDate = dates.reduce((a, b) => a > b ? a : b);
+      
+      const { data, error } = await supabase
+        .from('leave_requests')
+        .select('start_date, end_date')
+        .eq('employee_id', currentUser.id)
+        .eq('status', 'pending')
+        .lte('start_date', maxDate)
+        .gte('end_date', minDate);
+      
+      if (error) throw error;
+      
+      // Build a set of dates that have pending leave requests
+      const leaveDates = new Set<string>();
+      data?.forEach(req => {
+        const start = new Date(req.start_date);
+        const end = new Date(req.end_date);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          leaveDates.add(format(d, 'yyyy-MM-dd'));
+        }
+      });
+      setLeaveRequestDates(leaveDates);
+    } catch (error) {
+      console.error('Error loading leave requests:', error);
     }
   };
 
@@ -188,6 +227,7 @@ export default function AttendancePage() {
       case 'absent': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
       case 'work_from_home': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
       case 'regularization_pending': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
+      case 'leave_requested': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
   };
@@ -197,6 +237,10 @@ export default function AttendancePage() {
     if (regularizationRequests[record.id] === 'pending') {
       return 'regularization_pending';
     }
+    // Check if there's a pending leave request for this date
+    if (leaveRequestDates.has(record.date)) {
+      return 'leave_requested';
+    }
     return record.status;
   };
 
@@ -204,12 +248,16 @@ export default function AttendancePage() {
     if (status === 'regularization_pending') {
       return 'Regularization Pending';
     }
+    if (status === 'leave_requested') {
+      return 'Leave Requested';
+    }
     return status.replace('_', ' ');
   };
 
   const isMissingClockOut = (record: AttendanceRecord): boolean => {
     if (record.checkOut) return false;
     if (regularizationRequests[record.id] === 'pending') return false;
+    if (leaveRequestDates.has(record.date)) return false;
     
     const recordDate = startOfDay(new Date(record.date));
     const today = startOfDay(new Date());
