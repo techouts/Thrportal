@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, MapPin, Calendar, TrendingUp, Timer, CheckCircle, Wifi } from 'lucide-react';
 import { attendanceService } from '@/services/attendanceService';
 import { AttendanceRecord, AttendanceStats, AttendanceStatsFilter, AttendanceLogsFilter } from '@/types/attendance';
@@ -22,6 +23,7 @@ export default function AttendancePage() {
   const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [clockingIn, setClockingin] = useState(false);
+  const [remoteClockInType, setRemoteClockInType] = useState<'Remote' | 'WFH' | ''>('');
 
   // Generate previous 6 months for filter
   const previousMonths = Array.from({ length: 6 }, (_, i) => {
@@ -63,7 +65,7 @@ export default function AttendancePage() {
     }
   };
 
-  const handleClockIn = async (location: 'Office' | 'Remote') => {
+  const handleClockIn = async (location: 'Office' | 'Remote' | 'WFH') => {
     if (!currentUser) return;
 
     setClockingin(true);
@@ -138,9 +140,12 @@ export default function AttendancePage() {
   };
 
   const renderClockInContent = (isRemote: boolean = false) => {
-    const expectedLocation = isRemote ? 'Remote' : 'Office';
+    const expectedLocation = isRemote ? (remoteClockInType || 'Remote') : 'Office';
     const hasClockedIn = todayRecord?.checkIn;
-    const clockedInFromDifferentLocation = hasClockedIn && todayRecord.location !== expectedLocation;
+    const isRemoteLocation = (loc: string) => loc === 'Remote' || loc === 'WFH';
+    const clockedInFromDifferentLocation = isRemote 
+      ? hasClockedIn && !isRemoteLocation(todayRecord.location)
+      : hasClockedIn && todayRecord.location !== 'Office';
 
     return (
       <Card className="rounded-2xl shadow-sm max-w-md mx-auto">
@@ -164,7 +169,7 @@ export default function AttendancePage() {
             <div className="space-y-3">
               <div className="p-4 bg-muted/50 rounded-lg text-center">
                 <p className="text-sm text-muted-foreground mb-2">
-                  You've already clocked in from <strong>{todayRecord.location}</strong> today at {todayRecord.checkIn}
+                  You've already clocked in from <strong>{todayRecord.location === 'WFH' ? 'Work From Home' : todayRecord.location}</strong> today at {todayRecord.checkIn}
                 </p>
               </div>
               <Button 
@@ -188,7 +193,7 @@ export default function AttendancePage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Location:</span>
-                <Badge variant="outline">{todayRecord.location}</Badge>
+                <Badge variant="outline">{todayRecord.location === 'WFH' ? 'Work From Home' : todayRecord.location}</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Status:</span>
@@ -208,15 +213,39 @@ export default function AttendancePage() {
                 </Button>
               )}
             </div>
+          ) : isRemote ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Type of Remote Clock-in</label>
+                <Select value={remoteClockInType} onValueChange={(value: 'Remote' | 'WFH') => setRemoteClockInType(value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select remote type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Remote">Remote/Client Clock-in</SelectItem>
+                    <SelectItem value="WFH">Work From Home</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                onClick={() => handleClockIn(remoteClockInType as 'Remote' | 'WFH')} 
+                disabled={clockingIn || !remoteClockInType}
+                className="w-full"
+                size="lg"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {clockingIn ? 'Clocking In...' : 'Clock In (Remote)'}
+              </Button>
+            </div>
           ) : (
             <Button 
-              onClick={() => handleClockIn(expectedLocation)} 
+              onClick={() => handleClockIn('Office')} 
               disabled={clockingIn}
               className="w-full"
               size="lg"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              {clockingIn ? 'Clocking In...' : `Clock In ${isRemote ? '(Remote)' : ''}`}
+              {clockingIn ? 'Clocking In...' : 'Clock In'}
             </Button>
           )}
         </CardContent>
