@@ -32,6 +32,7 @@ interface ComboboxProps {
   emptyMessage?: string
   disabled?: boolean
   className?: string
+  onSearchChange?: (search: string) => void
 }
 
 export function Combobox({
@@ -43,8 +44,15 @@ export function Combobox({
   emptyMessage = "No results found.",
   disabled = false,
   className,
+  onSearchChange,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchValue, setSearchValue] = React.useState("")
+
+  const handleSearchChange = (search: string) => {
+    setSearchValue(search)
+    onSearchChange?.(search)
+  }
 
   const selectedOption = options.find((option) => option.value === value)
 
@@ -67,8 +75,12 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+        <Command shouldFilter={!onSearchChange}>
+          <CommandInput 
+            placeholder={searchPlaceholder} 
+            value={searchValue}
+            onValueChange={handleSearchChange}
+          />
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>

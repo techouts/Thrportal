@@ -11,6 +11,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { AddResourceDialog } from '@/components/assignments/AddResourceDialog';
 
 interface ProjectAllocation {
   id: string;
@@ -33,6 +34,8 @@ export function AssignmentProjectSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [allocations, setAllocations] = useState<ProjectAllocation[]>([]);
   const [editingAllocation, setEditingAllocation] = useState<string | null>(null);
+  const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+
 
   // Fetch clients from database
   const { data: clients = [] } = useQuery({
@@ -200,10 +203,11 @@ export function AssignmentProjectSection() {
   };
 
   const handleAddResource = () => {
-    toast({
-      title: "Add Resource",
-      description: "Resource search dialog would open here",
-    });
+    setIsAddResourceDialogOpen(true);
+  };
+
+  const handleAddResourceSuccess = () => {
+    handleSearch(); // Refresh allocations
   };
 
   const isSearchEnabled = selectedClient && selectedAccount && selectedProject;
@@ -382,6 +386,14 @@ export function AssignmentProjectSection() {
           </div>
         </div>
       )}
+
+      {/* Add Resource Dialog */}
+      <AddResourceDialog
+        open={isAddResourceDialogOpen}
+        onOpenChange={setIsAddResourceDialogOpen}
+        projectId={selectedProject}
+        onSuccess={handleAddResourceSuccess}
+      />
     </div>
   );
 }
