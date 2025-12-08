@@ -13,8 +13,8 @@ export function TimesheetModule({ employeeId, defaultTab = 'Fill' }: TimesheetMo
   return (
     <Tabs defaultValue={defaultTab} className="space-y-6">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="Fill">Fill</TabsTrigger>
-        <TabsTrigger value="History">History</TabsTrigger>
+        <TabsTrigger value="Fill">All TimeSheets</TabsTrigger>
+        <TabsTrigger value="History">Past Due Timesheets</TabsTrigger>
         <TabsTrigger value="Client Exports">Client Exports</TabsTrigger>
       </TabsList>
       
