@@ -309,6 +309,73 @@ export type Database = {
           },
         ]
       }
+      attendance_regularization_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          attendance_date: string
+          attendance_record_id: string
+          created_at: string | null
+          document_url: string | null
+          employee_id: string
+          id: string
+          reason: string
+          rejection_reason: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attendance_date: string
+          attendance_record_id: string
+          created_at?: string | null
+          document_url?: string | null
+          employee_id: string
+          id?: string
+          reason: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attendance_date?: string
+          attendance_record_id?: string
+          created_at?: string | null
+          document_url?: string | null
+          employee_id?: string
+          id?: string
+          reason?: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_regularization_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_regularization_requests_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_regularization_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_communications: {
         Row: {
           attachments: string[] | null

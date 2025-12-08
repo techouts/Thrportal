@@ -12,6 +12,10 @@ import { useAuth } from '@/auth/AuthContext';
 import { toast } from 'sonner';
 import { format, subMonths, startOfDay } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AttendanceRowActions } from '@/components/attendance/AttendanceRowActions';
+import { RegularizeAttendanceDialog } from '@/components/attendance/RegularizeAttendanceDialog';
+import { RequestLeaveDialog, LeaveRequestData } from '@/components/leave/RequestLeaveDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AttendancePage() {
   const { user: currentUser } = useAuth();
@@ -24,6 +28,14 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [clockingIn, setClockingin] = useState(false);
   const [remoteClockInType, setRemoteClockInType] = useState<'Remote' | 'WFH' | ''>('');
+  
+  // Dialog states
+  const [showRegularizeDialog, setShowRegularizeDialog] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
+  
+  // Regularization requests for checking pending status
+  const [regularizationRequests, setRegularizationRequests] = useState<Record<string, string>>({});
 
   // Generate previous 6 months for filter
   const previousMonths = Array.from({ length: 6 }, (_, i) => {
@@ -57,11 +69,36 @@ export default function AttendancePage() {
         const todayRec = recordsResponse.data.find(r => r.date === today);
         setTodayRecord(todayRec || null);
         setRecentRecords(recordsResponse.data);
+        
+        // Fetch regularization requests for these records
+        await loadRegularizationRequests(recordsResponse.data.map(r => r.id));
       }
     } catch (error) {
       toast.error('Failed to load attendance data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRegularizationRequests = async (recordIds: string[]) => {
+    if (recordIds.length === 0) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('attendance_regularization_requests')
+        .select('attendance_record_id, status')
+        .in('attendance_record_id', recordIds)
+        .eq('status', 'pending');
+      
+      if (error) throw error;
+      
+      const requestsMap: Record<string, string> = {};
+      data?.forEach(req => {
+        requestsMap[req.attendance_record_id] = req.status;
+      });
+      setRegularizationRequests(requestsMap);
+    } catch (error) {
+      console.error('Error loading regularization requests:', error);
     }
   };
 
@@ -108,14 +145,76 @@ export default function AttendancePage() {
     }
   };
 
+  const handleRegularize = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setShowRegularizeDialog(true);
+  };
+
+  const handleRequestLeave = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setShowLeaveDialog(true);
+  };
+
+  const handleLeaveSubmit = async (data: LeaveRequestData) => {
+    if (!currentUser) return;
+    
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .insert({
+          employee_id: currentUser.id,
+          leave_type: data.leave_type,
+          start_date: format(data.start_date, 'yyyy-MM-dd'),
+          end_date: format(data.end_date, 'yyyy-MM-dd'),
+          total_days: data.total_days,
+          reason: data.reason,
+          status: 'pending',
+        });
+      
+      if (error) throw error;
+      
+      toast.success('Leave request submitted successfully');
+    } catch (error) {
+      console.error('Error submitting leave request:', error);
+      toast.error('Failed to submit leave request');
+      throw error;
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'present': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
       case 'late': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
       case 'absent': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
       case 'work_from_home': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
+      case 'regularization_pending': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
+  };
+
+  const getDisplayStatus = (record: AttendanceRecord): string => {
+    // Check if there's a pending regularization request
+    if (regularizationRequests[record.id] === 'pending') {
+      return 'regularization_pending';
+    }
+    return record.status;
+  };
+
+  const formatStatusLabel = (status: string): string => {
+    if (status === 'regularization_pending') {
+      return 'Regularization Pending';
+    }
+    return status.replace('_', ' ');
+  };
+
+  const isMissingClockOut = (record: AttendanceRecord): boolean => {
+    if (record.checkOut) return false;
+    if (regularizationRequests[record.id] === 'pending') return false;
+    
+    const recordDate = startOfDay(new Date(record.date));
+    const today = startOfDay(new Date());
+    
+    return recordDate < today;
   };
 
   const formatCheckOutDisplay = (record: AttendanceRecord) => {
@@ -384,31 +483,42 @@ export default function AttendancePage() {
             <CardContent>
               <div className="space-y-3">
                 {recentRecords.length > 0 ? (
-                  recentRecords.map((record) => (
-                    <div key={record.id} className="flex items-center justify-between p-3 border rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className="text-sm font-medium">
-                          {format(new Date(record.date), 'MMM dd, yyyy')}
+                  recentRecords.map((record) => {
+                    const displayStatus = getDisplayStatus(record);
+                    const showActions = isMissingClockOut(record);
+                    
+                    return (
+                      <div key={record.id} className="flex items-center justify-between p-3 border rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm font-medium">
+                            {format(new Date(record.date), 'MMM dd, yyyy')}
+                          </div>
+                          <Badge className={getStatusColor(displayStatus)}>
+                            {formatStatusLabel(displayStatus)}
+                          </Badge>
                         </div>
-                        <Badge className={getStatusColor(record.status)}>
-                          {record.status.replace('_', ' ')}
-                        </Badge>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Timer className="w-3 h-3" />
+                            {formatTimeDisplay(record)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {record.location}
+                          </div>
+                          <div className="font-medium text-foreground">
+                            {record.totalHours.toFixed(1)}h
+                          </div>
+                          {showActions && (
+                            <AttendanceRowActions
+                              onRegularize={() => handleRegularize(record)}
+                              onRequestLeave={() => handleRequestLeave(record)}
+                            />
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Timer className="w-3 h-3" />
-                          {formatTimeDisplay(record)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {record.location}
-                        </div>
-                        <div className="font-medium text-foreground">
-                          {record.totalHours.toFixed(1)}h
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     No attendance records found
@@ -419,6 +529,28 @@ export default function AttendancePage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Regularize Attendance Dialog */}
+      {selectedRecord && (
+        <RegularizeAttendanceDialog
+          open={showRegularizeDialog}
+          onOpenChange={setShowRegularizeDialog}
+          attendanceRecordId={selectedRecord.id}
+          attendanceDate={selectedRecord.date}
+          onSuccess={() => {
+            loadData();
+            setSelectedRecord(null);
+          }}
+        />
+      )}
+
+      {/* Request Leave Dialog */}
+      <RequestLeaveDialog
+        open={showLeaveDialog}
+        onOpenChange={setShowLeaveDialog}
+        onSubmit={handleLeaveSubmit}
+        initialDate={selectedRecord ? new Date(selectedRecord.date) : undefined}
+      />
     </div>
   );
 }

@@ -6,7 +6,7 @@ export interface AttendanceRecord {
   checkOut?: string;
   breakTime: number; // minutes
   totalHours: number;
-  status: 'present' | 'absent' | 'late' | 'half_day' | 'work_from_home';
+  status: 'present' | 'absent' | 'late' | 'half_day' | 'work_from_home' | 'regularization_pending';
   location: 'Office' | 'Remote' | 'Field' | 'WFH';
   coordinates?: {
     lat: number;
@@ -16,6 +16,8 @@ export interface AttendanceRecord {
   approvedBy?: string;
   createdAt: string;
   updatedAt: string;
+  // For joining with regularization requests
+  regularizationRequest?: AttendanceRegularizationRequest;
 }
 
 export interface AttendancePolicy {
@@ -74,6 +76,21 @@ export interface AttendanceApproval {
   reviewedBy?: string;
   reviewedAt?: string;
   comments?: string;
+}
+
+export interface AttendanceRegularizationRequest {
+  id: string;
+  employeeId: string;
+  attendanceRecordId: string;
+  attendanceDate: string;
+  reason: string;
+  documentUrl?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type ApiResponse<T> = {
