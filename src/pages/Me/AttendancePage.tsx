@@ -73,10 +73,10 @@ export default function AttendancePage() {
         setTodayRecord(todayRec || null);
         setRecentRecords(recordsResponse.data);
         
-        // Fetch regularization requests and leave requests
+        // Fetch regularization requests and leave requests using dates
         const dates = recordsResponse.data.map(r => r.date);
         await Promise.all([
-          loadRegularizationRequests(recordsResponse.data.map(r => r.id)),
+          loadRegularizationRequests(dates),
           loadLeaveRequests(dates)
         ]);
       }
@@ -87,21 +87,24 @@ export default function AttendancePage() {
     }
   };
 
-  const loadRegularizationRequests = async (recordIds: string[]) => {
-    if (recordIds.length === 0) return;
+  const loadRegularizationRequests = async (dates: string[]) => {
+    if (!currentUser || dates.length === 0) return;
     
     try {
+      // Query by attendance_date instead of record_id to handle synthetic absent records
       const { data, error } = await supabase
         .from('attendance_regularization_requests')
-        .select('attendance_record_id, status')
-        .in('attendance_record_id', recordIds)
+        .select('attendance_date, status')
+        .eq('employee_id', currentUser.id)
+        .in('attendance_date', dates)
         .eq('status', 'pending');
       
       if (error) throw error;
       
+      // Map by date instead of record ID
       const requestsMap: Record<string, string> = {};
       data?.forEach(req => {
-        requestsMap[req.attendance_record_id] = req.status;
+        requestsMap[req.attendance_date] = req.status;
       });
       setRegularizationRequests(requestsMap);
     } catch (error) {
@@ -233,8 +236,8 @@ export default function AttendancePage() {
   };
 
   const getDisplayStatus = (record: AttendanceRecord): string => {
-    // Check if there's a pending regularization request
-    if (regularizationRequests[record.id] === 'pending') {
+    // Check if there's a pending regularization request (now using date)
+    if (regularizationRequests[record.date] === 'pending') {
       return 'regularization_pending';
     }
     // Check if there's a pending leave request for this date
@@ -256,7 +259,7 @@ export default function AttendancePage() {
 
   const isMissingClockOut = (record: AttendanceRecord): boolean => {
     if (record.checkOut) return false;
-    if (regularizationRequests[record.id] === 'pending') return false;
+    if (regularizationRequests[record.date] === 'pending') return false;
     if (leaveRequestDates.has(record.date)) return false;
     
     const recordDate = startOfDay(new Date(record.date));

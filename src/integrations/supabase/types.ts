@@ -314,7 +314,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           attendance_date: string
-          attendance_record_id: string
+          attendance_record_id: string | null
           created_at: string | null
           document_url: string | null
           employee_id: string
@@ -328,7 +328,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           attendance_date: string
-          attendance_record_id: string
+          attendance_record_id?: string | null
           created_at?: string | null
           document_url?: string | null
           employee_id: string
@@ -342,7 +342,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           attendance_date?: string
-          attendance_record_id?: string
+          attendance_record_id?: string | null
           created_at?: string | null
           document_url?: string | null
           employee_id?: string
@@ -358,13 +358,6 @@ export type Database = {
             columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_regularization_requests_attendance_record_id_fkey"
-            columns: ["attendance_record_id"]
-            isOneToOne: false
-            referencedRelation: "attendance_records"
             referencedColumns: ["id"]
           },
           {
