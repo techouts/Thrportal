@@ -58,6 +58,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to get user role from user_roles table (secure)
+  const getUserRole = async (userId: string): Promise<string> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .order('role') // Get consistent ordering
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('[AUTH] Error fetching user role:', error);
+        return 'EMPLOYEE'; // Default role
+      }
+      
+      return data?.role || 'EMPLOYEE';
+    } catch (error) {
+      console.error('[AUTH] User role fetch error:', error);
+      return 'EMPLOYEE';
+    }
+  };
+
   // Helper function to get user profile from Supabase
   const getUserProfile = async (userId: string): Promise<Profile | null> => {
     try {
@@ -79,17 +102,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Helper function to convert profile to user
-  const profileToUser = (profile: Profile, supabaseUser: SupabaseUser): User => {
+  // Helper function to convert profile to user (fetches role from user_roles table)
+  const profileToUser = async (profile: Profile, supabaseUser: SupabaseUser): Promise<User> => {
+    // Fetch role from user_roles table (secure, used by RLS)
+    const role = await getUserRole(profile.id);
+    console.log('[AUTH] Fetched role from user_roles:', role);
+    
     return {
       id: profile.id,
       email: profile.email,
       display_name: profile.display_name || profile.first_name || profile.email.split('@')[0],
-      role: profile.role,
+      role: role, // Use role from user_roles table
       first_name: profile.first_name,
       last_name: profile.last_name,
       department: profile.department,
-      employeeId: profile.id // Use profile.id as employeeId for now
+      employeeId: profile.id
     };
   };
 
@@ -125,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(async () => {
             const profile = await getUserProfile(session.user.id);
             if (profile) {
-              const userData = profileToUser(profile, session.user);
+              const userData = await profileToUser(profile, session.user);
               setUser(userData);
               console.log('[AUTH] User profile loaded:', userData);
             } else {
@@ -203,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("User profile not found. Please contact support.");
       }
 
-      const userData = profileToUser(profile, data.user);
+      const userData = await profileToUser(profile, data.user);
       console.log('[AUTH] Production user signed in:', userData);
       
       // Directly set user and session state (don't rely only on onAuthStateChange)
