@@ -205,6 +205,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const userData = profileToUser(profile, data.user);
       console.log('[AUTH] Production user signed in:', userData);
+      
+      // Directly set user and session state (don't rely only on onAuthStateChange)
+      setUser(userData);
+      setSession(data.session);
+      
       return userData;
     } catch (error: any) {
       console.error('[AUTH] Sign in error:', error);
