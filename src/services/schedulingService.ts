@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client'
+import { getCurrentUserId } from '@/utils/authHelpers'
 import type { 
   InterviewSlot, 
   SlotAssignment, 
@@ -23,19 +24,9 @@ class SchedulingService {
     return SchedulingService.instance
   }
 
-  // Get current user ID with DEV user fallback
-  private async getCurrentUserId(): Promise<string> {
-    // Check for DEV user first
-    const storedDevUser = localStorage.getItem('dev_user')
-    if (storedDevUser) {
-      const devUser = JSON.parse(storedDevUser)
-      return devUser.id
-    }
-    
-    // Fall back to Supabase auth
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
-    return user.id
+  // Get current user ID using unified auth helper
+  private async getUserId(): Promise<string> {
+    return getCurrentUserId()
   }
 
   // Get interview slots with filters
@@ -265,7 +256,7 @@ class SchedulingService {
 
   // Assign candidate to slot
   async assignCandidate(request: AssignCandidateRequest): Promise<SlotAssignment> {
-    const userId = await this.getCurrentUserId()
+    const userId = await this.getUserId()
 
     // Check if slot is still available
     const { data: slot, error: slotError } = await supabase
@@ -346,7 +337,7 @@ class SchedulingService {
 
   // Cancel slot with reason
   async cancelSlot(slotId: string, reason: string): Promise<void> {
-    const userId = await this.getCurrentUserId()
+    const userId = await this.getUserId()
 
     const { error } = await supabase
       .from('interview_slots')
@@ -369,7 +360,7 @@ class SchedulingService {
 
   // Update slot status (used, no-show, cancelled, etc.)
   async updateSlotStatus(request: UpdateSlotStatusRequest): Promise<void> {
-    const userId = await this.getCurrentUserId()
+    const userId = await this.getUserId()
 
     // Map no_show to used status in database
     const dbStatus = request.status === 'no_show' ? 'used' : request.status
