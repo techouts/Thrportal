@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CrmService } from '@/services/crmService';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { getCurrentUserId } from '@/utils/authHelpers';
 import type { CrmSpoc } from '@/types/crm';
 
 const accountSchema = z.object({
@@ -49,18 +49,8 @@ export function CreateAccountForm({ clientId, spocs, onSuccess, onCancel }: Crea
     try {
       setLoading(true);
       
-      // Get user ID from auth context (works with dev mode)
-      const storedDevUser = localStorage.getItem("dev_user");
-      let userId: string;
-      
-      if (storedDevUser) {
-        const devUser = JSON.parse(storedDevUser);
-        userId = devUser.id;
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Authentication required');
-        userId = user.id;
-      }
+      // Get user ID using unified auth helper
+      const userId = await getCurrentUserId();
       
       await CrmService.createAccount({
         name: data.name,
