@@ -71,6 +71,9 @@ export function Combobox({
     return option.label.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
   }, [options])
 
+  // Allow-all filter for external search - cmdk needs a filter to track items for selection
+  const allowAllFilter = React.useCallback(() => 1, [])
+
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
@@ -96,7 +99,7 @@ export function Combobox({
       >
         <Command 
           shouldFilter={!onSearchChange}
-          filter={onSearchChange ? undefined : customFilter}
+          filter={onSearchChange ? allowAllFilter : customFilter}
         >
           <CommandInput 
             placeholder={searchPlaceholder} 
