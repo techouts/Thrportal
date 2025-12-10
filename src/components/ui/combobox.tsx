@@ -49,12 +49,27 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
 
+  // Reset search when popover closes
+  React.useEffect(() => {
+    if (!open) {
+      setSearchValue("")
+      onSearchChange?.("")
+    }
+  }, [open, onSearchChange])
+
   const handleSearchChange = (search: string) => {
     setSearchValue(search)
     onSearchChange?.(search)
   }
 
   const selectedOption = options.find((option) => option.value === value)
+
+  // Custom filter function that searches by label but uses value as key
+  const customFilter = React.useCallback((itemValue: string, search: string) => {
+    const option = options.find(o => o.value === itemValue)
+    if (!option) return 0
+    return option.label.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
+  }, [options])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -75,7 +90,10 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-        <Command shouldFilter={!onSearchChange}>
+        <Command 
+          shouldFilter={!onSearchChange}
+          filter={onSearchChange ? undefined : customFilter}
+        >
           <CommandInput 
             placeholder={searchPlaceholder} 
             value={searchValue}
@@ -87,10 +105,11 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    onChange(option.value === value ? "" : option.value)
+                  value={option.value}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
+                    setSearchValue("")
                   }}
                 >
                   <Check
