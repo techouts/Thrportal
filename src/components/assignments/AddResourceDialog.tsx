@@ -207,12 +207,9 @@ export function AddResourceDialog({
           <div className="space-y-2">
             <Label htmlFor="resource">Resource *</Label>
             <Combobox
-              options={resourceOptions.map(r => ({
-                value: r.id,
-                label: r.displayName + (r.email ? ` (${r.email})` : ''),
-              }))}
+              options={combinedResourceOptions}
               value={resourceId}
-              onChange={setResourceId}
+              onChange={handleResourceChange}
               placeholder="Search by name..."
               searchPlaceholder="Type to search resources..."
               emptyMessage={isSearching ? 'Searching...' : 'No resources found. Type at least 2 characters.'}
