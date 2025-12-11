@@ -48,14 +48,14 @@ export function FinancialsTab() {
   const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Controls */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
               <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
@@ -65,7 +65,7 @@ export function FinancialsTab() {
                 </SelectContent>
               </Select>
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-full sm:w-[140px] md:w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -90,7 +90,7 @@ export function FinancialsTab() {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-6">
         <KPICard
           title="Planned vs Actual Margin"
           value={`$${kpiData.actualMargin.toLocaleString()}`}
@@ -151,7 +151,7 @@ export function FinancialsTab() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Revenue vs Cost vs Margin */}
         <Card>
           <CardHeader>

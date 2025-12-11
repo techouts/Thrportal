@@ -159,45 +159,47 @@ export function ProjectBench() {
                 </div>
               ) : (
                 <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Available From</TableHead>
-                        <TableHead>Bench Days</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedIdleEmployees.map((employee) => (
-                        <TableRow key={employee.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={employee.avatarUrl} />
-                                <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                              </Avatar>
-                              <span className="font-medium">{employee.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{employee.role}</TableCell>
-                          <TableCell>{new Date(employee.availableFrom).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <Badge variant={employee.benchDays > 14 ? 'destructive' : 'secondary'}>
-                              {employee.benchDays} days
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button size="sm" onClick={() => handleAllocate(employee.id)}>
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Allocate
-                            </Button>
-                          </TableCell>
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-[600px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Available From</TableHead>
+                          <TableHead>Bench Days</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedIdleEmployees.map((employee) => (
+                          <TableRow key={employee.id}>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={employee.avatarUrl} />
+                                  <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{employee.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{employee.role}</TableCell>
+                            <TableCell>{new Date(employee.availableFrom).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Badge variant={employee.benchDays > 14 ? 'destructive' : 'secondary'}>
+                                {employee.benchDays} days
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Button size="sm" onClick={() => handleAllocate(employee.id)}>
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Allocate
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                   {renderPagination(idleCurrentPage, idleTotalPages, setIdleCurrentPage)}
                 </>
               )}
@@ -223,46 +225,48 @@ export function ProjectBench() {
                 </div>
               ) : (
                 <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Available From</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedShadowAllocations.map((allocation) => (
-                        <TableRow key={allocation.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={allocation.avatarUrl} />
-                                <AvatarFallback>{getInitials(allocation.employeeName)}</AvatarFallback>
-                              </Avatar>
-                              <span className="font-medium">{allocation.employeeName}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{allocation.role}</TableCell>
-                          <TableCell>{new Date(allocation.startDate).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            {allocation.endDate 
-                              ? new Date(allocation.endDate).toLocaleDateString()
-                              : 'Ongoing'
-                            }
-                          </TableCell>
-                          <TableCell>
-                            <Button size="sm" onClick={() => handleAllocate(allocation.employeeId)}>
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Allocate
-                            </Button>
-                          </TableCell>
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-[600px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Available From</TableHead>
+                          <TableHead>End Date</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedShadowAllocations.map((allocation) => (
+                          <TableRow key={allocation.id}>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={allocation.avatarUrl} />
+                                  <AvatarFallback>{getInitials(allocation.employeeName)}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{allocation.employeeName}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{allocation.role}</TableCell>
+                            <TableCell>{new Date(allocation.startDate).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              {allocation.endDate 
+                                ? new Date(allocation.endDate).toLocaleDateString()
+                                : 'Ongoing'
+                              }
+                            </TableCell>
+                            <TableCell>
+                              <Button size="sm" onClick={() => handleAllocate(allocation.employeeId)}>
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Allocate
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                   {renderPagination(shadowCurrentPage, shadowTotalPages, setShadowCurrentPage)}
                 </>
               )}
@@ -271,7 +275,7 @@ export function ProjectBench() {
         </TabsContent>
 
         <TabsContent value="forecast" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Forecast Accuracy</CardTitle>
@@ -306,41 +310,43 @@ export function ProjectBench() {
               <CardTitle>4-Week Forecast Heatmap</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Week</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Needed</TableHead>
-                    <TableHead>Available</TableHead>
-                    <TableHead>Shadow Coverage</TableHead>
-                    <TableHead>Gap</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {forecastData.map((forecast, index) => {
-                    const gap = forecast.needed - forecast.available
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{forecast.week}</TableCell>
-                        <TableCell>{forecast.role}</TableCell>
-                        <TableCell>{forecast.needed}</TableCell>
-                        <TableCell>{forecast.available}</TableCell>
-                        <TableCell>
-                          <Badge variant={forecast.shadow_coverage >= 80 ? 'default' : 'destructive'}>
-                            {forecast.shadow_coverage}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={gap > 0 ? 'destructive' : gap < 0 ? 'secondary' : 'default'}>
-                            {gap > 0 ? `+${gap}` : gap}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table className="min-w-[600px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Week</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Needed</TableHead>
+                      <TableHead>Available</TableHead>
+                      <TableHead>Shadow Coverage</TableHead>
+                      <TableHead>Gap</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {forecastData.map((forecast, index) => {
+                      const gap = forecast.needed - forecast.available
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{forecast.week}</TableCell>
+                          <TableCell>{forecast.role}</TableCell>
+                          <TableCell>{forecast.needed}</TableCell>
+                          <TableCell>{forecast.available}</TableCell>
+                          <TableCell>
+                            <Badge variant={forecast.shadow_coverage >= 80 ? 'default' : 'destructive'}>
+                              {forecast.shadow_coverage}%
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={gap > 0 ? 'destructive' : gap < 0 ? 'secondary' : 'default'}>
+                              {gap > 0 ? `+${gap}` : gap}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

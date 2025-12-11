@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Edit, User } from 'lucide-react';
-import { ScorecardPanel } from '@/components/assignments/ScorecardPanel';
+import { ScorecardMobileWrapper } from '@/components/assignments/ScorecardMobileWrapper';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { allocationService, EmployeeDetails, EmployeeAllocation, ResourceOption } from '@/services/allocationService';
@@ -174,9 +174,9 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
   };
 
   return (
-    <div className="grid grid-cols-4 gap-6 h-full">
-      {/* Main Content - 3 columns */}
-      <div className="col-span-3 space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 h-full">
+      {/* Main Content - 3 columns on desktop, full on mobile */}
+      <div className="col-span-1 md:col-span-3 space-y-4 md:space-y-6">
         {/* Employee Search */}
         <Card>
           <CardContent className="pt-6">
@@ -208,14 +208,14 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
             {/* Employee Info Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-4">
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                       <User className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <div className="text-xl font-semibold">{employeeDetails.displayName}</div>
-                      <div className="text-muted-foreground">
+                      <div className="text-muted-foreground text-sm">
                         {employeeDetails.roleTitle || 'No Role'} • {employeeDetails.department || 'No Department'}
                       </div>
                       {employeeDetails.employeeCode && (
@@ -225,8 +225,8 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
                       )}
                     </div>
                   </div>
-                  <div className="ml-auto">
-                    <Button onClick={handleAddProject} className="flex items-center gap-2">
+                  <div className="sm:ml-auto">
+                    <Button onClick={handleAddProject} className="flex items-center gap-2 w-full sm:w-auto">
                       <Plus className="h-4 w-4" />
                       Add Project
                     </Button>
@@ -235,7 +235,7 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-6">
-                  <div className="w-48">
+                  <div className="w-full md:w-48">
                     <div className="text-sm font-medium mb-2">Total Utilization</div>
                     <Progress value={Math.min(totalUtilization, 100)} className="w-full" />
                     <div className="text-sm text-center mt-1">
@@ -252,8 +252,8 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
             {/* Project Allocations */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Project Allocations
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span>Project Allocations</span>
                   <Badge variant="secondary">{employeeAllocations.length} projects</Badge>
                 </CardTitle>
               </CardHeader>
@@ -265,7 +265,7 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
                 ) : (
                   <div className="space-y-4">
                     {employeeAllocations.map((allocation) => (
-                      <div key={allocation.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <div key={allocation.id} className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 p-4 border rounded-lg">
                         <div className="flex-1">
                           <div className="font-medium">{allocation.projectName}</div>
                           <div className="text-sm text-muted-foreground">
@@ -273,13 +273,13 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
                           </div>
                         </div>
                         
-                        <div className="w-32">
+                        <div className="w-full md:w-28">
                           <div className="text-sm font-medium mb-2">Allocation</div>
                           <Progress value={allocation.allocationPct} className="w-full" />
                           <div className="text-xs text-center mt-1">{allocation.allocationPct}%</div>
                         </div>
 
-                        <div className="w-32">
+                        <div className="w-full md:w-28">
                           <Badge variant={allocation.type === 'ACTIVE' ? 'default' : 'secondary'}>
                             {allocation.type}
                           </Badge>
@@ -307,15 +307,12 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
         )}
       </div>
 
-      {/* Scorecard Panel - 1 column */}
-      <div className="col-span-1">
-        {selectedEmployeeId && employeeDetails && (
-          <ScorecardPanel
-            type="employee"
-            data={scorecardData}
-          />
-        )}
-      </div>
+      {/* Scorecard Panel - hidden on mobile, shown in drawer */}
+      <ScorecardMobileWrapper
+        type="employee"
+        data={scorecardData}
+        show={!!selectedEmployeeId && !!employeeDetails}
+      />
 
       {/* Add Project Dialog */}
       {selectedEmployeeId && employeeDetails && (

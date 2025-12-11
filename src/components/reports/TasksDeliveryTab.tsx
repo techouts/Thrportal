@@ -79,14 +79,14 @@ export function TasksDeliveryTab() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Controls */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
               <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
@@ -96,7 +96,7 @@ export function TasksDeliveryTab() {
                 </SelectContent>
               </Select>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
                   <SelectValue placeholder="All Projects" />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,7 +106,7 @@ export function TasksDeliveryTab() {
                 </SelectContent>
               </Select>
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-full sm:w-[140px] md:w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -116,7 +116,7 @@ export function TasksDeliveryTab() {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2 w-full sm:w-auto">
               <Download className="h-4 w-4" />
               Export
             </Button>
@@ -125,7 +125,7 @@ export function TasksDeliveryTab() {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <KPICard
           title="Est vs Actual Slippage"
           value={`${kpiData.estVsActualSlippage}%`}
@@ -181,7 +181,7 @@ export function TasksDeliveryTab() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Task Slippage by Project */}
         <Card>
           <CardHeader>
@@ -283,31 +283,33 @@ export function TasksDeliveryTab() {
         <CardContent>
           <div className="space-y-4">
             {criticalTasks.map((task, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={index} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border rounded-lg">
                 <div className="flex-1">
                   <div className="font-medium">{task.task}</div>
                   <div className="text-sm text-muted-foreground">{task.project}</div>
                   <div className="text-sm text-muted-foreground">Assigned to: {task.assignee}</div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Hours</div>
-                  <div className="text-sm">
-                    {task.actualHours}h / {task.estimatedHours}h
+                <div className="flex flex-wrap gap-4 md:gap-6 items-center">
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Hours</div>
+                    <div className="text-sm">
+                      {task.actualHours}h / {task.estimatedHours}h
+                    </div>
+                    <div className={`text-xs font-medium ${getSlippageColor(((task.actualHours - task.estimatedHours) / task.estimatedHours) * 100)}`}>
+                      {((task.actualHours - task.estimatedHours) / task.estimatedHours * 100).toFixed(1)}% over
+                    </div>
                   </div>
-                  <div className={`text-xs font-medium ${getSlippageColor(((task.actualHours - task.estimatedHours) / task.estimatedHours) * 100)}`}>
-                    {((task.actualHours - task.estimatedHours) / task.estimatedHours * 100).toFixed(1)}% over
+
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Days Overdue</div>
+                    <Badge variant="destructive">{task.daysOverdue}</Badge>
                   </div>
-                </div>
 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Days Overdue</div>
-                  <Badge variant="destructive">{task.daysOverdue}</Badge>
+                  <Button size="sm" variant="outline">
+                    Review
+                  </Button>
                 </div>
-
-                <Button size="sm" variant="outline">
-                  Review
-                </Button>
               </div>
             ))}
           </div>

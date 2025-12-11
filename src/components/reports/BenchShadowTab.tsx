@@ -58,14 +58,14 @@ export function BenchShadowTab() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Controls */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
               <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
@@ -76,7 +76,7 @@ export function BenchShadowTab() {
                 </SelectContent>
               </Select>
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-full sm:w-[140px] md:w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -86,7 +86,7 @@ export function BenchShadowTab() {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2 w-full sm:w-auto">
               <Download className="h-4 w-4" />
               Export
             </Button>
@@ -95,7 +95,7 @@ export function BenchShadowTab() {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-6">
         <KPICard
           title="Bench Headcount"
           value={kpiData.benchHeadcount.toString()}
@@ -166,7 +166,7 @@ export function BenchShadowTab() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Bench Cost Trend */}
         <Card>
           <CardHeader>
@@ -273,35 +273,37 @@ export function BenchShadowTab() {
         <CardContent>
           <div className="space-y-4">
             {benchEmployees.map((employee) => (
-              <div key={employee.name} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={employee.name} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border rounded-lg">
                 <div className="flex-1">
                   <div className="font-medium">{employee.name}</div>
                   <div className="text-sm text-muted-foreground">{employee.role}</div>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-2 flex-wrap">
                     {employee.skills.map((skill) => (
                       <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
                     ))}
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Bench Days</div>
-                  <div className="text-lg">{employee.benchDays}</div>
-                </div>
+                <div className="flex flex-wrap gap-4 md:gap-6 items-center">
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Bench Days</div>
+                    <div className="text-lg">{employee.benchDays}</div>
+                  </div>
 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Available From</div>
-                  <div className="text-sm">{employee.availableFrom}</div>
-                </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Available From</div>
+                    <div className="text-sm">{employee.availableFrom}</div>
+                  </div>
 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Daily Cost</div>
-                  <div className="text-lg font-semibold">${employee.dailyCost}</div>
-                </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Daily Cost</div>
+                    <div className="text-lg font-semibold">${employee.dailyCost}</div>
+                  </div>
 
-                <Button size="sm">
-                  Assign
-                </Button>
+                  <Button size="sm">
+                    Assign
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
