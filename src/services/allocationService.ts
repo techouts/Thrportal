@@ -28,6 +28,13 @@ export interface CreateAllocationInput {
   endDate: string;
 }
 
+export interface ProjectOption {
+  id: string;
+  name: string;
+  clientName: string;
+  status: string;
+}
+
 export interface EmployeeDetails {
   id: string;
   displayName: string;
@@ -219,5 +226,59 @@ export const allocationService = {
     }
 
     return data;
+  },
+
+  /**
+   * Search projects by name
+   */
+  async searchProjects(searchTerm: string): Promise<ProjectOption[]> {
+    if (!searchTerm || searchTerm.length < 2) return [];
+
+    const { data, error } = await supabase
+      .from('crm_projects')
+      .select(`
+        id,
+        name,
+        status,
+        crm_clients!inner(name)
+      `)
+      .ilike('name', `%${searchTerm}%`)
+      .limit(10);
+
+    if (error) {
+      console.error('Error searching projects:', error);
+      return [];
+    }
+
+    return (data || []).map(project => ({
+      id: project.id,
+      name: project.name,
+      clientName: (project.crm_clients as any)?.name || 'Unknown Client',
+      status: project.status || 'Unknown'
+    }));
+  },
+
+  /**
+   * Check if employee already has an active allocation to a project
+   */
+  async checkExistingAllocation(employeeId: string, projectId: string): Promise<boolean> {
+    if (!employeeId || !projectId) return false;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('allocations')
+      .select('id')
+      .eq('employee_id', employeeId)
+      .eq('project_id', projectId)
+      .or(`end_date.gte.${today},end_date.is.null`)
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking existing allocation:', error);
+      return false;
+    }
+
+    return (data || []).length > 0;
   }
 };

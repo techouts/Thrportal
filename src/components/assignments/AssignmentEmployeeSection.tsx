@@ -8,6 +8,7 @@ import { ScorecardPanel } from '@/components/assignments/ScorecardPanel';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { allocationService, EmployeeDetails, EmployeeAllocation, ResourceOption } from '@/services/allocationService';
+import { AddProjectDialog } from '@/components/assignments/AddProjectDialog';
 
 export function AssignmentEmployeeSection() {
   const { toast } = useToast();
@@ -25,6 +26,9 @@ export function AssignmentEmployeeSection() {
   const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetails | null>(null);
   const [employeeAllocations, setEmployeeAllocations] = useState<EmployeeAllocation[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  
+  // Dialog state
+  const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
 
   // Search employees when search term changes
   useEffect(() => {
@@ -122,18 +126,16 @@ export function AssignmentEmployeeSection() {
   }, [employeeOptions]);
 
   const handleAddProject = () => {
-    toast({
-      title: "Add Project",
-      description: "Project selection dialog would open here",
-    });
+    setIsAddProjectDialogOpen(true);
   };
 
-  const handleReleaseToBench = () => {
-    toast({
-      title: "Release to Bench",
-      description: "Employee will be moved to bench pool",
-    });
-  };
+  const handleProjectAdded = useCallback(async () => {
+    // Refresh employee allocations after adding a project
+    if (selectedEmployeeId) {
+      const allocations = await allocationService.getEmployeeAllocations(selectedEmployeeId);
+      setEmployeeAllocations(allocations);
+    }
+  }, [selectedEmployeeId]);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'Ongoing';
@@ -192,13 +194,10 @@ export function AssignmentEmployeeSection() {
                       )}
                     </div>
                   </div>
-                  <div className="ml-auto flex gap-2">
+                  <div className="ml-auto">
                     <Button onClick={handleAddProject} className="flex items-center gap-2">
                       <Plus className="h-4 w-4" />
                       Add Project
-                    </Button>
-                    <Button variant="outline" onClick={handleReleaseToBench}>
-                      Release to Bench
                     </Button>
                   </div>
                 </CardTitle>
@@ -288,6 +287,17 @@ export function AssignmentEmployeeSection() {
           />
         )}
       </div>
+
+      {/* Add Project Dialog */}
+      {selectedEmployeeId && employeeDetails && (
+        <AddProjectDialog
+          open={isAddProjectDialogOpen}
+          onOpenChange={setIsAddProjectDialogOpen}
+          employeeId={selectedEmployeeId}
+          employeeName={employeeDetails.displayName}
+          onSuccess={handleProjectAdded}
+        />
+      )}
     </div>
   );
 }
