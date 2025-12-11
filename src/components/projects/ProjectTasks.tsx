@@ -214,39 +214,41 @@ export function ProjectTasks() {
             </Button>
           </div>
           <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Est. Hours</TableHead>
-                  <TableHead>Actual Hours</TableHead>
-                  <TableHead>Billable</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tasks.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{task.name}</div>
-                        {task.description && (
-                          <div className="text-sm text-muted-foreground">{task.description}</div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{task.estHours}h</TableCell>
-                    <TableCell>{task.actualHours ?? 0}h</TableCell>
-                    <TableCell>
-                      {task.billable ? (
-                        <CheckSquare className="h-4 w-4 text-success" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[500px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Task</TableHead>
+                    <TableHead>Est. Hours</TableHead>
+                    <TableHead>Actual Hours</TableHead>
+                    <TableHead>Billable</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {tasks.map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{task.name}</div>
+                          {task.description && (
+                            <div className="text-sm text-muted-foreground">{task.description}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{task.estHours}h</TableCell>
+                      <TableCell>{task.actualHours ?? 0}h</TableCell>
+                      <TableCell>
+                        {task.billable ? (
+                          <CheckSquare className="h-4 w-4 text-success" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </div>
       )}

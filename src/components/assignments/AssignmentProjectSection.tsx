@@ -5,13 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, Edit, Users } from 'lucide-react';
-import { ScorecardPanel } from '@/components/assignments/ScorecardPanel';
+import { ScorecardMobileWrapper } from '@/components/assignments/ScorecardMobileWrapper';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AddResourceDialog } from '@/components/assignments/AddResourceDialog';
 import { EditAllocationDialog } from '@/components/assignments/EditAllocationDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ProjectAllocation {
   id: string;
@@ -278,13 +279,13 @@ export function AssignmentProjectSection() {
 
       {/* Results - after search */}
       {hasSearched && (
-        <div className="grid grid-cols-4 gap-6">
-          {/* Main Content - 3 columns */}
-          <div className="col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+          {/* Main Content - 3 columns on desktop, full on mobile */}
+          <div className="col-span-1 md:col-span-3">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Project Allocations
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span>Project Allocations</span>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">{allocations.length} resources</Badge>
                     <Button onClick={handleAddResource} size="sm" className="flex items-center gap-2">
@@ -307,12 +308,12 @@ export function AssignmentProjectSection() {
                 ) : (
                   <div className="space-y-4">
                     {allocations.map((allocation) => (
-                      <div key={allocation.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <div key={allocation.id} className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 p-4 border rounded-lg">
                         <div className="flex-1">
                           <div className="font-medium">{allocation.employeeName}</div>
                           <div className="text-sm text-muted-foreground">{allocation.role}</div>
                           {allocation.skills.length > 0 && (
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex gap-2 mt-2 flex-wrap">
                               {allocation.skills.map((skill) => (
                                 <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
                               ))}
@@ -320,13 +321,13 @@ export function AssignmentProjectSection() {
                           )}
                         </div>
                         
-                        <div className="w-32">
+                        <div className="w-full md:w-28">
                           <div className="text-sm font-medium mb-2">Allocation</div>
                           <Progress value={Math.min(allocation.allocationPct, 100)} className="w-full" />
                           <div className="text-xs text-center mt-1">{allocation.allocationPct}%</div>
                         </div>
 
-                        <div className="w-32">
+                        <div className="w-full md:w-28">
                           <Badge variant={allocation.type === 'ACTIVE' ? 'default' : 'secondary'}>
                             {allocation.type}
                           </Badge>
@@ -352,13 +353,11 @@ export function AssignmentProjectSection() {
             </Card>
           </div>
 
-          {/* Scorecard Panel - 1 column */}
-          <div className="col-span-1">
-            <ScorecardPanel
-              type="project"
-              data={scorecardData}
-            />
-          </div>
+          {/* Scorecard Panel - hidden on mobile, shown in drawer */}
+          <ScorecardMobileWrapper
+            type="project"
+            data={scorecardData}
+          />
         </div>
       )}
 
