@@ -10,7 +10,22 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,29 +54,49 @@ export function EditAllocationDialog({
 }: EditAllocationDialogProps) {
   const { toast } = useToast();
   const [allocationPct, setAllocationPct] = useState<number>(0);
+  const [type, setType] = useState<'ACTIVE' | 'SHADOW'>('ACTIVE');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (allocation) {
       setAllocationPct(allocation.allocationPct);
+      setType(allocation.type as 'ACTIVE' | 'SHADOW');
+      setStartDate(new Date(allocation.startDate));
+      setEndDate(allocation.endDate ? new Date(allocation.endDate) : undefined);
     }
   }, [allocation]);
 
   const handleSave = async () => {
-    if (!allocation) return;
+    if (!allocation || !startDate) return;
+
+    if (endDate && endDate <= startDate) {
+      toast({
+        title: 'Validation Error',
+        description: 'End date must be after start date',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('allocations')
-        .update({ allocation_pct: allocationPct })
+        .update({ 
+          allocation_pct: allocationPct,
+          type: type,
+          start_date: format(startDate, 'yyyy-MM-dd'),
+          end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null
+        })
         .eq('id', allocation.id);
 
       if (error) throw error;
 
       toast({
         title: 'Success',
-        description: `Allocation updated to ${allocationPct}%`,
+        description: 'Allocation updated successfully',
       });
       onSuccess();
       onOpenChange(false);
@@ -99,26 +134,83 @@ export function EditAllocationDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-muted-foreground">Type</Label>
-            <div>
-              <Badge variant={allocation.type === 'ACTIVE' ? 'default' : 'secondary'}>
-                {allocation.type}
-              </Badge>
-            </div>
+            <Label>Type</Label>
+            <Select value={type} onValueChange={(value: 'ACTIVE' | 'SHADOW') => setType(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="SHADOW">Shadow</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Start Date</Label>
-              <Input value={allocation.startDate} disabled className="bg-muted" />
+              <Label>Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
-              <Label className="text-muted-foreground">End Date</Label>
-              <Input 
-                value={allocation.endDate || 'Ongoing'} 
-                disabled 
-                className="bg-muted" 
-              />
+              <Label>End Date</Label>
+              <div className="flex gap-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "flex-1 justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, 'PPP') : 'Ongoing'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      disabled={(date) => startDate ? date <= startDate : false}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                {endDate && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEndDate(undefined)}
+                    className="shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
