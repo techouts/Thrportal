@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -6,7 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowRight, CheckCircle } from 'lucide-react'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import { CheckCircle } from 'lucide-react'
 import { mockForecastData } from '@/mocks/projectData'
 import { benchService, BenchResource } from '@/services/benchService'
 
@@ -18,13 +27,19 @@ interface ShadowAllocation {
   avatarUrl?: string;
   targetProject: string;
   startDate: string;
+  endDate: string | null;
   allocationPct: number;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export function ProjectBench() {
+  const navigate = useNavigate()
   const [benchEmployees, setBenchEmployees] = useState<BenchResource[]>([])
   const [shadowAllocations, setShadowAllocations] = useState<ShadowAllocation[]>([])
   const [loading, setLoading] = useState(true)
+  const [idleCurrentPage, setIdleCurrentPage] = useState(1)
+  const [shadowCurrentPage, setShadowCurrentPage] = useState(1)
   const forecastData = mockForecastData
 
   useEffect(() => {
@@ -49,6 +64,67 @@ export function ProjectBench() {
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
+  }
+
+  const handleAllocate = (employeeId: string) => {
+    navigate(`/Projects/Assignments?employeeId=${employeeId}&view=employee`)
+  }
+
+  // Pagination logic for Idle tab
+  const idleTotalPages = Math.ceil(benchEmployees.length / ITEMS_PER_PAGE)
+  const paginatedIdleEmployees = benchEmployees.slice(
+    (idleCurrentPage - 1) * ITEMS_PER_PAGE,
+    idleCurrentPage * ITEMS_PER_PAGE
+  )
+
+  // Pagination logic for Shadow tab
+  const shadowTotalPages = Math.ceil(shadowAllocations.length / ITEMS_PER_PAGE)
+  const paginatedShadowAllocations = shadowAllocations.slice(
+    (shadowCurrentPage - 1) * ITEMS_PER_PAGE,
+    shadowCurrentPage * ITEMS_PER_PAGE
+  )
+
+  const renderPagination = (
+    currentPage: number,
+    totalPages: number,
+    onPageChange: (page: number) => void
+  ) => {
+    if (totalPages <= 1) return null
+
+    const pages = []
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i)
+    }
+
+    return (
+      <Pagination className="mt-4">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
+          </PaginationItem>
+          {pages.map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => onPageChange(page)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    )
   }
 
   return (
@@ -82,76 +158,48 @@ export function ProjectBench() {
                   No employees currently on bench
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Skills</TableHead>
-                      <TableHead>Available From</TableHead>
-                      <TableHead>Bench Days</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {benchEmployees.map((employee) => (
-                      <TableRow key={employee.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={employee.avatarUrl} />
-                              <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium">{employee.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{employee.role}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {employee.skills.length > 0 ? (
-                              employee.skills.slice(0, 3).map((skill) => (
-                                <Badge key={skill} variant="secondary" className="text-xs">
-                                  {skill}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground text-xs">No skills listed</span>
-                            )}
-                            {employee.skills.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{employee.skills.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{new Date(employee.availableFrom).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge variant={employee.benchDays > 14 ? 'destructive' : 'secondary'}>
-                            {employee.benchDays} days
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={employee.status === 'unallocated' ? 'destructive' : 'outline'}>
-                            {employee.status === 'unallocated' ? 'Unallocated' : 'Rolling Off'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              <ArrowRight className="h-4 w-4 mr-1" />
-                              Shadow
-                            </Button>
-                            <Button size="sm">
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Available From</TableHead>
+                        <TableHead>Bench Days</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedIdleEmployees.map((employee) => (
+                        <TableRow key={employee.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={employee.avatarUrl} />
+                                <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{employee.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{employee.role}</TableCell>
+                          <TableCell>{new Date(employee.availableFrom).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Badge variant={employee.benchDays > 14 ? 'destructive' : 'secondary'}>
+                              {employee.benchDays} days
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button size="sm" onClick={() => handleAllocate(employee.id)}>
                               <CheckCircle className="h-4 w-4 mr-1" />
                               Allocate
                             </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {renderPagination(idleCurrentPage, idleTotalPages, setIdleCurrentPage)}
+                </>
               )}
             </CardContent>
           </Card>
@@ -174,50 +222,49 @@ export function ProjectBench() {
                   No shadow allocations found
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Target Project</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>Allocation %</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {shadowAllocations.map((allocation) => (
-                      <TableRow key={allocation.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={allocation.avatarUrl} />
-                              <AvatarFallback>{getInitials(allocation.employeeName)}</AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium">{allocation.employeeName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{allocation.role}</TableCell>
-                        <TableCell>{allocation.targetProject}</TableCell>
-                        <TableCell>{new Date(allocation.startDate).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{allocation.allocationPct}%</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm">
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Confirm
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              Release
-                            </Button>
-                          </div>
-                        </TableCell>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Available From</TableHead>
+                        <TableHead>End Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedShadowAllocations.map((allocation) => (
+                        <TableRow key={allocation.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={allocation.avatarUrl} />
+                                <AvatarFallback>{getInitials(allocation.employeeName)}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{allocation.employeeName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{allocation.role}</TableCell>
+                          <TableCell>{new Date(allocation.startDate).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            {allocation.endDate 
+                              ? new Date(allocation.endDate).toLocaleDateString()
+                              : 'Ongoing'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <Button size="sm" onClick={() => handleAllocate(allocation.employeeId)}>
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Allocate
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {renderPagination(shadowCurrentPage, shadowTotalPages, setShadowCurrentPage)}
+                </>
               )}
             </CardContent>
           </Card>

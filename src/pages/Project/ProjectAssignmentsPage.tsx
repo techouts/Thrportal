@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AssignmentProjectSection } from '@/components/assignments/AssignmentProjectSection';
 import { AssignmentEmployeeSection } from '@/components/assignments/AssignmentEmployeeSection';
 
 export function ProjectAssignmentsPage() {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('project');
+
+  // Read URL params for pre-selection
+  const preSelectedEmployeeId = searchParams.get('employeeId');
+  const viewParam = searchParams.get('view');
+
+  useEffect(() => {
+    // Auto-switch to employee tab if employeeId is provided
+    if (preSelectedEmployeeId && viewParam === 'employee') {
+      setActiveTab('employee');
+    }
+  }, [preSelectedEmployeeId, viewParam]);
 
   return (
     <div className="h-full flex flex-col">
@@ -31,7 +44,7 @@ export function ProjectAssignmentsPage() {
             </TabsContent>
             
             <TabsContent value="employee" className="h-full">
-              <AssignmentEmployeeSection />
+              <AssignmentEmployeeSection preSelectedEmployeeId={preSelectedEmployeeId} />
             </TabsContent>
           </div>
         </Tabs>
