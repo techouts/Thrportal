@@ -3,15 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Edit, Trash2, Users } from 'lucide-react';
+import { Plus, Search, Edit, Users } from 'lucide-react';
 import { ScorecardPanel } from '@/components/assignments/ScorecardPanel';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AddResourceDialog } from '@/components/assignments/AddResourceDialog';
+import { EditAllocationDialog } from '@/components/assignments/EditAllocationDialog';
 
 interface ProjectAllocation {
   id: string;
@@ -21,7 +21,6 @@ interface ProjectAllocation {
   startDate: string;
   endDate: string | null;
   type: string;
-  utilizationPct: number;
   skills: string[];
 }
 
@@ -33,8 +32,8 @@ export function AssignmentProjectSection() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [allocations, setAllocations] = useState<ProjectAllocation[]>([]);
-  const [editingAllocation, setEditingAllocation] = useState<string | null>(null);
   const [isAddResourceDialogOpen, setIsAddResourceDialogOpen] = useState(false);
+  const [selectedAllocationForEdit, setSelectedAllocationForEdit] = useState<ProjectAllocation | null>(null);
 
 
   // Fetch clients from database
@@ -141,7 +140,6 @@ export function AssignmentProjectSection() {
         startDate: alloc.start_date,
         endDate: alloc.end_date,
         type: alloc.type || 'ACTIVE',
-        utilizationPct: Math.round((alloc.allocation_pct || 0) * 0.9), // Simulated utilization
         skills: [] // Would need a skills table
       }));
 
@@ -170,8 +168,7 @@ export function AssignmentProjectSection() {
         benchEligibleIn2Weeks: 0,
         monthlyCost: 0,
         plannedHours: 0,
-        actualHours: 0,
-        avgUtilization: 0
+        actualHours: 0
       };
     }
 
@@ -179,7 +176,6 @@ export function AssignmentProjectSection() {
     const shadowResources = allocations.filter(a => a.type === 'SHADOW').length;
     const underAllocated = allocations.filter(a => a.allocationPct < 50).length;
     const overAllocated = allocations.filter(a => a.allocationPct > 100).length;
-    const avgUtilization = allocations.reduce((sum, a) => sum + a.utilizationPct, 0) / totalEmployees;
     
     return {
       totalEmployees,
@@ -190,16 +186,16 @@ export function AssignmentProjectSection() {
       benchEligibleIn2Weeks: 0,
       monthlyCost: 0,
       plannedHours: 0,
-      actualHours: 0,
-      avgUtilization
+      actualHours: 0
     };
   }, [allocations]);
 
-  const handleAllocationChange = (id: string, newValue: number[]) => {
-    toast({
-      title: "Allocation Updated",
-      description: `Updated allocation to ${newValue[0]}%`,
-    });
+  const handleEditClick = (allocation: ProjectAllocation) => {
+    setSelectedAllocationForEdit(allocation);
+  };
+
+  const handleEditSuccess = () => {
+    handleSearch(); // Refresh allocations
   };
 
   const handleAddResource = () => {
@@ -326,24 +322,8 @@ export function AssignmentProjectSection() {
                         
                         <div className="w-32">
                           <div className="text-sm font-medium mb-2">Allocation</div>
-                          {editingAllocation === allocation.id ? (
-                            <Slider
-                              value={[allocation.allocationPct]}
-                              onValueChange={(value) => handleAllocationChange(allocation.id, value)}
-                              max={150}
-                              step={5}
-                              className="w-full"
-                            />
-                          ) : (
-                            <Progress value={Math.min(allocation.allocationPct, 100)} className="w-full" />
-                          )}
+                          <Progress value={Math.min(allocation.allocationPct, 100)} className="w-full" />
                           <div className="text-xs text-center mt-1">{allocation.allocationPct}%</div>
-                        </div>
-
-                        <div className="w-24">
-                          <div className="text-sm font-medium mb-2">Utilization</div>
-                          <Progress value={Math.min(allocation.utilizationPct, 100)} className="w-full" />
-                          <div className="text-xs text-center mt-1">{allocation.utilizationPct}%</div>
                         </div>
 
                         <div className="w-32">
@@ -359,14 +339,9 @@ export function AssignmentProjectSection() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setEditingAllocation(
-                              editingAllocation === allocation.id ? null : allocation.id
-                            )}
+                            onClick={() => handleEditClick(allocation)}
                           >
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -393,6 +368,14 @@ export function AssignmentProjectSection() {
         onOpenChange={setIsAddResourceDialogOpen}
         projectId={selectedProject}
         onSuccess={handleAddResourceSuccess}
+      />
+
+      {/* Edit Allocation Dialog */}
+      <EditAllocationDialog
+        open={!!selectedAllocationForEdit}
+        onOpenChange={(open) => !open && setSelectedAllocationForEdit(null)}
+        allocation={selectedAllocationForEdit}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );
