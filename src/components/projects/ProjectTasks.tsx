@@ -7,7 +7,7 @@ import { taskService, TaskItem } from '@/services/taskService'
 import { allocationService, ProjectOption } from '@/services/allocationService'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { cn } from '@/lib/utils'
+import { AddTaskDialog } from './AddTaskDialog'
 
 export function ProjectTasks() {
   const [selectedProject, setSelectedProject] = useState<ProjectOption | null>(null)
@@ -17,6 +17,7 @@ export function ProjectTasks() {
   const [isSearching, setIsSearching] = useState(false)
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
 
   // Search projects when query changes
   useEffect(() => {
@@ -69,6 +70,19 @@ export function ProjectTasks() {
     setSelectedProject(project)
     setOpen(false)
     setSearchQuery('')
+  }
+
+  const handleRefreshTasks = async () => {
+    if (!selectedProject) return
+    setIsLoadingTasks(true)
+    try {
+      const taskData = await taskService.getTasksByProject(selectedProject.id)
+      setTasks(taskData)
+    } catch (error) {
+      console.error('Error refreshing tasks:', error)
+    } finally {
+      setIsLoadingTasks(false)
+    }
   }
 
   return (
@@ -166,7 +180,7 @@ export function ProjectTasks() {
         <div className="space-y-4">
           <div className="flex justify-end space-x-2">
             <Button variant="outline">Import Template</Button>
-            <Button>
+            <Button onClick={() => setIsAddTaskDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
             </Button>
@@ -186,7 +200,7 @@ export function ProjectTasks() {
         <div className="space-y-4">
           <div className="flex justify-end space-x-2">
             <Button variant="outline">Import Template</Button>
-            <Button>
+            <Button onClick={() => setIsAddTaskDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
             </Button>
@@ -227,6 +241,17 @@ export function ProjectTasks() {
             </Table>
           </Card>
         </div>
+      )}
+
+      {/* Add Task Dialog */}
+      {selectedProject && (
+        <AddTaskDialog
+          open={isAddTaskDialogOpen}
+          onOpenChange={setIsAddTaskDialogOpen}
+          projectId={selectedProject.id}
+          projectName={selectedProject.name}
+          onSuccess={handleRefreshTasks}
+        />
       )}
     </div>
   )
