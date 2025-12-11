@@ -56,6 +56,7 @@ export function AddResourceDialog({
   // Search state
   const [resourceSearch, setResourceSearch] = useState('');
   const [resourceOptions, setResourceOptions] = useState<ResourceOption[]>([]);
+  const [selectedResource, setSelectedResource] = useState<ResourceOption | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   
   // Validation errors
@@ -78,13 +79,40 @@ export function AddResourceDialog({
         const results = await allocationService.searchResources(resourceSearch);
         setResourceOptions(results);
         setIsSearching(false);
-      } else {
+      } else if (resourceSearch.length === 0 && !selectedResource) {
         setResourceOptions([]);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [resourceSearch]);
+  }, [resourceSearch, selectedResource]);
+
+  // Handle resource selection - persist selected resource
+  const handleResourceChange = useCallback((value: string) => {
+    setResourceId(value);
+    const selected = resourceOptions.find(r => r.id === value);
+    if (selected) {
+      setSelectedResource(selected);
+    }
+  }, [resourceOptions]);
+
+  // Combined options that always include the selected resource
+  const combinedResourceOptions = React.useMemo(() => {
+    const options = resourceOptions.map(r => ({
+      value: r.id,
+      label: r.displayName + (r.email ? ` (${r.email})` : ''),
+    }));
+    
+    // Always include selected resource if it exists and isn't already in options
+    if (selectedResource && !resourceOptions.find(r => r.id === selectedResource.id)) {
+      options.unshift({
+        value: selectedResource.id,
+        label: selectedResource.displayName + (selectedResource.email ? ` (${selectedResource.email})` : ''),
+      });
+    }
+    
+    return options;
+  }, [resourceOptions, selectedResource]);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -97,6 +125,7 @@ export function AddResourceDialog({
       setEndDate(undefined);
       setResourceSearch('');
       setResourceOptions([]);
+      setSelectedResource(null);
       setErrors({});
     }
   }, [open]);
