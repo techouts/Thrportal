@@ -12,9 +12,13 @@ export interface TaskItem {
 export interface CreateTaskInput {
   projectId: string
   name: string
+  description?: string | null
   estHours: number
   actualHours: number | null
   billable: boolean
+  startDate?: string | null
+  endDate?: string | null
+  status?: string
 }
 
 export const taskService = {
@@ -46,11 +50,13 @@ export const taskService = {
       .insert({
         project_id: input.projectId,
         name: input.name,
+        description: input.description || null,
         est_hours: input.estHours,
         actual_hours: input.actualHours,
         billable: input.billable,
-        start_date: new Date().toISOString().split('T')[0],
-        status: 'not_started'
+        start_date: input.startDate || new Date().toISOString().split('T')[0],
+        end_date: input.endDate || null,
+        status: input.status || 'not_started'
       })
       .select('id, name, description, est_hours, actual_hours, billable')
       .single()
@@ -68,5 +74,38 @@ export const taskService = {
       actualHours: data.actual_hours ? Number(data.actual_hours) : null,
       billable: data.billable ?? false
     }
+  },
+
+  async createTasksBulk(tasks: CreateTaskInput[]): Promise<TaskItem[]> {
+    const tasksToInsert = tasks.map(input => ({
+      project_id: input.projectId,
+      name: input.name,
+      description: input.description || null,
+      est_hours: input.estHours,
+      actual_hours: input.actualHours,
+      billable: input.billable,
+      start_date: input.startDate || new Date().toISOString().split('T')[0],
+      end_date: input.endDate || null,
+      status: input.status || 'not_started'
+    }))
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(tasksToInsert)
+      .select('id, name, description, est_hours, actual_hours, billable')
+
+    if (error) {
+      console.error('Error creating tasks in bulk:', error)
+      throw error
+    }
+
+    return (data || []).map(task => ({
+      id: task.id,
+      name: task.name,
+      description: task.description,
+      estHours: Number(task.est_hours) || 0,
+      actualHours: task.actual_hours ? Number(task.actual_hours) : null,
+      billable: task.billable ?? false
+    }))
   }
 }

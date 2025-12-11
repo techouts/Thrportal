@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, CheckSquare, Clock, Search, FileText } from 'lucide-react'
+import { Plus, CheckSquare, Clock, Search, FileText, Upload } from 'lucide-react'
 import { taskService, TaskItem } from '@/services/taskService'
 import { allocationService, ProjectOption } from '@/services/allocationService'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { AddTaskDialog } from './AddTaskDialog'
+import { ImportTasksDialog } from './ImportTasksDialog'
 
 export function ProjectTasks() {
   const [selectedProject, setSelectedProject] = useState<ProjectOption | null>(null)
@@ -18,6 +19,7 @@ export function ProjectTasks() {
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   // Search projects when query changes
   useEffect(() => {
@@ -179,7 +181,10 @@ export function ProjectTasks() {
         // State 2: Project selected, no tasks
         <div className="space-y-4">
           <div className="flex justify-end space-x-2">
-            <Button variant="outline">Import Template</Button>
+            <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import Template
+            </Button>
             <Button onClick={() => setIsAddTaskDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
@@ -199,7 +204,10 @@ export function ProjectTasks() {
         // State 3: Project selected, has tasks
         <div className="space-y-4">
           <div className="flex justify-end space-x-2">
-            <Button variant="outline">Import Template</Button>
+            <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import Template
+            </Button>
             <Button onClick={() => setIsAddTaskDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
@@ -245,13 +253,21 @@ export function ProjectTasks() {
 
       {/* Add Task Dialog */}
       {selectedProject && (
-        <AddTaskDialog
-          open={isAddTaskDialogOpen}
-          onOpenChange={setIsAddTaskDialogOpen}
-          projectId={selectedProject.id}
-          projectName={selectedProject.name}
-          onSuccess={handleRefreshTasks}
-        />
+        <>
+          <AddTaskDialog
+            open={isAddTaskDialogOpen}
+            onOpenChange={setIsAddTaskDialogOpen}
+            projectId={selectedProject.id}
+            projectName={selectedProject.name}
+            onSuccess={handleRefreshTasks}
+          />
+          <ImportTasksDialog
+            open={isImportDialogOpen}
+            onOpenChange={setIsImportDialogOpen}
+            projectId={selectedProject.id}
+            onSuccess={handleRefreshTasks}
+          />
+        </>
       )}
     </div>
   )
