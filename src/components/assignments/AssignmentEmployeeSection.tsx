@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Edit, Trash2, User, Calendar } from 'lucide-react';
+import { Plus, Edit, User } from 'lucide-react';
 import { ScorecardPanel } from '@/components/assignments/ScorecardPanel';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { allocationService, EmployeeDetails, EmployeeAllocation, ResourceOption } from '@/services/allocationService';
 import { AddProjectDialog } from '@/components/assignments/AddProjectDialog';
+import { EditEmployeeAllocationDialog } from '@/components/assignments/EditEmployeeAllocationDialog';
 
 export function AssignmentEmployeeSection() {
   const { toast } = useToast();
@@ -29,6 +30,8 @@ export function AssignmentEmployeeSection() {
   
   // Dialog state
   const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedAllocation, setSelectedAllocation] = useState<EmployeeAllocation | null>(null);
 
   // Search employees when search term changes
   useEffect(() => {
@@ -131,6 +134,18 @@ export function AssignmentEmployeeSection() {
 
   const handleProjectAdded = useCallback(async () => {
     // Refresh employee allocations after adding a project
+    if (selectedEmployeeId) {
+      const allocations = await allocationService.getEmployeeAllocations(selectedEmployeeId);
+      setEmployeeAllocations(allocations);
+    }
+  }, [selectedEmployeeId]);
+
+  const handleEditAllocation = (allocation: EmployeeAllocation) => {
+    setSelectedAllocation(allocation);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleAllocationUpdated = useCallback(async () => {
     if (selectedEmployeeId) {
       const allocations = await allocationService.getEmployeeAllocations(selectedEmployeeId);
       setEmployeeAllocations(allocations);
@@ -258,14 +273,12 @@ export function AssignmentEmployeeSection() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEditAllocation(allocation)}
+                          >
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Calendar className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -298,6 +311,14 @@ export function AssignmentEmployeeSection() {
           onSuccess={handleProjectAdded}
         />
       )}
+
+      {/* Edit Allocation Dialog */}
+      <EditEmployeeAllocationDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        allocation={selectedAllocation}
+        onSuccess={handleAllocationUpdated}
+      />
     </div>
   );
 }
