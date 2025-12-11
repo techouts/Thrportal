@@ -92,7 +92,6 @@ export const MENU: MenuSection[] = [
       { label: "Assignments", route: "/Projects/Assignments" },
       { label: "Tasks", route: "/Projects/Tasks" },
       { label: "Bench", route: "/Projects/Bench", requiresAny: ["bench.*", "projects.bench.read"] },
-      { label: "Client Desk", route: "/CRM/ClientDesk" },
       { label: "Reports", route: "/Projects/Reports" }
     ] 
   },
