@@ -87,7 +87,6 @@ export const allocationService = {
         crm_projects!inner(name)
       `)
       .eq('employee_id', resourceId)
-      .lte('start_date', today)
       .or(`end_date.gte.${today},end_date.is.null`);
 
     if (error) {
