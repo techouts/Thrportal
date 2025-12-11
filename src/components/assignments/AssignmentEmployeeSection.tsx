@@ -11,7 +11,11 @@ import { allocationService, EmployeeDetails, EmployeeAllocation, ResourceOption 
 import { AddProjectDialog } from '@/components/assignments/AddProjectDialog';
 import { EditEmployeeAllocationDialog } from '@/components/assignments/EditEmployeeAllocationDialog';
 
-export function AssignmentEmployeeSection() {
+interface AssignmentEmployeeSectionProps {
+  preSelectedEmployeeId?: string | null;
+}
+
+export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentEmployeeSectionProps) {
   const { toast } = useToast();
   
   // Search state
@@ -32,6 +36,13 @@ export function AssignmentEmployeeSection() {
   const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedAllocation, setSelectedAllocation] = useState<EmployeeAllocation | null>(null);
+
+  // Handle pre-selected employee from URL
+  useEffect(() => {
+    if (preSelectedEmployeeId && !selectedEmployeeId) {
+      setSelectedEmployeeId(preSelectedEmployeeId);
+    }
+  }, [preSelectedEmployeeId, selectedEmployeeId]);
 
   // Search employees when search term changes
   useEffect(() => {
@@ -81,6 +92,11 @@ export function AssignmentEmployeeSection() {
         
         setEmployeeDetails(details);
         setEmployeeAllocations(allocations);
+        
+        // Update label if pre-selected
+        if (details && !selectedEmployeeLabel) {
+          setSelectedEmployeeLabel(details.displayName);
+        }
       } catch (error) {
         console.error('Error fetching employee data:', error);
         toast({

@@ -121,6 +121,7 @@ export const benchService = {
         employee_id,
         project_id,
         start_date,
+        end_date,
         allocation_pct,
         type,
         profiles!allocations_employee_id_fkey (
@@ -158,6 +159,7 @@ export const benchService = {
         avatarUrl: profile?.avatar_url,
         targetProject: project?.name || 'Unknown Project',
         startDate: allocation.start_date,
+        endDate: allocation.end_date,
         allocationPct: allocation.allocation_pct
       };
     }) || [];
