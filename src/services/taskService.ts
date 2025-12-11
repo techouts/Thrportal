@@ -50,7 +50,7 @@ export const taskService = {
         actual_hours: input.actualHours,
         billable: input.billable,
         start_date: new Date().toISOString().split('T')[0],
-        status: 'Not Started'
+        status: 'not_started'
       })
       .select('id, name, description, est_hours, actual_hours, billable')
       .single()
