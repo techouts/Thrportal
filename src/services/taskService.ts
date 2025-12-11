@@ -9,6 +9,14 @@ export interface TaskItem {
   billable: boolean
 }
 
+export interface CreateTaskInput {
+  projectId: string
+  name: string
+  estHours: number
+  actualHours: number | null
+  billable: boolean
+}
+
 export const taskService = {
   async getTasksByProject(projectId: string): Promise<TaskItem[]> {
     const { data, error } = await supabase
@@ -30,5 +38,35 @@ export const taskService = {
       actualHours: task.actual_hours ? Number(task.actual_hours) : null,
       billable: task.billable ?? false
     }))
+  },
+
+  async createTask(input: CreateTaskInput): Promise<TaskItem> {
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert({
+        project_id: input.projectId,
+        name: input.name,
+        est_hours: input.estHours,
+        actual_hours: input.actualHours,
+        billable: input.billable,
+        start_date: new Date().toISOString().split('T')[0],
+        status: 'Not Started'
+      })
+      .select('id, name, description, est_hours, actual_hours, billable')
+      .single()
+
+    if (error) {
+      console.error('Error creating task:', error)
+      throw error
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      estHours: Number(data.est_hours) || 0,
+      actualHours: data.actual_hours ? Number(data.actual_hours) : null,
+      billable: data.billable ?? false
+    }
   }
 }
