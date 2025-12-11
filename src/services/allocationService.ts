@@ -4,6 +4,7 @@ export interface ResourceOption {
   id: string;
   displayName: string;
   email?: string;
+  employeeCode?: string;
 }
 
 export interface ResourceAllocation {
@@ -27,17 +28,38 @@ export interface CreateAllocationInput {
   endDate: string;
 }
 
+export interface EmployeeDetails {
+  id: string;
+  displayName: string;
+  roleTitle: string | null;
+  department: string | null;
+  employeeCode: string | null;
+  email: string | null;
+}
+
+export interface EmployeeAllocation {
+  id: string;
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  allocationPct: number;
+  type: string;
+  startDate: string;
+  endDate: string | null;
+  roleId: string;
+}
+
 export const allocationService = {
   /**
-   * Search resources from profiles table by name
+   * Search resources from profiles table by name or employee code
    */
   async searchResources(searchTerm: string): Promise<ResourceOption[]> {
     if (!searchTerm || searchTerm.length < 2) return [];
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, first_name, last_name, email')
-      .or(`display_name.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+      .select('id, display_name, first_name, last_name, email, employee_code')
+      .or(`display_name.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,employee_code.ilike.%${searchTerm}%`)
       .limit(10);
 
     if (error) {
@@ -50,7 +72,78 @@ export const allocationService = {
       displayName: profile.display_name || 
         `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 
         'Unknown',
-      email: profile.email || undefined
+      email: profile.email || undefined,
+      employeeCode: profile.employee_code || undefined
+    }));
+  },
+
+  /**
+   * Get employee details by ID
+   */
+  async getEmployeeById(employeeId: string): Promise<EmployeeDetails | null> {
+    if (!employeeId) return null;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name, first_name, last_name, role_title, department, employee_code, email')
+      .eq('id', employeeId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching employee:', error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      displayName: data.display_name || 
+        `${data.first_name || ''} ${data.last_name || ''}`.trim() || 
+        'Unknown',
+      roleTitle: data.role_title,
+      department: data.department,
+      employeeCode: data.employee_code,
+      email: data.email
+    };
+  },
+
+  /**
+   * Get all allocations for an employee (active and future)
+   */
+  async getEmployeeAllocations(employeeId: string): Promise<EmployeeAllocation[]> {
+    if (!employeeId) return [];
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('allocations')
+      .select(`
+        id,
+        project_id,
+        allocation_pct,
+        type,
+        start_date,
+        end_date,
+        role_id,
+        crm_projects!inner(name, crm_clients(name))
+      `)
+      .eq('employee_id', employeeId)
+      .or(`end_date.gte.${today},end_date.is.null`);
+
+    if (error) {
+      console.error('Error fetching employee allocations:', error);
+      return [];
+    }
+
+    return (data || []).map(allocation => ({
+      id: allocation.id,
+      projectId: allocation.project_id || '',
+      projectName: (allocation.crm_projects as any)?.name || 'Unknown Project',
+      clientName: (allocation.crm_projects as any)?.crm_clients?.name || 'Unknown Client',
+      allocationPct: allocation.allocation_pct,
+      type: allocation.type,
+      startDate: allocation.start_date,
+      endDate: allocation.end_date,
+      roleId: allocation.role_id
     }));
   },
 
