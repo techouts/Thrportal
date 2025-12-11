@@ -1,33 +1,75 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { Plus, Search, Calendar, Download, CheckSquare, Clock } from 'lucide-react'
-import { mockTasks } from '@/mocks/projectData'
+import { Plus, CheckSquare, Clock, Search, FileText } from 'lucide-react'
+import { taskService, TaskItem } from '@/services/taskService'
+import { allocationService, ProjectOption } from '@/services/allocationService'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { cn } from '@/lib/utils'
 
 export function ProjectTasks() {
+  const [selectedProject, setSelectedProject] = useState<ProjectOption | null>(null)
+  const [tasks, setTasks] = useState<TaskItem[]>([])
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([])
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const tasks = mockTasks
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-success'
-      case 'in_progress': return 'bg-primary' 
-      case 'not_started': return 'bg-muted'
-      case 'blocked': return 'bg-destructive'
-      default: return 'bg-muted'
+  // Search projects when query changes
+  useEffect(() => {
+    const searchProjects = async () => {
+      if (searchQuery.length < 2) {
+        setProjectOptions([])
+        return
+      }
+
+      setIsSearching(true)
+      try {
+        const results = await allocationService.searchProjects(searchQuery)
+        setProjectOptions(results)
+      } catch (error) {
+        console.error('Error searching projects:', error)
+        setProjectOptions([])
+      } finally {
+        setIsSearching(false)
+      }
     }
-  }
 
-  const taskData = tasks.map(t => ({
-    name: t.name.substring(0, 15) + '...',
-    estimated: t.est_hours,
-    actual: t.actual_hours || 0
-  }))
+    const debounce = setTimeout(searchProjects, 300)
+    return () => clearTimeout(debounce)
+  }, [searchQuery])
+
+  // Fetch tasks when project is selected
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!selectedProject) {
+        setTasks([])
+        return
+      }
+
+      setIsLoadingTasks(true)
+      try {
+        const taskData = await taskService.getTasksByProject(selectedProject.id)
+        setTasks(taskData)
+      } catch (error) {
+        console.error('Error fetching tasks:', error)
+        setTasks([])
+      } finally {
+        setIsLoadingTasks(false)
+      }
+    }
+
+    fetchTasks()
+  }, [selectedProject])
+
+  const handleSelectProject = (project: ProjectOption) => {
+    setSelectedProject(project)
+    setOpen(false)
+    setSearchQuery('')
+  }
 
   return (
     <div className="space-y-6">
@@ -36,41 +78,126 @@ export function ProjectTasks() {
         <p className="text-muted-foreground">Manage project tasks and deliverables</p>
       </div>
 
-      <Tabs defaultValue="manage" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="manage">Manage</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
+      {/* Project Search */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Project *</label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full max-w-md justify-between"
+            >
+              {selectedProject ? (
+                <span>{selectedProject.name}</span>
+              ) : (
+                <span className="text-muted-foreground">Search and select a project...</span>
+              )}
+              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full max-w-md p-0" align="start">
+            <Command shouldFilter={false}>
+              <CommandInput
+                placeholder="Type to search projects..."
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+              />
+              <CommandList>
+                {isSearching ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    Searching...
+                  </div>
+                ) : searchQuery.length < 2 ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    Type at least 2 characters to search
+                  </div>
+                ) : projectOptions.length === 0 ? (
+                  <CommandEmpty>No projects found.</CommandEmpty>
+                ) : (
+                  <CommandGroup>
+                    {projectOptions.map((project) => (
+                      <CommandItem
+                        key={project.id}
+                        value={project.id}
+                        onSelect={() => handleSelectProject(project)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{project.name}</span>
+                          {project.clientName && (
+                            <span className="text-xs text-muted-foreground">
+                              {project.clientName}
+                            </span>
+                          )}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
 
-        <TabsContent value="manage" className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search tasks..." className="pl-8 w-64" />
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline">
-                <Calendar className="h-4 w-4 mr-2" />
-                Gantt View
-              </Button>
-              <Button variant="outline">Import Template</Button>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Task
-              </Button>
-            </div>
+      {/* Conditional Content */}
+      {!selectedProject ? (
+        // State 1: No project selected
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Search className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Select a project to view tasks</h3>
+            <p className="text-muted-foreground text-center">
+              Use the search above to find and select a project
+            </p>
+          </CardContent>
+        </Card>
+      ) : isLoadingTasks ? (
+        // Loading state
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Loading tasks...</p>
+          </CardContent>
+        </Card>
+      ) : tasks.length === 0 ? (
+        // State 2: Project selected, no tasks
+        <div className="space-y-4">
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline">Import Template</Button>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Task
+            </Button>
           </div>
-
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No tasks available</h3>
+              <p className="text-muted-foreground text-center">
+                No tasks have been created for this project.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        // State 3: Project selected, has tasks
+        <div className="space-y-4">
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline">Import Template</Button>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Task
+            </Button>
+          </div>
           <Card>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Task</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Stage/Phase</TableHead>
                   <TableHead>Est. Hours</TableHead>
                   <TableHead>Actual Hours</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Billable</TableHead>
                 </TableRow>
               </TableHeader>
@@ -80,18 +207,13 @@ export function ProjectTasks() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{task.name}</div>
-                        <div className="text-sm text-muted-foreground">{task.description}</div>
+                        {task.description && (
+                          <div className="text-sm text-muted-foreground">{task.description}</div>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell>{task.project_name}</TableCell>
-                    <TableCell>{task.stage} / {task.phase}</TableCell>
-                    <TableCell>{task.est_hours}h</TableCell>
-                    <TableCell>{task.actual_hours || 0}h</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(task.status)}>
-                        {task.status.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
+                    <TableCell>{task.estHours}h</TableCell>
+                    <TableCell>{task.actualHours ?? 0}h</TableCell>
                     <TableCell>
                       {task.billable ? (
                         <CheckSquare className="h-4 w-4 text-success" />
@@ -104,28 +226,8 @@ export function ProjectTasks() {
               </TableBody>
             </Table>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="reports" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Estimated vs Actual Hours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={taskData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="estimated" fill="hsl(var(--primary))" name="Estimated" />
-                  <Bar dataKey="actual" fill="hsl(var(--success))" name="Actual" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   )
 }
