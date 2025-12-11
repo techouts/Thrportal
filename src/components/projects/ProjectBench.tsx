@@ -1,16 +1,51 @@
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowRight, CheckCircle, Clock, TrendingUp } from 'lucide-react'
-import { mockBenchEmployees, mockShadowAllocations, mockForecastData } from '@/mocks/projectData'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ArrowRight, CheckCircle } from 'lucide-react'
+import { mockForecastData } from '@/mocks/projectData'
+import { benchService, BenchResource } from '@/services/benchService'
+
+interface ShadowAllocation {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  role: string;
+  avatarUrl?: string;
+  targetProject: string;
+  startDate: string;
+  allocationPct: number;
+}
 
 export function ProjectBench() {
-  const benchEmployees = mockBenchEmployees
-  const shadowAllocations = mockShadowAllocations
+  const [benchEmployees, setBenchEmployees] = useState<BenchResource[]>([])
+  const [shadowAllocations, setShadowAllocations] = useState<ShadowAllocation[]>([])
+  const [loading, setLoading] = useState(true)
   const forecastData = mockForecastData
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const [benchData, shadowData] = await Promise.all([
+          benchService.getBenchResources(),
+          benchService.getShadowAllocations()
+        ])
+        setBenchEmployees(benchData)
+        setShadowAllocations(shadowData)
+      } catch (error) {
+        console.error('Error fetching bench data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
@@ -36,63 +71,88 @@ export function ProjectBench() {
               <CardTitle>Bench Resources</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Skills</TableHead>
-                    <TableHead>Available From</TableHead>
-                    <TableHead>Daily Cost</TableHead>
-                    <TableHead>Bench Days</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {benchEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={employee.avatar} />
-                            <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{employee.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{employee.role}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {employee.skills.map((skill) => (
-                            <Badge key={skill} variant="secondary" className="text-xs">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>{new Date(employee.available_from).toLocaleDateString()}</TableCell>
-                      <TableCell>${employee.daily_cost}</TableCell>
-                      <TableCell>
-                        <Badge variant={employee.bench_days > 14 ? 'destructive' : 'secondary'}>
-                          {employee.bench_days} days
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            <ArrowRight className="h-4 w-4 mr-1" />
-                            Shadow
-                          </Button>
-                          <Button size="sm">
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Allocate
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              ) : benchEmployees.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No employees currently on bench
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Skills</TableHead>
+                      <TableHead>Available From</TableHead>
+                      <TableHead>Bench Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {benchEmployees.map((employee) => (
+                      <TableRow key={employee.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={employee.avatarUrl} />
+                              <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{employee.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{employee.role}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {employee.skills.length > 0 ? (
+                              employee.skills.slice(0, 3).map((skill) => (
+                                <Badge key={skill} variant="secondary" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-xs">No skills listed</span>
+                            )}
+                            {employee.skills.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{employee.skills.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{new Date(employee.availableFrom).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={employee.benchDays > 14 ? 'destructive' : 'secondary'}>
+                            {employee.benchDays} days
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={employee.status === 'unallocated' ? 'destructive' : 'outline'}>
+                            {employee.status === 'unallocated' ? 'Unallocated' : 'Rolling Off'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <ArrowRight className="h-4 w-4 mr-1" />
+                              Shadow
+                            </Button>
+                            <Button size="sm">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Allocate
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -103,50 +163,62 @@ export function ProjectBench() {
               <CardTitle>Shadow Allocations</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Target Project</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>Allocation %</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {shadowAllocations.map((allocation) => (
-                    <TableRow key={allocation.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={allocation.avatar} />
-                            <AvatarFallback>{getInitials(allocation.employee_name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{allocation.employee_name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{allocation.role}</TableCell>
-                      <TableCell>{allocation.target_project}</TableCell>
-                      <TableCell>{new Date(allocation.start_date).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{allocation.allocation_pct}%</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button size="sm">
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Confirm
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Release
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              ) : shadowAllocations.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No shadow allocations found
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Target Project</TableHead>
+                      <TableHead>Start Date</TableHead>
+                      <TableHead>Allocation %</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shadowAllocations.map((allocation) => (
+                      <TableRow key={allocation.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={allocation.avatarUrl} />
+                              <AvatarFallback>{getInitials(allocation.employeeName)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{allocation.employeeName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{allocation.role}</TableCell>
+                        <TableCell>{allocation.targetProject}</TableCell>
+                        <TableCell>{new Date(allocation.startDate).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{allocation.allocationPct}%</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Confirm
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              Release
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
