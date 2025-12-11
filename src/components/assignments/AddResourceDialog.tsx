@@ -23,12 +23,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { allocationService, ResourceOption } from '@/services/allocationService';
+import { allocationService, ResourceOption, ResourceAllocation } from '@/services/allocationService';
 
 interface AddResourceDialogProps {
   open: boolean;
@@ -59,6 +59,10 @@ export function AddResourceDialog({
   const [selectedResource, setSelectedResource] = useState<ResourceOption | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   
+  // Existing allocations state
+  const [existingAllocations, setExistingAllocations] = useState<ResourceAllocation[]>([]);
+  const [isLoadingAllocations, setIsLoadingAllocations] = useState(false);
+  
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -87,12 +91,19 @@ export function AddResourceDialog({
     return () => clearTimeout(timer);
   }, [resourceSearch, selectedResource]);
 
-  // Handle resource selection - persist selected resource
-  const handleResourceChange = useCallback((value: string) => {
+  // Handle resource selection - persist selected resource and fetch allocations
+  const handleResourceChange = useCallback(async (value: string) => {
     setResourceId(value);
     const selected = resourceOptions.find(r => r.id === value);
     if (selected) {
       setSelectedResource(selected);
+      // Fetch existing allocations for this resource
+      setIsLoadingAllocations(true);
+      const allocations = await allocationService.getActiveAllocationsForResource(value);
+      setExistingAllocations(allocations);
+      setIsLoadingAllocations(false);
+    } else {
+      setExistingAllocations([]);
     }
   }, [resourceOptions]);
 
@@ -126,6 +137,7 @@ export function AddResourceDialog({
       setResourceSearch('');
       setResourceOptions([]);
       setSelectedResource(null);
+      setExistingAllocations([]);
       setErrors({});
     }
   }, [open]);
@@ -217,6 +229,22 @@ export function AddResourceDialog({
             />
             {errors.resource && (
               <p className="text-sm text-destructive">{errors.resource}</p>
+            )}
+            {/* Existing Allocations Display */}
+            {isLoadingAllocations && (
+              <p className="text-sm text-muted-foreground">Loading allocations...</p>
+            )}
+            {!isLoadingAllocations && existingAllocations.length > 0 && (
+              <div className="space-y-1">
+                {existingAllocations.map((allocation, index) => (
+                  <div key={index} className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500">
+                    <Info className="h-4 w-4 flex-shrink-0" />
+                    <span>
+                      Allocated to "{allocation.projectName}" with {allocation.allocationPct}% allocation
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

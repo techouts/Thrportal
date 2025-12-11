@@ -6,6 +6,12 @@ export interface ResourceOption {
   email?: string;
 }
 
+export interface ResourceAllocation {
+  projectId: string;
+  projectName: string;
+  allocationPct: number;
+}
+
 export interface RoleOption {
   id: string;
   name: string;
@@ -63,6 +69,37 @@ export const allocationService = {
     }
 
     return data || [];
+  },
+
+  /**
+   * Get active allocations for a resource
+   */
+  async getActiveAllocationsForResource(resourceId: string): Promise<ResourceAllocation[]> {
+    if (!resourceId) return [];
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('allocations')
+      .select(`
+        project_id,
+        allocation_pct,
+        crm_projects!inner(name)
+      `)
+      .eq('employee_id', resourceId)
+      .lte('start_date', today)
+      .or(`end_date.gte.${today},end_date.is.null`);
+
+    if (error) {
+      console.error('Error fetching active allocations:', error);
+      return [];
+    }
+
+    return (data || []).map(allocation => ({
+      projectId: allocation.project_id || '',
+      projectName: (allocation.crm_projects as any)?.name || 'Unknown Project',
+      allocationPct: allocation.allocation_pct
+    }));
   },
 
   /**
