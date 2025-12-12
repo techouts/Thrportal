@@ -2302,6 +2302,84 @@ export type Database = {
           },
         ]
       }
+      leave_policies: {
+        Row: {
+          accrual_frequency: string | null
+          accrual_rate: number | null
+          advance_notice_days: number | null
+          allow_half_day: boolean | null
+          allow_negative: boolean | null
+          annual_quota: number | null
+          application_notes: string | null
+          backdated_limit_days: number | null
+          carry_forward_limit: number | null
+          code: string
+          created_at: string
+          description: string | null
+          display_order: number | null
+          encashment_limit: number | null
+          expiry_days: number | null
+          id: string
+          is_active: boolean | null
+          joining_restriction_days: number | null
+          max_consecutive_days: number | null
+          name: string
+          notice_period_allowed: boolean | null
+          restrictions: Json | null
+          updated_at: string
+        }
+        Insert: {
+          accrual_frequency?: string | null
+          accrual_rate?: number | null
+          advance_notice_days?: number | null
+          allow_half_day?: boolean | null
+          allow_negative?: boolean | null
+          annual_quota?: number | null
+          application_notes?: string | null
+          backdated_limit_days?: number | null
+          carry_forward_limit?: number | null
+          code: string
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          encashment_limit?: number | null
+          expiry_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          joining_restriction_days?: number | null
+          max_consecutive_days?: number | null
+          name: string
+          notice_period_allowed?: boolean | null
+          restrictions?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          accrual_frequency?: string | null
+          accrual_rate?: number | null
+          advance_notice_days?: number | null
+          allow_half_day?: boolean | null
+          allow_negative?: boolean | null
+          annual_quota?: number | null
+          application_notes?: string | null
+          backdated_limit_days?: number | null
+          carry_forward_limit?: number | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          encashment_limit?: number | null
+          expiry_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          joining_restriction_days?: number | null
+          max_consecutive_days?: number | null
+          name?: string
+          notice_period_allowed?: boolean | null
+          restrictions?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leave_requests: {
         Row: {
           approved_at: string | null
