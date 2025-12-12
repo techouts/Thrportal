@@ -297,21 +297,28 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
 
       <div className="space-y-2">
         <Label>Add New Document</Label>
-        {sow.file_name && !selectedFile && (
-          <div className="flex items-center gap-2 p-2 bg-muted rounded">
-            <span className="text-sm flex-1">
-              Current Document: {sow.file_name}
-            </span>
+        {sow.files?.length > 0 && !selectedFile && (
+          <div className="space-y-2 mb-2">
+            {sow.files.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center gap-2 p-2 bg-muted rounded"
+              >
+                <span className="text-sm flex-1">
+                  Current Document: {file.file_name}
+                </span>
 
-            <a
-              href={`https://hrportal.coventic.com:7783${sow.file_download_url}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline flex items-center gap-1"
-            >
-              <ExternalLink className="h-3 w-3" />
-              Download
-            </a>
+                <a
+                  href={`https://hrportal.coventic.com:7783${file.file_download_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Download
+                </a>
+              </div>
+            ))}
           </div>
         )}
 

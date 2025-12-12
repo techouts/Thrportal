@@ -192,21 +192,19 @@ export function EntityDetailsForm({
                   className="mt-1"
                 />
               </div>
-              {formData.file_download_url && (
-                <div className="flex items-center justify-between  gap-3 mt-2 p-2 bg-muted rounded">
-                  <div>
-                    <Label className="font-medium">
-                      Uploaded Document: {formData.fileName}
-                    </Label>
+              {formData.files?.length > 0 && (
+                <div className="space-y-2 mb-2">
+                  {formData.files.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center gap-2 p-2 bg-muted rounded"
+                    >
+                      <span className="text-sm flex-1">
+                        Uploaded Document: {file.file_name}
+                      </span>
 
-                    {/* <span className="text-sm text-gray-700 truncate max-w-xs">
-                    {formData.fileName}
-                  </span> */}
-                  </div>
-                  <div>
-                    {formData.file_download_url && (
                       <a
-                        href={`https://hrportal.coventic.com:7783${formData.file_download_url}`}
+                        href={`https://hrportal.coventic.com:7783${file.file_download_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline flex items-center gap-1"
@@ -214,8 +212,8 @@ export function EntityDetailsForm({
                         <ExternalLink className="h-3 w-3" />
                         Download
                       </a>
-                    )}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </>

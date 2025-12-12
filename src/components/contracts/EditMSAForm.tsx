@@ -261,21 +261,28 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
         <Label htmlFor="doc_link">Add New Document</Label>
 
         {/* Show existing document link if it exists */}
-        {msa.file_name && !selectedFile && (
-          <div className="flex items-center gap-2 p-2 mb-2 bg-muted rounded">
-            <span className="text-sm flex-1">
-              Current Document: {msa.file_name}
-            </span>
+        {msa.files?.length > 0 && !selectedFile && (
+          <div className="space-y-2 mb-2">
+            {msa.files.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center gap-2 p-2 bg-muted rounded"
+              >
+                <span className="text-sm flex-1">
+                  Current Document: {file.file_name}
+                </span>
 
-            <a
-              href={`https://hrportal.coventic.com:7783${msa.file_download_url}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline flex items-center gap-1"
-            >
-              <ExternalLink className="h-3 w-3" />
-              Download
-            </a>
+                <a
+                  href={`https://hrportal.coventic.com:7783${file.file_download_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Download
+                </a>
+              </div>
+            ))}
           </div>
         )}
 
