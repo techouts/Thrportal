@@ -366,6 +366,37 @@ export class TimesheetService {
 
   async getAssignedProjects(employeeId: string): Promise<ProjectAssignment[]> {
     try {
+      const today = format(new Date(), 'yyyy-MM-dd')
+      
+      // Get project IDs from both allocations and contract_assignments
+      const [allocationsResult, contractsResult] = await Promise.all([
+        supabase
+          .from('allocations')
+          .select('project_id')
+          .eq('employee_id', employeeId)
+          .lte('start_date', today)
+          .or(`end_date.is.null,end_date.gte.${today}`),
+        supabase
+          .from('contract_assignments')
+          .select('project_id')
+          .eq('employee_id', employeeId)
+          .lte('start_date', today)
+          .or(`end_date.is.null,end_date.gte.${today}`)
+      ])
+
+      const projectIds = [
+        ...new Set([
+          ...(allocationsResult.data || []).map(a => a.project_id),
+          ...(contractsResult.data || []).map(c => c.project_id)
+        ])
+      ].filter(Boolean) as string[]
+
+      if (projectIds.length === 0) {
+        console.log('No project allocations found for employee:', employeeId)
+        return []
+      }
+
+      // Fetch project details for allocated projects
       const { data, error } = await supabase
         .from('crm_projects')
         .select(`
@@ -375,19 +406,16 @@ export class TimesheetService {
           end_date,
           client:crm_clients(name)
         `)
+        .in('id', projectIds)
         .in('status', ['Planned', 'Active'])
         .order('name')
 
       if (error) {
         console.error('Error fetching projects:', error)
-        return mockProjects
+        return []
       }
 
-      if (!data || data.length === 0) {
-        return mockProjects
-      }
-
-      return data.map(project => ({
+      return (data || []).map(project => ({
         projectId: project.id,
         code: project.id.slice(0, 8).toUpperCase(),
         name: project.name,
@@ -398,12 +426,39 @@ export class TimesheetService {
       }))
     } catch (error) {
       console.error('Error fetching projects:', error)
-      return mockProjects
+      return []
     }
   }
 
   async getAssignedTasks(employeeId: string, projectId: string): Promise<ProjectTask[]> {
-    return genericTasks
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('id, name, billable')
+        .eq('project_id', projectId)
+        .in('status', ['not_started', 'in_progress'])
+        .order('name')
+
+      if (error) {
+        console.error('Error fetching tasks:', error)
+        return genericTasks
+      }
+
+      if (!data || data.length === 0) {
+        // Fallback to generic tasks if no project-specific tasks exist
+        return genericTasks
+      }
+
+      return data.map(task => ({
+        taskId: task.id,
+        code: task.id.slice(0, 6).toUpperCase(),
+        name: task.name,
+        billable: task.billable ?? true
+      }))
+    } catch (error) {
+      console.error('Error fetching tasks:', error)
+      return genericTasks
+    }
   }
 
   async getActiveExportProfiles(): Promise<ClientExportProfile[]> {
