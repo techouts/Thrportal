@@ -316,29 +316,50 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteDialog.type === 'cell' && deleteDialog.dayIndex !== undefined) {
-      // Clear individual cell
-      setEntries(prev => prev.map(entry => 
-        entry.rowId === deleteDialog.rowId 
-          ? { 
-              ...entry, 
-              daily: entry.daily.map((d, i) => 
-                i === deleteDialog.dayIndex ? { hours: 0, comment: '' } : d
-              )
-            }
-          : entry
-      ))
+  const handleConfirmDelete = async () => {
+    try {
+      if (deleteDialog.type === 'cell' && deleteDialog.dayIndex !== undefined) {
+        // Clear individual cell
+        setEntries(prev => prev.map(entry => 
+          entry.rowId === deleteDialog.rowId 
+            ? { 
+                ...entry, 
+                daily: entry.daily.map((d, i) => 
+                  i === deleteDialog.dayIndex ? { hours: 0, comment: '' } : d
+                )
+              }
+            : entry
+        ))
+        toast({
+          title: "Entry deleted",
+          description: "Time entry has been cleared"
+        })
+      } else if (deleteDialog.type === 'row') {
+        // Find the entry to delete
+        const entryToDelete = entries.find(e => e.rowId === deleteDialog.rowId)
+        
+        // Delete from database if timesheet exists
+        if (entryToDelete && timesheet?.id) {
+          await timesheetService.deleteTimesheetRow(
+            timesheet.id,
+            entryToDelete.projectId,
+            entryToDelete.taskId
+          )
+        }
+        
+        // Remove from local state
+        setEntries(prev => prev.filter(entry => entry.rowId !== deleteDialog.rowId))
+        toast({
+          title: "Row deleted",
+          description: "Time entry row has been permanently removed"
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
       toast({
-        title: "Entry deleted",
-        description: "Time entry has been cleared"
-      })
-    } else if (deleteDialog.type === 'row') {
-      // Actually remove the row from entries
-      setEntries(prev => prev.filter(entry => entry.rowId !== deleteDialog.rowId))
-      toast({
-        title: "Row deleted",
-        description: "Time entry row has been removed"
+        title: "Delete failed",
+        description: "Could not delete the entry. Please try again.",
+        variant: "destructive"
       })
     }
     
