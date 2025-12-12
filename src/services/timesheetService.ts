@@ -442,12 +442,12 @@ export class TimesheetService {
 
       if (error) {
         console.error('Error fetching tasks:', error)
-        return genericTasks
+        return []
       }
 
       if (!data || data.length === 0) {
-        // Fallback to generic tasks if no project-specific tasks exist
-        return genericTasks
+        // No tasks for this project
+        return []
       }
 
       return data.map(task => ({
@@ -458,7 +458,7 @@ export class TimesheetService {
       }))
     } catch (error) {
       console.error('Error fetching tasks:', error)
-      return genericTasks
+      return []
     }
   }
 
