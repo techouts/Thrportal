@@ -489,6 +489,21 @@ export class TimesheetService {
     }
   }
 
+  // Delete a specific row (project+task combination) from a timesheet
+  async deleteTimesheetRow(timesheetId: string, projectId: string, taskId: string): Promise<void> {
+    const { error } = await supabase
+      .from('timesheet_entries')
+      .delete()
+      .eq('timesheet_id', timesheetId)
+      .eq('project_id', projectId)
+      .eq('task_id', taskId)
+
+    if (error) {
+      console.error('Error deleting timesheet row:', error)
+      throw error
+    }
+  }
+
   // Get the status of a timesheet for a specific week
   async getTimesheetStatus(employeeId: string, weekStart: string): Promise<string | null> {
     const { data, error } = await supabase
