@@ -157,16 +157,11 @@ export function TimesheetGrid({
                             </SelectContent>
                           </Select>
                         )}
-                        <div className="flex gap-1">
-                          <Badge variant={row.billable ? 'default' : 'secondary'} className="text-xs">
-                            {row.billable ? 'Billable' : 'Non-billable'}
+                        {getWarningsForCell(row.rowId).length > 0 && (
+                          <Badge variant="destructive" className="text-xs">
+                            {getWarningsForCell(row.rowId).length} warning(s)
                           </Badge>
-                          {getWarningsForCell(row.rowId).length > 0 && (
-                            <Badge variant="destructive" className="text-xs">
-                              {getWarningsForCell(row.rowId).length} warning(s)
-                            </Badge>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </td>
                     
