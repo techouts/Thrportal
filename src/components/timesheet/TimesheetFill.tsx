@@ -334,18 +334,11 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
         description: "Time entry has been cleared"
       })
     } else if (deleteDialog.type === 'row') {
-      // Clear all hours in the row
-      setEntries(prev => prev.map(entry => 
-        entry.rowId === deleteDialog.rowId 
-          ? { 
-              ...entry, 
-              daily: entry.daily.map(() => ({ hours: 0, comment: '' }))
-            }
-          : entry
-      ))
+      // Actually remove the row from entries
+      setEntries(prev => prev.filter(entry => entry.rowId !== deleteDialog.rowId))
       toast({
-        title: "Row cleared",
-        description: "All time entries in this row have been cleared"
+        title: "Row deleted",
+        description: "Time entry row has been removed"
       })
     }
     
@@ -361,8 +354,8 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       }
     } else {
       return {
-        description: `Are you sure you want to clear all time entries for this row?`,
-        warning: `This will clear all hours and comments for ${deleteDialog.projectName} - ${deleteDialog.taskName} across all days.`
+        description: `Are you sure you want to delete this row?`,
+        warning: `This will permanently remove ${deleteDialog.projectName} - ${deleteDialog.taskName} from your timesheet.`
       }
     }
   }
