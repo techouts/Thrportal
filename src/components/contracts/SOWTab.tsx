@@ -116,17 +116,21 @@ export function SOWTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Statements of Work</h2>
-          <p className="text-muted-foreground">Manage project-specific work agreements</p>
-        </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create SOW
-        </Button>
-      </div>
+<div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl">Statements of Work</CardTitle>
+              <p className="text-muted-foreground text-sm mt-1">Manage project-specific work agreements</p>
+            </div>
+            <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create SOW
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">

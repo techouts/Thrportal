@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { EmptyState } from './EmptyState'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export interface Column<T> {
   id: string
@@ -92,6 +94,7 @@ export function DataTable<T>({
     key: string
     direction: 'asc' | 'desc'
   } | null>(null)
+  const isMobile = useIsMobile()
 
   const filteredData = useMemo(() => {
     if (!searchQuery || onSearch) return data
@@ -213,7 +216,7 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {/* Conditional Rendering: Table or Empty State */}
+      {/* Conditional Rendering: Table, Mobile Cards, or Empty State */}
       {sortedData.length === 0 ? (
         <div className="rounded-md border p-8">
           <EmptyState
@@ -222,7 +225,50 @@ export function DataTable<T>({
             icon="table"
           />
         </div>
+      ) : isMobile ? (
+        /* Mobile Card View */
+        <div className="space-y-3">
+          {sortedData.map((row, index) => {
+            // Show first 4 columns on mobile
+            const displayColumns = columns.slice(0, 4)
+            return (
+              <Card key={index} className="p-4" data-test-id={`${testId}-row-${index}`}>
+                <div className="space-y-2">
+                  {displayColumns.map((column) => {
+                    const value = typeof column.accessor === 'function'
+                      ? column.accessor(row)
+                      : row[column.accessor]
+                    return (
+                      <div key={column.id} className="flex justify-between items-start gap-2">
+                        <span className="text-sm text-muted-foreground shrink-0">{column.header}</span>
+                        <span className="text-sm font-medium text-right">
+                          {column.cell ? column.cell(value, row) : String(value ?? '')}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                {actions && (
+                  <div className="mt-3 pt-3 border-t flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreHorizontal className="h-4 w-4 mr-2" />
+                          Actions
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {actions(row)}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+              </Card>
+            )
+          })}
+        </div>
       ) : (
+        /* Desktop Table View */
         <div className="rounded-md border overflow-x-auto">
           <Table className="min-w-[600px]">
             <TableHeader>
