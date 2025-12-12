@@ -32,9 +32,16 @@ export interface ProfileRow {
   family_details: any | null
   created_at: string
   updated_at: string
+  // New employment fields
+  employee_type: string | null
+  shifts: string | null
+  week_off: string | null
+  leaves_policy: string | null
+  attendance_policy: string | null
+  work_location: string | null
 }
 
-function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, reports?: ProfileRow[]): EmployeeProfile {
+function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, reports?: ProfileRow[], assignedClientName?: string | null): EmployeeProfile {
   return {
     id: row.id,
     employee_code: row.employee_code || 'N/A',
@@ -64,6 +71,14 @@ function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, r
     date_of_birth: row.date_of_birth || undefined,
     blood_group: row.blood_group || undefined,
     family_details: row.family_details || [],
+    // New employment fields
+    employee_type: row.employee_type || undefined,
+    shifts: row.shifts || undefined,
+    week_off: row.week_off || undefined,
+    leaves_policy: row.leaves_policy || undefined,
+    attendance_policy: row.attendance_policy || undefined,
+    work_location: row.work_location || undefined,
+    assigned_client_name: assignedClientName || undefined,
     business_unit: row.business_unit ? { id: '1', name: row.business_unit } : undefined,
     department: row.department ? { id: '1', name: row.department } : undefined,
     cost_center: row.cost_center ? { id: '1', code: row.cost_center, name: row.cost_center } : undefined,
@@ -83,6 +98,36 @@ function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, r
       email: r.email,
       photo_url: r.avatar_url || undefined
     })) || []
+  }
+}
+
+// Fetch client name from active allocation
+async function getAssignedClientName(userId: string): Promise<string | null> {
+  try {
+    const { data } = await supabase
+      .from('allocations')
+      .select(`
+        project_id,
+        crm_projects!inner (
+          name,
+          client_id,
+          crm_clients!inner (
+            name
+          )
+        )
+      `)
+      .eq('employee_id', userId)
+      .eq('type', 'ACTIVE')
+      .order('start_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    
+    // Access nested client name
+    const clientName = (data as any)?.crm_projects?.crm_clients?.name
+    return clientName || null
+  } catch (error) {
+    console.error('Error fetching assigned client:', error)
+    return null
   }
 }
 
@@ -119,7 +164,10 @@ export async function getCurrentProfile(userId: string): Promise<EmployeeProfile
 
   const reports = (reportsData || []) as unknown as ProfileRow[]
 
-  return mapRowToEmployeeProfile(row, manager, reports)
+  // Fetch assigned client name
+  const assignedClientName = await getAssignedClientName(userId)
+
+  return mapRowToEmployeeProfile(row, manager, reports, assignedClientName)
 }
 
 export async function getProfileById(profileId: string): Promise<EmployeeProfile | null> {
@@ -155,7 +203,10 @@ export async function getProfileById(profileId: string): Promise<EmployeeProfile
 
   const reports = (reportsData || []) as unknown as ProfileRow[]
 
-  return mapRowToEmployeeProfile(row, manager, reports)
+  // Fetch assigned client name
+  const assignedClientName = await getAssignedClientName(profileId)
+
+  return mapRowToEmployeeProfile(row, manager, reports, assignedClientName)
 }
 
 export async function updateProfile(userId: string, data: ProfileUpdateData): Promise<boolean> {
