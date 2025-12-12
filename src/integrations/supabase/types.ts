@@ -2429,6 +2429,7 @@ export type Database = {
         Row: {
           about: string | null
           alternate_phone: string | null
+          attendance_policy: string | null
           avatar_url: string | null
           band: string | null
           blood_group: string | null
@@ -2443,12 +2444,14 @@ export type Database = {
           display_name: string | null
           email: string
           employee_code: string | null
+          employee_type: string | null
           family_details: Json | null
           first_name: string | null
           id: string
           interests: string[] | null
           is_active: boolean
           last_name: string | null
+          leaves_policy: string | null
           manager_employee_id: string | null
           notice_period: string | null
           permanent_address: string | null
@@ -2456,12 +2459,16 @@ export type Database = {
           phone: string | null
           role: string
           role_title: string | null
+          shifts: string | null
           temporary_address: string | null
           updated_at: string
+          week_off: string | null
+          work_location: string | null
         }
         Insert: {
           about?: string | null
           alternate_phone?: string | null
+          attendance_policy?: string | null
           avatar_url?: string | null
           band?: string | null
           blood_group?: string | null
@@ -2476,12 +2483,14 @@ export type Database = {
           display_name?: string | null
           email: string
           employee_code?: string | null
+          employee_type?: string | null
           family_details?: Json | null
           first_name?: string | null
           id: string
           interests?: string[] | null
           is_active?: boolean
           last_name?: string | null
+          leaves_policy?: string | null
           manager_employee_id?: string | null
           notice_period?: string | null
           permanent_address?: string | null
@@ -2489,12 +2498,16 @@ export type Database = {
           phone?: string | null
           role?: string
           role_title?: string | null
+          shifts?: string | null
           temporary_address?: string | null
           updated_at?: string
+          week_off?: string | null
+          work_location?: string | null
         }
         Update: {
           about?: string | null
           alternate_phone?: string | null
+          attendance_policy?: string | null
           avatar_url?: string | null
           band?: string | null
           blood_group?: string | null
@@ -2509,12 +2522,14 @@ export type Database = {
           display_name?: string | null
           email?: string
           employee_code?: string | null
+          employee_type?: string | null
           family_details?: Json | null
           first_name?: string | null
           id?: string
           interests?: string[] | null
           is_active?: boolean
           last_name?: string | null
+          leaves_policy?: string | null
           manager_employee_id?: string | null
           notice_period?: string | null
           permanent_address?: string | null
@@ -2522,8 +2537,11 @@ export type Database = {
           phone?: string | null
           role?: string
           role_title?: string | null
+          shifts?: string | null
           temporary_address?: string | null
           updated_at?: string
+          week_off?: string | null
+          work_location?: string | null
         }
         Relationships: [
           {

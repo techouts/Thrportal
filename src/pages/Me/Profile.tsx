@@ -687,71 +687,91 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
           <Card>
             <CardHeader>
               <CardTitle>Employment Details</CardTitle>
-              <CardDescription>Official employment information</CardDescription>
+              <CardDescription>Official employment information (Read-only)</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+            <CardContent className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">Employee ID</Label>
-                  <p className="font-mono">{profile.employee_code}</p>
+                  <p className="font-mono">{profile.employee_code || 'Not assigned'}</p>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">Role</Label>
-                  <p>{profile.role_title}</p>
+                  <p>{profile.role_title || 'Not assigned'}</p>
                 </div>
-                {profile.date_of_joining && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Date of Joining</Label>
-                    <p>{new Date(profile.date_of_joining).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                  </div>
-                )}
-                <div className="space-y-2">
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Date of Joining</Label>
+                  <p>{profile.date_of_joining ? new Date(profile.date_of_joining).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Department</Label>
+                  <p>{profile.department?.name || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Employee Type</Label>
+                  <p>{profile.employee_type || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Client Name</Label>
+                  <p>{profile.assigned_client_name || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Shifts</Label>
+                  <p>{profile.shifts || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Week Off</Label>
+                  <p>{profile.week_off || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Leaves Policy</Label>
+                  <p>{profile.leaves_policy || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Attendance Policy</Label>
+                  <p>{profile.attendance_policy || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Cost Center</Label>
+                  <p>{profile.cost_center?.code || profile.cost_center?.name || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Location</Label>
+                  <p>{profile.work_location || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">Notice Period</Label>
-                  <p>{profile.notice_period || '3 months'}</p>
+                  <p>{profile.notice_period || 'Not assigned'}</p>
                 </div>
-                {profile.band && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Band</Label>
-                    <p>{profile.band}</p>
-                  </div>
-                )}
-                {profile.business_unit?.name && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Business Unit</Label>
-                    <p>{profile.business_unit.name}</p>
-                  </div>
-                )}
-                {profile.department?.name && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Department</Label>
-                    <p>{profile.department.name}</p>
-                  </div>
-                )}
-                {profile.cost_center?.code && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Cost Center</Label>
-                    <p>{profile.cost_center.code}{profile.cost_center.name ? ` - ${profile.cost_center.name}` : ''}</p>
-                  </div>
-                )}
-                {profile.manager && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">Reporting Manager</Label>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={profile.manager.photo_url} />
-                        <AvatarFallback className="text-xs">
-                          {getInitials(profile.manager.first_name, profile.manager.last_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{getDisplayName(profile.manager.first_name, profile.manager.last_name)}</span>
-                      <Button variant="ghost" size="sm" className="h-auto p-1">
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{profile.manager.email}</p>
-                  </div>
-                )}
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Band</Label>
+                  <p>{profile.band || 'Not assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-muted-foreground">Business Unit</Label>
+                  <p>{profile.business_unit?.name || 'Not assigned'}</p>
+                </div>
               </div>
+              
+              {/* Reporting Manager - separate section */}
+              {profile.manager && (
+                <div className="pt-4 border-t">
+                  <Label className="text-sm font-medium text-muted-foreground">Reporting Manager</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile.manager.photo_url} />
+                      <AvatarFallback className="text-xs">
+                        {getInitials(profile.manager.first_name, profile.manager.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{getDisplayName(profile.manager.first_name, profile.manager.last_name)}</p>
+                      <p className="text-sm text-muted-foreground">{profile.manager.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
