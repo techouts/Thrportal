@@ -43,13 +43,8 @@ interface HierarchyNode {
   updated_at?: string;
 }
 
-interface SmartList {
-  id: string;
-  name: string;
-  icon: React.ComponentType<{ className?: string }>;
-  count: number;
-  filter: (nodes: HierarchyNode[]) => HierarchyNode[];
-}
+// Status filter options for projects
+const PROJECT_STATUS_OPTIONS = ['In-flight', 'Planned', 'Closed', 'On-hold'] as const;
 
 export function ClientDeskPage() {
   const navigate = useNavigate();
@@ -75,7 +70,7 @@ export function ClientDeskPage() {
   const [showInspector, setShowInspector] = useState(false);
   const [inspectorEntity, setInspectorEntity] = useState<any>(null);
   const [recentEntities, setRecentEntities] = useState<HierarchyNode[]>([]);
-  const [selectedSmartList, setSelectedSmartList] = useState<string>('all-clients');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Forms
   const [showCreateClient, setShowCreateClient] = useState(false);
@@ -88,37 +83,6 @@ export function ClientDeskPage() {
   // Permissions - Check if user has CRM access
   const canWrite = user && ['ADMIN', 'FINANCE_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'STAFFING_MANAGER'].includes(user.role);
 
-  // Smart lists configuration
-  const smartLists: SmartList[] = [
-    {
-      id: 'all-clients',
-      name: 'All Clients',
-      icon: Building,
-      count: hierarchy.length,
-      filter: (nodes) => nodes
-    },
-    {
-      id: 'recents',
-      name: 'Recently Viewed',
-      icon: Clock,
-      count: recentEntities.length,
-      filter: () => recentEntities
-    },
-    {
-      id: 'active-projects',
-      name: 'Active Projects', 
-      icon: TrendingUp,
-      count: hierarchy.filter(c => c.children.some(a => a.children.some(p => p.status === 'In-flight'))).length,
-      filter: (nodes) => nodes.filter(c => c.children.some(a => a.children.some(p => p.status === 'In-flight')))
-    },
-    {
-      id: 'needs-attention',
-      name: 'Needs Attention',
-      icon: Star,
-      count: hierarchy.filter(c => c.spocs.length === 0).length,
-      filter: (nodes) => nodes.filter(c => c.spocs.length === 0)
-    }
-  ];
 
   // Breadcrumb computation
   const getBreadcrumbs = () => {
@@ -438,19 +402,26 @@ export function ClientDeskPage() {
     });
   };
 
-  // Get filtered nodes based on smart list and search
+  // Get filtered nodes based on status filter and search
   const getFilteredNodes = () => {
-    const smartList = smartLists.find(s => s.id === selectedSmartList);
-    let nodes = smartList ? smartList.filter(hierarchy) : hierarchy;
+    let nodes = hierarchy;
     
-    console.log('🔍 Filtering nodes:', {
-      selectedSmartList,
-      smartListName: smartList?.name,
-      inputHierarchy: hierarchy.length,
-      afterSmartListFilter: nodes.length,
-      railSearch
-    });
+    // Apply status filter - filter clients that have projects with the selected status
+    if (statusFilter !== 'all') {
+      nodes = nodes.filter(client => {
+        // Check projects directly under client
+        const hasDirectProject = client.children.some(child => 
+          child.type === 'project' && child.status === statusFilter
+        );
+        // Check projects under accounts
+        const hasAccountProject = client.children.some(account => 
+          account.type === 'account' && account.children.some(project => project.status === statusFilter)
+        );
+        return hasDirectProject || hasAccountProject;
+      });
+    }
     
+    // Apply search filter
     if (railSearch) {
       nodes = nodes.filter(node => 
         node.name.toLowerCase().includes(railSearch.toLowerCase()) ||
@@ -463,7 +434,6 @@ export function ClientDeskPage() {
       );
     }
     
-    console.log('✅ Final filtered nodes:', nodes.length);
     return nodes;
   };
 
@@ -607,6 +577,19 @@ export function ClientDeskPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {PROJECT_STATUS_OPTIONS.map(status => (
+                  <SelectItem key={status} value={status}>{status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* New Dropdown - Only shows New Client */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -630,26 +613,7 @@ export function ClientDeskPage() {
       <div className="flex h-[calc(100vh-8rem)]">
         {/* LEFT RAIL */}
         <div className="w-80 border-r bg-card flex flex-col">
-          {/* Smart Lists */}
-          <div className="p-4 border-b">
-            <Label className="text-xs font-medium text-muted-foreground uppercase">Smart Lists</Label>
-            <div className="mt-2 space-y-1">
-              {smartLists.map(list => (
-                <Button
-                  key={list.id}
-                  variant={selectedSmartList === list.id ? "secondary" : "ghost"}
-                  className="w-full justify-start h-8"
-                  onClick={() => setSelectedSmartList(list.id)}
-                >
-                  <list.icon className="h-4 w-4 mr-2" />
-                  <span className="flex-1 text-left">{list.name}</span>
-                  <Badge variant="outline" className="text-xs">{list.count}</Badge>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Search & Filters */}
+          {/* Search */}
           <div className="p-4 border-b">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -665,7 +629,7 @@ export function ClientDeskPage() {
           {/* Hierarchy */}
           <div className="flex-1 overflow-y-auto p-2">
             <Label className="text-xs font-medium text-muted-foreground uppercase mb-2 block">
-              {selectedSmartList === 'recents' ? 'Recent Entities' : 'Client Hierarchy'}
+              Client Hierarchy
             </Label>
             {getFilteredNodes().map(node => renderHierarchyNode(node))}
           </div>
