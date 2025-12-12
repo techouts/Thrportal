@@ -2520,18 +2520,21 @@ export type Database = {
           date_of_joining: string | null
           department: string | null
           display_name: string | null
+          education_details: Json | null
           email: string
           employee_code: string | null
           employee_type: string | null
           family_details: Json | null
           first_name: string | null
           id: string
+          identity_documents: Json | null
           interests: string[] | null
           is_active: boolean
           last_name: string | null
           leaves_policy: string | null
           manager_employee_id: string | null
           notice_period: string | null
+          offer_letter_url: string | null
           permanent_address: string | null
           personal_email: string | null
           phone: string | null
@@ -2541,6 +2544,7 @@ export type Database = {
           temporary_address: string | null
           updated_at: string
           week_off: string | null
+          work_experience: Json | null
           work_location: string | null
         }
         Insert: {
@@ -2559,18 +2563,21 @@ export type Database = {
           date_of_joining?: string | null
           department?: string | null
           display_name?: string | null
+          education_details?: Json | null
           email: string
           employee_code?: string | null
           employee_type?: string | null
           family_details?: Json | null
           first_name?: string | null
           id: string
+          identity_documents?: Json | null
           interests?: string[] | null
           is_active?: boolean
           last_name?: string | null
           leaves_policy?: string | null
           manager_employee_id?: string | null
           notice_period?: string | null
+          offer_letter_url?: string | null
           permanent_address?: string | null
           personal_email?: string | null
           phone?: string | null
@@ -2580,6 +2587,7 @@ export type Database = {
           temporary_address?: string | null
           updated_at?: string
           week_off?: string | null
+          work_experience?: Json | null
           work_location?: string | null
         }
         Update: {
@@ -2598,18 +2606,21 @@ export type Database = {
           date_of_joining?: string | null
           department?: string | null
           display_name?: string | null
+          education_details?: Json | null
           email?: string
           employee_code?: string | null
           employee_type?: string | null
           family_details?: Json | null
           first_name?: string | null
           id?: string
+          identity_documents?: Json | null
           interests?: string[] | null
           is_active?: boolean
           last_name?: string | null
           leaves_policy?: string | null
           manager_employee_id?: string | null
           notice_period?: string | null
+          offer_letter_url?: string | null
           permanent_address?: string | null
           personal_email?: string | null
           phone?: string | null
@@ -2619,6 +2630,7 @@ export type Database = {
           temporary_address?: string | null
           updated_at?: string
           week_off?: string | null
+          work_experience?: Json | null
           work_location?: string | null
         }
         Relationships: [
