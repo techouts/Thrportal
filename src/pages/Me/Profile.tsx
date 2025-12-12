@@ -27,8 +27,10 @@ import {
   Trash2,
   User,
   Heart,
-  Baby
+  Baby,
+  FileText
 } from 'lucide-react'
+import ProfileDocumentsTab from '@/components/profile/documents/ProfileDocumentsTab'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -312,13 +314,17 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="personal">Personal Details</TabsTrigger>
           <TabsTrigger value="employment">Employment</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="about">About & Hobbies</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="documents">
+            <FileText className="h-4 w-4 mr-1" />
+            Documents
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -1100,6 +1106,11 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Documents Tab */}
+        <TabsContent value="documents" className="space-y-4">
+          <ProfileDocumentsTab isOwnProfile={isOwnProfile} employeeId={employeeId} />
         </TabsContent>
       </Tabs>
     </div>
