@@ -20,6 +20,7 @@ import {
 import { LeaveBalanceCard } from "@/components/leave/LeaveBalanceCard";
 import { RequestLeaveDialog, LeaveRequestData } from "@/components/leave/RequestLeaveDialog";
 import { RequestCompOffDialog, CompOffRequestData } from "@/components/leave/RequestCompOffDialog";
+import { LeavePolicyDialog } from "@/components/leave/LeavePolicyDialog";
 import { MyRequestsTable } from "@/components/leave/MyRequestsTable";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
 import { useAuth } from "@/auth/AuthContext";
@@ -33,6 +34,7 @@ export default function LeavePage() {
   // Dialog states
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [showCompOffDialog, setShowCompOffDialog] = useState(false);
+  const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
   // Data hooks
   const { data: balances, isLoading: balancesLoading } = useLeaveBalances(selectedYear);
@@ -92,15 +94,23 @@ export default function LeavePage() {
               Manage your leave requests and view balances
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={() => setShowCompOffDialog(true)}>
-              <Clock className="h-4 w-4 mr-2" />
-              Request Comp-Off
-            </Button>
-            <Button size="sm" onClick={() => setShowLeaveDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Request Leave
-            </Button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => setShowCompOffDialog(true)}>
+                <Clock className="h-4 w-4 mr-2" />
+                Request Comp-Off
+              </Button>
+              <Button size="sm" onClick={() => setShowLeaveDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Request Leave
+              </Button>
+            </div>
+            <button 
+              onClick={() => setShowPolicyDialog(true)}
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              Leave Policy Explanation
+            </button>
           </div>
         </div>
 
@@ -298,6 +308,11 @@ export default function LeavePage() {
           open={showCompOffDialog}
           onOpenChange={setShowCompOffDialog}
           onSubmit={handleCompOffSubmit}
+        />
+        <LeavePolicyDialog
+          open={showPolicyDialog}
+          onOpenChange={setShowPolicyDialog}
+          balances={balances?.data}
         />
       </div>
     </RBACGuard>
