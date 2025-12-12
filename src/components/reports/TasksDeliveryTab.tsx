@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { KPICard } from '@/components/shared/KPICard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Clock, AlertTriangle, CheckCircle, TrendingUp, Download, Calendar } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function TasksDeliveryTab() {
+  const isMobile = useIsMobile();
   const [selectedClient, setSelectedClient] = useState('all');
   const [selectedProject, setSelectedProject] = useState('all');
   const [dateRange, setDateRange] = useState('this-quarter');
@@ -226,49 +228,95 @@ export function TasksDeliveryTab() {
           <CardTitle>Task Status by Phase</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Phase</th>
-                  <th className="text-center p-2">Total</th>
-                  <th className="text-center p-2">Completed</th>
-                  <th className="text-center p-2">In Progress</th>
-                  <th className="text-center p-2">Delayed</th>
-                  <th className="text-center p-2">Progress</th>
-                  <th className="text-center p-2">Completion %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tasksByPhase.map((phase) => (
-                  <tr key={phase.phase} className="border-b">
-                    <td className="p-2 font-medium">{phase.phase}</td>
-                    <td className="p-2 text-center">{phase.total}</td>
-                    <td className="p-2 text-center">{phase.completed}</td>
-                    <td className="p-2 text-center">{phase.inProgress}</td>
-                    <td className="p-2 text-center">
-                      {phase.delayed > 0 ? (
-                        <Badge variant="destructive">{phase.delayed}</Badge>
-                      ) : (
-                        phase.delayed
-                      )}
-                    </td>
-                    <td className="p-2">
+          {isMobile ? (
+            <div className="space-y-3">
+              {tasksByPhase.map((phase) => {
+                const completionPct = ((phase.completed / phase.total) * 100).toFixed(1);
+                return (
+                  <Card key={phase.phase} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium">{phase.phase}</div>
+                        <span className="text-sm font-medium">{completionPct}%</span>
+                      </div>
                       <div className="w-full bg-muted rounded-full h-2">
                         <div 
                           className="bg-primary h-2 rounded-full"
-                          style={{ width: `${(phase.completed / phase.total) * 100}%` }}
+                          style={{ width: `${completionPct}%` }}
                         />
                       </div>
-                    </td>
-                    <td className="p-2 text-center font-medium">
-                      {((phase.completed / phase.total) * 100).toFixed(1)}%
-                    </td>
+                      <div className="grid grid-cols-2 gap-2 text-sm border-t pt-3">
+                        <div>
+                          <span className="text-muted-foreground">Total: </span>
+                          <span className="font-medium">{phase.total}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Completed: </span>
+                          <span className="font-medium">{phase.completed}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">In Progress: </span>
+                          <span className="font-medium">{phase.inProgress}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Delayed: </span>
+                          {phase.delayed > 0 ? (
+                            <Badge variant="destructive" className="text-xs">{phase.delayed}</Badge>
+                          ) : (
+                            <span className="font-medium">0</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Phase</th>
+                    <th className="text-center p-2">Total</th>
+                    <th className="text-center p-2">Completed</th>
+                    <th className="text-center p-2">In Progress</th>
+                    <th className="text-center p-2">Delayed</th>
+                    <th className="text-center p-2">Progress</th>
+                    <th className="text-center p-2">Completion %</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {tasksByPhase.map((phase) => (
+                    <tr key={phase.phase} className="border-b">
+                      <td className="p-2 font-medium">{phase.phase}</td>
+                      <td className="p-2 text-center">{phase.total}</td>
+                      <td className="p-2 text-center">{phase.completed}</td>
+                      <td className="p-2 text-center">{phase.inProgress}</td>
+                      <td className="p-2 text-center">
+                        {phase.delayed > 0 ? (
+                          <Badge variant="destructive">{phase.delayed}</Badge>
+                        ) : (
+                          phase.delayed
+                        )}
+                      </td>
+                      <td className="p-2">
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full"
+                            style={{ width: `${(phase.completed / phase.total) * 100}%` }}
+                          />
+                        </div>
+                      </td>
+                      <td className="p-2 text-center font-medium">
+                        {((phase.completed / phase.total) * 100).toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

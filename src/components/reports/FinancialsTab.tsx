@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { KPICard } from '@/components/shared/KPICard';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { DollarSign, TrendingUp, TrendingDown, AlertCircle, Download } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function FinancialsTab() {
+  const isMobile = useIsMobile();
   const [includeShadow, setIncludeShadow] = useState(false);
   const [selectedClient, setSelectedClient] = useState('all');
   const [dateRange, setDateRange] = useState('this-quarter');
@@ -224,36 +226,71 @@ export function FinancialsTab() {
           <CardTitle>Project P&L</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Project</th>
-                  <th className="text-right p-2">Revenue</th>
-                  <th className="text-right p-2">Cost</th>
-                  <th className="text-right p-2">Margin</th>
-                  <th className="text-right p-2">Margin %</th>
-                  <th className="text-center p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projectPLData.map((project) => (
-                  <tr key={project.project} className="border-b">
-                    <td className="p-2 font-medium">{project.project}</td>
-                    <td className="p-2 text-right">${project.revenue.toLocaleString()}</td>
-                    <td className="p-2 text-right">${project.cost.toLocaleString()}</td>
-                    <td className="p-2 text-right">${project.margin.toLocaleString()}</td>
-                    <td className="p-2 text-right">{project.marginPct}%</td>
-                    <td className="p-2 text-center">
+          {isMobile ? (
+            <div className="space-y-3">
+              {projectPLData.map((project) => (
+                <Card key={project.project} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="font-medium">{project.project}</div>
                       <Badge variant={project.marginPct > 15 ? 'default' : project.marginPct > 10 ? 'secondary' : 'destructive'}>
                         {project.marginPct > 15 ? 'Healthy' : project.marginPct > 10 ? 'Moderate' : 'Low'}
                       </Badge>
-                    </td>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm border-t pt-3">
+                      <div>
+                        <span className="text-muted-foreground">Revenue: </span>
+                        <span className="font-medium">${project.revenue.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Cost: </span>
+                        <span className="font-medium">${project.cost.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Margin: </span>
+                        <span className="font-medium">${project.margin.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Margin %: </span>
+                        <span className="font-medium">{project.marginPct}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Project</th>
+                    <th className="text-right p-2">Revenue</th>
+                    <th className="text-right p-2">Cost</th>
+                    <th className="text-right p-2">Margin</th>
+                    <th className="text-right p-2">Margin %</th>
+                    <th className="text-center p-2">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {projectPLData.map((project) => (
+                    <tr key={project.project} className="border-b">
+                      <td className="p-2 font-medium">{project.project}</td>
+                      <td className="p-2 text-right">${project.revenue.toLocaleString()}</td>
+                      <td className="p-2 text-right">${project.cost.toLocaleString()}</td>
+                      <td className="p-2 text-right">${project.margin.toLocaleString()}</td>
+                      <td className="p-2 text-right">{project.marginPct}%</td>
+                      <td className="p-2 text-center">
+                        <Badge variant={project.marginPct > 15 ? 'default' : project.marginPct > 10 ? 'secondary' : 'destructive'}>
+                          {project.marginPct > 15 ? 'Healthy' : project.marginPct > 10 ? 'Moderate' : 'Low'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
