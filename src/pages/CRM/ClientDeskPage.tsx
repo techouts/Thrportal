@@ -543,12 +543,12 @@ export function ClientDeskPage() {
   }
 
   return (
-    <div className="flex flex-col bg-background">
+    <div className="flex flex-col bg-background overflow-x-hidden">
       {/* PAGE HEADER */}
       <div className="border-b bg-background px-4 md:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 flex-1 overflow-x-auto">
+          <div className="flex items-center gap-2 flex-1 overflow-x-auto max-w-full">
             {isMobile && (
               <Button
                 variant="ghost"
