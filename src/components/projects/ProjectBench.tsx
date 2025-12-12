@@ -18,6 +18,7 @@ import {
 import { CheckCircle } from 'lucide-react'
 import { mockForecastData } from '@/mocks/projectData'
 import { benchService, BenchResource } from '@/services/benchService'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface ShadowAllocation {
   id: string;
@@ -35,6 +36,7 @@ const ITEMS_PER_PAGE = 10;
 
 export function ProjectBench() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [benchEmployees, setBenchEmployees] = useState<BenchResource[]>([])
   const [shadowAllocations, setShadowAllocations] = useState<ShadowAllocation[]>([])
   const [loading, setLoading] = useState(true)
@@ -157,6 +159,41 @@ export function ProjectBench() {
                 <div className="text-center py-8 text-muted-foreground">
                   No employees currently on bench
                 </div>
+              ) : isMobile ? (
+                <>
+                  <div className="space-y-3">
+                    {paginatedIdleEmployees.map((employee) => (
+                      <Card key={employee.id} className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={employee.avatarUrl} />
+                              <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{employee.name}</div>
+                              <div className="text-sm text-muted-foreground">{employee.role}</div>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center text-sm border-t pt-3">
+                            <div>
+                              <span className="text-muted-foreground">Available: </span>
+                              {new Date(employee.availableFrom).toLocaleDateString()}
+                            </div>
+                            <Badge variant={employee.benchDays > 14 ? 'destructive' : 'secondary'}>
+                              {employee.benchDays} days
+                            </Badge>
+                          </div>
+                          <Button className="w-full" size="sm" onClick={() => handleAllocate(employee.id)}>
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Allocate
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  {renderPagination(idleCurrentPage, idleTotalPages, setIdleCurrentPage)}
+                </>
               ) : (
                 <>
                   <div className="overflow-x-auto">
@@ -223,6 +260,45 @@ export function ProjectBench() {
                 <div className="text-center py-8 text-muted-foreground">
                   No shadow allocations found
                 </div>
+              ) : isMobile ? (
+                <>
+                  <div className="space-y-3">
+                    {paginatedShadowAllocations.map((allocation) => (
+                      <Card key={allocation.id} className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={allocation.avatarUrl} />
+                              <AvatarFallback>{getInitials(allocation.employeeName)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{allocation.employeeName}</div>
+                              <div className="text-sm text-muted-foreground">{allocation.role}</div>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm border-t pt-3">
+                            <div>
+                              <span className="text-muted-foreground">Start: </span>
+                              {new Date(allocation.startDate).toLocaleDateString()}
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">End: </span>
+                              {allocation.endDate 
+                                ? new Date(allocation.endDate).toLocaleDateString()
+                                : 'Ongoing'
+                              }
+                            </div>
+                          </div>
+                          <Button className="w-full" size="sm" onClick={() => handleAllocate(allocation.employeeId)}>
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Allocate
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  {renderPagination(shadowCurrentPage, shadowTotalPages, setShadowCurrentPage)}
+                </>
               ) : (
                 <>
                   <div className="overflow-x-auto">
@@ -310,43 +386,76 @@ export function ProjectBench() {
               <CardTitle>4-Week Forecast Heatmap</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table className="min-w-[600px]">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Week</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Needed</TableHead>
-                      <TableHead>Available</TableHead>
-                      <TableHead>Shadow Coverage</TableHead>
-                      <TableHead>Gap</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {forecastData.map((forecast, index) => {
-                      const gap = forecast.needed - forecast.available
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>{forecast.week}</TableCell>
-                          <TableCell>{forecast.role}</TableCell>
-                          <TableCell>{forecast.needed}</TableCell>
-                          <TableCell>{forecast.available}</TableCell>
-                          <TableCell>
-                            <Badge variant={forecast.shadow_coverage >= 80 ? 'default' : 'destructive'}>
-                              {forecast.shadow_coverage}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={gap > 0 ? 'destructive' : gap < 0 ? 'secondary' : 'default'}>
-                              {gap > 0 ? `+${gap}` : gap}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+              {isMobile ? (
+                <div className="space-y-3">
+                  {forecastData.map((forecast, index) => {
+                    const gap = forecast.needed - forecast.available
+                    return (
+                      <Card key={index} className="p-4">
+                        <div className="space-y-2">
+                          <div className="font-medium">
+                            {forecast.week} • {forecast.role}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm border-t pt-2">
+                            <div>Needed: <span className="font-medium">{forecast.needed}</span></div>
+                            <div>Available: <span className="font-medium">{forecast.available}</span></div>
+                            <div className="flex items-center gap-1">
+                              Coverage: 
+                              <Badge variant={forecast.shadow_coverage >= 80 ? 'default' : 'destructive'}>
+                                {forecast.shadow_coverage}%
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              Gap:
+                              <Badge variant={gap > 0 ? 'destructive' : gap < 0 ? 'secondary' : 'default'}>
+                                {gap > 0 ? `+${gap}` : gap}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table className="min-w-[600px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Week</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Needed</TableHead>
+                        <TableHead>Available</TableHead>
+                        <TableHead>Shadow Coverage</TableHead>
+                        <TableHead>Gap</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {forecastData.map((forecast, index) => {
+                        const gap = forecast.needed - forecast.available
+                        return (
+                          <TableRow key={index}>
+                            <TableCell>{forecast.week}</TableCell>
+                            <TableCell>{forecast.role}</TableCell>
+                            <TableCell>{forecast.needed}</TableCell>
+                            <TableCell>{forecast.available}</TableCell>
+                            <TableCell>
+                              <Badge variant={forecast.shadow_coverage >= 80 ? 'default' : 'destructive'}>
+                                {forecast.shadow_coverage}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={gap > 0 ? 'destructive' : gap < 0 ? 'secondary' : 'default'}>
+                                {gap > 0 ? `+${gap}` : gap}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
