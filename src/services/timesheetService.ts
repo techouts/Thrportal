@@ -374,6 +374,7 @@ export class TimesheetService {
           .from('allocations')
           .select('project_id')
           .eq('employee_id', employeeId)
+          .in('type', ['ACTIVE', 'SHADOW'])
           .lte('start_date', today)
           .or(`end_date.is.null,end_date.gte.${today}`),
         supabase
