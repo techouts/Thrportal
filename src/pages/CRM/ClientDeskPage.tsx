@@ -44,7 +44,7 @@ interface HierarchyNode {
 }
 
 // Status filter options for projects
-const PROJECT_STATUS_OPTIONS = ['In-flight', 'Planned', 'Closed', 'On-hold'] as const;
+const CLIENT_STATUS_OPTIONS = ['Active', 'Inactive', 'Prospect'] as const;
 
 export function ClientDeskPage() {
   const navigate = useNavigate();
@@ -406,19 +406,9 @@ export function ClientDeskPage() {
   const getFilteredNodes = () => {
     let nodes = hierarchy;
     
-    // Apply status filter - filter clients that have projects with the selected status
+    // Apply status filter (filters by client status)
     if (statusFilter !== 'all') {
-      nodes = nodes.filter(client => {
-        // Check projects directly under client
-        const hasDirectProject = client.children.some(child => 
-          child.type === 'project' && child.status === statusFilter
-        );
-        // Check projects under accounts
-        const hasAccountProject = client.children.some(account => 
-          account.type === 'account' && account.children.some(project => project.status === statusFilter)
-        );
-        return hasDirectProject || hasAccountProject;
-      });
+      nodes = nodes.filter(client => client.status === statusFilter);
     }
     
     // Apply search filter
@@ -584,7 +574,7 @@ export function ClientDeskPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {PROJECT_STATUS_OPTIONS.map(status => (
+                {CLIENT_STATUS_OPTIONS.map(status => (
                   <SelectItem key={status} value={status}>{status}</SelectItem>
                 ))}
               </SelectContent>
