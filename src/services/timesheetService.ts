@@ -408,7 +408,7 @@ export class TimesheetService {
           client:crm_clients(name)
         `)
         .in('id', projectIds)
-        .in('status', ['Planned', 'Active'])
+        .in('status', ['Planned', 'Active', 'In-flight'])
         .order('name')
 
       if (error) {
