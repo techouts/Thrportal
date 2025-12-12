@@ -258,7 +258,7 @@ export function CRMOpportunitiesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       <PageHeader
         title="Opportunity Management"
         description="Track and manage business opportunities and requirements"
