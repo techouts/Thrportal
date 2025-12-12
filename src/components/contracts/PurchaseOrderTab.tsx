@@ -116,17 +116,21 @@ export function PurchaseOrderTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Purchase Orders</h2>
-          <p className="text-muted-foreground">Track client purchase orders and budget utilization</p>
-        </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create PO
-        </Button>
-      </div>
+<div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl">Purchase Orders</CardTitle>
+              <p className="text-muted-foreground text-sm mt-1">Track client purchase orders and budget utilization</p>
+            </div>
+            <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create PO
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">
