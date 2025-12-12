@@ -103,7 +103,7 @@ export function ContractDashboardTab() {
           <CardContent>
             <div className="space-y-3">
               {expiringContracts.map((contract) => (
-                <div key={contract.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                <div key={contract.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white rounded-lg gap-2">
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{contract.type}</Badge>
@@ -111,7 +111,7 @@ export function ContractDashboardTab() {
                     </div>
                     <p className="text-sm text-muted-foreground">{contract.client}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right sm:text-right">
                     <p className="font-medium text-orange-600">{contract.days} days</p>
                     <p className="text-xs text-muted-foreground">to expiry</p>
                   </div>
@@ -157,24 +157,24 @@ export function ContractDashboardTab() {
         <CardContent>
           <div className="space-y-4">
             {topClients.map((client, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={index} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
                 <div className="flex-1">
                   <h3 className="font-medium">{client.name}</h3>
                   <p className="text-sm text-muted-foreground">{client.contracts} contracts</p>
                 </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                  <div className="text-left sm:text-right">
                     <p className="font-medium">${client.value.toLocaleString()}</p>
                     <p className="text-sm text-muted-foreground">Total value</p>
                   </div>
-                  <div className="w-24">
+                  <div className="w-full sm:w-24">
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span>Utilization</span>
                       <span>{client.utilization}%</span>
                     </div>
                     <Progress value={client.utilization} className="h-2" />
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
                     View Details
                   </Button>
                 </div>

@@ -263,7 +263,7 @@ export default function CRMReportsPage() {
 
       {/* Main Analytics Tabs */}
       <Tabs value={reportType} onValueChange={setReportType} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="forecasting">Forecasting</TabsTrigger>

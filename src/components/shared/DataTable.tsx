@@ -149,14 +149,14 @@ export function DataTable<T>({
   return (
     <div className="space-y-4" data-test-id={testId}>
       {/* Toolbar - ALWAYS VISIBLE */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
           {searchable && (
             <Input
               placeholder={searchPlaceholder || "Search..."}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="max-w-md"
+              className="w-full sm:max-w-md"
               data-test-id={`${testId}-search`}
             />
           )}
@@ -164,7 +164,7 @@ export function DataTable<T>({
           {savedViews && (
             <div className="flex items-center gap-2">
               <Select value={savedViews.current} onValueChange={savedViews.onLoad}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full sm:w-48">
                   <SelectValue placeholder="Select view" />
                 </SelectTrigger>
                 <SelectContent>
@@ -189,15 +189,15 @@ export function DataTable<T>({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           {filters}
           
           {exportable && onExport && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -223,8 +223,8 @@ export function DataTable<T>({
           />
         </div>
       ) : (
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-[600px]">
             <TableHeader>
               <TableRow>
                 {columns.map((column) => (
@@ -283,7 +283,7 @@ export function DataTable<T>({
 
       {/* Pagination - Only show when there's data */}
       {pagination && sortedData.length > 0 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
             Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
             {Math.min(pagination.page * pagination.pageSize, pagination.total)} of{' '}
@@ -315,8 +315,8 @@ export function DataTable<T>({
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <span className="text-sm font-medium px-3">
-              {pagination.page} of {Math.ceil(pagination.total / pagination.pageSize)}
+            <span className="text-sm font-medium px-2 sm:px-3">
+              {pagination.page} / {Math.ceil(pagination.total / pagination.pageSize)}
             </span>
             
             <Button

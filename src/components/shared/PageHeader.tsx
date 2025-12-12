@@ -70,7 +70,7 @@ export function PageHeader({
         </nav>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
           

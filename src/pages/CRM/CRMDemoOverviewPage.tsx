@@ -195,7 +195,7 @@ export default function CRMDemoOverviewPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="overview">Module Overview</TabsTrigger>
           <TabsTrigger value="data">Test Data</TabsTrigger>
           <TabsTrigger value="features">Features</TabsTrigger>
