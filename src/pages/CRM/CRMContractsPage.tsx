@@ -17,7 +17,7 @@ export function CRMContractsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="msa">MSAs</TabsTrigger>
             <TabsTrigger value="sow">SOWs</TabsTrigger>

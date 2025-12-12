@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ChevronRight, Plus, ExternalLink, Search, MoreVertical, Users, Building, FolderOpen, 
   Archive, Edit, Eye, Clock, Star, Filter, Command, Home, ArrowRight, FileText,
-  Phone, Mail, Globe, Calendar, TrendingUp, Activity, Copy
+  Phone, Mail, Globe, Calendar, TrendingUp, Activity, Copy, Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
 import type { CrmClient, CrmAccount, CrmProject, CrmSpoc } from '@/types/crm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 interface HierarchyNode {
@@ -51,6 +52,7 @@ export function ClientDeskPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Data state
   const [clients, setClients] = useState<CrmClient[]>([]);
@@ -71,6 +73,7 @@ export function ClientDeskPage() {
   const [inspectorEntity, setInspectorEntity] = useState<any>(null);
   const [recentEntities, setRecentEntities] = useState<HierarchyNode[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showMobileNav, setShowMobileNav] = useState(false);
 
   // Forms
   const [showCreateClient, setShowCreateClient] = useState(false);
@@ -542,19 +545,29 @@ export function ClientDeskPage() {
   return (
     <div className="flex flex-col bg-background">
       {/* PAGE HEADER */}
-      <div className="border-b bg-background px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
+      <div className="border-b bg-background px-4 md:px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 flex-1">
-            <Home className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Client Desk</span>
-            {getBreadcrumbs().map((crumb, i) => (
+          <div className="flex items-center gap-2 flex-1 overflow-x-auto">
+            {isMobile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 shrink-0"
+                onClick={() => setShowMobileNav(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
+            <Home className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm font-medium whitespace-nowrap">Client Desk</span>
+            {getBreadcrumbs().slice(0, isMobile ? 1 : undefined).map((crumb, i) => (
               <React.Fragment key={crumb.id}>
-                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-sm"
+                  className="h-6 px-2 text-sm whitespace-nowrap"
                   onClick={() => {
                     const node = findNodeById(crumb.id, hierarchy, true);
                     if (node) handleSelectNode(node);
@@ -566,10 +579,10 @@ export function ClientDeskPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-32 sm:w-40">
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
@@ -583,9 +596,9 @@ export function ClientDeskPage() {
             {/* New Dropdown - Only shows New Client */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>
+                <Button size={isMobile ? "sm" : "default"}>
                   <Plus className="h-4 w-4 mr-1" />
-                  New
+                  <span className="hidden sm:inline">New</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -599,10 +612,40 @@ export function ClientDeskPage() {
         </div>
       </div>
 
+      {/* Mobile Navigation Sheet */}
+      <Sheet open={showMobileNav} onOpenChange={setShowMobileNav}>
+        <SheetContent side="left" className="w-80 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Client Hierarchy</SheetTitle>
+          </SheetHeader>
+          {/* Search */}
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Filter current view..."
+                value={railSearch}
+                onChange={(e) => setRailSearch(e.target.value)}
+                className="pl-10 h-8"
+              />
+            </div>
+          </div>
+
+          {/* Hierarchy */}
+          <div className="flex-1 overflow-y-auto p-2 max-h-[calc(100vh-12rem)]">
+            {getFilteredNodes().map(node => (
+              <div key={node.id} onClick={() => setShowMobileNav(false)}>
+                {renderHierarchyNode(node)}
+              </div>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* MAIN LAYOUT */}
       <div className="flex h-[calc(100vh-8rem)]">
-        {/* LEFT RAIL */}
-        <div className="w-80 border-r bg-card flex flex-col">
+        {/* LEFT RAIL - Hidden on mobile */}
+        <div className="hidden md:flex w-80 border-r bg-card flex-col">
           {/* Search */}
           <div className="p-4 border-b">
             <div className="relative">
@@ -636,7 +679,7 @@ export function ClientDeskPage() {
                     {selectedNode.type === 'account' && <Users className="h-6 w-6 text-green-500" />}
                     {selectedNode.type === 'project' && <FolderOpen className="h-6 w-6 text-purple-500" />}
                     <div>
-                      <h2 className="text-xl font-semibold">{selectedNode.name}</h2>
+                      <h2 className="text-lg md:text-xl font-semibold">{selectedNode.name}</h2>
                       {selectedNode.code && <p className="text-sm text-muted-foreground">{selectedNode.code}</p>}
                     </div>
                   </div>
