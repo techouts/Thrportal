@@ -85,13 +85,13 @@ export function TimesheetMobileView({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-x-hidden">
       {/* Weekly Summary Card */}
       <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Clock className="h-6 w-6 text-primary" />
               </div>
               <div>
@@ -101,11 +101,11 @@ export function TimesheetMobileView({
                 </div>
               </div>
             </div>
-            <div className="text-right space-y-1">
-              <Badge variant="outline" className="text-xs">
+            <div className="flex flex-row sm:flex-col gap-2 sm:text-right flex-wrap">
+              <Badge variant="outline" className="text-xs whitespace-nowrap">
                 Billable: {formatDecimalToTime(totals.billable)}
               </Badge>
-              <Badge variant="secondary" className="text-xs block">
+              <Badge variant="secondary" className="text-xs whitespace-nowrap">
                 Non-billable: {formatDecimalToTime(totals.nonBillable)}
               </Badge>
             </div>
