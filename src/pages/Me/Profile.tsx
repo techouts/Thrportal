@@ -558,25 +558,58 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                         <Baby className="h-4 w-4" />
                         <Label className="font-medium">Children</Label>
                       </div>
-                      {(editData.family_details || []).filter(m => m.relationship === 'Child').map((child) => (
-                        <div key={child.id} className="flex items-center gap-2 mb-2 p-2 border rounded">
+                    {(editData.family_details || []).filter(m => m.relationship === 'Child').map((child) => (
+                        <div key={child.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2 p-2 border rounded">
                           <Input
                             placeholder="Name"
                             value={child.name}
                             onChange={(e) => updateFamilyMember(child.id, 'name', e.target.value)}
                             className="flex-1"
                           />
+                          <div className="flex gap-2">
+                            <Input
+                              type="date"
+                              value={child.date_of_birth || ''}
+                              onChange={(e) => updateFamilyMember(child.id, 'date_of_birth', e.target.value)}
+                              className="flex-1 sm:w-40"
+                            />
+                            <Select
+                              value={child.gender || 'Male'}
+                              onValueChange={(value) => updateFamilyMember(child.id, 'gender', value)}
+                            >
+                              <SelectTrigger className="w-24 sm:w-28">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="sm" onClick={() => handleRemoveFamilyMember(child.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-3">
+                        <Input
+                          placeholder="Child name"
+                          value={newChild.name || ''}
+                          onChange={(e) => setNewChild(prev => ({ ...prev, name: e.target.value }))}
+                          className="flex-1"
+                        />
+                        <div className="flex gap-2">
                           <Input
                             type="date"
-                            value={child.date_of_birth || ''}
-                            onChange={(e) => updateFamilyMember(child.id, 'date_of_birth', e.target.value)}
-                            className="w-40"
+                            value={newChild.date_of_birth || ''}
+                            onChange={(e) => setNewChild(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                            className="flex-1 sm:w-40"
                           />
                           <Select
-                            value={child.gender || 'Male'}
-                            onValueChange={(value) => updateFamilyMember(child.id, 'gender', value)}
+                            value={newChild.gender || 'Male'}
+                            onValueChange={(value) => setNewChild(prev => ({ ...prev, gender: value as any }))}
                           >
-                            <SelectTrigger className="w-28">
+                            <SelectTrigger className="w-24 sm:w-28">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -584,38 +617,10 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                               <SelectItem value="Female">Female</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Button variant="ghost" size="sm" onClick={() => handleRemoveFamilyMember(child.id)}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="outline" size="icon" onClick={handleAddChild}>
+                            <Plus className="h-4 w-4" />
                           </Button>
                         </div>
-                      ))}
-                      <div className="flex items-center gap-2 mt-3">
-                        <Input
-                          placeholder="Child name"
-                          value={newChild.name || ''}
-                          onChange={(e) => setNewChild(prev => ({ ...prev, name: e.target.value }))}
-                        />
-                        <Input
-                          type="date"
-                          value={newChild.date_of_birth || ''}
-                          onChange={(e) => setNewChild(prev => ({ ...prev, date_of_birth: e.target.value }))}
-                          className="w-40"
-                        />
-                        <Select
-                          value={newChild.gender || 'Male'}
-                          onValueChange={(value) => setNewChild(prev => ({ ...prev, gender: value as any }))}
-                        >
-                          <SelectTrigger className="w-28">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button variant="outline" onClick={handleAddChild}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
                       </div>
                     </Card>
                   </div>

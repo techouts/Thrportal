@@ -8,12 +8,14 @@ import { toast } from '@/hooks/use-toast'
 import { HistoryWeekPicker } from './HistoryWeekPicker'
 import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
+import { TimesheetMobileView } from './TimesheetMobileView'
 import { AddTimeEntryPopover } from './AddTimeEntryPopover'
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
 import { CommentSummary } from './CommentSummary'
 import { TimesheetActivity } from './TimesheetActivity'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { 
   Timesheet, 
   TimesheetEntry, 
@@ -60,6 +62,7 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
 
   const timesheetService = TimesheetService.getInstance()
   const policy = timesheetService.getPolicy()
+  const isMobile = useIsMobile()
   
   const { attendanceHours } = useWeeklyAttendance(employeeId, selectedWeek || new Date())
 
@@ -690,31 +693,51 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
 
       {/* Grid */}
       {selectedWeek && (
-        <TimesheetGrid
-          rows={entries}
-          onChangeCell={handleCellChange}
-          onChangeCategory={handleCategoryChange}
-          onRowAction={handleRowAction}
-          onAddRow={handleAddRow}
-          policy={policy}
-          warnings={warnings}
-          categories={categories}
-          readonly={isReadonly}
-          attendanceHours={attendanceHours}
-          dailyTotals={totals.byDay}
-          missingComments={missingComments}
-          weekStart={selectedWeek}
-          onDeleteEntry={canEdit ? handleDeleteEntryClick : undefined}
-          onDeleteRow={canEdit ? handleDeleteRowClick : undefined}
-          addTimeEntryContent={
-            <AddTimeEntryPopover
-              projects={projects}
-              onSelectEntry={handleAddEntry}
-              getTasks={getTasks}
-              disabled={!canEdit}
-            />
-          }
-        />
+        isMobile ? (
+          <TimesheetMobileView
+            rows={entries}
+            onChangeCell={handleCellChange}
+            onChangeCategory={handleCategoryChange}
+            weekStart={selectedWeek}
+            totals={totals}
+            categories={categories}
+            readonly={isReadonly}
+            addTimeEntryContent={canEdit ? (
+              <AddTimeEntryPopover
+                projects={projects}
+                onSelectEntry={handleAddEntry}
+                getTasks={getTasks}
+                disabled={!canEdit}
+              />
+            ) : undefined}
+          />
+        ) : (
+          <TimesheetGrid
+            rows={entries}
+            onChangeCell={handleCellChange}
+            onChangeCategory={handleCategoryChange}
+            onRowAction={handleRowAction}
+            onAddRow={handleAddRow}
+            policy={policy}
+            warnings={warnings}
+            categories={categories}
+            readonly={isReadonly}
+            attendanceHours={attendanceHours}
+            dailyTotals={totals.byDay}
+            missingComments={missingComments}
+            weekStart={selectedWeek}
+            onDeleteEntry={canEdit ? handleDeleteEntryClick : undefined}
+            onDeleteRow={canEdit ? handleDeleteRowClick : undefined}
+            addTimeEntryContent={
+              <AddTimeEntryPopover
+                projects={projects}
+                onSelectEntry={handleAddEntry}
+                getTasks={getTasks}
+                disabled={!canEdit}
+              />
+            }
+          />
+        )
       )}
 
       {/* Comment Summary & Activity */}
