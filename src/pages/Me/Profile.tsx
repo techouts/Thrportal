@@ -440,7 +440,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                 )}
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 overflow-hidden">
               {editingSection === 'personal' ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -453,7 +453,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                             {editData.date_of_birth ? format(new Date(editData.date_of_birth), "PPP") : <span>Pick a date</span>}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="center" side="bottom" sideOffset={4}>
                           <Calendar
                             mode="single"
                             captionLayout="dropdown"
