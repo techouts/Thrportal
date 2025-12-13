@@ -8,12 +8,14 @@ import { toast } from '@/hooks/use-toast'
 import { WeekPicker } from './WeekPicker'
 import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
+import { TimesheetMobileView } from './TimesheetMobileView'
 import { AddTimeEntryPopover } from './AddTimeEntryPopover'
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
 import { CommentSummary } from './CommentSummary'
 import { TimesheetActivity } from './TimesheetActivity'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { 
   Timesheet, 
   TimesheetEntry, 
@@ -39,6 +41,7 @@ interface DeleteDialogState {
 }
 
 export function TimesheetFill({ employeeId }: TimesheetFillProps) {
+  const isMobile = useIsMobile()
   const [selectedWeek, setSelectedWeek] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1 })
   )
@@ -543,7 +546,7 @@ const handleCopyLastWeek = async () => {
     <div className="space-y-6" data-testid="timesheet-grid">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <WeekPicker
             value={selectedWeek}
             onChange={setSelectedWeek}
@@ -559,23 +562,25 @@ const handleCopyLastWeek = async () => {
               {timesheet.status}
             </Badge>
           )}
-          <div className="text-lg font-semibold">
-            {totals.week.toFixed(1)}h
-          </div>
+          {!isMobile && (
+            <div className="text-lg font-semibold">
+              {totals.week.toFixed(1)}h
+            </div>
+          )}
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {canEdit && (
             <>
               {canCopyLastWeek && (
                 <Button variant="outline" size="sm" onClick={handleCopyLastWeek} disabled={loading}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Last Week
+                  <Copy className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                  {!isMobile && "Copy Last Week"}
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={handleSave} disabled={loading}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
+                <Save className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                {!isMobile && "Save Draft"}
               </Button>
               <Button 
                 size="sm" 
@@ -583,8 +588,8 @@ const handleCopyLastWeek = async () => {
                 disabled={loading}
                 data-testid="submit-btn"
               >
-                <Send className="mr-2 h-4 w-4" />
-                Submit
+                <Send className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                {!isMobile && "Submit"}
               </Button>
             </>
           )}
@@ -596,8 +601,8 @@ const handleCopyLastWeek = async () => {
               disabled={loading}
               data-testid="recall-btn"
             >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Recall
+              <RotateCcw className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+              {!isMobile && "Recall"}
             </Button>
           )}
         </div>
@@ -606,32 +611,52 @@ const handleCopyLastWeek = async () => {
       {/* Overview */}
       <OverviewBar data={totals} />
 
-      {/* Grid */}
-      <TimesheetGrid
-        rows={entries}
-        onChangeCell={handleCellChange}
-        onChangeCategory={handleCategoryChange}
-        onRowAction={handleRowAction}
-        onAddRow={handleAddRow}
-        policy={policy}
-        warnings={warnings}
-        categories={categories}
-        readonly={isReadonly}
-        attendanceHours={attendanceHours}
-        dailyTotals={totals.byDay}
-        missingComments={missingComments}
-        weekStart={selectedWeek}
-        onDeleteEntry={canEdit ? handleDeleteEntryClick : undefined}
-        onDeleteRow={canEdit ? handleDeleteRowClick : undefined}
-        addTimeEntryContent={
-          <AddTimeEntryPopover
-            projects={projects}
-            onSelectEntry={handleAddEntry}
-            getTasks={getTasks}
-            disabled={!canEdit}
-          />
-        }
-      />
+      {/* Grid - Conditional render for mobile/desktop */}
+      {isMobile ? (
+        <TimesheetMobileView
+          rows={entries}
+          onChangeCell={handleCellChange}
+          onChangeCategory={handleCategoryChange}
+          weekStart={selectedWeek}
+          totals={totals}
+          categories={categories}
+          readonly={isReadonly}
+          addTimeEntryContent={
+            <AddTimeEntryPopover
+              projects={projects}
+              onSelectEntry={handleAddEntry}
+              getTasks={getTasks}
+              disabled={!canEdit}
+            />
+          }
+        />
+      ) : (
+        <TimesheetGrid
+          rows={entries}
+          onChangeCell={handleCellChange}
+          onChangeCategory={handleCategoryChange}
+          onRowAction={handleRowAction}
+          onAddRow={handleAddRow}
+          policy={policy}
+          warnings={warnings}
+          categories={categories}
+          readonly={isReadonly}
+          attendanceHours={attendanceHours}
+          dailyTotals={totals.byDay}
+          missingComments={missingComments}
+          weekStart={selectedWeek}
+          onDeleteEntry={canEdit ? handleDeleteEntryClick : undefined}
+          onDeleteRow={canEdit ? handleDeleteRowClick : undefined}
+          addTimeEntryContent={
+            <AddTimeEntryPopover
+              projects={projects}
+              onSelectEntry={handleAddEntry}
+              getTasks={getTasks}
+              disabled={!canEdit}
+            />
+          }
+        />
+      )}
 
       {/* Comment Summary & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

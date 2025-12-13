@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -49,8 +50,10 @@ interface ProfileProps {
 export default function Profile({ isOwnProfile = true, employeeId }: ProfileProps) {
   const { toast } = useToast()
   const { user } = useAuth()
+  const isMobile = useIsMobile()
   const [profile, setProfile] = useState<EmployeeProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview')
   const [editingSection, setEditingSection] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<ProfileUpdateData>>({})
   const [newInterest, setNewInterest] = useState('')
@@ -311,21 +314,49 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
     )
   }
 
+  const tabOptions = [
+    { value: 'overview', label: 'Overview' },
+    { value: 'personal', label: 'Personal Details' },
+    { value: 'employment', label: 'Employment' },
+    { value: 'contacts', label: 'Contacts' },
+    { value: 'about', label: 'About & Hobbies' },
+    { value: 'team', label: 'Team' },
+    { value: 'documents', label: 'Documents' }
+  ]
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="personal">Personal Details</TabsTrigger>
-          <TabsTrigger value="employment">Employment</TabsTrigger>
-          <TabsTrigger value="contacts">Contacts</TabsTrigger>
-          <TabsTrigger value="about">About & Hobbies</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="documents">
-            <FileText className="h-4 w-4 mr-1" />
-            Documents
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        {/* Mobile: Dropdown navigation */}
+        {isMobile ? (
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select section" />
+            </SelectTrigger>
+            <SelectContent>
+              {tabOptions.map(tab => (
+                <SelectItem key={tab.value} value={tab.value}>
+                  {tab.value === 'documents' && <FileText className="h-4 w-4 mr-2 inline" />}
+                  {tab.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          /* Desktop: Tabs navigation */
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="personal">Personal Details</TabsTrigger>
+            <TabsTrigger value="employment">Employment</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="about">About & Hobbies</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="documents">
+              <FileText className="h-4 w-4 mr-1" />
+              Documents
+            </TabsTrigger>
+          </TabsList>
+        )}
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">

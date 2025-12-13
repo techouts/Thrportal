@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { MoreHorizontal, Search } from 'lucide-react';
+import { MoreHorizontal, Search, Calendar, Eye, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -35,6 +37,7 @@ import {
 } from '@/components/ui/pagination';
 import { LeaveRequestDetailsSheet } from './LeaveRequestDetailsSheet';
 import { CancelRequestDialog } from './CancelRequestDialog';
+import { cn } from '@/lib/utils';
 
 interface LeaveRequest {
   id: string;
@@ -73,6 +76,7 @@ const STATUS_COLORS: Record<string, string> = {
 const ITEMS_PER_PAGE = 10;
 
 export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTableProps) {
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -157,10 +161,88 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
     );
   }
 
+  // Mobile card render
+  const renderMobileCard = (request: LeaveRequest) => {
+    const start = new Date(request.start_date);
+    const end = new Date(request.end_date);
+    const isSameDay = request.start_date === request.end_date;
+    
+    return (
+      <Card key={request.id} className="overflow-hidden">
+        <CardContent className="p-4 space-y-3">
+          {/* Header with type and status */}
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm">
+              {LEAVE_TYPE_LABELS[request.leave_type] || request.leave_type}
+            </span>
+            <Badge className={STATUS_COLORS[request.status] || ''}>
+              {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            </Badge>
+          </div>
+          
+          {/* Date range */}
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span>
+              {isSameDay 
+                ? format(start, 'dd MMM yyyy')
+                : `${format(start, 'dd MMM')} - ${format(end, 'dd MMM yyyy')}`
+              }
+            </span>
+            <Badge variant="secondary" className="text-xs">
+              {request.total_days} {request.total_days === 1 ? 'day' : 'days'}
+            </Badge>
+          </div>
+          
+          {/* Reason */}
+          {request.reason && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {request.reason}
+            </p>
+          )}
+          
+          {/* Rejection reason if applicable */}
+          {request.rejection_reason && (
+            <div className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+              {request.rejection_reason}
+            </div>
+          )}
+          
+          {/* Actions */}
+          <div className="flex gap-2 pt-2 border-t">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => handleViewRequest(request)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              View
+            </Button>
+            {request.status === 'pending' && onCancel && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-destructive hover:text-destructive"
+                onClick={() => handleCancelClick(request.id)}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className={cn(
+        "flex gap-4",
+        isMobile ? "flex-col" : "flex-wrap items-center"
+      )}>
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -171,113 +253,131 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
           />
         </div>
         
-        <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Leave Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {Object.entries(LEAVE_TYPE_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className={cn(
+          "flex gap-2",
+          isMobile ? "w-full" : ""
+        )}>
+          <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+            <SelectTrigger className={isMobile ? "flex-1" : "w-[180px]"}>
+              <SelectValue placeholder="Leave Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {Object.entries(LEAVE_TYPE_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className={isMobile ? "flex-1" : "w-[150px]"}>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="text-sm text-muted-foreground">
           Total: {filteredRequests.length} requests
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Leave Dates</TableHead>
-              <TableHead>Leave Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Requested By</TableHead>
-              <TableHead>Action Taken On</TableHead>
-              <TableHead>Leave Note</TableHead>
-              <TableHead>Reject/Cancellation Reason</TableHead>
-              <TableHead className="w-[50px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedRequests.length === 0 ? (
+      {/* Mobile: Card layout */}
+      {isMobile ? (
+        <div className="space-y-3">
+          {paginatedRequests.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No leave requests found
+            </div>
+          ) : (
+            paginatedRequests.map(renderMobileCard)
+          )}
+        </div>
+      ) : (
+        /* Desktop: Table layout */
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  No leave requests found
-                </TableCell>
+                <TableHead>Leave Dates</TableHead>
+                <TableHead>Leave Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Requested By</TableHead>
+                <TableHead>Action Taken On</TableHead>
+                <TableHead>Leave Note</TableHead>
+                <TableHead>Reject/Cancellation Reason</TableHead>
+                <TableHead className="w-[50px]">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell>
-                    {formatDateRange(request.start_date, request.end_date, request.total_days)}
-                  </TableCell>
-                  <TableCell>
-                    {LEAVE_TYPE_LABELS[request.leave_type] || request.leave_type}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={STATUS_COLORS[request.status] || ''}>
-                      {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{request.requested_by || '-'}</TableCell>
-                  <TableCell>
-                    {request.approved_at 
-                      ? format(new Date(request.approved_at), 'dd MMM yyyy')
-                      : '-'
-                    }
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {request.reason || '-'}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {request.rejection_reason || '-'}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewRequest(request)}>
-                          View Request
-                        </DropdownMenuItem>
-                        {request.status === 'pending' && onCancel && (
-                          <DropdownMenuItem 
-                            onClick={() => handleCancelClick(request.id)}
-                            className="text-destructive"
-                          >
-                            Cancel Request
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {paginatedRequests.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    No leave requests found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                paginatedRequests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell>
+                      {formatDateRange(request.start_date, request.end_date, request.total_days)}
+                    </TableCell>
+                    <TableCell>
+                      {LEAVE_TYPE_LABELS[request.leave_type] || request.leave_type}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={STATUS_COLORS[request.status] || ''}>
+                        {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{request.requested_by || '-'}</TableCell>
+                    <TableCell>
+                      {request.approved_at 
+                        ? format(new Date(request.approved_at), 'dd MMM yyyy')
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {request.reason || '-'}
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {request.rejection_reason || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewRequest(request)}>
+                            View Request
+                          </DropdownMenuItem>
+                          {request.status === 'pending' && onCancel && (
+                            <DropdownMenuItem 
+                              onClick={() => handleCancelClick(request.id)}
+                              className="text-destructive"
+                            >
+                              Cancel Request
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
