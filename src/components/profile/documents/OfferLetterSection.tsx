@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { Upload, FileText, Loader2, Trash2, File } from 'lucide-react'
 import { uploadEmployeeDocument, updateOfferLetterUrl, deleteEmployeeDocument } from '@/services/employeeDocumentService'
+import { DeleteConfirmationDialog } from '@/components/timesheet/DeleteConfirmationDialog'
 
 interface OfferLetterSectionProps {
   url?: string | null
@@ -16,6 +17,7 @@ interface OfferLetterSectionProps {
 export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate }: OfferLetterSectionProps) {
   const { toast } = useToast()
   const [uploading, setUploading] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleUploadClick = () => {
@@ -91,7 +93,7 @@ export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate
                 </Badge>
               </a>
               {isOwnProfile && (
-                <Button variant="ghost" size="icon" onClick={handleDelete}>
+                <Button variant="ghost" size="icon" onClick={() => setDeleteDialogOpen(true)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               )}
@@ -114,6 +116,18 @@ export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate
           </div>
         )}
       </CardContent>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Offer Letter"
+        description="Are you sure you want to delete your offer letter?"
+        warningMessage="This action cannot be undone."
+        onConfirm={() => {
+          handleDelete()
+          setDeleteDialogOpen(false)
+        }}
+      />
     </Card>
   )
 }
