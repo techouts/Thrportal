@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Plus, Upload, Trash2, FileText, Loader2, GraduationCap } from 'lucide-react'
 import type { EducationDetail } from '@/types/employeeDocuments'
 import { updateEducationDetails, uploadEmployeeDocument, deleteEmployeeDocument } from '@/services/employeeDocumentService'
+import { DeleteConfirmationDialog } from '@/components/timesheet/DeleteConfirmationDialog'
 
 interface EducationalDocumentsSectionProps {
   data: EducationDetail[]
@@ -23,6 +24,8 @@ export default function EducationalDocumentsSection({ data, isOwnProfile, userId
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingId, setUploadingId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletingEntry, setDeletingEntry] = useState<EducationDetail | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentUploadId, setCurrentUploadId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<EducationDetail>>({
@@ -259,7 +262,10 @@ export default function EducationalDocumentsSection({ data, isOwnProfile, userId
                   </TableCell>
                   {isOwnProfile && (
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(entry.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        setDeletingEntry(entry)
+                        setDeleteDialogOpen(true)
+                      }}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -270,6 +276,19 @@ export default function EducationalDocumentsSection({ data, isOwnProfile, userId
           </Table>
         )}
       </CardContent>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Education Record"
+        description={`Are you sure you want to delete this education record${deletingEntry?.degree ? ` for "${deletingEntry.degree} - ${deletingEntry.university}"` : ''}?`}
+        warningMessage="This will also remove any uploaded documents for this entry."
+        onConfirm={() => {
+          if (deletingEntry) handleDelete(deletingEntry.id)
+          setDeleteDialogOpen(false)
+          setDeletingEntry(null)
+        }}
+      />
     </Card>
   )
 }

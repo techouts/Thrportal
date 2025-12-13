@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Upload, FileText, Loader2, CreditCard, Eye, EyeOff, Trash2 } from 'lucide-react'
 import type { IdentityDocuments, IdentityDocument } from '@/types/employeeDocuments'
 import { updateIdentityDocuments, uploadEmployeeDocument, deleteEmployeeDocument } from '@/services/employeeDocumentService'
+import { DeleteConfirmationDialog } from '@/components/timesheet/DeleteConfirmationDialog'
 
 interface IdentityDocumentsSectionProps {
   data: IdentityDocuments
@@ -29,6 +30,8 @@ export default function IdentityDocumentsSection({ data, isOwnProfile, userId, o
   const [uploadingType, setUploadingType] = useState<string | null>(null)
   const [revealedNumbers, setRevealedNumbers] = useState<Set<string>>(new Set())
   const [numberInput, setNumberInput] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletingDocType, setDeletingDocType] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentUploadType, setCurrentUploadType] = useState<string | null>(null)
 
@@ -168,7 +171,10 @@ export default function IdentityDocumentsSection({ data, isOwnProfile, userId, o
                         </Badge>
                       </a>
                       {isOwnProfile && (
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteDocument(type.key)}>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          setDeletingDocType(type.key)
+                          setDeleteDialogOpen(true)
+                        }}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       )}
@@ -236,6 +242,19 @@ export default function IdentityDocumentsSection({ data, isOwnProfile, userId, o
           )
         })}
       </CardContent>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Document"
+        description={`Are you sure you want to delete your ${identityTypes.find(t => t.key === deletingDocType)?.label || 'identity document'}?`}
+        warningMessage="This action cannot be undone."
+        onConfirm={() => {
+          if (deletingDocType) handleDeleteDocument(deletingDocType)
+          setDeleteDialogOpen(false)
+          setDeletingDocType(null)
+        }}
+      />
     </Card>
   )
 }
