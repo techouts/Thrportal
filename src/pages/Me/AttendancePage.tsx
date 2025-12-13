@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, MapPin, Calendar, TrendingUp, Timer, CheckCircle, Wifi } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { attendanceService } from '@/services/attendanceService';
 import { AttendanceRecord, AttendanceStats, AttendanceStatsFilter, AttendanceLogsFilter } from '@/types/attendance';
 import { useAuth } from '@/auth/AuthContext';
@@ -19,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function AttendancePage() {
   const { user: currentUser } = useAuth();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('stats');
   const [statsFilter, setStatsFilter] = useState<AttendanceStatsFilter>('1month');
   const [logsFilter, setLogsFilter] = useState<AttendanceLogsFilter>('30_days');
@@ -510,18 +512,33 @@ export default function AttendancePage() {
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-6">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Last 30 Days</span>
-            <ToggleGroup type="single" value={logsFilter} onValueChange={(value) => value && setLogsFilter(value as AttendanceLogsFilter)}>
-              <ToggleGroupItem value="30_days" aria-label="30 Days">
-                30 DAYS
-              </ToggleGroupItem>
-              {previousMonths.map(month => (
-                <ToggleGroupItem key={month.value} value={month.value} aria-label={month.label}>
-                  {month.label}
+          {/* Mobile: Dropdown filter, Desktop: ToggleGroup */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <span className="text-sm font-medium">Filter Period</span>
+            {isMobile ? (
+              <Select value={logsFilter} onValueChange={(value) => setLogsFilter(value as AttendanceLogsFilter)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30_days">Last 30 Days</SelectItem>
+                  {previousMonths.map(month => (
+                    <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <ToggleGroup type="single" value={logsFilter} onValueChange={(value) => value && setLogsFilter(value as AttendanceLogsFilter)}>
+                <ToggleGroupItem value="30_days" aria-label="30 Days">
+                  30 DAYS
                 </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+                {previousMonths.map(month => (
+                  <ToggleGroupItem key={month.value} value={month.value} aria-label={month.label}>
+                    {month.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            )}
           </div>
 
           <Card className="rounded-2xl shadow-sm">
@@ -538,7 +555,45 @@ export default function AttendancePage() {
                     const displayStatus = getDisplayStatus(record);
                     const showActions = isMissingClockOut(record);
                     
-                    return (
+                    return isMobile ? (
+                      /* Mobile: Card-based layout */
+                      <Card key={record.id} className="overflow-hidden">
+                        <CardContent className="p-4 space-y-3">
+                          {/* Row 1: Date and Status */}
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">
+                              {format(new Date(record.date), 'MMM dd, yyyy')}
+                            </span>
+                            <Badge className={getStatusColor(displayStatus)}>
+                              {formatStatusLabel(displayStatus)}
+                            </Badge>
+                          </div>
+                          {/* Row 2: Time range */}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Timer className="w-4 h-4" />
+                            <span>{formatTimeDisplay(record)}</span>
+                          </div>
+                          {/* Row 3: Location and Hours */}
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <MapPin className="w-4 h-4" />
+                              <span>{record.location}</span>
+                            </div>
+                            <span className="font-semibold">{record.totalHours.toFixed(1)}h</span>
+                          </div>
+                          {/* Row 4: Actions (if needed) */}
+                          {showActions && (
+                            <div className="pt-2 border-t">
+                              <AttendanceRowActions
+                                onRegularize={() => handleRegularize(record)}
+                                onRequestLeave={() => handleRequestLeave(record)}
+                              />
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      /* Desktop: Horizontal layout */
                       <div key={record.id} className="flex items-center justify-between p-3 border rounded-xl">
                         <div className="flex items-center gap-3">
                           <div className="text-sm font-medium">

@@ -86,30 +86,30 @@ export default function LeavePage() {
   return (
     <RBACGuard requiredRoles={["EMPLOYEE", "MANAGER", "HR", "ADMIN"]}>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
+        {/* Page Header - Mobile Responsive */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Leave Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold">Leave Management</h1>
+            <p className="text-muted-foreground text-sm md:text-base">
               Manage your leave requests and view balances
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => setShowCompOffDialog(true)}>
-                <Clock className="h-4 w-4 mr-2" />
-                Request Comp-Off
+              <Button size="sm" onClick={() => setShowCompOffDialog(true)} className="flex-1 sm:flex-none">
+                <Clock className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Request </span>Comp-Off
               </Button>
-              <Button size="sm" onClick={() => setShowLeaveDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Request Leave
+              <Button size="sm" onClick={() => setShowLeaveDialog(true)} className="flex-1 sm:flex-none">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Request </span>Leave
               </Button>
             </div>
             <button 
               onClick={() => setShowPolicyDialog(true)}
-              className="text-sm text-primary hover:underline font-medium"
+              className="text-sm text-primary hover:underline font-medium text-center sm:text-left"
             >
-              Leave Policy Explanation
+              Leave Policy
             </button>
           </div>
         </div>
