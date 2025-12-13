@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { MonthYearPicker } from '@/components/ui/month-year-picker'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -156,18 +157,22 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>From *</Label>
-                    <Input
-                      type="month"
+                    <MonthYearPicker
                       value={formData.from_date}
-                      onChange={(e) => setFormData(p => ({ ...p, from_date: e.target.value }))}
+                      onChange={(value) => setFormData(p => ({ ...p, from_date: value }))}
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                      placeholder="Select start"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>To</Label>
-                    <Input
-                      type="month"
+                    <MonthYearPicker
                       value={formData.to_date || ''}
-                      onChange={(e) => setFormData(p => ({ ...p, to_date: e.target.value }))}
+                      onChange={(value) => setFormData(p => ({ ...p, to_date: value }))}
+                      fromYear={1980}
+                      toYear={new Date().getFullYear() + 5}
+                      placeholder="Select end"
                     />
                   </div>
                 </div>

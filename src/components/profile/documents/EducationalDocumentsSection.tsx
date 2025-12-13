@@ -152,21 +152,31 @@ export default function EducationalDocumentsSection({ data, isOwnProfile, userId
                   <div className="space-y-2">
                     <Label>From Year</Label>
                     <Input
-                      type="number"
-                      min={1980}
-                      max={new Date().getFullYear()}
-                      value={formData.from_year}
-                      onChange={(e) => setFormData(p => ({ ...p, from_year: parseInt(e.target.value) }))}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      value={formData.from_year?.toString() || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                        setFormData(p => ({ ...p, from_year: value ? parseInt(value) : undefined }))
+                      }}
+                      placeholder="YYYY"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>To Year</Label>
                     <Input
-                      type="number"
-                      min={1980}
-                      max={new Date().getFullYear() + 6}
-                      value={formData.to_year}
-                      onChange={(e) => setFormData(p => ({ ...p, to_year: parseInt(e.target.value) }))}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      value={formData.to_year?.toString() || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                        setFormData(p => ({ ...p, to_year: value ? parseInt(value) : undefined }))
+                      }}
+                      placeholder="YYYY"
                     />
                   </div>
                 </div>
