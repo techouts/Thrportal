@@ -50,3 +50,30 @@ export function useUpcomingHolidays(limit: number = 5) {
     },
   });
 }
+
+export function useAllHolidaysForNavigation() {
+  const today = new Date().toISOString().split('T')[0];
+  const currentYear = new Date().getFullYear();
+  
+  return useQuery({
+    queryKey: ['allHolidaysNav', currentYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('holidays')
+        .select('*')
+        .gte('year', currentYear - 1)
+        .lte('year', currentYear + 1)
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+      
+      const holidays = data as Holiday[];
+      const firstUpcomingIndex = holidays.findIndex(h => h.date >= today);
+      
+      return { 
+        holidays, 
+        firstUpcomingIndex: firstUpcomingIndex >= 0 ? firstUpcomingIndex : 0 
+      };
+    },
+  });
+}
