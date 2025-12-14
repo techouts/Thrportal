@@ -23,15 +23,21 @@ export function UpcomingHolidayCard() {
   }, [data?.firstUpcomingIndex, isInitialized]);
 
   const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
+    setCurrentIndex((prev) => {
+      if (prev > 0) {
+        return prev - 1;
+      }
+      return prev;
+    });
   };
 
   const handleNext = () => {
-    if (holidays && currentIndex < holidays.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
+    setCurrentIndex((prev) => {
+      if (holidays && prev < holidays.length - 1) {
+        return prev + 1;
+      }
+      return prev;
+    });
   };
 
   const currentHoliday = holidays?.[currentIndex];
