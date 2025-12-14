@@ -1690,6 +1690,42 @@ export type Database = {
           },
         ]
       }
+      holidays: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          is_optional: boolean | null
+          location: string | null
+          name: string
+          type: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          is_optional?: boolean | null
+          location?: string | null
+          name: string
+          type?: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_optional?: boolean | null
+          location?: string | null
+          name?: string
+          type?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       interview_panel_types: {
         Row: {
           created_at: string | null

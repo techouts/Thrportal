@@ -3,13 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Calendar, Plus, Clock, BarChart3 } from "lucide-react";
-import { format, startOfYear, endOfYear } from "date-fns";
-import { 
-  useLeaveBalances, 
-  useHolidayCalendars 
-} from "@/hooks/useLeave";
+import { Plus, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { useLeaveBalances } from "@/hooks/useLeave";
 import { 
   useMyLeaveRequests, 
   useProfiles, 
@@ -18,6 +14,8 @@ import {
   useCancelLeaveRequest
 } from "@/hooks/useLeaveSupabase";
 import { LeaveBalanceCard } from "@/components/leave/LeaveBalanceCard";
+import { CompOffBalanceCard } from "@/components/leave/CompOffBalanceCard";
+import { UpcomingHolidayCard } from "@/components/leave/UpcomingHolidayCard";
 import { RequestLeaveDialog, LeaveRequestData } from "@/components/leave/RequestLeaveDialog";
 import { RequestCompOffDialog, CompOffRequestData } from "@/components/leave/RequestCompOffDialog";
 import { LeavePolicyDialog } from "@/components/leave/LeavePolicyDialog";
@@ -28,8 +26,6 @@ import { useAuth } from "@/auth/AuthContext";
 export default function LeavePage() {
   const { user } = useAuth();
   const [selectedYear] = useState(new Date().getFullYear().toString());
-  const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
-  const yearEnd = format(endOfYear(new Date()), 'yyyy-MM-dd');
 
   // Dialog states
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
@@ -39,7 +35,6 @@ export default function LeavePage() {
   // Data hooks
   const { data: balances, isLoading: balancesLoading } = useLeaveBalances(selectedYear);
   const { data: leaveRequests, isLoading: requestsLoading } = useMyLeaveRequests(user?.id);
-  const { data: calendars, isLoading: calendarsLoading } = useHolidayCalendars(yearStart, yearEnd);
   const { data: profiles } = useProfiles();
 
   // Mutations
@@ -121,12 +116,12 @@ export default function LeavePage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            {/* Leave Balances */}
+            {/* Leave Balances - Only CL and Comp-Offs */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Leave Balances</h2>
               {balancesLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[...Array(6)].map((_, i) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...Array(2)].map((_, i) => (
                     <Card key={i} className="animate-pulse">
                       <CardContent className="p-6">
                         <div className="space-y-3">
@@ -139,59 +134,24 @@ export default function LeavePage() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {balances?.data?.map((balance) => (
-                    <LeaveBalanceCard key={balance.id} balance={balance} />
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Casual Leave Card */}
+                  {balances?.data
+                    ?.filter((balance) => balance.type === 'CL')
+                    ?.map((balance) => (
+                      <LeaveBalanceCard key={balance.id} balance={balance} />
+                    ))}
+                  
+                  {/* Comp-Off Balance Card */}
+                  <CompOffBalanceCard employeeId={user?.id} />
                 </div>
               )}
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Holiday Calendar */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Upcoming Holidays
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {calendarsLoading ? (
-                    <div className="space-y-2">
-                      {[...Array(3)].map((_, i) => (
-                        <div key={i} className="animate-pulse">
-                          <div className="h-3 bg-muted rounded w-3/4 mb-1" />
-                          <div className="h-2 bg-muted rounded w-1/2" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {calendars?.data?.[0]?.holidays
-                        ?.filter(h => new Date(h.date) > new Date())
-                        ?.slice(0, 3)
-                        ?.map((holiday) => (
-                          <div key={holiday.id} className="flex justify-between items-center">
-                            <div>
-                              <p className="text-sm font-medium">{holiday.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(holiday.date), 'MMM dd, yyyy')}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="text-xs">
-                              {holiday.type}
-                            </Badge>
-                          </div>
-                        ))}
-                      {(!calendars?.data?.[0]?.holidays || calendars.data[0].holidays.length === 0) && (
-                        <p className="text-sm text-muted-foreground">No upcoming holidays</p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+            {/* Quick Stats - Only Holidays and Recent Requests */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Upcoming Holidays Card */}
+              <UpcomingHolidayCard />
 
               {/* Recent Requests */}
               <Card>
@@ -235,45 +195,6 @@ export default function LeavePage() {
                       ))}
                       {(!leaveRequests || leaveRequests.length === 0) && (
                         <p className="text-sm text-muted-foreground">No recent requests</p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Usage Stats */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4" />
-                    Usage Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {balancesLoading ? (
-                    <div className="space-y-3">
-                      <div className="animate-pulse">
-                        <div className="h-2 bg-muted rounded mb-2" />
-                        <div className="h-3 bg-muted rounded w-1/2" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {balances?.data?.slice(0, 3)?.map((balance) => {
-                        const utilization = balance.allocated > 0 ? 
-                          (balance.consumed / balance.allocated) * 100 : 0;
-                        return (
-                          <div key={balance.id}>
-                            <div className="flex justify-between text-xs mb-1">
-                              <span>{balance.type}</span>
-                              <span>{Math.round(utilization)}%</span>
-                            </div>
-                            <Progress value={utilization} className="h-2" />
-                          </div>
-                        );
-                      })}
-                      {(!balances?.data || balances.data.length === 0) && (
-                        <p className="text-sm text-muted-foreground">No balance data</p>
                       )}
                     </div>
                   )}
