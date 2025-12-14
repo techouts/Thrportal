@@ -459,7 +459,7 @@ export default function AttendancePage() {
           </div>
 
           {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="rounded-2xl shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Present Days</CardTitle>
@@ -477,16 +477,6 @@ export default function AttendancePage() {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.averageHours.toFixed(1)}</div>
                   <p className="text-xs text-muted-foreground">Per day</p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Current Streak</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.currentStreak}</div>
-                  <p className="text-xs text-muted-foreground">Days</p>
                 </CardContent>
               </Card>
 
