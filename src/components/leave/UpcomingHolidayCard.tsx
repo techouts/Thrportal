@@ -1,25 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, TreePine, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
-import { Holiday, useUpcomingHolidays } from '@/hooks/useHolidays';
+import { Holiday, useAllHolidaysForNavigation } from '@/hooks/useHolidays';
 import { AllHolidaysDialog } from './AllHolidaysDialog';
 
 export function UpcomingHolidayCard() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAllDialog, setShowAllDialog] = useState(false);
-  const { data: holidays, isLoading } = useUpcomingHolidays(10);
+  const { data, isLoading } = useAllHolidaysForNavigation();
+  
+  const holidays = data?.holidays;
+  const firstUpcomingIndex = data?.firstUpcomingIndex ?? 0;
+
+  useEffect(() => {
+    if (data?.firstUpcomingIndex !== undefined) {
+      setCurrentIndex(data.firstUpcomingIndex);
+    }
+  }, [data?.firstUpcomingIndex]);
 
   const handlePrev = () => {
-    if (holidays && holidays.length > 0) {
-      setCurrentIndex((prev) => (prev === 0 ? holidays.length - 1 : prev - 1));
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
   const handleNext = () => {
-    if (holidays && holidays.length > 0) {
-      setCurrentIndex((prev) => (prev === holidays.length - 1 ? 0 : prev + 1));
+    if (holidays && currentIndex < holidays.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
     }
   };
 
@@ -80,8 +89,9 @@ export function UpcomingHolidayCard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20 h-8 w-8 shrink-0"
+              className="text-white hover:bg-white/20 h-8 w-8 shrink-0 disabled:opacity-30"
               onClick={handlePrev}
+              disabled={currentIndex === 0}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -100,8 +110,9 @@ export function UpcomingHolidayCard() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20 h-8 w-8 shrink-0"
+              className="text-white hover:bg-white/20 h-8 w-8 shrink-0 disabled:opacity-30"
               onClick={handleNext}
+              disabled={!holidays || currentIndex >= holidays.length - 1}
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -110,18 +121,6 @@ export function UpcomingHolidayCard() {
           {/* Decorative Icon */}
           <div className="absolute bottom-4 right-4 opacity-50">
             {currentHoliday && getHolidayIcon(currentHoliday.name)}
-          </div>
-
-          {/* Dots indicator */}
-          <div className="flex justify-center gap-1 mt-4">
-            {holidays.slice(0, 5).map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                  idx === currentIndex % 5 ? 'bg-white' : 'bg-white/40'
-                }`}
-              />
-            ))}
           </div>
         </CardContent>
       </Card>
