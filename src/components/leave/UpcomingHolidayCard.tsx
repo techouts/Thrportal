@@ -8,6 +8,7 @@ import { AllHolidaysDialog } from './AllHolidaysDialog';
 
 export function UpcomingHolidayCard() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [showAllDialog, setShowAllDialog] = useState(false);
   const { data, isLoading } = useAllHolidaysForNavigation();
   
@@ -15,10 +16,11 @@ export function UpcomingHolidayCard() {
   const firstUpcomingIndex = data?.firstUpcomingIndex ?? 0;
 
   useEffect(() => {
-    if (data?.firstUpcomingIndex !== undefined) {
+    if (data?.firstUpcomingIndex !== undefined && !isInitialized) {
       setCurrentIndex(data.firstUpcomingIndex);
+      setIsInitialized(true);
     }
-  }, [data?.firstUpcomingIndex]);
+  }, [data?.firstUpcomingIndex, isInitialized]);
 
   const handlePrev = () => {
     if (currentIndex > 0) {
