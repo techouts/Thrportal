@@ -56,18 +56,19 @@ export function useAllHolidaysForNavigation() {
   const currentYear = new Date().getFullYear();
   
   return useQuery({
-    queryKey: ['allHolidaysNav', currentYear],
+    queryKey: ['allHolidaysNav', currentYear, 'v2'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('holidays')
         .select('*')
-        .gte('year', currentYear - 1)
-        .lte('year', currentYear + 1)
+        .in('year', [currentYear - 1, currentYear, currentYear + 1])
         .order('date', { ascending: true });
 
       if (error) throw error;
       
       const holidays = data as Holiday[];
+      console.log('[Holidays] Fetched count:', holidays.length, 'Years:', [...new Set(holidays.map(h => h.year))]);
+      
       const firstUpcomingIndex = holidays.findIndex(h => h.date >= today);
       
       return { 
@@ -75,5 +76,6 @@ export function useAllHolidaysForNavigation() {
         firstUpcomingIndex: firstUpcomingIndex >= 0 ? firstUpcomingIndex : 0 
       };
     },
+    staleTime: 0,
   });
 }
