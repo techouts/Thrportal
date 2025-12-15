@@ -7,11 +7,12 @@ import { Plus, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useLeaveBalances } from "@/hooks/useLeave";
 import { 
-  useMyLeaveRequests, 
+  useAllMyRequests,
   useProfiles, 
   useCreateLeaveRequest,
   useCreateCompOffRequest,
-  useCancelLeaveRequest
+  useCancelLeaveRequest,
+  useCancelCompOffRequest
 } from "@/hooks/useLeaveSupabase";
 import { LeaveBalanceCard } from "@/components/leave/LeaveBalanceCard";
 import { CompOffBalanceCard } from "@/components/leave/CompOffBalanceCard";
@@ -34,13 +35,14 @@ export default function LeavePage() {
 
   // Data hooks
   const { data: balances, isLoading: balancesLoading } = useLeaveBalances(selectedYear);
-  const { data: leaveRequests, isLoading: requestsLoading } = useMyLeaveRequests(user?.id);
+  const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(user?.id);
   const { data: profiles } = useProfiles();
 
   // Mutations
   const createLeaveRequest = useCreateLeaveRequest();
   const createCompOffRequest = useCreateCompOffRequest();
   const cancelLeaveRequest = useCancelLeaveRequest();
+  const cancelCompOffRequest = useCancelCompOffRequest();
 
   // Get user display name
   const userName = user?.display_name || 
@@ -74,8 +76,12 @@ export default function LeavePage() {
     });
   };
 
-  const handleCancelRequest = (requestId: string) => {
-    cancelLeaveRequest.mutate(requestId);
+  const handleCancelRequest = (requestId: string, requestSource?: 'leave' | 'comp_off') => {
+    if (requestSource === 'comp_off') {
+      cancelCompOffRequest.mutate(requestId);
+    } else {
+      cancelLeaveRequest.mutate(requestId);
+    }
   };
 
   return (
@@ -173,7 +179,7 @@ export default function LeavePage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {leaveRequests?.slice(0, 3)?.map((request) => (
+                      {allRequests?.slice(0, 3)?.map((request) => (
                         <div key={request.id} className="flex justify-between items-center">
                           <div>
                             <p className="text-sm font-medium">{request.leave_type}</p>
@@ -193,7 +199,7 @@ export default function LeavePage() {
                           </Badge>
                         </div>
                       ))}
-                      {(!leaveRequests || leaveRequests.length === 0) && (
+                      {(!allRequests || allRequests.length === 0) && (
                         <p className="text-sm text-muted-foreground">No recent requests</p>
                       )}
                     </div>
@@ -210,7 +216,7 @@ export default function LeavePage() {
               </CardHeader>
               <CardContent>
                 <MyRequestsTable 
-                  requests={leaveRequests || []}
+                  requests={allRequests || []}
                   isLoading={requestsLoading}
                   onCancel={handleCancelRequest}
                 />

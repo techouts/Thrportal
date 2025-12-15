@@ -6,14 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { 
   usePendingLeaveApprovals, 
   useTeamCalendarSupabase,
   useApproveLeaveRequest,
+  useApproveCompOffRequest,
   useRejectLeaveRequest,
-  useBulkApproveLeaveRequests
+  useRejectCompOffRequest,
+  useBulkApproveLeaveRequests,
+  PendingLeaveRequest
 } from "@/hooks/useManagerLeaveSupabase";
 import { LeaveType } from "@/types/leave";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
@@ -53,7 +56,9 @@ export default function MyTeamLeavePage() {
   const { data: teamCalendar, isLoading: calendarLoading } = useTeamCalendarSupabase(currentUserId, monthStart, monthEnd);
   
   const approveRequest = useApproveLeaveRequest();
+  const approveCompOffRequest = useApproveCompOffRequest();
   const rejectRequest = useRejectLeaveRequest();
+  const rejectCompOffRequest = useRejectCompOffRequest();
   const bulkApprove = useBulkApproveLeaveRequests();
   const { toast } = useToast();
 
@@ -68,12 +73,20 @@ export default function MyTeamLeavePage() {
     return true;
   }) || [];
 
-  const handleApprove = (id: string) => {
-    approveRequest.mutate({ id });
+  const handleApprove = (request: PendingLeaveRequest) => {
+    if (request.request_source === 'comp_off') {
+      approveCompOffRequest.mutate({ id: request.id });
+    } else {
+      approveRequest.mutate({ id: request.id });
+    }
   };
 
-  const handleReject = (id: string, reason: string) => {
-    rejectRequest.mutate({ id, reason });
+  const handleReject = (request: PendingLeaveRequest, reason: string) => {
+    if (request.request_source === 'comp_off') {
+      rejectCompOffRequest.mutate({ id: request.id, reason });
+    } else {
+      rejectRequest.mutate({ id: request.id, reason });
+    }
   };
 
   const handleBulkApprove = () => {
@@ -85,7 +98,17 @@ export default function MyTeamLeavePage() {
       });
       return;
     }
-    bulkApprove.mutate({ ids: selectedRequests });
+    
+    // Build request sources map
+    const requestSources: Record<string, 'leave' | 'comp_off'> = {};
+    selectedRequests.forEach(id => {
+      const request = filteredRequests.find(r => r.id === id);
+      if (request) {
+        requestSources[id] = request.request_source;
+      }
+    });
+    
+    bulkApprove.mutate({ ids: selectedRequests, requestSources });
     setSelectedRequests([]);
   };
 
@@ -240,6 +263,7 @@ export default function MyTeamLeavePage() {
                         <TableHead>Leave Type</TableHead>
                         <TableHead>Dates</TableHead>
                         <TableHead>Days</TableHead>
+                        <TableHead>Evidence</TableHead>
                         <TableHead>Coverage</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
@@ -262,7 +286,9 @@ export default function MyTeamLeavePage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{request.type}</Badge>
+                            <Badge variant="outline">
+                              {request.type === 'COMP_OFF' ? 'Comp-Off' : request.type}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
@@ -271,6 +297,21 @@ export default function MyTeamLeavePage() {
                             </div>
                           </TableCell>
                           <TableCell>{request.totalDays}</TableCell>
+                          <TableCell>
+                            {request.evidence_url ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => window.open(request.evidence_url!, '_blank')}
+                                className="gap-1"
+                              >
+                                <FileText className="h-3 w-3" />
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <span className={`text-sm ${getCoverageColor(request.coverageScore)}`}>
@@ -291,16 +332,16 @@ export default function MyTeamLeavePage() {
                               <Button 
                                 size="sm" 
                                 variant="default"
-                                onClick={() => handleApprove(request.id)}
-                                disabled={approveRequest.isPending}
+                                onClick={() => handleApprove(request)}
+                                disabled={approveRequest.isPending || approveCompOffRequest.isPending}
                               >
                                 <CheckCircle className="h-4 w-4" />
                               </Button>
                               <Button 
                                 size="sm" 
                                 variant="destructive"
-                                onClick={() => handleReject(request.id, "Manager declined")}
-                                disabled={rejectRequest.isPending}
+                                onClick={() => handleReject(request, "Manager declined")}
+                                disabled={rejectRequest.isPending || rejectCompOffRequest.isPending}
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>
