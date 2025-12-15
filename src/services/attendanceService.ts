@@ -176,8 +176,12 @@ class AttendanceService {
       if (error) throw error;
 
       const records = data || [];
-      // Count as present if employee has both clock-in AND clock-out (regardless of late status)
-      const presentDays = records.filter(r => r.check_in && r.check_out).length;
+      // Count as present if:
+      // 1. Employee has both clock-in AND clock-out, OR
+      // 2. Status is 'present' (includes regularized records approved by manager)
+      const presentDays = records.filter(r => 
+        (r.check_in && r.check_out) || r.status === 'present'
+      ).length;
       const absentDays = records.filter(r => r.status === 'absent').length;
       const lateDays = records.filter(r => r.status === 'late').length;
       const totalHours = records.reduce((sum, r) => sum + Number(r.total_hours || 0), 0);
