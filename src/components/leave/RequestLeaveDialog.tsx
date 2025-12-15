@@ -32,6 +32,7 @@ interface RequestLeaveDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: LeaveRequestData) => Promise<void>;
   initialDate?: Date;
+  compOffBalance?: number;
 }
 
 export interface LeaveRequestData {
@@ -49,13 +50,21 @@ const LEAVE_TYPES = [
   { value: 'COMP_OFF', label: 'Comp Offs' },
 ];
 
-export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate }: RequestLeaveDialogProps) {
+export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, compOffBalance = 0 }: RequestLeaveDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(initialDate);
   const [toDate, setToDate] = useState<Date | undefined>(initialDate);
   const [leaveType, setLeaveType] = useState<string>('');
   const [reason, setReason] = useState('');
+
+  // Filter out COMP_OFF if user has no available balance
+  const availableLeaveTypes = LEAVE_TYPES.filter(type => {
+    if (type.value === 'COMP_OFF') {
+      return compOffBalance > 0;
+    }
+    return true;
+  });
 
   const totalDays = fromDate && toDate 
     ? differenceInDays(toDate, fromDate) + 1 
@@ -193,7 +202,7 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate }
                 <SelectValue placeholder="Select leave type" />
               </SelectTrigger>
               <SelectContent>
-                {LEAVE_TYPES.map((type) => (
+                {availableLeaveTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
