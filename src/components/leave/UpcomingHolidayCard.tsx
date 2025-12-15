@@ -127,7 +127,7 @@ export function UpcomingHolidayCard() {
           </div>
 
           {/* Decorative Icon */}
-          <div className="absolute bottom-4 right-4 opacity-50">
+          <div className="absolute bottom-4 right-4 opacity-50 pointer-events-none">
             {currentHoliday && getHolidayIcon(currentHoliday.name)}
           </div>
         </CardContent>
