@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { 
-  usePendingL1Approvals, 
-  useTeamCalendar,
-  useApproveL1,
-  useRejectL1,
-  useBulkApproveL1
-} from "@/hooks/useLeave";
+  usePendingLeaveApprovals, 
+  useTeamCalendarSupabase,
+  useApproveLeaveRequest,
+  useRejectLeaveRequest,
+  useBulkApproveLeaveRequests
+} from "@/hooks/useManagerLeaveSupabase";
 import { LeaveType } from "@/types/leave";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function MyTeamLeavePage() {
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [filters, setFilters] = useState<{
     search: string;
@@ -36,27 +38,42 @@ export default function MyTeamLeavePage() {
   const currentMonth = new Date();
   const monthStart = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
+
+  // Get current user ID
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id);
+    };
+    getUser();
+  }, []);
   
-  const { data: pendingRequests, isLoading: pendingLoading } = usePendingL1Approvals({
-    employeeId: filters.search || undefined,
-    type: filters.type || undefined,
-    hasConflict: typeof filters.hasConflict === 'boolean' ? filters.hasConflict : undefined,
-    from: monthStart,
-    to: monthEnd
-  });
-  const { data: teamCalendar, isLoading: calendarLoading } = useTeamCalendar(monthStart, monthEnd);
+  // Use Supabase hooks
+  const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveApprovals(currentUserId);
+  const { data: teamCalendar, isLoading: calendarLoading } = useTeamCalendarSupabase(currentUserId, monthStart, monthEnd);
   
-  const approveL1 = useApproveL1();
-  const rejectL1 = useRejectL1();
-  const bulkApprove = useBulkApproveL1();
+  const approveRequest = useApproveLeaveRequest();
+  const rejectRequest = useRejectLeaveRequest();
+  const bulkApprove = useBulkApproveLeaveRequests();
   const { toast } = useToast();
 
+  // Filter the requests based on filters
+  const filteredRequests = pendingRequests?.data?.filter(request => {
+    if (filters.search && !request.employeeName.toLowerCase().includes(filters.search.toLowerCase())) {
+      return false;
+    }
+    if (filters.type && request.type !== filters.type) {
+      return false;
+    }
+    return true;
+  }) || [];
+
   const handleApprove = (id: string) => {
-    approveL1.mutate({ id });
+    approveRequest.mutate({ id });
   };
 
   const handleReject = (id: string, reason: string) => {
-    rejectL1.mutate({ id, reason });
+    rejectRequest.mutate({ id, reason });
   };
 
   const handleBulkApprove = () => {
@@ -81,10 +98,11 @@ export default function MyTeamLeavePage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      'pending': 'default',
       'pending_L1': 'default',
       'pending_L2': 'secondary',
-      'approved': 'default',
+      'approved': 'secondary',
       'rejected': 'destructive'
     };
     return (
@@ -99,7 +117,7 @@ export default function MyTeamLeavePage() {
       case 'High': return 'text-green-600';
       case 'Medium': return 'text-yellow-600';
       case 'Low': return 'text-red-600';
-      default: return 'text-gray-600';
+      default: return 'text-muted-foreground';
     }
   };
 
@@ -189,7 +207,7 @@ export default function MyTeamLeavePage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Pending Approvals ({pendingRequests?.data?.length || 0})
+                  Pending Approvals ({filteredRequests.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -201,7 +219,7 @@ export default function MyTeamLeavePage() {
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : filteredRequests.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -210,12 +228,12 @@ export default function MyTeamLeavePage() {
                             type="checkbox" 
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedRequests(pendingRequests?.data?.map(r => r.id) || []);
+                                setSelectedRequests(filteredRequests.map(r => r.id));
                               } else {
                                 setSelectedRequests([]);
                               }
                             }}
-                            checked={selectedRequests.length === pendingRequests?.data?.length && pendingRequests?.data?.length > 0}
+                            checked={selectedRequests.length === filteredRequests.length && filteredRequests.length > 0}
                           />
                         </TableHead>
                         <TableHead>Employee</TableHead>
@@ -228,7 +246,7 @@ export default function MyTeamLeavePage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {pendingRequests?.data?.map((request) => (
+                      {filteredRequests.map((request) => (
                         <TableRow key={request.id}>
                           <TableCell>
                             <input 
@@ -240,7 +258,7 @@ export default function MyTeamLeavePage() {
                           <TableCell>
                             <div>
                               <p className="font-medium">{request.employeeName}</p>
-                              <p className="text-sm text-muted-foreground">{request.reason}</p>
+                              <p className="text-sm text-muted-foreground">{request.reason || 'No reason provided'}</p>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -274,7 +292,7 @@ export default function MyTeamLeavePage() {
                                 size="sm" 
                                 variant="default"
                                 onClick={() => handleApprove(request.id)}
-                                disabled={approveL1.isPending}
+                                disabled={approveRequest.isPending}
                               >
                                 <CheckCircle className="h-4 w-4" />
                               </Button>
@@ -282,7 +300,7 @@ export default function MyTeamLeavePage() {
                                 size="sm" 
                                 variant="destructive"
                                 onClick={() => handleReject(request.id, "Manager declined")}
-                                disabled={rejectL1.isPending}
+                                disabled={rejectRequest.isPending}
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>
@@ -292,9 +310,7 @@ export default function MyTeamLeavePage() {
                       ))}
                     </TableBody>
                   </Table>
-                )}
-                
-                {!pendingLoading && (!pendingRequests?.data || pendingRequests.data.length === 0) && (
+                ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     No pending approvals found
                   </div>
@@ -320,9 +336,9 @@ export default function MyTeamLeavePage() {
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : teamCalendar?.data && teamCalendar.data.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {teamCalendar?.data?.map((member) => (
+                    {teamCalendar.data.map((member) => (
                       <Card key={member.employeeId} className="p-4">
                         <h4 className="font-medium mb-3">{member.employeeName}</h4>
                         <div className="space-y-2 text-sm">
@@ -346,11 +362,9 @@ export default function MyTeamLeavePage() {
                       </Card>
                     ))}
                   </div>
-                )}
-                
-                {!calendarLoading && (!teamCalendar?.data || teamCalendar.data.length === 0) && (
+                ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No team calendar data found
+                    No team members found. Make sure employees have you as their manager.
                   </div>
                 )}
               </CardContent>
