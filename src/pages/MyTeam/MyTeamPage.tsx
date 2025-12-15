@@ -89,40 +89,56 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
     }
   }
 
-  const handleApprove = async (id: string, comments?: string) => {
+  const handleApprove = async (id: string, comments?: string, type?: string) => {
     try {
-      await myTeamService.approveRequest(id, comments)
-      toast.success('Request approved successfully')
+      const result = await myTeamService.approveRequest(id, comments, type)
+      if (result.success) {
+        toast.success(result.message || 'Request approved successfully')
+      } else {
+        toast.error(result.message || 'Failed to approve request')
+      }
       loadData()
     } catch (error) {
       toast.error('Failed to approve request')
     }
   }
 
-  const handleReject = async (id: string, reason: string) => {
+  const handleReject = async (id: string, reason: string, type?: string) => {
     try {
-      await myTeamService.rejectRequest(id, reason)
-      toast.success('Request rejected successfully')
+      const result = await myTeamService.rejectRequest(id, reason, type)
+      if (result.success) {
+        toast.success(result.message || 'Request rejected successfully')
+      } else {
+        toast.error(result.message || 'Failed to reject request')
+      }
       loadData()
     } catch (error) {
       toast.error('Failed to reject request')
     }
   }
 
-  const handleBulkApprove = async (ids: string[]) => {
+  const handleBulkApprove = async (ids: string[], type?: string) => {
     try {
-      await myTeamService.bulkApprove(ids)
-      toast.success(`${ids.length} requests approved successfully`)
+      const result = await myTeamService.bulkApprove(ids, type)
+      if (result.success) {
+        toast.success(result.message || `${ids.length} requests approved successfully`)
+      } else {
+        toast.error(result.message || 'Failed to bulk approve requests')
+      }
       loadData()
     } catch (error) {
       toast.error('Failed to bulk approve requests')
     }
   }
 
-  const handleBulkReject = async (ids: string[], reason: string) => {
+  const handleBulkReject = async (ids: string[], reason: string, type?: string) => {
     try {
-      await myTeamService.bulkReject(ids, reason)
-      toast.success(`${ids.length} requests rejected successfully`)
+      const result = await myTeamService.bulkReject(ids, reason, type)
+      if (result.success) {
+        toast.success(result.message || `${ids.length} requests rejected successfully`)
+      } else {
+        toast.error(result.message || 'Failed to bulk reject requests')
+      }
       loadData()
     } catch (error) {
       toast.error('Failed to bulk reject requests')
