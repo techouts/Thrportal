@@ -95,17 +95,17 @@ export default function AttendancePage() {
     if (!currentUser || dates.length === 0) return;
     
     try {
-      // Query by attendance_date instead of record_id to handle synthetic absent records
+      // Query by attendance_date - include both pending and approved requests
       const { data, error } = await supabase
         .from('attendance_regularization_requests')
         .select('attendance_date, status')
         .eq('employee_id', currentUser.id)
         .in('attendance_date', dates)
-        .eq('status', 'pending');
+        .in('status', ['pending', 'approved']);
       
       if (error) throw error;
       
-      // Map by date instead of record ID
+      // Map by date with actual status
       const requestsMap: Record<string, string> = {};
       data?.forEach(req => {
         requestsMap[req.attendance_date] = req.status;
@@ -230,6 +230,7 @@ export default function AttendancePage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'present': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+      case 'regularized': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100';
       case 'late': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100';
       case 'absent': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
       case 'work_from_home': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
@@ -241,6 +242,10 @@ export default function AttendancePage() {
   };
 
   const getDisplayStatus = (record: AttendanceRecord): string => {
+    // Check if regularization was approved
+    if (regularizationRequests[record.date] === 'approved') {
+      return 'regularized';
+    }
     // Check if there's a pending regularization request (now using date)
     if (regularizationRequests[record.date] === 'pending') {
       return 'regularization_pending';
@@ -253,6 +258,9 @@ export default function AttendancePage() {
   };
 
   const formatStatusLabel = (status: string): string => {
+    if (status === 'regularized') {
+      return 'Regularized';
+    }
     if (status === 'regularization_pending') {
       return 'Regularization Pending';
     }
@@ -269,7 +277,8 @@ export default function AttendancePage() {
     // Don't show actions for approved leave days
     if (record.status === 'on_leave') return false;
     if (record.checkOut) return false;
-    if (regularizationRequests[record.date] === 'pending') return false;
+    // Hide actions for any regularization (pending or approved)
+    if (regularizationRequests[record.date]) return false;
     if (leaveRequestDates.has(record.date)) return false;
     
     const recordDate = startOfDay(new Date(record.date));

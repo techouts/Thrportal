@@ -65,7 +65,17 @@ export function useApproveRegularization() {
 
   return useMutation({
     mutationFn: async ({ requestId, approverId }: { requestId: string; approverId: string }) => {
-      const { error } = await supabase
+      // First get the request to find attendance_record_id
+      const { data: request, error: fetchError } = await supabase
+        .from('attendance_regularization_requests')
+        .select('attendance_record_id')
+        .eq('id', requestId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update the regularization request
+      const { error: reqError } = await supabase
         .from('attendance_regularization_requests')
         .update({
           status: 'approved',
@@ -74,7 +84,21 @@ export function useApproveRegularization() {
         })
         .eq('id', requestId);
 
-      if (error) throw error;
+      if (reqError) throw reqError;
+
+      // Update the attendance record to mark as regularized/present
+      if (request?.attendance_record_id) {
+        const { error: recordError } = await supabase
+          .from('attendance_records')
+          .update({ 
+            status: 'present', 
+            approved_by: approverId,
+            notes: 'Regularized by manager'
+          })
+          .eq('id', request.attendance_record_id);
+
+        if (recordError) throw recordError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-regularization-requests'] });
