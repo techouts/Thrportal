@@ -2562,13 +2562,17 @@ export type Database = {
           employee_type: string | null
           family_details: Json | null
           first_name: string | null
+          gender: string | null
           id: string
           identity_documents: Json | null
           interests: string[] | null
           is_active: boolean
+          is_physically_handicapped: boolean | null
           last_name: string | null
           leaves_policy: string | null
           manager_employee_id: string | null
+          marital_status: string | null
+          nationality: string | null
           notice_period: string | null
           offer_letter_url: string | null
           permanent_address: string | null
@@ -2605,13 +2609,17 @@ export type Database = {
           employee_type?: string | null
           family_details?: Json | null
           first_name?: string | null
+          gender?: string | null
           id: string
           identity_documents?: Json | null
           interests?: string[] | null
           is_active?: boolean
+          is_physically_handicapped?: boolean | null
           last_name?: string | null
           leaves_policy?: string | null
           manager_employee_id?: string | null
+          marital_status?: string | null
+          nationality?: string | null
           notice_period?: string | null
           offer_letter_url?: string | null
           permanent_address?: string | null
@@ -2648,13 +2656,17 @@ export type Database = {
           employee_type?: string | null
           family_details?: Json | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           identity_documents?: Json | null
           interests?: string[] | null
           is_active?: boolean
+          is_physically_handicapped?: boolean | null
           last_name?: string | null
           leaves_policy?: string | null
           manager_employee_id?: string | null
+          marital_status?: string | null
+          nationality?: string | null
           notice_period?: string | null
           offer_letter_url?: string | null
           permanent_address?: string | null

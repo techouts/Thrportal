@@ -4,20 +4,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { BarChart3, Users, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { attendanceService } from '@/services/attendanceService';
-import { AttendanceRecord, AttendanceApproval } from '@/types/attendance';
+import { AttendanceRecord } from '@/types/attendance';
 import { useAuth } from '@/auth/AuthContext';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { usePendingRegularizationRequests, useApproveRegularization, useRejectRegularization } from '@/hooks/useAttendanceRegularization';
 
 export default function MyTeamAttendancePage() {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [teamAttendance, setTeamAttendance] = useState<AttendanceRecord[]>([]);
-  const [pendingApprovals, setPendingApprovals] = useState<AttendanceApproval[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Use the hook for regularization requests
+  const { data: pendingRegularizations = [], isLoading: regularizationsLoading } = usePendingRegularizationRequests(currentUser?.id);
+  const approveRegularization = useApproveRegularization();
+  const rejectRegularization = useRejectRegularization();
 
   useEffect(() => {
     loadData();
@@ -28,20 +32,13 @@ export default function MyTeamAttendancePage() {
 
     setLoading(true);
     try {
-      const [teamResponse, approvalsResponse] = await Promise.all([
-        attendanceService.getTeamAttendance(currentUser.employeeId),
-        attendanceService.getPendingApprovals()
-      ]);
+      const teamResponse = await attendanceService.getTeamAttendance(currentUser.id);
 
       if (teamResponse.success) {
         setTeamAttendance(teamResponse.data);
       }
-
-      if (approvalsResponse.success) {
-        setPendingApprovals(approvalsResponse.data);
-      }
     } catch (error) {
-      toast.error('Failed to load team attendance data');
+      console.error('Failed to load team attendance data:', error);
     } finally {
       setLoading(false);
     }
@@ -57,16 +54,13 @@ export default function MyTeamAttendancePage() {
     }
   };
 
-  const handleApproval = async (approvalId: string, action: 'approve' | 'reject') => {
-    // Mock approval action
-    const approval = pendingApprovals.find(a => a.id === approvalId);
-    if (approval) {
-      approval.status = action === 'approve' ? 'approved' : 'rejected';
-      approval.reviewedBy = currentUser?.employeeId;
-      approval.reviewedAt = new Date().toISOString();
-      
-      setPendingApprovals(prev => prev.filter(a => a.id !== approvalId));
-      toast.success(`Request ${action}d successfully`);
+  const handleApproval = async (requestId: string, action: 'approve' | 'reject') => {
+    if (!currentUser?.id) return;
+    
+    if (action === 'approve') {
+      approveRegularization.mutate({ requestId, approverId: currentUser.id });
+    } else {
+      rejectRegularization.mutate({ requestId, approverId: currentUser.id });
     }
   };
 
@@ -115,7 +109,7 @@ export default function MyTeamAttendancePage() {
           </TabsTrigger>
           <TabsTrigger value="approvals" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Approvals ({pendingApprovals.length})</span>
+            <span className="hidden sm:inline">Approvals ({pendingRegularizations.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -218,35 +212,53 @@ export default function MyTeamAttendancePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Pending Approvals
+                Pending Regularization Requests
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingApprovals.length > 0 ? (
-                  pendingApprovals.map((approval) => (
-                    <div key={approval.id} className="border rounded-xl p-4 space-y-3">
+                {regularizationsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2].map(i => (
+                      <Skeleton key={i} className="h-24 w-full" />
+                    ))}
+                  </div>
+                ) : pendingRegularizations.length > 0 ? (
+                  pendingRegularizations.map((request) => (
+                    <div key={request.id} className="border rounded-xl p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">{approval.employeeName}</div>
+                          <div className="font-medium">{request.employee_name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {format(new Date(approval.date), 'MMM dd, yyyy')} • {approval.requestType.replace('_', ' ')}
+                            {format(new Date(request.attendance_date), 'MMM dd, yyyy')} • Attendance Regularization
                           </div>
                         </div>
                         <Badge variant="outline">
-                          {approval.status}
+                          {request.status}
                         </Badge>
                       </div>
                       
                       <div className="text-sm">
-                        <strong>Reason:</strong> {approval.reason}
+                        <strong>Reason:</strong> {request.reason}
                       </div>
                       
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {request.document_url && (
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={() => window.open(request.document_url, '_blank')}
+                            className="flex items-center gap-1"
+                          >
+                            <FileText className="w-3 h-3" />
+                            View Document
+                          </Button>
+                        )}
                         <Button 
                           size="sm" 
-                          onClick={() => handleApproval(approval.id, 'approve')}
+                          onClick={() => handleApproval(request.id, 'approve')}
                           className="flex items-center gap-1"
+                          disabled={approveRegularization.isPending || rejectRegularization.isPending}
                         >
                           <CheckCircle className="w-3 h-3" />
                           Approve
@@ -254,8 +266,9 @@ export default function MyTeamAttendancePage() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleApproval(approval.id, 'reject')}
+                          onClick={() => handleApproval(request.id, 'reject')}
                           className="flex items-center gap-1"
+                          disabled={approveRegularization.isPending || rejectRegularization.isPending}
                         >
                           <XCircle className="w-3 h-3" />
                           Reject
@@ -265,7 +278,7 @@ export default function MyTeamAttendancePage() {
                   ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No pending approvals
+                    No pending regularization requests
                   </div>
                 )}
               </div>

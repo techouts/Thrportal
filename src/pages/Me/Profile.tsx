@@ -37,7 +37,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-import { VALIDATION_RULES, BLOOD_GROUP_OPTIONS } from '@/types/profile'
+import { VALIDATION_RULES, BLOOD_GROUP_OPTIONS, GENDER_OPTIONS, MARITAL_STATUS_OPTIONS, NATIONALITY_OPTIONS } from '@/types/profile'
 import type { EmployeeProfile, ProfileUpdateData, FamilyMember } from '@/types/profile'
 import { useAuth } from '@/auth/AuthContext'
 import { getCurrentProfile, getProfileById, updateProfile } from '@/services/profileService'
@@ -116,7 +116,11 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
       setEditData({
         date_of_birth: profile.date_of_birth || '',
         blood_group: profile.blood_group || '',
-        family_details: [...(profile.family_details || [])]
+        family_details: [...(profile.family_details || [])],
+        gender: profile.gender || '',
+        marital_status: profile.marital_status || '',
+        is_physically_handicapped: profile.is_physically_handicapped || false,
+        nationality: profile.nationality || ''
       })
     }
   }, [profile])
@@ -481,6 +485,55 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label>Gender</Label>
+                      <Select value={editData.gender || ''} onValueChange={(value) => setEditData(prev => ({ ...prev, gender: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GENDER_OPTIONS.map(gender => (
+                            <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Marital Status</Label>
+                      <Select value={editData.marital_status || ''} onValueChange={(value) => setEditData(prev => ({ ...prev, marital_status: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select marital status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MARITAL_STATUS_OPTIONS.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Nationality</Label>
+                      <Select value={editData.nationality || ''} onValueChange={(value) => setEditData(prev => ({ ...prev, nationality: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select nationality" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {NATIONALITY_OPTIONS.map(nat => (
+                            <SelectItem key={nat} value={nat}>{nat}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 pt-6">
+                        <Checkbox 
+                          id="is_physically_handicapped" 
+                          checked={editData.is_physically_handicapped || false}
+                          onCheckedChange={(checked) => setEditData(prev => ({ ...prev, is_physically_handicapped: checked === true }))}
+                        />
+                        <Label htmlFor="is_physically_handicapped" className="cursor-pointer">Physically Handicapped</Label>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -638,7 +691,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-muted-foreground">Date of Birth</Label>
                       <p>
@@ -650,6 +703,22 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-muted-foreground">Blood Group</Label>
                       <p>{profile.blood_group || 'Not provided'}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Gender</Label>
+                      <p>{profile.gender || 'Not provided'}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Marital Status</Label>
+                      <p>{profile.marital_status || 'Not provided'}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Nationality</Label>
+                      <p>{profile.nationality || 'Not provided'}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Physically Handicapped</Label>
+                      <p>{profile.is_physically_handicapped ? 'Yes' : 'No'}</p>
                     </div>
                   </div>
 

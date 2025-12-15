@@ -39,6 +39,11 @@ export interface ProfileRow {
   leaves_policy: string | null
   attendance_policy: string | null
   work_location: string | null
+  // New personal fields
+  gender: string | null
+  marital_status: string | null
+  is_physically_handicapped: boolean | null
+  nationality: string | null
 }
 
 function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, reports?: ProfileRow[], assignedClientName?: string | null): EmployeeProfile {
@@ -71,6 +76,11 @@ function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, r
     date_of_birth: row.date_of_birth || undefined,
     blood_group: row.blood_group || undefined,
     family_details: row.family_details || [],
+    // New personal fields
+    gender: row.gender || undefined,
+    marital_status: row.marital_status || undefined,
+    is_physically_handicapped: row.is_physically_handicapped || false,
+    nationality: row.nationality || undefined,
     // New employment fields
     employee_type: row.employee_type || undefined,
     shifts: row.shifts || undefined,
@@ -225,6 +235,10 @@ export async function updateProfile(userId: string, data: ProfileUpdateData): Pr
       date_of_birth: data.date_of_birth || null,
       blood_group: data.blood_group,
       family_details: data.family_details as any,
+      gender: data.gender,
+      marital_status: data.marital_status,
+      is_physically_handicapped: data.is_physically_handicapped,
+      nationality: data.nationality,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId)
