@@ -264,6 +264,8 @@ export default function AttendancePage() {
   };
 
   const isMissingClockOut = (record: AttendanceRecord): boolean => {
+    // Don't show actions for approved leave days
+    if (record.status === 'on_leave') return false;
     if (record.checkOut) return false;
     if (regularizationRequests[record.date] === 'pending') return false;
     if (leaveRequestDates.has(record.date)) return false;
