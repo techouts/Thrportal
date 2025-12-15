@@ -233,6 +233,7 @@ export default function AttendancePage() {
       case 'work_from_home': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
       case 'regularization_pending': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
       case 'leave_requested': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
+      case 'on_leave': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-100';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
   };
@@ -255,6 +256,9 @@ export default function AttendancePage() {
     }
     if (status === 'leave_requested') {
       return 'Leave Requested';
+    }
+    if (status === 'on_leave') {
+      return 'On Leave';
     }
     return status.replace('_', ' ');
   };

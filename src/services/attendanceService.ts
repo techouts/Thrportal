@@ -48,23 +48,46 @@ class AttendanceService {
         endDate = endOfMonth(startDate);
       }
 
-      const { data, error } = await supabase
-        .from('attendance_records')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .gte('date', format(startDate, 'yyyy-MM-dd'))
-        .lte('date', format(endDate, 'yyyy-MM-dd'))
-        .order('date', { ascending: false });
+      const startDateStr = format(startDate, 'yyyy-MM-dd');
+      const endDateStr = format(endDate, 'yyyy-MM-dd');
 
-      if (error) throw error;
+      // Fetch attendance records and approved leave requests in parallel
+      const [attendanceResult, leaveResult] = await Promise.all([
+        supabase
+          .from('attendance_records')
+          .select('*')
+          .eq('employee_id', employeeId)
+          .gte('date', startDateStr)
+          .lte('date', endDateStr)
+          .order('date', { ascending: false }),
+        supabase
+          .from('leave_requests')
+          .select('start_date, end_date, leave_type')
+          .eq('employee_id', employeeId)
+          .eq('status', 'approved')
+          .lte('start_date', endDateStr)
+          .gte('end_date', startDateStr)
+      ]);
+
+      if (attendanceResult.error) throw attendanceResult.error;
+
+      // Build a set of dates that have approved leave
+      const approvedLeaveDates = new Set<string>();
+      (leaveResult.data || []).forEach(leave => {
+        const leaveStart = new Date(leave.start_date);
+        const leaveEnd = new Date(leave.end_date);
+        for (let d = new Date(leaveStart); d <= leaveEnd; d.setDate(d.getDate() + 1)) {
+          approvedLeaveDates.add(format(d, 'yyyy-MM-dd'));
+        }
+      });
 
       // Create a map of existing records by date
       const recordsByDate = new Map<string, any>();
-      (data || []).forEach(record => {
+      (attendanceResult.data || []).forEach(record => {
         recordsByDate.set(record.date, record);
       });
 
-      // Generate all dates in range and fill missing weekdays as "absent"
+      // Generate all dates in range and fill missing weekdays
       const allRecords: AttendanceRecord[] = [];
       const today = startOfDay(new Date());
       let currentDate = new Date(startDate);
@@ -92,19 +115,21 @@ class AttendanceService {
             updatedAt: existingRecord.updated_at
           });
         } else if (currentDate < today) {
-          // Only add "absent" for past dates (not today or future)
+          // Only add records for past dates (not today or future)
           // Skip weekends (Saturday = 6, Sunday = 0)
           const dayOfWeek = getDay(currentDate);
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            // Check if this date has an approved leave
+            const status = approvedLeaveDates.has(dateStr) ? 'on_leave' : 'absent';
             allRecords.push({
-              id: `absent-${dateStr}`,
+              id: `${status}-${dateStr}`,
               employeeId,
               date: dateStr,
               checkIn: undefined,
               checkOut: undefined,
               breakTime: 0,
               totalHours: 0,
-              status: 'absent',
+              status,
               location: 'Office',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
