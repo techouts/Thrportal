@@ -51,12 +51,14 @@ interface LeaveRequest {
   rejection_reason: string | null;
   approved_at: string | null;
   created_at: string;
+  evidence_url?: string | null;
+  request_source?: 'leave' | 'comp_off';
 }
 
 interface MyRequestsTableProps {
   requests: LeaveRequest[];
   isLoading?: boolean;
-  onCancel?: (id: string) => void;
+  onCancel?: (id: string, requestSource?: 'leave' | 'comp_off') => void;
 }
 
 const LEAVE_TYPE_LABELS: Record<string, string> = {
@@ -140,17 +142,21 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
     setShowDetailsSheet(true);
   };
 
-  const handleCancelClick = (requestId: string) => {
+  const handleCancelClick = (requestId: string, requestSource?: 'leave' | 'comp_off') => {
     setRequestToCancel(requestId);
+    setRequestSourceToCancel(requestSource);
     setShowCancelDialog(true);
   };
 
+  const [requestSourceToCancel, setRequestSourceToCancel] = useState<'leave' | 'comp_off' | undefined>();
+
   const handleConfirmCancel = () => {
     if (requestToCancel && onCancel) {
-      onCancel(requestToCancel);
+      onCancel(requestToCancel, requestSourceToCancel);
     }
     setShowCancelDialog(false);
     setRequestToCancel(null);
+    setRequestSourceToCancel(undefined);
   };
 
   if (isLoading) {
@@ -224,7 +230,7 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
                 variant="outline" 
                 size="sm" 
                 className="flex-1 text-destructive hover:text-destructive"
-                onClick={() => handleCancelClick(request.id)}
+                onClick={() => handleCancelClick(request.id, request.request_source)}
               >
                 <X className="h-4 w-4 mr-1" />
                 Cancel
@@ -362,7 +368,7 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
                           </DropdownMenuItem>
                           {request.status === 'pending' && onCancel && (
                             <DropdownMenuItem 
-                              onClick={() => handleCancelClick(request.id)}
+                              onClick={() => handleCancelClick(request.id, request.request_source)}
                               className="text-destructive"
                             >
                               Cancel Request

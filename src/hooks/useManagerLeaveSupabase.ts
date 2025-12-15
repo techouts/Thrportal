@@ -5,10 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 const QUERY_KEYS = {
   pendingApprovals: 'manager-pending-leave-approvals',
   teamCalendar: 'manager-team-calendar',
+  compOffBalance: 'compOffBalance',
 };
 
 // Types for the leave request with employee info
-interface PendingLeaveRequest {
+export interface PendingLeaveRequest {
   id: string;
   employee_id: string;
   employeeName: string;
@@ -26,6 +27,8 @@ interface PendingLeaveRequest {
   halfDay?: string;
   coverageScore: string;
   conflictsWith: string[];
+  evidence_url?: string | null;
+  request_source: 'leave' | 'comp_off';
 }
 
 interface TeamMemberCalendar {
@@ -41,7 +44,7 @@ interface TeamMemberCalendar {
   wfhDays: string[];
 }
 
-// Fetch pending leave approvals for manager's direct reports
+// Fetch pending leave approvals for manager's direct reports (includes comp-off requests)
 export function usePendingLeaveApprovals(managerId: string | undefined) {
   return useQuery({
     queryKey: [QUERY_KEYS.pendingApprovals, managerId],
@@ -62,18 +65,27 @@ export function usePendingLeaveApprovals(managerId: string | undefined) {
         return { data: [] };
       }
 
-      // Fetch pending leave requests from direct reports
-      const { data: leaveRequests, error: leaveError } = await supabase
-        .from('leave_requests')
-        .select('*')
-        .in('employee_id', reportIds)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+      // Fetch pending leave requests AND pending comp-off requests from direct reports
+      const [leaveResult, compOffResult] = await Promise.all([
+        supabase
+          .from('leave_requests')
+          .select('*')
+          .in('employee_id', reportIds)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('comp_off_requests')
+          .select('*')
+          .in('employee_id', reportIds)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+      ]);
 
-      if (leaveError) throw leaveError;
+      if (leaveResult.error) throw leaveResult.error;
+      if (compOffResult.error) throw compOffResult.error;
 
       // Map leave requests with employee names
-      const requestsWithNames: PendingLeaveRequest[] = (leaveRequests || []).map(req => {
+      const leaveRequests: PendingLeaveRequest[] = (leaveResult.data || []).map(req => {
         const employee = directReports?.find(r => r.id === req.employee_id);
         const employeeName = employee?.display_name || 
           `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim() || 
@@ -94,13 +106,50 @@ export function usePendingLeaveApprovals(managerId: string | undefined) {
           reason: req.reason,
           status: req.status,
           created_at: req.created_at,
-          halfDay: undefined, // Add if you have half day field
-          coverageScore: 'High', // Placeholder - calculate based on team availability
-          conflictsWith: [], // Placeholder - detect overlapping leaves
+          halfDay: undefined,
+          coverageScore: 'High',
+          conflictsWith: [],
+          evidence_url: null,
+          request_source: 'leave' as const,
         };
       });
 
-      return { data: requestsWithNames };
+      // Map comp-off requests with employee names
+      const compOffRequests: PendingLeaveRequest[] = (compOffResult.data || []).map(req => {
+        const employee = directReports?.find(r => r.id === req.employee_id);
+        const employeeName = employee?.display_name || 
+          `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim() || 
+          'Unknown';
+
+        return {
+          id: req.id,
+          employee_id: req.employee_id,
+          employeeName,
+          leave_type: 'COMP_OFF',
+          type: 'COMP_OFF',
+          start_date: req.start_date,
+          startDate: req.start_date,
+          end_date: req.end_date,
+          endDate: req.end_date,
+          total_days: req.total_days || 1,
+          totalDays: req.total_days || 1,
+          reason: req.reason,
+          status: req.status,
+          created_at: req.created_at,
+          halfDay: undefined,
+          coverageScore: 'High',
+          conflictsWith: [],
+          evidence_url: req.evidence_url,
+          request_source: 'comp_off' as const,
+        };
+      });
+
+      // Combine and sort by created_at descending
+      const allRequests = [...leaveRequests, ...compOffRequests].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      return { data: allRequests };
     },
     enabled: !!managerId,
   });
@@ -206,6 +255,48 @@ export function useApproveLeaveRequest() {
   });
 }
 
+// Approve comp-off request mutation
+export function useApproveCompOffRequest() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, note }: { id: string; note?: string }) => {
+      const { data: userData } = await supabase.auth.getUser();
+      const approverId = userData?.user?.id;
+
+      const { data, error } = await supabase
+        .from('comp_off_requests')
+        .update({
+          status: 'approved',
+          approved_by: approverId,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.pendingApprovals] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.compOffBalance] });
+      toast({
+        title: 'Comp-Off Approved',
+        description: 'Comp-off request has been approved successfully',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Approval Failed',
+        description: error.message || 'Failed to approve comp-off request',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
 // Reject leave request mutation
 export function useRejectLeaveRequest() {
   const queryClient = useQueryClient();
@@ -248,16 +339,88 @@ export function useRejectLeaveRequest() {
   });
 }
 
+// Reject comp-off request mutation
+export function useRejectCompOffRequest() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { data: userData } = await supabase.auth.getUser();
+      const approverId = userData?.user?.id;
+
+      const { data, error } = await supabase
+        .from('comp_off_requests')
+        .update({
+          status: 'rejected',
+          approved_by: approverId,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.pendingApprovals] });
+      toast({
+        title: 'Request Rejected',
+        description: 'Comp-off request has been rejected',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Rejection Failed',
+        description: error.message || 'Failed to reject comp-off request',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
 // Bulk approve leave requests
 export function useBulkApproveLeaveRequests() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ ids }: { ids: string[] }) => {
+    mutationFn: async ({ ids, requestSources }: { ids: string[]; requestSources?: Record<string, 'leave' | 'comp_off'> }) => {
       const { data: userData } = await supabase.auth.getUser();
       const approverId = userData?.user?.id;
 
+      // If requestSources is provided, separate the requests
+      if (requestSources) {
+        const leaveIds = ids.filter(id => requestSources[id] === 'leave');
+        const compOffIds = ids.filter(id => requestSources[id] === 'comp_off');
+
+        const results = await Promise.all([
+          leaveIds.length > 0 ? supabase
+            .from('leave_requests')
+            .update({
+              status: 'approved',
+              approved_by: approverId,
+              approved_at: new Date().toISOString(),
+            })
+            .in('id', leaveIds)
+            .select() : { data: [] },
+          compOffIds.length > 0 ? supabase
+            .from('comp_off_requests')
+            .update({
+              status: 'approved',
+              approved_by: approverId,
+              approved_at: new Date().toISOString(),
+            })
+            .in('id', compOffIds)
+            .select() : { data: [] }
+        ]);
+
+        const totalApproved = (results[0].data?.length || 0) + (results[1].data?.length || 0);
+        return { approved: totalApproved, failed: ids.length - totalApproved };
+      }
+
+      // Fallback to leave requests only
       const { data, error } = await supabase
         .from('leave_requests')
         .update({
@@ -274,6 +437,7 @@ export function useBulkApproveLeaveRequests() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.pendingApprovals] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.teamCalendar] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.compOffBalance] });
       toast({
         title: 'Bulk Approval Complete',
         description: `${result.approved} requests approved`,
