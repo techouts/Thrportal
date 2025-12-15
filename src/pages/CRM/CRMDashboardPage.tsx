@@ -97,17 +97,17 @@ export default function CRMDashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {topClients.map((client) => (
-                <div key={client.id} className="flex items-center justify-between border-b pb-2">
-                  <div className="space-y-1">
-                    <p className="font-medium">{client.name}</p>
+                <div key={client.id} className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-2 gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <p className="font-medium truncate">{client.name}</p>
                     <p className="text-sm text-muted-foreground">{client.industry}</p>
                   </div>
-                  <div className="text-right space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="text-left sm:text-right space-y-1">
+                    <div className="flex flex-wrap items-center gap-1">
                       <Badge variant="secondary">{client.jds} JDs</Badge>
                       <Badge variant="outline">{client.closures} Closures</Badge>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <span className="text-sm text-muted-foreground">Health:</span>
                       <Badge 
                         variant={client.health_score >= 80 ? "default" : "secondary"}
@@ -136,12 +136,12 @@ export default function CRMDashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {slaAlerts.map((alert, index) => (
-                <div key={index} className="flex items-center justify-between border-b pb-2">
-                  <div className="space-y-1">
-                    <p className="font-medium">{alert.client}</p>
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-2 gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <p className="font-medium truncate">{alert.client}</p>
                     <p className="text-sm text-muted-foreground">{alert.type}</p>
                   </div>
-                  <div className="text-right space-y-1">
+                  <div className="text-left sm:text-right space-y-1">
                     <Badge 
                       variant={alert.priority === 'High' ? "destructive" : "secondary"}
                     >

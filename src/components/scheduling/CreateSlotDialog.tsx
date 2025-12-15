@@ -1,12 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { CalendarIcon, Search } from 'lucide-react'
+import { TimePicker } from '@/components/ui/time-picker'
+import { CalendarIcon, Search, Plus, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,6 +17,8 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { schedulingService } from '@/services/schedulingService'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/auth/AuthContext'
+import type { InterviewerDetail } from '@/types/scheduling'
 
 const createSlotSchema = z.object({
   client_id: z.string().min(1, 'Client is required'),
@@ -26,6 +29,9 @@ const createSlotSchema = z.object({
   }),
   from_time: z.string().min(1, 'From time is required'),
   to_time: z.string().min(1, 'To time is required'),
+  mode: z.enum(['virtual', 'onsite']),
+  panel_type: z.string().min(1, 'Panel is required'),
+  notes: z.string().optional(),
 }).refine((data) => {
   if (data.from_time && data.to_time) {
     return data.from_time < data.to_time
@@ -55,6 +61,11 @@ interface SPOC {
   client_id: string
 }
 
+interface PanelType {
+  id: string
+  name: string
+}
+
 interface CreateSlotDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -66,10 +77,14 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
   const [clients, setClients] = useState<Client[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [spocs, setSpocs] = useState<SPOC[]>([])
+  const [panelTypes, setPanelTypes] = useState<PanelType[]>([])
+  const [interviewers, setInterviewers] = useState<InterviewerDetail[]>([])
   const [clientSearch, setClientSearch] = useState('')
   const [projectSearch, setProjectSearch] = useState('')
   const [spocSearch, setSpocSearch] = useState('')
+  const [panelSearch, setPanelSearch] = useState('')
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const form = useForm<CreateSlotForm>({
     resolver: zodResolver(createSlotSchema),
@@ -79,6 +94,9 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
       spoc_id: '',
       from_time: '',
       to_time: '',
+      mode: 'virtual',
+      panel_type: '',
+      notes: '',
     },
   })
 
@@ -87,6 +105,7 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
   useEffect(() => {
     if (open) {
       loadClients()
+      loadPanelTypes()
     }
   }, [open])
 
@@ -160,18 +179,60 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
     }
   }
 
+  const loadPanelTypes = async () => {
+    try {
+      const data = await schedulingService.getPanelTypes()
+      setPanelTypes(data)
+    } catch (error) {
+      console.error('Failed to load panel types:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to load panel types',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const addInterviewer = () => {
+    setInterviewers([...interviewers, { name: '', email: '', phone: '' }])
+  }
+
+  const removeInterviewer = (index: number) => {
+    setInterviewers(interviewers.filter((_, i) => i !== index))
+  }
+
+  const updateInterviewer = (index: number, field: keyof InterviewerDetail, value: string) => {
+    const updated = [...interviewers]
+    updated[index] = { ...updated[index], [field]: value }
+    setInterviewers(updated)
+  }
+
   const onSubmit = async (data: CreateSlotForm) => {
+    if (!user?.id) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to create a slot',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
     try {
+      // Filter out empty interviewer entries
+      const validInterviewers = interviewers.filter(i => i.name.trim())
+
       await schedulingService.createSlot({
         client_id: data.client_id,
         project_id: data.project_id,
         date: format(data.date, 'yyyy-MM-dd'),
         from_time: data.from_time,
         to_time: data.to_time,
-        mode: 'virtual',
-        panel_text: spocs.find(s => s.id === data.spoc_id)?.name || '',
-      })
+        mode: data.mode,
+        panel_text: data.panel_type,
+        notes: data.notes || undefined,
+        interviewer_details: validInterviewers.length > 0 ? validInterviewers : undefined,
+      }, user.id)
 
       toast({
         title: 'Success',
@@ -179,13 +240,14 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
       })
 
       form.reset()
+      setInterviewers([])
       onSlotCreated()
       onOpenChange(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create slot:', error)
       toast({
         title: 'Error',
-        description: 'Failed to create interview slot',
+        description: error?.message || 'Failed to create interview slot',
         variant: 'destructive',
       })
     } finally {
@@ -205,9 +267,13 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
     spoc.name.toLowerCase().includes(spocSearch.toLowerCase())
   )
 
+  const filteredPanelTypes = panelTypes.filter(panel =>
+    panel.name.toLowerCase().includes(panelSearch.toLowerCase())
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Interview Slot</DialogTitle>
         </DialogHeader>
@@ -226,7 +292,7 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                         <SelectValue placeholder="Select client" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background">
                       <div className="flex items-center px-3 pb-2">
                         <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                         <Input
@@ -260,7 +326,7 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                         <SelectValue placeholder="Select project" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background">
                       <div className="flex items-center px-3 pb-2">
                         <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                         <Input
@@ -287,14 +353,14 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
               name="spoc_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SPOC {spocs.length > 1 ? '*' : '(Optional)'}</FormLabel>
+                  <FormLabel>SPOC (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClientId}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select SPOC" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background">
                       <div className="flex items-center px-3 pb-2">
                         <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                         <Input
@@ -341,7 +407,7 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-background" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -365,7 +431,11 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                   <FormItem>
                     <FormLabel>From Time *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select start time"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -379,7 +449,11 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
                   <FormItem>
                     <FormLabel>To Time *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select end time"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -387,9 +461,132 @@ export function CreateSlotDialog({ open, onOpenChange, onSlotCreated }: CreateSl
               />
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              Enter times in 24-hour format (e.g., 14:30 for 2:30 PM)
-            </p>
+            <FormField
+              control={form.control}
+              name="mode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mode *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select mode" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="virtual">Virtual</SelectItem>
+                      <SelectItem value="onsite">In-person</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="panel_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Panel *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select panel" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background">
+                      <div className="flex items-center px-3 pb-2">
+                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        <Input
+                          placeholder="Search panels..."
+                          value={panelSearch}
+                          onChange={(e) => setPanelSearch(e.target.value)}
+                          className="h-8 w-full border-0 p-0 focus:ring-0"
+                        />
+                      </div>
+                      {filteredPanelTypes.map((panel) => (
+                        <SelectItem key={panel.id} value={panel.name}>
+                          {panel.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Add any additional notes..."
+                      className="resize-none"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Interviewer Details Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <FormLabel>Interviewer Details (Optional)</FormLabel>
+                <Button type="button" variant="outline" size="sm" onClick={addInterviewer}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Interviewer
+                </Button>
+              </div>
+              
+              {interviewers.map((interviewer, index) => (
+                <div key={index} className="border rounded-md p-3 space-y-2 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Interviewer {index + 1}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeInterviewer(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Input
+                        placeholder="Name *"
+                        value={interviewer.name}
+                        onChange={(e) => updateInterviewer(index, 'name', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="email"
+                        placeholder="Email"
+                        value={interviewer.email || ''}
+                        onChange={(e) => updateInterviewer(index, 'email', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="tel"
+                        placeholder="Phone"
+                        value={interviewer.phone || ''}
+                        onChange={(e) => updateInterviewer(index, 'phone', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

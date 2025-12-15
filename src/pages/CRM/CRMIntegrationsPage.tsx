@@ -166,7 +166,7 @@ export default function CRMIntegrationsPage() {
       />
 
       <Tabs defaultValue="integrations" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="automation">Automation</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>

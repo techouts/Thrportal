@@ -258,7 +258,7 @@ export function CRMOpportunitiesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       <PageHeader
         title="Opportunity Management"
         description="Track and manage business opportunities and requirements"
@@ -297,7 +297,7 @@ export function CRMOpportunitiesPage() {
         <CardContent>
           <div className="space-y-4">
             {/* Search and Filter Row */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -308,7 +308,7 @@ export function CRMOpportunitiesPage() {
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -331,8 +331,8 @@ export function CRMOpportunitiesPage() {
 
             {/* Custom Pagination UI */}
             {opportunities.length > 0 && (
-              <div className="flex items-center justify-between border-t pt-4">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm text-muted-foreground">Rows per page:</span>
                   <Select
                     value={itemsPerPage.toString()}
@@ -357,7 +357,7 @@ export function CRMOpportunitiesPage() {
                 </div>
                 
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="flex-wrap">
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -366,7 +366,7 @@ export function CRMOpportunitiesPage() {
                     </PaginationItem>
                     
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
+                      <PaginationItem key={page} className="hidden sm:inline-flex">
                         <PaginationLink
                           onClick={() => setCurrentPage(page)}
                           isActive={currentPage === page}
@@ -376,6 +376,10 @@ export function CRMOpportunitiesPage() {
                         </PaginationLink>
                       </PaginationItem>
                     ))}
+                    
+                    <span className="sm:hidden text-sm px-2">
+                      {currentPage} / {totalPages}
+                    </span>
                     
                     <PaginationItem>
                       <PaginationNext

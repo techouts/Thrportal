@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { format, startOfWeek, addDays, subWeeks } from 'date-fns'
 import { Save, Send, Copy, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/hooks/use-toast'
 import { WeekPicker } from './WeekPicker'
 import { OverviewBar } from './OverviewBar'
 import { TimesheetGrid } from './TimesheetGrid'
+import { TimesheetMobileView } from './TimesheetMobileView'
+import { AddTimeEntryPopover } from './AddTimeEntryPopover'
+import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
+import { CommentSummary } from './CommentSummary'
+import { TimesheetActivity } from './TimesheetActivity'
 import { TimesheetService } from '@/services/timesheetService'
+import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { 
   Timesheet, 
   TimesheetEntry, 
@@ -17,33 +23,71 @@ import type {
   TimesheetWarning, 
   NonBillableCategory,
   ProjectAssignment,
-  ProjectTask
+  ProjectTask,
+  DailyEntry
 } from '@/types/timesheet'
 
 interface TimesheetFillProps {
   employeeId: string
 }
 
+interface DeleteDialogState {
+  open: boolean
+  type: 'cell' | 'row'
+  rowId: string
+  dayIndex?: number
+  projectName?: string
+  taskName?: string
+}
+
 export function TimesheetFill({ employeeId }: TimesheetFillProps) {
+  const isMobile = useIsMobile()
   const [selectedWeek, setSelectedWeek] = useState(() => 
     startOfWeek(new Date(), { weekStartsOn: 1 })
   )
   const [timesheet, setTimesheet] = useState<Timesheet | null>(null)
   const [entries, setEntries] = useState<TimesheetEntry[]>([])
-  const [submissionComment, setSubmissionComment] = useState('')
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<NonBillableCategory[]>([])
   const [projects, setProjects] = useState<ProjectAssignment[]>([])
   const [warnings, setWarnings] = useState<TimesheetWarning[]>([])
+  const [missingComments, setMissingComments] = useState<{ rowId: string; dayIndex: number }[]>([])
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
+    open: false,
+    type: 'cell',
+    rowId: '',
+    dayIndex: undefined
+  })
+  const [canCopyLastWeek, setCanCopyLastWeek] = useState(false)
 
   const timesheetService = TimesheetService.getInstance()
   const policy = timesheetService.getPolicy()
+  
+  // Fetch attendance hours for the selected week
+  const { attendanceHours } = useWeeklyAttendance(employeeId, selectedWeek)
+
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
   useEffect(() => {
     loadTimesheet()
     loadCategories()
     loadProjects()
+    checkCanCopyLastWeek()
   }, [selectedWeek, employeeId])
+
+  const checkCanCopyLastWeek = async () => {
+    try {
+      const lastWeekDate = subWeeks(selectedWeek, 1)
+      const lastWeek = format(lastWeekDate, 'yyyy-MM-dd')
+      const status = await timesheetService.getTimesheetStatus(employeeId, lastWeek)
+      
+      // Only allow copy if last week is SAVED, SUBMITTED, or APPROVED
+      setCanCopyLastWeek(status !== null && ['SAVED', 'SUBMITTED', 'APPROVED'].includes(status))
+    } catch (error) {
+      console.error('Error checking last week status:', error)
+      setCanCopyLastWeek(false)
+    }
+  }
 
   const loadTimesheet = async () => {
     try {
@@ -52,7 +96,7 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       const data = await timesheetService.getTimesheet(employeeId, weekStart)
       setTimesheet(data)
       setEntries(data.entries)
-      setSubmissionComment(data.submissionComment || '')
+      setMissingComments([])
     } catch (error) {
       toast({
         title: "Error",
@@ -84,41 +128,58 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
 
   const calculateTotals = (): TimesheetTotals => {
     const weekTotal = entries.reduce((sum, entry) => 
-      sum + entry.daily.reduce((daySum, hours) => daySum + hours, 0), 0
+      sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0
     )
     
     const byDay = Array(7).fill(0).map((_, dayIndex) => 
-      entries.reduce((sum, entry) => sum + (entry.daily[dayIndex] || 0), 0)
+      entries.reduce((sum, entry) => sum + (entry.daily[dayIndex]?.hours || 0), 0)
     )
     
     const billable = entries
       .filter(entry => entry.billable)
-      .reduce((sum, entry) => sum + entry.daily.reduce((daySum, hours) => daySum + hours, 0), 0)
+      .reduce((sum, entry) => sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0)
     
     const nonBillable = entries
       .filter(entry => !entry.billable)
-      .reduce((sum, entry) => sum + entry.daily.reduce((daySum, hours) => daySum + hours, 0), 0)
+      .reduce((sum, entry) => sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0)
 
     return {
       week: weekTotal,
       byDay,
       billable,
       nonBillable,
-      timeOff: 0 // Implement time-off logic
+      timeOff: 0
     }
   }
 
-  const handleCellChange = (rowId: string, dayIndex: number, value: number) => {
+  const handleCellChange = (rowId: string, dayIndex: number, value: number, comment: string) => {
     setEntries(prev => prev.map(entry => 
       entry.rowId === rowId 
-        ? { ...entry, daily: entry.daily.map((h, i) => i === dayIndex ? value : h) }
+        ? { 
+            ...entry, 
+            daily: entry.daily.map((d, i) => 
+              i === dayIndex ? { hours: value, comment } : d
+            )
+          }
         : entry
     ))
+    
+    // Clear missing comment warning for this cell if comment is provided
+    if (comment.trim()) {
+      setMissingComments(prev => prev.filter(
+        mc => !(mc.rowId === rowId && mc.dayIndex === dayIndex)
+      ))
+    }
     
     // Validate and update warnings
     const updatedEntries = entries.map(entry => 
       entry.rowId === rowId 
-        ? { ...entry, daily: entry.daily.map((h, i) => i === dayIndex ? value : h) }
+        ? { 
+            ...entry, 
+            daily: entry.daily.map((d, i) => 
+              i === dayIndex ? { hours: value, comment } : d
+            )
+          }
         : entry
     )
     setWarnings(timesheetService.validateWeekEntries(updatedEntries, policy))
@@ -137,8 +198,14 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       case 'fillAcross':
         setEntries(prev => prev.map(entry => {
           if (entry.rowId === rowId) {
-            const mondayHours = entry.daily[0] || 0
-            return { ...entry, daily: [mondayHours, mondayHours, mondayHours, mondayHours, mondayHours, 0, 0] }
+            const mondayEntry = entry.daily[0]
+            return { 
+              ...entry, 
+              daily: [
+                mondayEntry, mondayEntry, mondayEntry, mondayEntry, mondayEntry,
+                { hours: 0, comment: '' }, { hours: 0, comment: '' }
+              ]
+            }
           }
           return entry
         }))
@@ -147,9 +214,16 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       case 'splitEvenly':
         setEntries(prev => prev.map(entry => {
           if (entry.rowId === rowId) {
-            const totalHours = entry.daily.reduce((sum, h) => sum + h, 0)
-            const evenHours = totalHours / 5 // Split across weekdays
-            return { ...entry, daily: [evenHours, evenHours, evenHours, evenHours, evenHours, 0, 0] }
+            const totalHours = entry.daily.reduce((sum, d) => sum + d.hours, 0)
+            const evenHours = totalHours / 5
+            const evenEntry: DailyEntry = { hours: evenHours, comment: '' }
+            return { 
+              ...entry, 
+              daily: [
+                evenEntry, evenEntry, evenEntry, evenEntry, evenEntry,
+                { hours: 0, comment: '' }, { hours: 0, comment: '' }
+              ]
+            }
           }
           return entry
         }))
@@ -161,7 +235,7 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
           const newEntry: TimesheetEntry = {
             ...entryToDuplicate,
             rowId: `row-${Date.now()}`,
-            daily: [0, 0, 0, 0, 0, 0, 0]
+            daily: Array(7).fill(null).map(() => ({ hours: 0, comment: '' }))
           }
           setEntries(prev => [...prev, newEntry])
         }
@@ -191,22 +265,144 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       taskId: 'default',
       taskName: 'Default Task',
       billable: firstProject.billable,
-      daily: [0, 0, 0, 0, 0, 0, 0]
+      daily: Array(7).fill(null).map(() => ({ hours: 0, comment: '' }))
     }
     setEntries(prev => [...prev, newEntry])
   }
 
-  const handleSave = async () => {
-    if (!timesheet) return
+  const handleAddEntry = (project: ProjectAssignment, task: ProjectTask) => {
+    const newEntry: TimesheetEntry = {
+      rowId: `row-${Date.now()}`,
+      projectId: project.projectId,
+      projectName: project.name,
+      taskId: task.taskId,
+      taskName: task.name,
+      billable: task.billable,
+      daily: Array(7).fill(null).map(() => ({ hours: 0, comment: '' }))
+    }
+    setEntries(prev => [...prev, newEntry])
+    toast({
+      title: "Entry added",
+      description: `${project.name} - ${task.name}`
+    })
+  }
+
+  const getTasks = useCallback(async (projectId: string): Promise<ProjectTask[]> => {
+    return timesheetService.getAssignedTasks(employeeId, projectId)
+  }, [employeeId])
+
+  // Delete handlers
+  const handleDeleteEntryClick = (rowId: string, dayIndex: number) => {
+    const entry = entries.find(e => e.rowId === rowId)
+    if (!entry) return
     
+    setDeleteDialog({
+      open: true,
+      type: 'cell',
+      rowId,
+      dayIndex,
+      projectName: entry.projectName,
+      taskName: entry.taskName
+    })
+  }
+
+  const handleDeleteRowClick = (rowId: string) => {
+    const entry = entries.find(e => e.rowId === rowId)
+    if (!entry) return
+    
+    setDeleteDialog({
+      open: true,
+      type: 'row',
+      rowId,
+      projectName: entry.projectName,
+      taskName: entry.taskName
+    })
+  }
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (deleteDialog.type === 'cell' && deleteDialog.dayIndex !== undefined) {
+        // Clear individual cell
+        setEntries(prev => prev.map(entry => 
+          entry.rowId === deleteDialog.rowId 
+            ? { 
+                ...entry, 
+                daily: entry.daily.map((d, i) => 
+                  i === deleteDialog.dayIndex ? { hours: 0, comment: '' } : d
+                )
+              }
+            : entry
+        ))
+        toast({
+          title: "Entry deleted",
+          description: "Time entry has been cleared"
+        })
+      } else if (deleteDialog.type === 'row') {
+        // Find the entry to delete
+        const entryToDelete = entries.find(e => e.rowId === deleteDialog.rowId)
+        
+        // Delete from database if timesheet exists
+        if (entryToDelete && timesheet?.id) {
+          await timesheetService.deleteTimesheetRow(
+            timesheet.id,
+            entryToDelete.projectId,
+            entryToDelete.taskId
+          )
+        }
+        
+        // Remove from local state
+        setEntries(prev => prev.filter(entry => entry.rowId !== deleteDialog.rowId))
+        toast({
+          title: "Row deleted",
+          description: "Time entry row has been permanently removed"
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+      toast({
+        title: "Delete failed",
+        description: "Could not delete the entry. Please try again.",
+        variant: "destructive"
+      })
+    }
+    
+    setDeleteDialog(prev => ({ ...prev, open: false }))
+  }
+
+  const getDeleteDialogContent = () => {
+    if (deleteDialog.type === 'cell' && deleteDialog.dayIndex !== undefined) {
+      const dayName = dayNames[deleteDialog.dayIndex]
+      return {
+        description: `Are you sure you want to delete the time entry for ${dayName}?`,
+        warning: `This will clear the hours and comment for ${deleteDialog.projectName} - ${deleteDialog.taskName} on ${dayName}.`
+      }
+    } else {
+      return {
+        description: `Are you sure you want to delete this row?`,
+        warning: `This will permanently remove ${deleteDialog.projectName} - ${deleteDialog.taskName} from your timesheet.`
+      }
+    }
+  }
+
+  const handleSave = async () => {
     try {
       setLoading(true)
-      await timesheetService.saveTimesheet(timesheet.id, 'SAVED', submissionComment)
+      const weekStart = format(selectedWeek, 'yyyy-MM-dd')
+      
+      const result = await timesheetService.saveTimesheet(
+        employeeId,
+        weekStart,
+        entries,
+        'SAVED'
+      )
+      
+      setTimesheet(result.timesheet)
       toast({
         title: "Saved",
         description: "Timesheet saved as draft"
       })
     } catch (error) {
+      console.error('Save error:', error)
       toast({
         title: "Error",
         description: "Failed to save timesheet",
@@ -218,8 +414,6 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
   }
 
   const handleSubmit = async () => {
-    if (!timesheet) return
-    
     const totals = calculateTotals()
     if (totals.week === 0) {
       toast({
@@ -230,15 +424,37 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       return
     }
     
+    // Validate comments
+    const validation = timesheetService.validateCommentsForSubmit(entries)
+    if (!validation.valid) {
+      setMissingComments(validation.missingComments)
+      toast({
+        title: "Missing comments",
+        description: "Please add comments to all time entries before submitting",
+        variant: "destructive"
+      })
+      return
+    }
+    
     try {
       setLoading(true)
-      await timesheetService.saveTimesheet(timesheet.id, 'SUBMITTED', submissionComment)
+      const weekStart = format(selectedWeek, 'yyyy-MM-dd')
+      
+      const result = await timesheetService.saveTimesheet(
+        employeeId,
+        weekStart,
+        entries,
+        'SUBMITTED'
+      )
+      
+      setTimesheet(result.timesheet)
+      setMissingComments([])
       toast({
         title: "Submitted",
         description: "Timesheet submitted for approval"
       })
-      loadTimesheet() // Reload to get updated status
     } catch (error) {
+      console.error('Submit error:', error)
       toast({
         title: "Error",
         description: "Failed to submit timesheet",
@@ -249,69 +465,122 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     }
   }
 
-  const handleCopyLastWeek = async () => {
-    const lastWeek = format(subWeeks(selectedWeek, 1), 'yyyy-MM-dd')
+const handleCopyLastWeek = async () => {
+    const lastWeekDate = subWeeks(selectedWeek, 1)
+    const lastWeek = format(lastWeekDate, 'yyyy-MM-dd')
+    
     try {
+      setLoading(true)
       const lastTimesheet = await timesheetService.getTimesheet(employeeId, lastWeek)
+      
+      // Only copy if last week was SAVED or SUBMITTED
+      if (!['SAVED', 'SUBMITTED', 'APPROVED'].includes(lastTimesheet.status)) {
+        toast({
+          title: "No data to copy",
+          description: "Last week's timesheet was not saved or submitted",
+          variant: "destructive"
+        })
+        return
+      }
+      
       if (lastTimesheet.entries.length > 0) {
-        const copiedEntries = lastTimesheet.entries.map(entry => ({
+        // Copy entries with their hours and comments
+        const copiedEntries: TimesheetEntry[] = lastTimesheet.entries.map(entry => ({
           ...entry,
-          rowId: `row-${Date.now()}-${Math.random()}`,
-          daily: [0, 0, 0, 0, 0, 0, 0] // Reset hours but keep structure
+          rowId: `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: undefined, // Remove ID so it creates new entries
+          daily: entry.daily.map(d => ({ hours: d.hours, comment: d.comment })) // Deep copy daily entries
         }))
         setEntries(copiedEntries)
         toast({
           title: "Copied",
-          description: "Last week's structure copied successfully"
+          description: "Last week's timesheet copied successfully. Click Save Draft or Submit to save."
+        })
+      } else {
+        toast({
+          title: "No entries",
+          description: "Last week's timesheet has no entries to copy"
         })
       }
     } catch (error) {
+      console.error('Copy error:', error)
       toast({
         title: "Error",
-        description: "Failed to copy last week",
+        description: "Failed to copy last week's timesheet",
         variant: "destructive"
       })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRecall = async () => {
+    if (!timesheet?.id) return
+    
+    try {
+      setLoading(true)
+      await timesheetService.recallTimesheet(timesheet.id)
+      await loadTimesheet()
+      toast({
+        title: "Recalled",
+        description: "Timesheet recalled successfully"
+      })
+    } catch (error) {
+      console.error('Recall error:', error)
+      toast({
+        title: "Error",
+        description: "Failed to recall timesheet",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
   const totals = calculateTotals()
   const isReadonly = timesheet?.status === 'APPROVED' || timesheet?.status === 'SUBMITTED'
   const canEdit = !isReadonly && !loading
+  const dialogContent = getDeleteDialogContent()
 
   return (
     <div className="space-y-6" data-testid="timesheet-grid">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <WeekPicker
             value={selectedWeek}
             onChange={setSelectedWeek}
             backdateLimit={policy.backdateWeeksLimit}
           />
-          {timesheet && (
+          {timesheet && timesheet.status !== 'DRAFT' && (
             <Badge variant={
               timesheet.status === 'APPROVED' ? 'default' :
               timesheet.status === 'SUBMITTED' ? 'secondary' :
+              timesheet.status === 'SAVED' ? 'outline' :
               'outline'
             }>
               {timesheet.status}
             </Badge>
           )}
-          <div className="text-lg font-semibold">
-            {totals.week.toFixed(1)}h
-          </div>
+          {!isMobile && (
+            <div className="text-lg font-semibold">
+              {totals.week.toFixed(1)}h
+            </div>
+          )}
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {canEdit && (
             <>
-              <Button variant="outline" size="sm" onClick={handleCopyLastWeek}>
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Last Week
-              </Button>
+              {canCopyLastWeek && (
+                <Button variant="outline" size="sm" onClick={handleCopyLastWeek} disabled={loading}>
+                  <Copy className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                  {!isMobile && "Copy Last Week"}
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={handleSave} disabled={loading}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
+                <Save className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                {!isMobile && "Save Draft"}
               </Button>
               <Button 
                 size="sm" 
@@ -319,8 +588,8 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
                 disabled={loading}
                 data-testid="submit-btn"
               >
-                <Send className="mr-2 h-4 w-4" />
-                Submit
+                <Send className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                {!isMobile && "Submit"}
               </Button>
             </>
           )}
@@ -328,11 +597,12 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => timesheetService.recallTimesheet(timesheet.id)}
+              onClick={handleRecall}
+              disabled={loading}
               data-testid="recall-btn"
             >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Recall
+              <RotateCcw className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+              {!isMobile && "Recall"}
             </Button>
           )}
         </div>
@@ -341,35 +611,75 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       {/* Overview */}
       <OverviewBar data={totals} />
 
-      {/* Grid */}
-      <TimesheetGrid
-        rows={entries}
-        onChangeCell={handleCellChange}
-        onChangeCategory={handleCategoryChange}
-        onRowAction={handleRowAction}
-        onAddRow={handleAddRow}
-        policy={policy}
-        warnings={warnings}
-        categories={categories}
-        readonly={isReadonly}
-      />
-
-      {/* Submission Comment */}
-      {canEdit && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Submission Comment (Optional)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={submissionComment}
-              onChange={(e) => setSubmissionComment(e.target.value)}
-              placeholder="Add any comments or notes for your manager..."
-              rows={3}
+      {/* Grid - Conditional render for mobile/desktop */}
+      {isMobile ? (
+        <TimesheetMobileView
+          rows={entries}
+          onChangeCell={handleCellChange}
+          onChangeCategory={handleCategoryChange}
+          weekStart={selectedWeek}
+          totals={totals}
+          categories={categories}
+          readonly={isReadonly}
+          addTimeEntryContent={
+            <AddTimeEntryPopover
+              projects={projects}
+              onSelectEntry={handleAddEntry}
+              getTasks={getTasks}
+              disabled={!canEdit}
             />
-          </CardContent>
-        </Card>
+          }
+        />
+      ) : (
+        <TimesheetGrid
+          rows={entries}
+          onChangeCell={handleCellChange}
+          onChangeCategory={handleCategoryChange}
+          onRowAction={handleRowAction}
+          onAddRow={handleAddRow}
+          policy={policy}
+          warnings={warnings}
+          categories={categories}
+          readonly={isReadonly}
+          attendanceHours={attendanceHours}
+          dailyTotals={totals.byDay}
+          missingComments={missingComments}
+          weekStart={selectedWeek}
+          onDeleteEntry={canEdit ? handleDeleteEntryClick : undefined}
+          onDeleteRow={canEdit ? handleDeleteRowClick : undefined}
+          addTimeEntryContent={
+            <AddTimeEntryPopover
+              projects={projects}
+              onSelectEntry={handleAddEntry}
+              getTasks={getTasks}
+              disabled={!canEdit}
+            />
+          }
+        />
       )}
+
+      {/* Comment Summary & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CommentSummary 
+          entries={entries} 
+          weekStart={selectedWeek}
+        />
+        <TimesheetActivity 
+          timesheet={timesheet}
+          entries={entries}
+          weekStart={selectedWeek}
+          weekEnd={addDays(selectedWeek, 6)}
+        />
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        description={dialogContent.description}
+        warningMessage={dialogContent.warning}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }

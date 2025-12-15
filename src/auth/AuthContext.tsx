@@ -3,7 +3,7 @@ import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from "@/integrations/supabase/client";
 import { DEV_USERS, DEV_USER_ID_MAP } from "./devUsers";
 import { roleToPermissionPatterns, matchPermission } from "../rbac/permissions";
-
+import { AUTH_MODE, isDevAuthMode } from "@/utils/authHelpers";
 export type User = { 
   id: string; 
   email: string; 
@@ -58,6 +58,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to get user role from user_roles table (secure)
+  const getUserRole = async (userId: string): Promise<string> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .order('role') // Get consistent ordering
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('[AUTH] Error fetching user role:', error);
+        return 'EMPLOYEE'; // Default role
+      }
+      
+      return data?.role || 'EMPLOYEE';
+    } catch (error) {
+      console.error('[AUTH] User role fetch error:', error);
+      return 'EMPLOYEE';
+    }
+  };
+
   // Helper function to get user profile from Supabase
   const getUserProfile = async (userId: string): Promise<Profile | null> => {
     try {
@@ -79,34 +102,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Helper function to convert profile to user
-  const profileToUser = (profile: Profile, supabaseUser: SupabaseUser): User => {
+  // Helper function to convert profile to user (fetches role from user_roles table)
+  const profileToUser = async (profile: Profile, supabaseUser: SupabaseUser): Promise<User> => {
+    // Fetch role from user_roles table (secure, used by RLS)
+    const role = await getUserRole(profile.id);
+    console.log('[AUTH] Fetched role from user_roles:', role);
+    
     return {
       id: profile.id,
       email: profile.email,
       display_name: profile.display_name || profile.first_name || profile.email.split('@')[0],
-      role: profile.role,
+      role: role, // Use role from user_roles table
       first_name: profile.first_name,
       last_name: profile.last_name,
       department: profile.department,
-      employeeId: profile.id // Use profile.id as employeeId for now
+      employeeId: profile.id
     };
   };
 
   useEffect(() => {
-    // Check for dev user in localStorage first
-    const storedDevUser = localStorage.getItem("dev_user");
-    if (storedDevUser) {
-      try {
-        const userData = JSON.parse(storedDevUser);
-        console.log('[AUTH] Restored dev user from localStorage:', userData);
-        setUser(userData);
-        setSession({ user: { id: userData.id, email: userData.email } as any, access_token: 'dev-token' } as any);
-        setIsLoading(false);
-        return;
-      } catch (error) {
-        console.error('[AUTH] Error parsing stored dev user:', error);
-        localStorage.removeItem("dev_user");
+    console.log('[AUTH] Auth mode:', AUTH_MODE);
+    
+    // Check for dev user in localStorage first (only in dev mode)
+    if (isDevAuthMode()) {
+      const storedDevUser = localStorage.getItem("dev_user");
+      if (storedDevUser) {
+        try {
+          const userData = JSON.parse(storedDevUser);
+          console.log('[AUTH] Restored dev user from localStorage:', userData);
+          setUser(userData);
+          setSession({ user: { id: userData.id, email: userData.email } as any, access_token: 'dev-token' } as any);
+          setIsLoading(false);
+          return;
+        } catch (error) {
+          console.error('[AUTH] Error parsing stored dev user:', error);
+          localStorage.removeItem("dev_user");
+        }
       }
     }
 
@@ -121,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(async () => {
             const profile = await getUserProfile(session.user.id);
             if (profile) {
-              const userData = profileToUser(profile, session.user);
+              const userData = await profileToUser(profile, session.user);
               setUser(userData);
               console.log('[AUTH] User profile loaded:', userData);
             } else {
@@ -156,11 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string): Promise<User> => {
-    // Always enable dev mode for testing - remove this line for production
-    const isDevMode = true; // Force dev mode for now
-    console.log('[AUTH] Dev mode check:', isDevMode);
+    console.log('[AUTH] Sign in attempt, auth mode:', AUTH_MODE);
     
-    if (isDevMode) {
+    if (isDevAuthMode()) {
       // Dev mode authentication
       const devUser = DEV_USERS.find(u => u.email === email && u.password === password);
       if (!devUser) throw new Error("Invalid dev credentials");
@@ -201,8 +230,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("User profile not found. Please contact support.");
       }
 
-      const userData = profileToUser(profile, data.user);
+      const userData = await profileToUser(profile, data.user);
       console.log('[AUTH] Production user signed in:', userData);
+      
+      // Directly set user and session state (don't rely only on onAuthStateChange)
+      setUser(userData);
+      setSession(data.session);
+      
       return userData;
     } catch (error: any) {
       console.error('[AUTH] Sign in error:', error);
@@ -217,9 +251,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string, 
     userData?: { first_name?: string; last_name?: string; role?: string }
   ): Promise<void> => {
-    const isDevMode = import.meta.env.VITE_DEV_AUTH === "true" || import.meta.env.DEV || import.meta.env.MODE === "development";
     
-    if (isDevMode) {
+    if (isDevAuthMode()) {
       throw new Error("Sign up not available in dev mode. Use existing dev accounts.");
     }
 
@@ -253,13 +286,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async (): Promise<void> => {
-    // Check if we have a dev user
-    const storedDevUser = localStorage.getItem("dev_user");
-    if (storedDevUser) {
-      localStorage.removeItem("dev_user"); 
-      setUser(null);
-      setSession(null);
-      return;
+    // Check if we have a dev user (in dev mode)
+    if (isDevAuthMode()) {
+      const storedDevUser = localStorage.getItem("dev_user");
+      if (storedDevUser) {
+        localStorage.removeItem("dev_user"); 
+        setUser(null);
+        setSession(null);
+        return;
+      }
     }
 
     try {

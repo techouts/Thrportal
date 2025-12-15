@@ -5,7 +5,6 @@ import type {
   Recruiter, 
   BenchResource, 
   InternalJob, 
-  FollowUp,
   DashboardStats,
   TATMetrics,
   AgingBucket,
@@ -36,7 +35,6 @@ const generateMockJDs = (): JobDescription[] => {
     joined: Math.floor(Math.random() * 2),
     reopenCount: Math.floor(Math.random() * 3),
     lastActivity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    followUpTags: [],
     escalated: Math.random() > 0.8,
     slaBreached: Math.random() > 0.7
   }))

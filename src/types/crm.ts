@@ -3,7 +3,7 @@ export interface CrmClient {
   name: string;
   industry?: string;
   region?: string;
-  status: 'Active' | 'Inactive' | 'Prospect';
+  status: "Active" | "Inactive" | "Prospect";
   billing_model?: string;
   contract_type?: string;
   sla_reference_url?: string;
@@ -13,6 +13,7 @@ export interface CrmClient {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  file_download_url?: string;
 }
 
 export interface CrmAccount {
@@ -61,8 +62,8 @@ export interface CrmProject {
   ft_target: number;
   contract_target: number;
   skills?: string[];
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  status: 'Planned' | 'In-flight' | 'Closed' | 'On-hold';
+  priority: "Low" | "Medium" | "High" | "Critical";
+  status: "Planned" | "In-flight" | "Closed" | "On-hold";
   budget?: number;
   owner_id?: string;
   primary_spoc_id?: string;
@@ -84,7 +85,7 @@ export interface CrmOpportunity {
   contract_count: number;
   estimation_cost?: number;
   currency: string;
-  status: 'Open' | 'In Progress' | 'Closed' | 'Lost';
+  status: "Open" | "In Progress" | "Closed" | "Lost";
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -101,7 +102,13 @@ export interface CrmInteraction {
   account_id?: string;
   project_id?: string;
   spoc_id?: string;
-  interaction_type: 'call' | 'meeting' | 'email' | 'whatsapp' | 'linkedin' | 'onsite';
+  interaction_type:
+    | "call"
+    | "meeting"
+    | "email"
+    | "whatsapp"
+    | "linkedin"
+    | "onsite";
   date: string;
   notes?: string;
   outcome?: string;
@@ -123,7 +130,7 @@ export interface CrmDocument {
   account_id?: string;
   project_id?: string;
   name: string;
-  document_type?: 'MSA' | 'SOW' | 'Contract' | 'Other';
+  document_type?: "MSA" | "SOW" | "Contract" | "Other";
   sharepoint_url: string;
   valid_from?: string;
   valid_until?: string;
@@ -154,9 +161,9 @@ export interface CrmRecruiterAssignment {
 export interface CrmSpocLink {
   id: string;
   spoc_id: string;
-  entity_type: 'client' | 'account' | 'project';
+  entity_type: "client" | "account" | "project";
   entity_id: string;
-  role: 'finance' | 'project' | 'sales' | 'escalation' | 'primary';
+  role: "finance" | "project" | "sales" | "escalation" | "primary";
   created_at: string;
   created_by?: string;
   // Relations

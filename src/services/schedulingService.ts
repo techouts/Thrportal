@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client'
+import { getCurrentUserId } from '@/utils/authHelpers'
 import type { 
   InterviewSlot, 
   SlotAssignment, 
@@ -9,7 +10,8 @@ import type {
   CreateSlotRequest,
   AssignCandidateRequest,
   UpdateSlotStatusRequest,
-  BulkSlotEntry
+  BulkSlotEntry,
+  InterviewerDetail
 } from '@/types/scheduling'
 
 class SchedulingService {
@@ -22,11 +24,22 @@ class SchedulingService {
     return SchedulingService.instance
   }
 
+  // Get current user ID using unified auth helper
+  private async getUserId(): Promise<string> {
+    return getCurrentUserId()
+  }
+
   // Get interview slots with filters
   async getInterviewSlots(filters?: SchedulingFilters): Promise<InterviewSlot[]> {
     let query = supabase
       .from('interview_slots')
-      .select('*')
+      .select(`
+        *,
+        slot_assignments (
+          id, slot_id, candidate_id, candidate_name, candidate_email, 
+          candidate_phone, recruiter_id, interview_level, panel_text, notes, booked_at
+        )
+      `)
       .order('date', { ascending: true })
       .order('from_time', { ascending: true })
 
@@ -61,14 +74,47 @@ class SchedulingService {
       throw error
     }
 
-    // For now, return the base data. We'll enhance with joins later
-    return (data || []).map(slot => ({
-      ...slot,
-      client_name: undefined,
-      project_name: undefined,
-      created_by_name: undefined,
-      assignment: undefined
-    }))
+    if (!data || data.length === 0) {
+      return []
+    }
+
+    // Fetch client and project names
+    const clientIds = [...new Set(data.map(slot => slot.client_id))]
+    const projectIds = [...new Set(data.map(slot => slot.project_id))]
+
+    const [clientsResult, projectsResult] = await Promise.all([
+      supabase.from('crm_clients').select('id, name').in('id', clientIds),
+      supabase.from('crm_projects').select('id, name').in('id', projectIds)
+    ])
+
+    const clientMap = new Map(clientsResult.data?.map(c => [c.id, c.name]) || [])
+    const projectMap = new Map(projectsResult.data?.map(p => [p.id, p.name]) || [])
+
+    // Map slot_assignments to assignment field with client/project names
+    return data.map(slot => {
+      const assignments = (slot as any).slot_assignments as any[] | null
+      const assignment = assignments && assignments.length > 0 ? assignments[0] : undefined
+      return {
+        ...slot,
+        interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined,
+        client_name: clientMap.get(slot.client_id) || 'Unknown Client',
+        project_name: projectMap.get(slot.project_id) || 'Unknown Project',
+        created_by_name: undefined,
+        assignment: assignment ? {
+          id: assignment.id,
+          slot_id: assignment.slot_id,
+          candidate_id: assignment.candidate_id,
+          candidate_name: assignment.candidate_name,
+          candidate_email: assignment.candidate_email,
+          candidate_phone: assignment.candidate_phone,
+          recruiter_id: assignment.recruiter_id,
+          interview_level: assignment.interview_level,
+          panel_text: assignment.panel_text,
+          notes: assignment.notes,
+          booked_at: assignment.booked_at
+        } : undefined
+      }
+    })
   }
 
   // Get upcoming slots for dashboard
@@ -141,15 +187,23 @@ class SchedulingService {
   }
 
   // Create single slot
-  async createSlot(request: CreateSlotRequest): Promise<InterviewSlot> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+  async createSlot(request: CreateSlotRequest, userId: string): Promise<InterviewSlot> {
+    if (!userId) throw new Error('User not authenticated')
 
     const { data, error } = await supabase
       .from('interview_slots')
       .insert({
-        ...request,
-        created_by: user.user.id
+        client_id: request.client_id,
+        project_id: request.project_id,
+        jd_id: request.jd_id,
+        panel_text: request.panel_text,
+        date: request.date,
+        from_time: request.from_time,
+        to_time: request.to_time,
+        mode: request.mode,
+        notes: request.notes,
+        interviewer_details: request.interviewer_details as any,
+        created_by: userId
       })
       .select()
       .single()
@@ -160,21 +214,23 @@ class SchedulingService {
     }
 
     // Log the creation
-    await this.logSlotChange(data.id, 'created', user.user.id)
+    await this.logSlotChange(data.id, 'created', userId)
 
-    return data
+    return {
+      ...data,
+      interviewer_details: (data.interviewer_details as unknown) as InterviewerDetail[] | undefined
+    }
   }
 
   // Create multiple slots (bulk)
-  async createBulkSlots(request: BulkSlotEntry): Promise<InterviewSlot[]> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+  async createBulkSlots(request: BulkSlotEntry, userId: string): Promise<InterviewSlot[]> {
+    if (!userId) throw new Error('User not authenticated')
 
     const slotsToCreate = request.slots.map(slot => ({
       client_id: request.client_id,
       project_id: request.project_id,
       ...slot,
-      created_by: user.user.id
+      created_by: userId
     }))
 
     const { data, error } = await supabase
@@ -189,16 +245,18 @@ class SchedulingService {
 
     // Log all creations
     for (const slot of data) {
-      await this.logSlotChange(slot.id, 'created', user.user.id)
+      await this.logSlotChange(slot.id, 'created', userId)
     }
 
-    return data
+    return data.map(slot => ({
+      ...slot,
+      interviewer_details: (slot.interviewer_details as unknown) as InterviewerDetail[] | undefined
+    }))
   }
 
   // Assign candidate to slot
   async assignCandidate(request: AssignCandidateRequest): Promise<SlotAssignment> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+    const userId = await this.getUserId()
 
     // Check if slot is still available
     const { data: slot, error: slotError } = await supabase
@@ -219,8 +277,15 @@ class SchedulingService {
     const { data: assignment, error: assignmentError } = await supabase
       .from('slot_assignments')
       .insert({
-        ...request,
-        recruiter_id: request.recruiter_id || user.user.id
+        slot_id: request.slot_id,
+        candidate_id: request.candidate_id,
+        candidate_name: request.candidate_name,
+        candidate_email: request.candidate_email,
+        candidate_phone: request.candidate_phone,
+        interview_level: request.interview_level || 'screening',
+        panel_text: request.panel_text,
+        notes: request.notes,
+        recruiter_id: request.recruiter_id || userId
       })
       .select()
       .single()
@@ -235,7 +300,7 @@ class SchedulingService {
       .from('interview_slots')
       .update({ 
         status: 'booked',
-        updated_by: user.user.id,
+        updated_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', request.slot_id)
@@ -246,15 +311,56 @@ class SchedulingService {
     }
 
     // Log the assignment
-    await this.logSlotChange(request.slot_id, 'assigned', user.user.id)
+    await this.logSlotChange(request.slot_id, 'assigned', userId)
 
     return assignment
   }
 
+  // Assign candidate to slot with interview level (new method)
+  async assignCandidateToSlot(data: {
+    slot_id: string
+    candidate_id: string
+    candidate_name: string
+    candidate_email?: string
+    candidate_phone?: string
+    interview_level: string
+  }): Promise<SlotAssignment> {
+    return this.assignCandidate({
+      slot_id: data.slot_id,
+      candidate_id: data.candidate_id,
+      candidate_name: data.candidate_name,
+      candidate_email: data.candidate_email,
+      candidate_phone: data.candidate_phone,
+      interview_level: data.interview_level
+    })
+  }
+
+  // Cancel slot with reason
+  async cancelSlot(slotId: string, reason: string): Promise<void> {
+    const userId = await this.getUserId()
+
+    const { error } = await supabase
+      .from('interview_slots')
+      .update({ 
+        status: 'cancelled' as any,
+        cancellation_reason: reason,
+        updated_by: userId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', slotId)
+
+    if (error) {
+      console.error('Error cancelling slot:', error)
+      throw error
+    }
+
+    // Log the cancellation
+    await this.logSlotChange(slotId, 'cancelled', userId, reason)
+  }
+
   // Update slot status (used, no-show, cancelled, etc.)
   async updateSlotStatus(request: UpdateSlotStatusRequest): Promise<void> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('User not authenticated')
+    const userId = await this.getUserId()
 
     // Map no_show to used status in database
     const dbStatus = request.status === 'no_show' ? 'used' : request.status
@@ -263,7 +369,7 @@ class SchedulingService {
       .from('interview_slots')
       .update({ 
         status: dbStatus as any,
-        updated_by: user.user.id,
+        updated_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', request.slot_id)
@@ -277,7 +383,7 @@ class SchedulingService {
     await this.logSlotChange(
       request.slot_id, 
       request.status === 'no_show' ? 'no_show' : request.status as any,
-      user.user.id,
+      userId,
       request.reason_code,
       request.reason_text,
       request.no_show_type
@@ -338,6 +444,22 @@ class SchedulingService {
       console.error('Error logging slot change:', error)
       // Don't throw here as it shouldn't block the main operation
     }
+  }
+
+  // Get panel types from master table
+  async getPanelTypes(): Promise<Array<{ id: string; name: string }>> {
+    const { data, error } = await supabase
+      .from('interview_panel_types')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('display_order')
+
+    if (error) {
+      console.error('Error fetching panel types:', error)
+      throw error
+    }
+
+    return data || []
   }
 
   // Export slots data

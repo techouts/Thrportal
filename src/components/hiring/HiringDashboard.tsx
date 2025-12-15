@@ -6,7 +6,6 @@ import { JDInsightsTab } from './tabs/JDInsightsTab'
 import { RecruiterTab } from './tabs/RecruiterTab'
 import { ClientTab } from './tabs/ClientTab'
 import { TATTrackerTab } from './tabs/TATTrackerTab'
-import { FollowUpTab } from './tabs/FollowUpTab'
 import { BenchTab } from './tabs/BenchTab'
 import { hiringService } from '@/services/hiringService'
 import { useToast } from '@/hooks/use-toast'
@@ -74,13 +73,12 @@ export function HiringDashboard() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="jd-insights">JD Insights</TabsTrigger>
           <TabsTrigger value="recruiter">Recruiter</TabsTrigger>
           <TabsTrigger value="client">Client</TabsTrigger>
           <TabsTrigger value="tat-tracker">TAT Tracker</TabsTrigger>
-          <TabsTrigger value="follow-up">Follow-up</TabsTrigger>
           <TabsTrigger value="bench">Bench</TabsTrigger>
           <TabsTrigger value="internal">Internal</TabsTrigger>
         </TabsList>
@@ -103,10 +101,6 @@ export function HiringDashboard() {
 
         <TabsContent value="tat-tracker">
           <TATTrackerTab filters={filters} />
-        </TabsContent>
-
-        <TabsContent value="follow-up">
-          <FollowUpTab filters={filters} />
         </TabsContent>
 
         <TabsContent value="bench">

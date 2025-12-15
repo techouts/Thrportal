@@ -1,27 +1,42 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { CrmService } from '@/services/crmService';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import type { CrmClient } from '@/types/crm';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { CrmService } from "@/services/crmService";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import type { CrmClient } from "@/types/crm";
+import { Upload, X } from "lucide-react";
 
 const clientSchema = z.object({
-  name: z.string().min(1, 'Client name is required'),
+  name: z.string().min(1, "Client name is required"),
   industry: z.string().optional(),
   region: z.string().optional(),
-  status: z.enum(['Active', 'Inactive', 'Prospect']).default('Active'),
+  status: z.enum(["Active", "Inactive", "Prospect"]).default("Active"),
   contract_type: z.string().optional(),
   sla_reference_url: z.string().optional(),
   domain: z.string().optional(),
-  gst_vat: z.string().optional()
+  gst_vat: z.string().optional(),
+  document: z.instanceof(File).optional(),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -30,77 +45,136 @@ interface CreateClientFormProps {
   onSuccess: () => void;
   onCancel: () => void;
   initialData?: Partial<CrmClient>;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
 }
 
-export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'create' }: CreateClientFormProps) {
+export function CreateClientForm({
+  onSuccess,
+  onCancel,
+  initialData,
+  mode = "create",
+}: CreateClientFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
-      name: initialData?.name || '',
-      industry: initialData?.industry || '',
-      region: initialData?.region || '',
-      status: initialData?.status || 'Prospect',
-      contract_type: initialData?.contract_type || '',
-      sla_reference_url: initialData?.sla_reference_url || '',
-      domain: initialData?.domain || '',
-      gst_vat: initialData?.gst_vat || ''
-    }
+      name: initialData?.name || "",
+      industry: initialData?.industry || "",
+      region: initialData?.region || "",
+      status: initialData?.status || "Prospect",
+      contract_type: initialData?.contract_type || "",
+      sla_reference_url: initialData?.sla_reference_url || "",
+      domain: initialData?.domain || "",
+      gst_vat: initialData?.gst_vat || "",
+    },
   });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
 
+      // Validate file type
+      const allowedTypes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/png",
+        "image/jpeg",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Error",
+          description: "Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSelectedFile(file);
+      form.setValue("document", file);
+    }
+  };
   const onSubmit = async (data: ClientFormData) => {
     try {
       setLoading(true);
-      
+
       // Get user ID from auth context (works with dev mode)
       const storedDevUser = localStorage.getItem("dev_user");
       let userId: string;
-      
+
       if (storedDevUser) {
         const devUser = JSON.parse(storedDevUser);
         userId = devUser.id;
       } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Authentication required');
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("Authentication required");
         userId = user.id;
       }
-      
-      if (mode === 'create') {
-        await CrmService.createClient({
-          ...data,
-          created_by: userId
-        } as Omit<CrmClient, 'id' | 'created_at' | 'updated_at'>);
+
+      if (mode === "create") {
+        await CrmService.createClient(
+          {
+            ...data,
+            created_by: userId,
+          },
+          selectedFile
+        );
         toast({
-          title: 'Success',
-          description: 'Client created successfully.'
+          title: "Success",
+          description: "Client created successfully.",
         });
       } else if (initialData?.id) {
         await CrmService.updateClient(initialData.id, data);
         toast({
-          title: 'Success',
-          description: 'Client updated successfully.'
+          title: "Success",
+          description: "Client updated successfully.",
         });
       }
-      
+
       await onSuccess();
     } catch (error) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: `Failed to ${mode} client. Please try again.`,
-        variant: 'destructive'
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const statusOptions = ['Active', 'Inactive', 'Prospect'];
-  const industryOptions = ['Technology', 'Finance', 'Healthcare', 'Manufacturing', 'Retail', 'Consulting'];
-  const regionOptions = ['North America', 'Europe', 'Asia Pacific', 'Middle East', 'Latin America', 'Africa'];
-  const contractTypeOptions = ['MSA'];
+  const statusOptions = ["Active", "Inactive", "Prospect"];
+  const industryOptions = [
+    "Technology",
+    "Finance",
+    "Healthcare",
+    "Manufacturing",
+    "Retail",
+    "Consulting",
+  ];
+  const regionOptions = [
+    "North America",
+    "Europe",
+    "Asia Pacific",
+    "Middle East",
+    "Latin America",
+    "Africa",
+  ];
+  const contractTypeOptions = ["MSA"];
 
   return (
     <Form {...form}>
@@ -147,8 +221,10 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {industryOptions.map(option => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    {industryOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -170,8 +246,10 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {regionOptions.map(option => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    {regionOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -193,8 +271,10 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {statusOptions.map(option => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -217,7 +297,6 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             )}
           />
 
-
           <FormField
             control={form.control}
             name="contract_type"
@@ -231,8 +310,10 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {contractTypeOptions.map(option => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    {contractTypeOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -243,12 +324,45 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
 
           <FormField
             control={form.control}
-            name="sla_reference_url"
-            render={({ field }) => (
+            name="document"
+            render={() => (
               <FormItem className="md:col-span-2">
-                <FormLabel>SLA Reference (Optional)</FormLabel>
+                <FormLabel>Document Upload(Optional)</FormLabel>
                 <FormControl>
-                  <Input 
+                  <div className="space-y-2">
+                    {!selectedFile ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept=".pdf,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
+                          onChange={handleFileChange}
+                          className="flex-1"
+                        />
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-2 border rounded">
+                        <span className="flex-1 text-sm truncate">
+                          {selectedFile.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            form.setValue("document", undefined);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Accepted: PDF, DOCX, XLSX, PNG, JPG (max 10MB)
+                    </p>
+                  </div>
+                  {/* <Input 
                     type="file" 
                     accept=".pdf,.doc,.docx" 
                     onChange={(e) => {
@@ -258,7 +372,7 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
                         field.onChange(file.name);
                       }
                     }}
-                  />
+                  /> */}
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -271,7 +385,11 @@ export function CreateClientForm({ onSuccess, onCancel, initialData, mode = 'cre
             Cancel
           </Button>
           <Button type="submit" disabled={loading || !form.formState.isValid}>
-            {loading ? 'Saving...' : mode === 'create' ? 'Create Client' : 'Update Client'}
+            {loading
+              ? "Saving..."
+              : mode === "create"
+              ? "Create Client"
+              : "Update Client"}
           </Button>
         </div>
       </form>

@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { CalendarDays, Clock, Users, TrendingUp, Plus, Filter } from 'lucide-react'
+import { CalendarDays, Clock, Users, TrendingUp, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { schedulingService } from '@/services/schedulingService'
-import { SchedulingFilters } from '@/components/scheduling/SchedulingFilters'
 import { SlotsList } from '@/components/scheduling/SlotsList'
 import { SchedulingDashboard } from '@/components/scheduling/SchedulingDashboard'
 import { CreateSlotDialog } from '@/components/scheduling/CreateSlotDialog'
@@ -16,7 +14,6 @@ export default function SchedulingPage() {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [filters, setFilters] = useState<FiltersType>({})
-  const [showFilters, setShowFilters] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [stats, setStats] = useState<SchedulingDashboardStats>({
     total_slots: 0,
@@ -77,48 +74,6 @@ export default function SchedulingPage() {
     })
   }
 
-  const handleFiltersChange = (newFilters: FiltersType) => {
-    setFilters(newFilters)
-  }
-
-  const handleExport = async () => {
-    try {
-      const exportData = await schedulingService.exportSlotsData(filters)
-      
-      // Create CSV content
-      const headers = Object.keys(exportData[0] || {})
-      const csvContent = [
-        headers.join(','),
-        ...exportData.map(row => headers.map(header => 
-          JSON.stringify(row[header] || '')
-        ).join(','))
-      ].join('\n')
-
-      // Download CSV
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', `interview-slots-${new Date().toISOString().split('T')[0]}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      toast({
-        title: 'Success',
-        description: 'Data exported successfully'
-      })
-    } catch (error) {
-      console.error('Error exporting data:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to export data',
-        variant: 'destructive'
-      })
-    }
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -130,42 +85,12 @@ export default function SchedulingPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-          >
-            Export
-          </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Slot
           </Button>
         </div>
       </div>
-
-      {/* Filters */}
-      {showFilters && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SchedulingFilters
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-            />
-          </CardContent>
-        </Card>
-      )}
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

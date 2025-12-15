@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
-import { format, parse } from 'date-fns';
-import { CalendarIcon, X, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { CrmService } from '@/services/crmService';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from "react";
+import { format, parse } from "date-fns";
+import { CalendarIcon, X, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { CrmService } from "@/services/crmService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditSOWFormProps {
   sow: any;
@@ -23,15 +33,19 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const [formData, setFormData] = useState({
-    title: sow.title || '',
-    valid_from: sow.valid_from ? parse(sow.valid_from, 'yyyy-MM-dd', new Date()) : undefined,
-    valid_to: sow.valid_to ? parse(sow.valid_to, 'yyyy-MM-dd', new Date()) : undefined,
-    amount_cap: sow.amount_cap || '',
-    currency: sow.currency || 'INR',
-    status: sow.status || 'Active',
-    doc_link: sow.doc_link || '',
+    title: sow.title || "",
+    valid_from: sow.valid_from
+      ? parse(sow.valid_from, "yyyy-MM-dd", new Date())
+      : undefined,
+    valid_to: sow.valid_to
+      ? parse(sow.valid_to, "yyyy-MM-dd", new Date())
+      : undefined,
+    amount_cap: sow.amount_cap || "",
+    currency: sow.currency || "INR",
+    status: sow.status || "Active",
+    doc_link: sow.doc_link || "",
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,53 +53,60 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast({
-          title: 'Error',
-          description: 'File size must be less than 10MB',
-          variant: 'destructive'
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
         });
         return;
       }
-      
-      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/png', 'image/jpeg'];
+
+      const allowedTypes = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/png",
+        "image/jpeg",
+      ];
       if (!allowedTypes.includes(file.type)) {
         toast({
-          title: 'Error',
-          description: 'Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG',
-          variant: 'destructive'
+          title: "Error",
+          description: "Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG",
+          variant: "destructive",
         });
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
 
   const uploadDocument = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `sows/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('contracts')
+      .from("contracts")
       .upload(filePath, file);
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('contracts')
-      .getPublicUrl(filePath);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("contracts").getPublicUrl(filePath);
 
     return publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.valid_from || !formData.valid_to) {
       toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive'
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
       });
       return;
     }
@@ -94,7 +115,7 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
 
     try {
       // let doc_link = formData.doc_link;
-      
+
       // if (selectedFile) {
       //   setUploading(true);
       //   doc_link = await uploadDocument(selectedFile);
@@ -103,20 +124,24 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
 
       const updatePayload: any = {
         title: formData.title,
-        validFrom: format(formData.valid_from, 'yyyy-MM-dd'),
-        validTo: format(formData.valid_to, 'yyyy-MM-dd'),
+        validFrom: format(formData.valid_from, "yyyy-MM-dd"),
+        validTo: format(formData.valid_to, "yyyy-MM-dd"),
         amountCap: formData.amount_cap ? parseFloat(formData.amount_cap) : null,
         currency: formData.currency,
-        status: formData.status as 'Draft' | 'Active' | 'Expired' | 'Terminated',
+        status: formData.status as
+          | "Draft"
+          | "Active"
+          | "Expired"
+          | "Terminated",
         doc_link: selectedFile,
       };
-      
+
       // if (selectedFile) {
       //   updatePayload.doc_link = selectedFile;
       // }
 
       await CrmService.updateSOW(sow.id, updatePayload);
-      
+
       toast({
         title: "Success",
         description: "SOW updated successfully",
@@ -170,7 +195,9 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
               <Calendar
                 mode="single"
                 selected={formData.valid_from}
-                onSelect={(date) => setFormData({ ...formData, valid_from: date })}
+                onSelect={(date) =>
+                  setFormData({ ...formData, valid_from: date })
+                }
                 initialFocus
                 className="pointer-events-auto"
               />
@@ -201,9 +228,13 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
               <Calendar
                 mode="single"
                 selected={formData.valid_to}
-                onSelect={(date) => setFormData({ ...formData, valid_to: date })}
+                onSelect={(date) =>
+                  setFormData({ ...formData, valid_to: date })
+                }
                 initialFocus
-                disabled={(date) => formData.valid_from ? date < formData.valid_from : false}
+                disabled={(date) =>
+                  formData.valid_from ? date < formData.valid_from : false
+                }
                 className="pointer-events-auto"
               />
             </PopoverContent>
@@ -219,18 +250,25 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
             type="number"
             step="0.01"
             value={formData.amount_cap}
-            onChange={(e) => setFormData({ ...formData, amount_cap: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, amount_cap: e.target.value })
+            }
             placeholder="250000.00"
           />
         </div>
         <div>
           <Label htmlFor="currency">Currency</Label>
-          <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+          <Select
+            value={formData.currency}
+            onValueChange={(value) =>
+              setFormData({ ...formData, currency: value })
+            }
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-               <SelectItem value="INR">INR</SelectItem>
+              <SelectItem value="INR">INR</SelectItem>
               <SelectItem value="USD">USD</SelectItem>
               <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="GBP">GBP</SelectItem>
@@ -241,7 +279,10 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
 
       <div>
         <Label htmlFor="status">Status</Label>
-        <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+        <Select
+          value={formData.status}
+          onValueChange={(value) => setFormData({ ...formData, status: value })}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -256,21 +297,31 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
 
       <div className="space-y-2">
         <Label>Add New Document</Label>
-        {formData.doc_link && !selectedFile && (
-          <div className="flex items-center gap-2 p-2 bg-muted rounded">
-            <span className="text-sm flex-1">Current Document</span>
-            <a 
-              href={formData.doc_link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline flex items-center gap-1"
-            >
-              <ExternalLink className="h-4 w-4" />
-              View
-            </a>
+        {sow.files?.length > 0 && !selectedFile && (
+          <div className="space-y-2 mb-2">
+            {sow.files.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center gap-2 p-2 bg-muted rounded"
+              >
+                <span className="text-sm flex-1">
+                  Current Document: {file.file_name}
+                </span>
+
+                <a
+                  href={`https://hrportal.coventic.com:7783${file.file_download_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Download
+                </a>
+              </div>
+            ))}
           </div>
         )}
-        
+
         {!selectedFile ? (
           <Input
             type="file"
@@ -296,11 +347,20 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={loading}
+        >
           Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? (uploading ? 'Uploading...' : 'Saving...') : 'Save Changes'}
+          {loading
+            ? uploading
+              ? "Uploading..."
+              : "Saving..."
+            : "Save Changes"}
         </Button>
       </div>
     </form>

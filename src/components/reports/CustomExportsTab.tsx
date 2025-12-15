@@ -140,7 +140,7 @@ export function CustomExportsTab() {
               <h3 className="text-lg font-medium">Filters</h3>
               <Badge variant="outline">{getSelectedFiltersCount()} applied</Badge>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <Select value={selectedFilters.client} onValueChange={(value) => handleFilterChange('client', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Client" />
@@ -241,7 +241,7 @@ export function CustomExportsTab() {
               <h3 className="text-lg font-medium">Choose Metrics</h3>
               <Badge variant="outline">{getSelectedMetricsCount()} selected</Badge>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {metricsOptions.map((metric) => (
                 <div key={metric.key} className="flex items-start space-x-3 p-4 border rounded-lg">
                   <Checkbox
@@ -323,7 +323,7 @@ export function CustomExportsTab() {
         <CardContent>
           <div className="space-y-4">
             {savedReports.map((report) => (
-              <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={report.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border rounded-lg">
                 <div className="flex-1">
                   <div className="font-medium">{report.name}</div>
                   <div className="text-sm text-muted-foreground mt-1">
@@ -334,33 +334,35 @@ export function CustomExportsTab() {
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Format</div>
-                  <Badge variant="outline">{report.format}</Badge>
-                </div>
+                <div className="flex flex-wrap gap-4 md:gap-6 items-center">
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Format</div>
+                    <Badge variant="outline">{report.format}</Badge>
+                  </div>
 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Last Run</div>
-                  <div className="text-sm">{report.lastRun}</div>
-                </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Last Run</div>
+                    <div className="text-sm">{report.lastRun}</div>
+                  </div>
 
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="flex items-center gap-1">
-                    <Download className="h-3 w-3" />
-                    Run
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex items-center gap-1">
-                    <FileSpreadsheet className="h-3 w-3" />
-                    Edit
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => handleDeleteReport(report.id)}
-                    className="flex items-center gap-1"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="flex items-center gap-1">
+                      <Download className="h-3 w-3" />
+                      Run
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex items-center gap-1">
+                      <FileSpreadsheet className="h-3 w-3" />
+                      Edit
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleDeleteReport(report.id)}
+                      className="flex items-center gap-1"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
