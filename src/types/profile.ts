@@ -45,6 +45,10 @@ export interface EmployeeProfile {
   date_of_birth?: string
   blood_group?: string
   family_details?: FamilyMember[]
+  gender?: string
+  marital_status?: string
+  is_physically_handicapped?: boolean
+  nationality?: string
 
   // New employment fields
   employee_type?: string
@@ -92,6 +96,10 @@ export interface ProfileUpdateData {
   date_of_birth?: string
   blood_group?: string
   family_details?: FamilyMember[]
+  gender?: string
+  marital_status?: string
+  is_physically_handicapped?: boolean
+  nationality?: string
 }
 
 export interface ProfileCorrectionRequest {
@@ -115,6 +123,18 @@ export interface FamilyMember {
 // Blood group options
 export const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const
 export type BloodGroup = typeof BLOOD_GROUP_OPTIONS[number]
+
+// Gender options
+export const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const
+export type Gender = typeof GENDER_OPTIONS[number]
+
+// Marital status options
+export const MARITAL_STATUS_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed'] as const
+export type MaritalStatus = typeof MARITAL_STATUS_OPTIONS[number]
+
+// Nationality options
+export const NATIONALITY_OPTIONS = ['Indian', 'American', 'British', 'Canadian', 'Australian', 'Other'] as const
+export type Nationality = typeof NATIONALITY_OPTIONS[number]
 
 // Employment field options
 export const DEPARTMENT_OPTIONS = [
