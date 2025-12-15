@@ -39,10 +39,10 @@ interface ApprovalItem {
 interface ApprovalQueuesProps {
   approvals: ApprovalItem[];
   loading?: boolean;
-  onApprove: (id: string, comments?: string) => void;
-  onReject: (id: string, reason: string) => void;
-  onBulkApprove: (ids: string[]) => void;
-  onBulkReject: (ids: string[], reason: string) => void;
+  onApprove: (id: string, comments?: string, type?: string) => void;
+  onReject: (id: string, reason: string, type?: string) => void;
+  onBulkApprove: (ids: string[], type?: string) => void;
+  onBulkReject: (ids: string[], reason: string, type?: string) => void;
 }
 
 export function ApprovalQueues({ 
@@ -379,7 +379,7 @@ export function ApprovalQueues({
                         <Button 
                           size="sm" 
                           variant="default"
-                          onClick={() => onApprove(item.id)}
+                          onClick={() => onApprove(item.id, undefined, item.type)}
                           className="h-8 w-8 p-0"
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -387,7 +387,7 @@ export function ApprovalQueues({
                         <Button 
                           size="sm" 
                           variant="destructive"
-                          onClick={() => onReject(item.id, 'Rejected by manager')}
+                          onClick={() => onReject(item.id, 'Rejected by manager', item.type)}
                           className="h-8 w-8 p-0"
                         >
                           <XCircle className="h-4 w-4" />

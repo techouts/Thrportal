@@ -1,6 +1,7 @@
 import { ApiResponse } from '@/types/attendance';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data for My Team module
+// My Team service with real database integration for timesheets
 export class MyTeamService {
   private static instance: MyTeamService;
 
@@ -207,14 +208,88 @@ export class MyTeamService {
     };
   }
 
-  // Approval Queues
+  // Approval Queues - Now fetches real timesheet data from database
   async getApprovalQueues(managerId: string): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return {
-      data: [
+    try {
+      // Get team members who report to this manager
+      const { data: teamMembers, error: teamError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('manager_employee_id', managerId);
+
+      if (teamError) {
+        console.error('Error fetching team members:', teamError);
+      }
+
+      const teamMemberIds = teamMembers?.map(m => m.id) || [];
+
+      // Fetch submitted timesheets for team members
+      let timesheetApprovals: any[] = [];
+      
+      if (teamMemberIds.length > 0) {
+        const { data: timesheets, error: tsError } = await supabase
+          .from('timesheets')
+          .select(`
+            id,
+            employee_id,
+            week_start,
+            week_end,
+            total_hours,
+            billable_hours,
+            status,
+            submitted_at,
+            submission_comment
+          `)
+          .eq('status', 'SUBMITTED')
+          .in('employee_id', teamMemberIds)
+          .order('submitted_at', { ascending: false });
+
+        if (tsError) {
+          console.error('Error fetching timesheets:', tsError);
+        }
+
+        // Fetch employee profiles for the timesheets
+        if (timesheets && timesheets.length > 0) {
+          const employeeIds = [...new Set(timesheets.map(ts => ts.employee_id))];
+          const { data: profiles, error: profError } = await supabase
+            .from('profiles')
+            .select('id, display_name, employee_code')
+            .in('id', employeeIds);
+
+          if (profError) {
+            console.error('Error fetching profiles:', profError);
+          }
+
+          const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+          timesheetApprovals = timesheets.map(ts => {
+            const profile = profileMap.get(ts.employee_id);
+            return {
+              id: ts.id,
+              type: 'timesheet',
+              employeeName: profile?.display_name || 'Unknown',
+              employeeId: profile?.employee_code || ts.employee_id,
+              title: `Timesheet Week ${ts.week_start}`,
+              description: `${ts.total_hours || 0} hours total (${ts.billable_hours || 0} billable)${ts.submission_comment ? ` - ${ts.submission_comment}` : ''}`,
+              requestDate: ts.week_start,
+              submittedAt: ts.submitted_at || new Date().toISOString(),
+              priority: 'medium',
+              status: 'pending',
+              attachments: 0,
+              additionalInfo: {
+                totalHours: ts.total_hours,
+                billableHours: ts.billable_hours,
+                weekEnd: ts.week_end
+              }
+            };
+          });
+        }
+      }
+
+      // Combine with mock data for other types (leave, expense, attendance, profile)
+      const mockApprovals = [
         {
-          id: '1',
+          id: 'mock-1',
           type: 'leave',
           employeeName: 'John Doe',
           employeeId: 'EMP001',
@@ -227,7 +302,7 @@ export class MyTeamService {
           attachments: 0
         },
         {
-          id: '2',
+          id: 'mock-2',
           type: 'expense',
           employeeName: 'Jane Smith',
           employeeId: 'EMP002',
@@ -239,96 +314,225 @@ export class MyTeamService {
           priority: 'high',
           status: 'pending',
           attachments: 4
-        },
-        {
-          id: '3',
-          type: 'attendance',
-          employeeName: 'Mike Johnson',
-          employeeId: 'EMP003',
-          title: 'Late Arrival Regularization',
-          description: 'Traffic jam - arrived 30 mins late',
-          requestDate: '2024-02-19',
-          submittedAt: '2024-02-19T18:20:00Z',
-          priority: 'low',
-          status: 'pending',
-          attachments: 0
-        },
-        {
-          id: '4',
-          type: 'timesheet',
-          employeeName: 'Sarah Wilson',
-          employeeId: 'EMP004',
-          title: 'Timesheet Correction',
-          description: 'Missed logging hours for Project Alpha',
-          requestDate: '2024-02-16',
-          submittedAt: '2024-02-17T11:15:00Z',
-          priority: 'medium',
-          status: 'escalated',
-          attachments: 1
-        },
-        {
-          id: '5',
-          type: 'profile',
-          employeeName: 'Alice Brown',
-          employeeId: 'EMP005',
-          title: 'Bank Account Change',
-          description: 'Updated bank account for salary',
-          requestDate: '2024-02-20',
-          submittedAt: '2024-02-20T14:30:00Z',
-          priority: 'critical',
-          status: 'pending',
-          attachments: 2
         }
-      ],
-      message: 'Approval queues retrieved successfully',
-      success: true,
-      timestamp: new Date().toISOString()
-    };
+      ];
+
+      // Combine real timesheet approvals with mock data for other types
+      const allApprovals = [...timesheetApprovals, ...mockApprovals];
+
+      return {
+        data: allApprovals,
+        message: 'Approval queues retrieved successfully',
+        success: true,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error in getApprovalQueues:', error);
+      return {
+        data: [],
+        message: 'Failed to fetch approval queues',
+        success: false,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
-  // Approval Actions
-  async approveRequest(requestId: string, comments?: string): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return {
-      data: { id: requestId, status: 'approved', reviewedAt: new Date().toISOString() },
-      message: 'Request approved successfully',
-      success: true,
-      timestamp: new Date().toISOString()
-    };
+  // Approval Actions - Now updates real timesheet status
+  async approveRequest(requestId: string, comments?: string, type?: string): Promise<ApiResponse<any>> {
+    try {
+      // Handle timesheet approval
+      if (type === 'timesheet') {
+        const { data: user } = await supabase.auth.getUser();
+        const approverId = user?.user?.id;
+
+        const { error } = await supabase
+          .from('timesheets')
+          .update({
+            status: 'APPROVED',
+            approved_by: approverId,
+            approved_at: new Date().toISOString(),
+            approver_comment: comments || null
+          })
+          .eq('id', requestId);
+
+        if (error) {
+          console.error('Error approving timesheet:', error);
+          return {
+            data: null,
+            message: 'Failed to approve timesheet',
+            success: false,
+            timestamp: new Date().toISOString()
+          };
+        }
+
+        return {
+          data: { id: requestId, status: 'APPROVED', reviewedAt: new Date().toISOString() },
+          message: 'Timesheet approved successfully',
+          success: true,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Mock approval for other types
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return {
+        data: { id: requestId, status: 'approved', reviewedAt: new Date().toISOString() },
+        message: 'Request approved successfully',
+        success: true,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error in approveRequest:', error);
+      return {
+        data: null,
+        message: 'Failed to approve request',
+        success: false,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
-  async rejectRequest(requestId: string, reason: string): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return {
-      data: { id: requestId, status: 'rejected', reason, reviewedAt: new Date().toISOString() },
-      message: 'Request rejected successfully',
-      success: true,
-      timestamp: new Date().toISOString()
-    };
+  async rejectRequest(requestId: string, reason: string, type?: string): Promise<ApiResponse<any>> {
+    try {
+      // Handle timesheet rejection
+      if (type === 'timesheet') {
+        const { data: user } = await supabase.auth.getUser();
+        const approverId = user?.user?.id;
+
+        const { error } = await supabase
+          .from('timesheets')
+          .update({
+            status: 'REJECTED',
+            approved_by: approverId,
+            rejected_at: new Date().toISOString(),
+            approver_comment: reason
+          })
+          .eq('id', requestId);
+
+        if (error) {
+          console.error('Error rejecting timesheet:', error);
+          return {
+            data: null,
+            message: 'Failed to reject timesheet',
+            success: false,
+            timestamp: new Date().toISOString()
+          };
+        }
+
+        return {
+          data: { id: requestId, status: 'REJECTED', reason, reviewedAt: new Date().toISOString() },
+          message: 'Timesheet rejected successfully',
+          success: true,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Mock rejection for other types
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return {
+        data: { id: requestId, status: 'rejected', reason, reviewedAt: new Date().toISOString() },
+        message: 'Request rejected successfully',
+        success: true,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error in rejectRequest:', error);
+      return {
+        data: null,
+        message: 'Failed to reject request',
+        success: false,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
-  async bulkApprove(requestIds: string[]): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      data: { approvedCount: requestIds.length, reviewedAt: new Date().toISOString() },
-      message: `${requestIds.length} requests approved successfully`,
-      success: true,
-      timestamp: new Date().toISOString()
-    };
+  async bulkApprove(requestIds: string[], type?: string): Promise<ApiResponse<any>> {
+    try {
+      if (type === 'timesheet') {
+        const { data: user } = await supabase.auth.getUser();
+        const approverId = user?.user?.id;
+
+        const { error } = await supabase
+          .from('timesheets')
+          .update({
+            status: 'APPROVED',
+            approved_by: approverId,
+            approved_at: new Date().toISOString()
+          })
+          .in('id', requestIds);
+
+        if (error) {
+          console.error('Error bulk approving timesheets:', error);
+          return {
+            data: null,
+            message: 'Failed to bulk approve timesheets',
+            success: false,
+            timestamp: new Date().toISOString()
+          };
+        }
+      }
+
+      return {
+        data: { approvedCount: requestIds.length, reviewedAt: new Date().toISOString() },
+        message: `${requestIds.length} requests approved successfully`,
+        success: true,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error in bulkApprove:', error);
+      return {
+        data: null,
+        message: 'Failed to bulk approve requests',
+        success: false,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
-  async bulkReject(requestIds: string[], reason: string): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      data: { rejectedCount: requestIds.length, reason, reviewedAt: new Date().toISOString() },
-      message: `${requestIds.length} requests rejected successfully`,
-      success: true,
-      timestamp: new Date().toISOString()
-    };
+  async bulkReject(requestIds: string[], reason: string, type?: string): Promise<ApiResponse<any>> {
+    try {
+      if (type === 'timesheet') {
+        const { data: user } = await supabase.auth.getUser();
+        const approverId = user?.user?.id;
+
+        const { error } = await supabase
+          .from('timesheets')
+          .update({
+            status: 'REJECTED',
+            approved_by: approverId,
+            rejected_at: new Date().toISOString(),
+            approver_comment: reason
+          })
+          .in('id', requestIds);
+
+        if (error) {
+          console.error('Error bulk rejecting timesheets:', error);
+          return {
+            data: null,
+            message: 'Failed to bulk reject timesheets',
+            success: false,
+            timestamp: new Date().toISOString()
+          };
+        }
+      }
+
+      return {
+        data: { rejectedCount: requestIds.length, reason, reviewedAt: new Date().toISOString() },
+        message: `${requestIds.length} requests rejected successfully`,
+        success: true,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error in bulkReject:', error);
+      return {
+        data: null,
+        message: 'Failed to bulk reject requests',
+        success: false,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 }
 
