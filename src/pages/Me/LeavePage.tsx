@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useLeaveBalances } from "@/hooks/useLeave";
+import { useCompOffBalance } from "@/hooks/useCompOffBalance";
 import { 
   useAllMyRequests,
   useProfiles, 
@@ -35,6 +36,7 @@ export default function LeavePage() {
 
   // Data hooks
   const { data: balances, isLoading: balancesLoading } = useLeaveBalances(selectedYear);
+  const { data: compOffBalance } = useCompOffBalance(user?.id);
   const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(user?.id);
   const { data: profiles } = useProfiles();
 
@@ -230,6 +232,7 @@ export default function LeavePage() {
           open={showLeaveDialog}
           onOpenChange={setShowLeaveDialog}
           onSubmit={handleLeaveSubmit}
+          compOffBalance={compOffBalance?.available ?? 0}
         />
         <RequestCompOffDialog
           open={showCompOffDialog}

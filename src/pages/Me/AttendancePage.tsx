@@ -17,9 +17,11 @@ import { AttendanceRowActions } from '@/components/attendance/AttendanceRowActio
 import { RegularizeAttendanceDialog } from '@/components/attendance/RegularizeAttendanceDialog';
 import { RequestLeaveDialog, LeaveRequestData } from '@/components/leave/RequestLeaveDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { useCompOffBalance } from '@/hooks/useCompOffBalance';
 
 export default function AttendancePage() {
   const { user: currentUser } = useAuth();
+  const { data: compOffBalance } = useCompOffBalance(currentUser?.id);
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('stats');
   const [statsFilter, setStatsFilter] = useState<AttendanceStatsFilter>('1month');
@@ -652,6 +654,7 @@ export default function AttendancePage() {
         onOpenChange={setShowLeaveDialog}
         onSubmit={handleLeaveSubmit}
         initialDate={selectedRecord ? new Date(selectedRecord.date) : undefined}
+        compOffBalance={compOffBalance?.available ?? 0}
       />
     </div>
   );
