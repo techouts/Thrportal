@@ -57,6 +57,8 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
   const [toDate, setToDate] = useState<Date | undefined>(initialDate);
   const [leaveType, setLeaveType] = useState<string>('');
   const [reason, setReason] = useState('');
+  const [fromOpen, setFromOpen] = useState(false);
+  const [toOpen, setToOpen] = useState(false);
 
   // Filter out COMP_OFF if user has no available balance
   const availableLeaveTypes = LEAVE_TYPES.filter(type => {
@@ -135,7 +137,7 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">From</Label>
-              <Popover>
+              <Popover open={fromOpen} onOpenChange={setFromOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -152,7 +154,12 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
                   <Calendar
                     mode="single"
                     selected={fromDate}
-                    onSelect={setFromDate}
+                    onSelect={(date) => {
+                      setFromDate(date);
+                      setFromOpen(false);
+                      // Auto-open To date picker after small delay
+                      setTimeout(() => setToOpen(true), 100);
+                    }}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -167,7 +174,7 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
 
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">To</Label>
-              <Popover>
+              <Popover open={toOpen} onOpenChange={setToOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -184,7 +191,10 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
                   <Calendar
                     mode="single"
                     selected={toDate}
-                    onSelect={setToDate}
+                    onSelect={(date) => {
+                      setToDate(date);
+                      setToOpen(false); // Auto-close after selection
+                    }}
                     disabled={(date) => fromDate ? date < fromDate : false}
                     initialFocus
                     className="pointer-events-auto"
