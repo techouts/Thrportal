@@ -51,8 +51,8 @@ class AttendanceService {
       const startDateStr = format(startDate, 'yyyy-MM-dd');
       const endDateStr = format(endDate, 'yyyy-MM-dd');
 
-      // Fetch attendance records and approved leave requests in parallel
-      const [attendanceResult, leaveResult] = await Promise.all([
+      // Fetch attendance records, leave requests, and employee profile in parallel
+      const [attendanceResult, leaveResult, profileResult] = await Promise.all([
         supabase
           .from('attendance_records')
           .select('*')
@@ -66,10 +66,17 @@ class AttendanceService {
           .eq('employee_id', employeeId)
           .eq('status', 'approved')
           .lte('start_date', endDateStr)
-          .gte('end_date', startDateStr)
+          .gte('end_date', startDateStr),
+        supabase
+          .from('profiles')
+          .select('employee_type')
+          .eq('id', employeeId)
+          .single()
       ]);
 
       if (attendanceResult.error) throw attendanceResult.error;
+
+      const employeeType = profileResult.data?.employee_type;
 
       // Build a set of dates that have approved leave
       const approvedLeaveDates = new Set<string>();
@@ -95,6 +102,19 @@ class AttendanceService {
       while (currentDate <= endDate) {
         const dateStr = format(currentDate, 'yyyy-MM-dd');
         const existingRecord = recordsByDate.get(dateStr);
+        const dayOfWeek = getDay(currentDate);
+        const isSaturday = dayOfWeek === 6;
+        const isSunday = dayOfWeek === 0;
+
+        // Determine if this day is a week-off based on employee type
+        let isWeekOff = false;
+        if (employeeType === 'FTE' || employeeType === 'FTDE') {
+          isWeekOff = isSaturday || isSunday; // Both Sat and Sun off
+        } else if (employeeType === 'Intern') {
+          isWeekOff = isSunday; // Only Sunday off
+        } else {
+          isWeekOff = isSaturday || isSunday; // Default: both off
+        }
 
         if (existingRecord) {
           // Use existing record from database
@@ -114,27 +134,39 @@ class AttendanceService {
             createdAt: existingRecord.created_at,
             updatedAt: existingRecord.updated_at
           });
+        } else if (isWeekOff) {
+          // Add week-off record for weekends based on employee type
+          allRecords.push({
+            id: `week-off-${dateStr}`,
+            employeeId,
+            date: dateStr,
+            checkIn: undefined,
+            checkOut: undefined,
+            breakTime: 0,
+            totalHours: 0,
+            status: 'week_off',
+            location: 'Office',
+            notes: 'Full day Weekly-off',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
         } else if (currentDate < today) {
           // Only add records for past dates (not today or future)
-          // Skip weekends (Saturday = 6, Sunday = 0)
-          const dayOfWeek = getDay(currentDate);
-          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            // Check if this date has an approved leave
-            const status = approvedLeaveDates.has(dateStr) ? 'on_leave' : 'absent';
-            allRecords.push({
-              id: `${status}-${dateStr}`,
-              employeeId,
-              date: dateStr,
-              checkIn: undefined,
-              checkOut: undefined,
-              breakTime: 0,
-              totalHours: 0,
-              status,
-              location: 'Office',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            });
-          }
+          // Check if this date has an approved leave
+          const status = approvedLeaveDates.has(dateStr) ? 'on_leave' : 'absent';
+          allRecords.push({
+            id: `${status}-${dateStr}`,
+            employeeId,
+            date: dateStr,
+            checkIn: undefined,
+            checkOut: undefined,
+            breakTime: 0,
+            totalHours: 0,
+            status,
+            location: 'Office',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
         }
 
         currentDate = addDays(currentDate, 1);
