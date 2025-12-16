@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -41,6 +41,8 @@ export interface LeaveRequestData {
   end_date: Date;
   total_days: number;
   reason: string;
+  start_session?: 'AM' | 'PM';
+  end_session?: 'AM' | 'PM';
 }
 
 const LEAVE_TYPES = [
@@ -60,6 +62,12 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
   const [fromOpen, setFromOpen] = useState(false);
   const [toOpen, setToOpen] = useState(false);
 
+  // Day mode and session states
+  const [dayMode, setDayMode] = useState<'full' | 'custom'>('full');
+  const [singleDaySession, setSingleDaySession] = useState<'AM' | 'PM'>('AM');
+  const [startSession, setStartSession] = useState<'AM' | 'PM'>('AM');
+  const [endSession, setEndSession] = useState<'AM' | 'PM'>('PM');
+
   // Filter out COMP_OFF if user has no available balance
   const availableLeaveTypes = LEAVE_TYPES.filter(type => {
     if (type.value === 'COMP_OFF') {
@@ -68,15 +76,60 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
     return true;
   });
 
-  const totalDays = fromDate && toDate 
+  const baseDays = fromDate && toDate 
     ? differenceInDays(toDate, fromDate) + 1 
     : 0;
+
+  const isSingleDay = baseDays === 1;
+
+  // Calculate total days based on day mode and session selections
+  const calculatedDays = useMemo(() => {
+    if (!fromDate || !toDate || baseDays <= 0) return 0;
+    
+    if (dayMode === 'full') {
+      return baseDays;
+    }
+    
+    // Custom mode
+    if (isSingleDay) {
+      return 0.5;
+    }
+    
+    // Multi-day custom calculation
+    let adjustment = 0;
+    if (startSession === 'PM') adjustment += 0.5; // Start from second half = -0.5
+    if (endSession === 'AM') adjustment += 0.5;   // End at first half = -0.5
+    
+    return baseDays - adjustment;
+  }, [fromDate, toDate, baseDays, dayMode, isSingleDay, startSession, endSession]);
+
+  const resetSelections = () => {
+    setLeaveType('');
+    setDayMode('full');
+    setSingleDaySession('AM');
+    setStartSession('AM');
+    setEndSession('PM');
+  };
 
   const resetForm = () => {
     setFromDate(undefined);
     setToDate(undefined);
-    setLeaveType('');
     setReason('');
+    resetSelections();
+  };
+
+  const handleFromDateSelect = (date: Date | undefined) => {
+    setFromDate(date);
+    resetSelections();
+    setFromOpen(false);
+    // Auto-open To date picker after small delay
+    setTimeout(() => setToOpen(true), 100);
+  };
+
+  const handleToDateSelect = (date: Date | undefined) => {
+    setToDate(date);
+    resetSelections();
+    setToOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -100,13 +153,26 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
 
     setIsSubmitting(true);
     try {
-      await onSubmit({
+      const submitData: LeaveRequestData = {
         leave_type: leaveType,
         start_date: fromDate,
         end_date: toDate,
-        total_days: totalDays,
+        total_days: calculatedDays,
         reason,
-      });
+      };
+
+      // Include session data if custom mode
+      if (dayMode === 'custom') {
+        if (isSingleDay) {
+          submitData.start_session = singleDaySession;
+          submitData.end_session = singleDaySession;
+        } else {
+          submitData.start_session = startSession;
+          submitData.end_session = endSession;
+        }
+      }
+
+      await onSubmit(submitData);
       resetForm();
       onOpenChange(false);
     } catch (error) {
@@ -154,12 +220,7 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
                   <Calendar
                     mode="single"
                     selected={fromDate}
-                    onSelect={(date) => {
-                      setFromDate(date);
-                      setFromOpen(false);
-                      // Auto-open To date picker after small delay
-                      setTimeout(() => setToOpen(true), 100);
-                    }}
+                    onSelect={handleFromDateSelect}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -168,8 +229,10 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
             </div>
 
             <div className="flex flex-col items-center justify-center px-4 py-2 bg-muted rounded-md min-w-[60px]">
-              <span className="text-2xl font-bold">{totalDays}</span>
-              <span className="text-xs text-muted-foreground">Days</span>
+              <span className="text-2xl font-bold">{calculatedDays}</span>
+              <span className="text-xs text-muted-foreground">
+                {calculatedDays === 1 ? 'Day' : 'Days'}
+              </span>
             </div>
 
             <div className="flex-1">
@@ -191,10 +254,7 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
                   <Calendar
                     mode="single"
                     selected={toDate}
-                    onSelect={(date) => {
-                      setToDate(date);
-                      setToOpen(false); // Auto-close after selection
-                    }}
+                    onSelect={handleToDateSelect}
                     disabled={(date) => fromDate ? date < fromDate : false}
                     initialFocus
                     className="pointer-events-auto"
@@ -220,6 +280,92 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
               </SelectContent>
             </Select>
           </div>
+
+          {/* Full Day / Custom Toggle - Only show after leave type is selected */}
+          {leaveType && fromDate && toDate && (
+            <div className="space-y-3">
+              {/* Toggle Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={dayMode === 'full' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDayMode('full')}
+                  className="flex-1"
+                >
+                  {isSingleDay ? 'Full day' : 'Full days'}
+                </Button>
+                <Button
+                  type="button"
+                  variant={dayMode === 'custom' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDayMode('custom')}
+                  className="flex-1"
+                >
+                  Custom
+                </Button>
+              </div>
+
+              {/* Custom Options */}
+              {dayMode === 'custom' && (
+                <>
+                  {isSingleDay ? (
+                    // Single day: One dropdown
+                    <Select 
+                      value={singleDaySession} 
+                      onValueChange={(v) => setSingleDaySession(v as 'AM' | 'PM')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AM">First Half</SelectItem>
+                        <SelectItem value="PM">Second Half</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    // Multi-day: Two dropdowns with date labels
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground min-w-[100px]">
+                          From {format(fromDate, 'dd MMM')}
+                        </span>
+                        <Select 
+                          value={startSession} 
+                          onValueChange={(v) => setStartSession(v as 'AM' | 'PM')}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">First Half</SelectItem>
+                            <SelectItem value="PM">Second Half</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground min-w-[100px]">
+                          To {format(toDate, 'dd MMM')}
+                        </span>
+                        <Select 
+                          value={endSession} 
+                          onValueChange={(v) => setEndSession(v as 'AM' | 'PM')}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">First Half</SelectItem>
+                            <SelectItem value="PM">Second Half</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {/* Note */}
           <div className="space-y-2">
