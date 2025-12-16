@@ -1,0 +1,20 @@
+name: Sync main → x2 latest
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push main to x2 latest
+        run: |
+          git push https://x2:${{ secrets.THRTOKEN }}@github.com/techouts/Thrportal.git main:dev_latest --force
