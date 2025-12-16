@@ -1,4 +1,4 @@
-name: Sync main → x2 latest
+name: Sync main → x2 dev_latest
 
 on:
   push:
@@ -15,6 +15,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push main to x2 latest
+      - name: Push main to x2 dev_latest
+        env:
+          THRTOKEN: ${{ secrets.THRTOKEN }}
         run: |
-          git push https://x2:${{ secrets.THRTOKEN }}@github.com/techouts/Thrportal.git main:dev_latest --force
+          git config --global user.email "sync@github-actions.com"
+          git config --global user.name "x1-to-x2-sync"
+
+          git push https://x2:${THRTOKEN}@github.com/techouts/Thrportal.git main:dev_latest --force
