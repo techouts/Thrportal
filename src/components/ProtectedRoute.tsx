@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   required?: string[];
@@ -7,7 +8,16 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ required = [], children }: ProtectedRouteProps) {
-  const { user, can } = useAuth();
+  const { user, isLoading, can } = useAuth();
+  
+  // Wait for auth to complete before making any decisions
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
   
   if (!user) return <Navigate to="/Auth/SignIn" replace />;
   

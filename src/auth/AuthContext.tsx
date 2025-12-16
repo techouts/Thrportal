@@ -166,12 +166,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 employeeId: session.user.id
               });
             }
+            setIsLoading(false); // Only set loading false AFTER user is set
           }, 0);
         } else {
           setUser(null);
+          setIsLoading(false); // No session = done loading
         }
-        
-        setIsLoading(false);
       }
     );
 
