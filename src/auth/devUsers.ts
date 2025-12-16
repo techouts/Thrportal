@@ -2,10 +2,10 @@ export const DEV_AUTH_MODE = true; // flip via env at build
 
 // Fixed UUIDs for dev users (synced with database)
 export const DEV_USER_ID_MAP: Record<string, string> = {
-  "admin@dev.local": "11111111-1111-1111-1111-111111111111",
+  "admin@dev.local": "fd017bbb-a24e-45fd-bf6c-6cc8e71279df",
   "mgmt@dev.local": "22222222-2222-2222-2222-222222222222",
   "viewer@dev.local": "33333333-3333-3333-3333-333333333333",
-  "manager@dev.local": "44444444-4444-4444-4444-444444444444",
+  "manager@dev.local": "df3ef83c-faf6-4712-be51-de7b292f1ed5",
   "employee@dev.local": "55555555-5555-5555-5555-555555555555",
   "recruiter@dev.local": "66666666-6666-6666-6666-666666666666",
   "hiringmgr@dev.local": "77777777-7777-7777-7777-777777777777",
