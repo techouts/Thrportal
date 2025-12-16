@@ -35,7 +35,7 @@ export function useWeeklyLeaves(employeeId: string, weekStart: Date) {
         .from('leave_requests')
         .select('*')
         .eq('employee_id', employeeId)
-        .eq('status', 'APPROVED')
+        .eq('status', 'approved')
         .lte('start_date', weekEndStr)
         .gte('end_date', weekStartStr);
 
