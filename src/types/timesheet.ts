@@ -15,6 +15,10 @@ export interface TimesheetEntry {
   billable: boolean
   nonBillableCategoryId?: string
   daily: DailyEntry[] // 7 days, Mon-Sun with hours and comment per day
+  // Auto-entry fields for leave/holiday entries
+  isAutoEntry?: boolean
+  autoEntryType?: 'leave' | 'holiday'
+  autoEntryLabel?: string
 }
 
 export interface Timesheet {
