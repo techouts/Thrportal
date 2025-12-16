@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { Plus, Info, AlertTriangle, Trash2 } from 'lucide-react'
+import { Plus, Info, AlertTriangle, Trash2, Leaf, PartyPopper } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -133,114 +133,166 @@ export function TimesheetGrid({
                 )}
 
                 {rows.map((row) => (
-                  <tr key={row.rowId} className="border-b hover:bg-muted/25">
+                  <tr 
+                    key={row.rowId} 
+                    className={cn(
+                      "border-b hover:bg-muted/25",
+                      row.isAutoEntry && row.autoEntryType === 'leave' && "bg-green-50/50",
+                      row.isAutoEntry && row.autoEntryType === 'holiday' && "bg-amber-50/50"
+                    )}
+                  >
                     <td className="p-3">
                       <div className="space-y-1">
-                        <div className="font-medium text-sm">
-                          {row.projectName} ▸ {row.taskName}
-                        </div>
-                        {!row.billable && (
-                          <Select
-                            value={row.nonBillableCategoryId || ''}
-                            onValueChange={(value) => onChangeCategory(row.rowId, value)}
-                            disabled={readonly}
-                          >
-                            <SelectTrigger className="h-7 text-xs">
-                              <SelectValue placeholder="Select category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map(cat => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {getWarningsForCell(row.rowId).length > 0 && (
-                          <Badge variant="destructive" className="text-xs">
-                            {getWarningsForCell(row.rowId).length} warning(s)
-                          </Badge>
+                        {row.isAutoEntry ? (
+                          <div className="font-medium text-sm flex items-center gap-2">
+                            {row.autoEntryType === 'leave' && (
+                              <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
+                            )}
+                            {row.autoEntryType === 'holiday' && (
+                              <PartyPopper className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                            )}
+                            <span className={cn(
+                              row.autoEntryType === 'leave' && "text-green-700",
+                              row.autoEntryType === 'holiday' && "text-amber-700"
+                            )}>
+                              {row.autoEntryLabel}
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-medium text-sm">
+                              {row.projectName} ▸ {row.taskName}
+                            </div>
+                            {!row.billable && (
+                              <Select
+                                value={row.nonBillableCategoryId || ''}
+                                onValueChange={(value) => onChangeCategory(row.rowId, value)}
+                                disabled={readonly}
+                              >
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {categories.map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>
+                                      {cat.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {getWarningsForCell(row.rowId).length > 0 && (
+                              <Badge variant="destructive" className="text-xs">
+                                {getWarningsForCell(row.rowId).length} warning(s)
+                              </Badge>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
                     
-                    {row.daily.map((dailyEntry, dayIndex) => {
-                      const cellWarnings = getWarningsForCell(row.rowId, dayIndex)
-                      const hasMissingComment = isMissingComment(row.rowId, dayIndex)
-                      const hasHours = dailyEntry.hours > 0
-                      const hasComment = dailyEntry.comment?.trim()
-                      
-                      return (
+                    {row.isAutoEntry ? (
+                      // Auto entries (leave/holiday) - read-only display
+                      row.daily.map((dailyEntry, dayIndex) => (
                         <td key={dayIndex} className="p-1 text-center">
-                          <div className="relative group">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  <TimeEntryPopover
-                                    value={dailyEntry.hours}
-                                    comment={dailyEntry.comment}
-                                    onChange={(value, comment) => onChangeCell(row.rowId, dayIndex, value, comment)}
-                                    disabled={readonly}
-                                  >
-                                    <div
-                                      className={cn(
-                                        "h-8 flex items-center justify-center text-sm cursor-pointer rounded border-2 border-transparent hover:border-muted transition-colors",
-                                        cellWarnings.length > 0 && "bg-destructive/10 text-destructive",
-                                        hasMissingComment && "border-amber-500 bg-amber-50",
-                                        readonly && "cursor-default hover:border-transparent"
-                                      )}
-                                      data-testid={`cell-${row.rowId}-${dayIndex}`}
-                                    >
-                                      {hasHours ? formatDecimalToTime(dailyEntry.hours) : '0:00'}
-                                    </div>
-                                  </TimeEntryPopover>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent 
-                                side="top" 
-                                className="bg-slate-800 text-white min-w-[60px] min-h-[24px]"
-                              >
-                                {hasComment ? (
-                                  <p>{dailyEntry.comment}</p>
-                                ) : (
-                                  <span className="text-slate-400 text-xs">No comment</span>
-                                )}
-                              </TooltipContent>
-                            </Tooltip>
-                            
-                            {/* Delete icon for individual cell */}
-                            {hasHours && !readonly && onDeleteEntry && (
-                              <button
-                                onClick={() => onDeleteEntry(row.rowId, dayIndex)}
-                                className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hidden group-hover:flex"
-                                title="Delete entry"
-                              >
-                                <Trash2 className="h-2.5 w-2.5" />
-                              </button>
+                          <div
+                            className={cn(
+                              "h-8 flex items-center justify-center text-sm rounded",
+                              dailyEntry.hours > 0 && row.autoEntryType === 'leave' && "bg-green-100 text-green-800 font-medium",
+                              dailyEntry.hours > 0 && row.autoEntryType === 'holiday' && "bg-amber-100 text-amber-800 font-medium",
+                              dailyEntry.hours === 0 && "text-muted-foreground"
                             )}
-                            
-                            {cellWarnings.length > 0 && (
-                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
-                            )}
-                            {/* Missing comment warning */}
-                            {hasMissingComment && (
-                              <div className="mt-0.5">
-                                <span className="text-[10px] text-amber-600 font-medium flex items-center justify-center gap-0.5">
-                                  <AlertTriangle className="h-2.5 w-2.5" />
-                                  COMMENT
-                                </span>
-                              </div>
-                            )}
+                          >
+                            {dailyEntry.hours > 0 ? formatDecimalToTime(dailyEntry.hours) : '-'}
                           </div>
                         </td>
-                      )
-                    })}
+                      ))
+                    ) : (
+                      // Regular entries - editable
+                      row.daily.map((dailyEntry, dayIndex) => {
+                        const cellWarnings = getWarningsForCell(row.rowId, dayIndex)
+                        const hasMissingComment = isMissingComment(row.rowId, dayIndex)
+                        const hasHours = dailyEntry.hours > 0
+                        const hasComment = dailyEntry.comment?.trim()
+                        
+                        return (
+                          <td key={dayIndex} className="p-1 text-center">
+                            <div className="relative group">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <TimeEntryPopover
+                                      value={dailyEntry.hours}
+                                      comment={dailyEntry.comment}
+                                      onChange={(value, comment) => onChangeCell(row.rowId, dayIndex, value, comment)}
+                                      disabled={readonly}
+                                    >
+                                      <div
+                                        className={cn(
+                                          "h-8 flex items-center justify-center text-sm cursor-pointer rounded border-2 border-transparent hover:border-muted transition-colors",
+                                          cellWarnings.length > 0 && "bg-destructive/10 text-destructive",
+                                          hasMissingComment && "border-amber-500 bg-amber-50",
+                                          readonly && "cursor-default hover:border-transparent"
+                                        )}
+                                        data-testid={`cell-${row.rowId}-${dayIndex}`}
+                                      >
+                                        {hasHours ? formatDecimalToTime(dailyEntry.hours) : '0:00'}
+                                      </div>
+                                    </TimeEntryPopover>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                  side="top" 
+                                  className="bg-slate-800 text-white min-w-[60px] min-h-[24px]"
+                                >
+                                  {hasComment ? (
+                                    <p>{dailyEntry.comment}</p>
+                                  ) : (
+                                    <span className="text-slate-400 text-xs">No comment</span>
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              {/* Delete icon for individual cell */}
+                              {hasHours && !readonly && onDeleteEntry && (
+                                <button
+                                  onClick={() => onDeleteEntry(row.rowId, dayIndex)}
+                                  className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground rounded-full items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hidden group-hover:flex"
+                                  title="Delete entry"
+                                >
+                                  <Trash2 className="h-2.5 w-2.5" />
+                                </button>
+                              )}
+                              
+                              {cellWarnings.length > 0 && (
+                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
+                              )}
+                              {/* Missing comment warning */}
+                              {hasMissingComment && (
+                                <div className="mt-0.5">
+                                  <span className="text-[10px] text-amber-600 font-medium flex items-center justify-center gap-0.5">
+                                    <AlertTriangle className="h-2.5 w-2.5" />
+                                    COMMENT
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        )
+                      })
+                    )}
                     
                     <td className="p-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <span className="font-medium">{formatDecimalToTime(calculateRowTotal(row))}</span>
-                        {rowHasAnyHours(row) && !readonly && onDeleteRow && (
+                        <span className={cn(
+                          "font-medium",
+                          row.isAutoEntry && row.autoEntryType === 'leave' && "text-green-700",
+                          row.isAutoEntry && row.autoEntryType === 'holiday' && "text-amber-700"
+                        )}>
+                          {formatDecimalToTime(calculateRowTotal(row))}
+                        </span>
+                        {/* Only show delete button for non-auto entries */}
+                        {!row.isAutoEntry && rowHasAnyHours(row) && !readonly && onDeleteRow && (
                           <button
                             onClick={() => onDeleteRow(row.rowId)}
                             className="text-muted-foreground hover:text-destructive transition-colors"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, startOfWeek, addDays, subWeeks } from 'date-fns'
 import { Save, Send, Copy, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,8 @@ import { CommentSummary } from './CommentSummary'
 import { TimesheetActivity } from './TimesheetActivity'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
+import { useWeeklyLeaves } from '@/hooks/useWeeklyLeaves'
+import { useWeeklyHolidays } from '@/hooks/useHolidays'
 import { useIsMobile } from '@/hooks/use-mobile'
 import type { 
   Timesheet, 
@@ -65,8 +67,68 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
   
   // Fetch attendance hours for the selected week
   const { attendanceHours } = useWeeklyAttendance(employeeId, selectedWeek)
+  
+  // Fetch leaves and holidays for the selected week
+  const { data: weeklyLeaves = [] } = useWeeklyLeaves(employeeId, selectedWeek)
+  const { data: weeklyHolidays = [] } = useWeeklyHolidays(selectedWeek)
 
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+  // Generate auto-entries for leaves and holidays
+  const autoEntries = useMemo(() => {
+    const leaveEntriesMap = new Map<string, TimesheetEntry>()
+    
+    // Group leaves by type to create one row per leave type
+    weeklyLeaves.forEach((leave) => {
+      const key = `leave-${leave.leaveType}`
+      if (!leaveEntriesMap.has(key)) {
+        leaveEntriesMap.set(key, {
+          rowId: key,
+          projectId: 'auto-leave',
+          projectName: `Time-off: ${leave.leaveTypeLabel}`,
+          taskId: '',
+          taskName: '',
+          billable: false,
+          isAutoEntry: true,
+          autoEntryType: 'leave',
+          autoEntryLabel: `Time-off: ${leave.leaveTypeLabel}`,
+          daily: Array(7).fill(null).map(() => ({ hours: 0, comment: '' }))
+        })
+      }
+      
+      // Find day index and set hours
+      const leaveDate = new Date(leave.date)
+      const dayIndex = Math.round((leaveDate.getTime() - selectedWeek.getTime()) / (1000 * 60 * 60 * 24))
+      if (dayIndex >= 0 && dayIndex < 7) {
+        const entry = leaveEntriesMap.get(key)!
+        entry.daily[dayIndex] = { hours: leave.hours, comment: '' }
+      }
+    })
+
+    // Create holiday entries
+    const holidayEntries: TimesheetEntry[] = weeklyHolidays.map((holiday) => ({
+      rowId: `holiday-${holiday.date}`,
+      projectId: 'auto-holiday',
+      projectName: `Holiday: ${holiday.name}`,
+      taskId: '',
+      taskName: '',
+      billable: false,
+      isAutoEntry: true,
+      autoEntryType: 'holiday',
+      autoEntryLabel: `Holiday: ${holiday.name}`,
+      daily: Array(7).fill(null).map((_, i) => ({
+        hours: i === holiday.dayIndex ? 8 : 0,
+        comment: ''
+      }))
+    }))
+
+    return [...Array.from(leaveEntriesMap.values()), ...holidayEntries]
+  }, [weeklyLeaves, weeklyHolidays, selectedWeek])
+
+  // Combine auto entries with user entries for display
+  const allRows = useMemo(() => {
+    return [...autoEntries, ...entries]
+  }, [autoEntries, entries])
 
   useEffect(() => {
     loadTimesheet()
@@ -127,12 +189,15 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
   }
 
   const calculateTotals = (): TimesheetTotals => {
-    const weekTotal = entries.reduce((sum, entry) => 
+    // Include both auto entries (leave/holiday) and user entries for totals
+    const allEntriesForTotals = [...autoEntries, ...entries]
+    
+    const weekTotal = allEntriesForTotals.reduce((sum, entry) => 
       sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0
     )
     
     const byDay = Array(7).fill(0).map((_, dayIndex) => 
-      entries.reduce((sum, entry) => sum + (entry.daily[dayIndex]?.hours || 0), 0)
+      allEntriesForTotals.reduce((sum, entry) => sum + (entry.daily[dayIndex]?.hours || 0), 0)
     )
     
     const billable = entries
@@ -142,13 +207,18 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
     const nonBillable = entries
       .filter(entry => !entry.billable)
       .reduce((sum, entry) => sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0)
+    
+    // Calculate time off from auto entries
+    const timeOff = autoEntries.reduce((sum, entry) => 
+      sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0
+    )
 
     return {
       week: weekTotal,
       byDay,
       billable,
       nonBillable,
-      timeOff: 0
+      timeOff
     }
   }
 
@@ -632,7 +702,7 @@ const handleCopyLastWeek = async () => {
         />
       ) : (
         <TimesheetGrid
-          rows={entries}
+          rows={allRows}
           onChangeCell={handleCellChange}
           onChangeCategory={handleCategoryChange}
           onRowAction={handleRowAction}

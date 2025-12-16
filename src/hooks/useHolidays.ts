@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { format, addDays } from 'date-fns';
 
 export interface Holiday {
   id: string;
@@ -11,9 +12,16 @@ export interface Holiday {
   year: number;
 }
 
+export interface WeeklyHoliday {
+  date: string;
+  name: string;
+  dayIndex: number;
+}
+
 const QUERY_KEYS = {
   holidays: 'holidays',
   upcomingHolidays: 'upcomingHolidays',
+  weeklyHolidays: 'weeklyHolidays',
 };
 
 export function useHolidays(year: number) {
@@ -47,6 +55,39 @@ export function useUpcomingHolidays(limit: number = 5) {
 
       if (error) throw error;
       return data as Holiday[];
+    },
+  });
+}
+
+export function useWeeklyHolidays(weekStart: Date) {
+  const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+  const weekEnd = addDays(weekStart, 6);
+  const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+
+  return useQuery({
+    queryKey: [QUERY_KEYS.weeklyHolidays, weekStartStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('holidays')
+        .select('*')
+        .gte('date', weekStartStr)
+        .lte('date', weekEndStr)
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+
+      // Map holidays to include day index
+      const holidays: WeeklyHoliday[] = (data || []).map((holiday) => {
+        const holidayDate = new Date(holiday.date);
+        const dayIndex = Math.round((holidayDate.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          date: holiday.date,
+          name: holiday.name,
+          dayIndex,
+        };
+      });
+
+      return holidays;
     },
   });
 }
