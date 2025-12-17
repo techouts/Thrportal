@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
@@ -96,9 +97,17 @@ export function ApprovalQueues({
   const [timesheetEntries, setTimesheetEntries] = useState<TimesheetEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
 
+  // Details sheet state (for rejected items)
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [selectedItemForDetails, setSelectedItemForDetails] = useState<ApprovalItem | null>(null);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedItems(paginatedApprovals.map(item => item.id));
+      // Only select non-rejected items from current page
+      const selectableIds = paginatedApprovals
+        .filter(item => item.status !== 'rejected')
+        .map(item => item.id);
+      setSelectedItems(selectableIds);
     } else {
       setSelectedItems([]);
     }
@@ -171,12 +180,21 @@ export function ApprovalQueues({
     }
   };
 
+  const handleViewDetails = (item: ApprovalItem) => {
+    setSelectedItemForDetails(item);
+    setDetailsSheetOpen(true);
+  };
+
   const filteredApprovals = approvals.filter(item => {
     const matchesSearch = !filters.search || 
       item.employeeName.toLowerCase().includes(filters.search.toLowerCase()) ||
       item.title.toLowerCase().includes(filters.search.toLowerCase());
     
-    const matchesStatus = filters.status === 'all' || item.status === filters.status;
+    // In default "all" view, exclude rejected items
+    // Only show rejected when explicitly filtered
+    const matchesStatus = filters.status === 'all' 
+      ? item.status !== 'rejected'
+      : item.status === filters.status;
     
     return matchesSearch && matchesStatus;
   });
@@ -187,6 +205,9 @@ export function ApprovalQueues({
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  // Only select non-rejected items for bulk actions
+  const selectableItems = paginatedApprovals.filter(item => item.status !== 'rejected');
 
   // Reset to page 1 when filters change
   const handleFilterChange = (newFilters: typeof filters) => {
@@ -314,10 +335,12 @@ export function ApprovalQueues({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">
-                    <Checkbox 
-                      checked={selectedItems.length === paginatedApprovals.length && paginatedApprovals.length > 0}
-                      onCheckedChange={handleSelectAll}
-                    />
+                    {selectableItems.length > 0 && (
+                      <Checkbox 
+                        checked={selectedItems.length === selectableItems.length && selectableItems.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    )}
                   </TableHead>
                   <TableHead>Employee</TableHead>
                   <TableHead>Request</TableHead>
@@ -330,10 +353,14 @@ export function ApprovalQueues({
                 {paginatedApprovals.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
-                      <Checkbox 
-                        checked={selectedItems.includes(item.id)}
-                        onCheckedChange={(checked) => handleSelectItem(item.id, checked as boolean)}
-                      />
+                      {item.status !== 'rejected' ? (
+                        <Checkbox 
+                          checked={selectedItems.includes(item.id)}
+                          onCheckedChange={(checked) => handleSelectItem(item.id, checked as boolean)}
+                        />
+                      ) : (
+                        <div className="w-4" />
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{item.employeeName}</div>
@@ -359,26 +386,36 @@ export function ApprovalQueues({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      {item.status === 'rejected' ? (
                         <Button 
                           size="sm" 
-                          variant="default"
-                          onClick={() => onApprove(item.id, undefined, item.type)}
-                          className="h-8 w-8 p-0"
-                          disabled={item.status === 'rejected'}
+                          variant="outline"
+                          onClick={() => handleViewDetails(item)}
+                          className="flex items-center gap-1"
                         >
-                          <CheckCircle className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
+                          View Details
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => handleOpenRejectDialog(item.id, item.type)}
-                          className="h-8 w-8 p-0"
-                          disabled={item.status === 'rejected'}
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      ) : (
+                        <div className="flex gap-1">
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => onApprove(item.id, undefined, item.type)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleOpenRejectDialog(item.id, item.type)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -586,6 +623,57 @@ export function ApprovalQueues({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Details Sheet for Rejected Items */}
+      <Sheet open={detailsSheetOpen} onOpenChange={setDetailsSheetOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Timesheet Details</SheetTitle>
+          </SheetHeader>
+          {selectedItemForDetails && (
+            <div className="space-y-6 mt-6">
+              <div>
+                <Label className="text-muted-foreground text-sm">Employee</Label>
+                <p className="font-medium mt-1">{selectedItemForDetails.employeeName}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-sm">Date Range</Label>
+                <p className="font-medium mt-1">
+                  {formatDateRange(selectedItemForDetails.requestDate, selectedItemForDetails.additionalInfo?.weekEnd)}
+                </p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-sm">Total Hours</Label>
+                <p className="font-medium mt-1">{selectedItemForDetails.additionalInfo?.totalHours || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-sm">Billable Hours</Label>
+                <p className="font-medium mt-1">{selectedItemForDetails.additionalInfo?.billableHours || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-sm">Status</Label>
+                <div className="mt-1">
+                  <Badge variant="destructive">Rejected</Badge>
+                </div>
+              </div>
+              {/* Rejection Reason - highlighted box */}
+              {selectedItemForDetails.additionalInfo?.rejectionReason && (
+                <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                  <Label className="text-destructive text-sm font-medium">Rejection Reason</Label>
+                  <p className="mt-1 text-sm">{selectedItemForDetails.additionalInfo.rejectionReason}</p>
+                </div>
+              )}
+              {/* Employee's submission comment */}
+              {selectedItemForDetails.additionalInfo?.submissionComment && (
+                <div>
+                  <Label className="text-muted-foreground text-sm">Employee Comment</Label>
+                  <p className="font-medium mt-1">{selectedItemForDetails.additionalInfo.submissionComment}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
