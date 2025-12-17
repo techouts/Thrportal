@@ -274,7 +274,9 @@ export class MyTeamService {
             billable_hours,
             status,
             submitted_at,
-            submission_comment
+            submission_comment,
+            approver_comment,
+            rejected_at
           `)
           .in('employee_id', teamMemberIds)
           .order('submitted_at', { ascending: false });
@@ -327,7 +329,9 @@ export class MyTeamService {
                 totalHours: ts.total_hours,
                 billableHours: ts.billable_hours,
                 weekEnd: ts.week_end,
-                submissionComment: ts.submission_comment
+                submissionComment: ts.submission_comment,
+                rejectionReason: ts.approver_comment,
+                rejectedAt: ts.rejected_at
               }
             };
           });
