@@ -602,3 +602,110 @@ export function useBulkApproveLeaveRequests() {
     },
   });
 }
+
+// Interface for all team leaves
+export interface AllTeamLeavesEntry {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  status: string;
+  requestSource: 'leave' | 'comp_off';
+  createdAt: string;
+}
+
+// Fetch all team leaves (pending, approved, rejected) for Coverage Analysis
+export function useAllTeamLeaves(managerId: string | undefined) {
+  return useQuery({
+    queryKey: ['all-team-leaves', managerId],
+    queryFn: async () => {
+      if (!managerId) return { data: [] as AllTeamLeavesEntry[] };
+
+      // Get direct reports
+      const { data: directReports, error: reportsError } = await supabase
+        .from('profiles')
+        .select('id, display_name, first_name, last_name')
+        .eq('manager_employee_id', managerId);
+
+      if (reportsError) throw reportsError;
+      if (!directReports || directReports.length === 0) return { data: [] as AllTeamLeavesEntry[] };
+
+      const directReportIds = directReports.map(r => r.id);
+
+      // Fetch leave requests with all statuses
+      const leaveQuery = supabase
+        .from('leave_requests')
+        .select('*')
+        .in('employee_id', directReportIds)
+        .in('status', ['pending', 'approved', 'rejected']);
+
+      // Fetch comp-off requests with all statuses
+      const compOffQuery = supabase
+        .from('comp_off_requests')
+        .select('*')
+        .in('employee_id', directReportIds)
+        .in('status', ['pending', 'approved', 'rejected']);
+
+      const [leaveResult, compOffResult] = await Promise.all([
+        leaveQuery.order('start_date', { ascending: false }),
+        compOffQuery.order('start_date', { ascending: false })
+      ]);
+
+      if (leaveResult.error) throw leaveResult.error;
+      if (compOffResult.error) throw compOffResult.error;
+
+      // Map leave requests
+      const leaveEntries: AllTeamLeavesEntry[] = (leaveResult.data || []).map(req => {
+        const employee = directReports.find(r => r.id === req.employee_id);
+        const employeeName = employee?.display_name || 
+          `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim() || 
+          'Unknown';
+
+        return {
+          id: req.id,
+          employeeId: req.employee_id,
+          employeeName,
+          leaveType: req.leave_type || 'CL',
+          startDate: req.start_date,
+          endDate: req.end_date,
+          totalDays: req.total_days || 1,
+          status: req.status,
+          requestSource: 'leave' as const,
+          createdAt: req.created_at,
+        };
+      });
+
+      // Map comp-off requests
+      const compOffEntries: AllTeamLeavesEntry[] = (compOffResult.data || []).map(req => {
+        const employee = directReports.find(r => r.id === req.employee_id);
+        const employeeName = employee?.display_name || 
+          `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim() || 
+          'Unknown';
+
+        return {
+          id: req.id,
+          employeeId: req.employee_id,
+          employeeName,
+          leaveType: 'COMP_OFF',
+          startDate: req.start_date,
+          endDate: req.end_date,
+          totalDays: req.total_days || 1,
+          status: req.status,
+          requestSource: 'comp_off' as const,
+          createdAt: req.created_at,
+        };
+      });
+
+      // Combine and sort by start_date descending
+      const allEntries = [...leaveEntries, ...compOffEntries].sort(
+        (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+      );
+
+      return { data: allEntries };
+    },
+    enabled: !!managerId,
+  });
+}

@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { 
   usePendingLeaveApprovals, 
   useTeamCalendarTable,
+  useAllTeamLeaves,
   useApproveLeaveRequest,
   useApproveCompOffRequest,
   useRejectLeaveRequest,
@@ -63,6 +64,9 @@ export default function MyTeamLeavePage() {
   // Team calendar table state
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilterType>('upcoming_week');
   const [calendarPage, setCalendarPage] = useState(1);
+  
+  // Coverage analysis table state
+  const [coveragePage, setCoveragePage] = useState(1);
   const CALENDAR_ITEMS_PER_PAGE = 10;
 
   // Get current user ID
@@ -76,6 +80,7 @@ export default function MyTeamLeavePage() {
   
   // Use Supabase hooks with status filter
   const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveApprovals(currentUserId, filters.status);
+  const { data: allTeamLeavesData, isLoading: allTeamLeavesLoading } = useAllTeamLeaves(currentUserId);
   const { data: calendarTableData, isLoading: calendarTableLoading } = useTeamCalendarTable(currentUserId, calendarFilter);
   
   const approveRequest = useApproveLeaveRequest();
@@ -102,6 +107,28 @@ export default function MyTeamLeavePage() {
     (calendarPage - 1) * CALENDAR_ITEMS_PER_PAGE,
     calendarPage * CALENDAR_ITEMS_PER_PAGE
   );
+
+  // Coverage analysis pagination
+  const allTeamLeaves = allTeamLeavesData?.data || [];
+  const coverageTotalPages = Math.ceil(allTeamLeaves.length / ITEMS_PER_PAGE);
+  const paginatedCoverageEntries = allTeamLeaves.slice(
+    (coveragePage - 1) * ITEMS_PER_PAGE,
+    coveragePage * ITEMS_PER_PAGE
+  );
+
+  // Get status badge for coverage table
+  const getCoverageStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Approved</Badge>;
+      case 'pending':
+        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pending</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   // Format date range helper
   const formatDateRange = (startDate: string, endDate: string) => {
@@ -584,13 +611,80 @@ export default function MyTeamLeavePage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Coverage Analysis
+                  All Team Leaves ({allTeamLeaves.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Coverage analysis coming soon...
-                </div>
+                {allTeamLeavesLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-12 bg-muted rounded" />
+                      </div>
+                    ))}
+                  </div>
+                ) : paginatedCoverageEntries.length > 0 ? (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee Name</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedCoverageEntries.map((entry) => (
+                          <TableRow key={`${entry.requestSource}-${entry.id}`}>
+                            <TableCell className="font-medium">{entry.employeeName}</TableCell>
+                            <TableCell>{formatDateRange(entry.startDate, entry.endDate)}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType}</Badge>
+                            </TableCell>
+                            <TableCell>{getCoverageStatusBadge(entry.status)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {/* Pagination */}
+                    {coverageTotalPages > 0 && (
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                        <p className="text-sm text-muted-foreground">
+                          Showing {((coveragePage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(coveragePage * ITEMS_PER_PAGE, allTeamLeaves.length)} of {allTeamLeaves.length} entries
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCoveragePage(p => Math.max(1, p - 1))}
+                            disabled={coveragePage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          <span className="text-sm text-muted-foreground">
+                            Page {coveragePage} of {coverageTotalPages || 1}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCoveragePage(p => Math.min(coverageTotalPages, p + 1))}
+                            disabled={coveragePage === coverageTotalPages || coverageTotalPages === 0}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No leave requests found for your team
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
