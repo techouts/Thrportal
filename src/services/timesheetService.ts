@@ -175,6 +175,7 @@ export class TimesheetService {
       billableHours: Number(timesheetData.billable_hours) || 0,
       submittedAt: timesheetData.submitted_at || undefined,
       approvedAt: timesheetData.approved_at || undefined,
+      rejectedAt: timesheetData.rejected_at || undefined,
       approverComment: timesheetData.approver_comment || undefined,
       submissionComment: timesheetData.submission_comment || undefined,
       entries
