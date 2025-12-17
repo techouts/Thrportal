@@ -208,8 +208,44 @@ export class MyTeamService {
     };
   }
 
+  // Fetch timesheet entries for a specific timesheet
+  async getTimesheetEntries(timesheetId: string): Promise<ApiResponse<any>> {
+    try {
+      const { data, error } = await supabase
+        .from('timesheet_entries')
+        .select('id, entry_date, task_name, hours, comment, is_billable')
+        .eq('timesheet_id', timesheetId)
+        .order('entry_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching timesheet entries:', error);
+        return {
+          data: [],
+          message: 'Failed to fetch timesheet entries',
+          success: false,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      return {
+        data: data || [],
+        message: 'Timesheet entries fetched successfully',
+        success: true,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error in getTimesheetEntries:', error);
+      return {
+        data: [],
+        message: 'Failed to fetch timesheet entries',
+        success: false,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
   // Approval Queues - Now fetches real timesheet data from database
-  async getApprovalQueues(managerId: string): Promise<ApiResponse<any>> {
+  async getApprovalQueues(managerId: string, statusFilter?: string): Promise<ApiResponse<any>> {
     try {
       // Get team members who report to this manager
       const { data: teamMembers, error: teamError } = await supabase
@@ -223,11 +259,11 @@ export class MyTeamService {
 
       const teamMemberIds = teamMembers?.map(m => m.id) || [];
 
-      // Fetch submitted timesheets for team members
+      // Fetch timesheets for team members based on status filter
       let timesheetApprovals: any[] = [];
       
       if (teamMemberIds.length > 0) {
-        const { data: timesheets, error: tsError } = await supabase
+        let query = supabase
           .from('timesheets')
           .select(`
             id,
@@ -240,9 +276,20 @@ export class MyTeamService {
             submitted_at,
             submission_comment
           `)
-          .eq('status', 'SUBMITTED')
           .in('employee_id', teamMemberIds)
           .order('submitted_at', { ascending: false });
+
+        // Apply status filter
+        if (statusFilter === 'rejected') {
+          query = query.eq('status', 'REJECTED');
+        } else if (statusFilter === 'pending') {
+          query = query.eq('status', 'SUBMITTED');
+        } else {
+          // 'all' - fetch both SUBMITTED and REJECTED
+          query = query.in('status', ['SUBMITTED', 'REJECTED']);
+        }
+
+        const { data: timesheets, error: tsError } = await query;
 
         if (tsError) {
           console.error('Error fetching timesheets:', tsError);
@@ -274,20 +321,21 @@ export class MyTeamService {
               requestDate: ts.week_start,
               submittedAt: ts.submitted_at || new Date().toISOString(),
               priority: 'medium',
-              status: 'pending',
+              status: ts.status === 'REJECTED' ? 'rejected' : 'pending',
               attachments: 0,
               additionalInfo: {
                 totalHours: ts.total_hours,
                 billableHours: ts.billable_hours,
-                weekEnd: ts.week_end
+                weekEnd: ts.week_end,
+                submissionComment: ts.submission_comment
               }
             };
           });
         }
       }
 
-      // Combine with mock data for other types (leave, expense, attendance, profile)
-      const mockApprovals = [
+      // Combine with mock data for other types (leave, expense, attendance, profile) - only for non-rejected filter
+      const mockApprovals = statusFilter === 'rejected' ? [] : [
         {
           id: 'mock-1',
           type: 'leave',
