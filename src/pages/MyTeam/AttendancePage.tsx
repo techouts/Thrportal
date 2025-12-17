@@ -13,6 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { usePendingRegularizationRequests, useApproveRegularization, useRejectRegularization } from '@/hooks/useAttendanceRegularization';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 export default function MyTeamAttendancePage() {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -20,6 +23,11 @@ export default function MyTeamAttendancePage() {
   const [loading, setLoading] = useState(true);
   const [approvalsPage, setApprovalsPage] = useState(1);
   const APPROVALS_ITEMS_PER_PAGE = 10;
+  
+  // Rejection dialog state
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Use the hook for regularization requests
   const { data: pendingRegularizations = [], isLoading: regularizationsLoading } = usePendingRegularizationRequests(currentUser?.id);
@@ -57,14 +65,29 @@ export default function MyTeamAttendancePage() {
     }
   };
 
-  const handleApproval = async (requestId: string, action: 'approve' | 'reject') => {
+  const handleApproval = async (requestId: string) => {
     if (!currentUser?.id) return;
+    approveRegularization.mutate({ requestId, approverId: currentUser.id });
+  };
+
+  const handleOpenRejectDialog = (requestId: string) => {
+    setSelectedRequestId(requestId);
+    setRejectionReason('');
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectSubmit = () => {
+    if (!selectedRequestId || !currentUser?.id) return;
     
-    if (action === 'approve') {
-      approveRegularization.mutate({ requestId, approverId: currentUser.id });
-    } else {
-      rejectRegularization.mutate({ requestId, approverId: currentUser.id });
-    }
+    rejectRegularization.mutate({
+      requestId: selectedRequestId,
+      approverId: currentUser.id,
+      rejectionReason: rejectionReason.trim() || undefined
+    });
+    
+    setRejectDialogOpen(false);
+    setSelectedRequestId(null);
+    setRejectionReason('');
   };
 
   const calculateTeamStats = () => {
@@ -277,7 +300,7 @@ export default function MyTeamAttendancePage() {
                               <div className="flex items-center justify-end gap-2">
                                 <Button 
                                   size="sm" 
-                                  onClick={() => handleApproval(request.id, 'approve')}
+                                  onClick={() => handleApproval(request.id)}
                                   className="h-8 px-2"
                                   disabled={approveRegularization.isPending || rejectRegularization.isPending}
                                 >
@@ -286,7 +309,7 @@ export default function MyTeamAttendancePage() {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => handleApproval(request.id, 'reject')}
+                                  onClick={() => handleOpenRejectDialog(request.id)}
                                   className="h-8 px-2"
                                   disabled={approveRegularization.isPending || rejectRegularization.isPending}
                                 >
@@ -344,6 +367,42 @@ export default function MyTeamAttendancePage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Regularization Request</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">Rejection Reason</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Enter the reason for rejection..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleRejectSubmit}
+              disabled={rejectRegularization.isPending}
+            >
+              {rejectRegularization.isPending ? 'Submitting...' : 'Submit'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
