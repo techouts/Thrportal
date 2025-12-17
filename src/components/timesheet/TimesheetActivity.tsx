@@ -39,7 +39,7 @@ export function TimesheetActivity({ timesheet, entries, weekStart, weekEnd }: Ti
       })
     }
     
-    if ((timesheet.status === 'SUBMITTED' || timesheet.status === 'APPROVED') && timesheet.submittedAt) {
+    if ((timesheet.status === 'SUBMITTED' || timesheet.status === 'APPROVED' || timesheet.status === 'REJECTED') && timesheet.submittedAt) {
       activities.push({
         id: 'submitted',
         action: 'submitted',
