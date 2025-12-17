@@ -28,6 +28,7 @@ export interface PendingLeaveRequest {
   coverageScore: string;
   conflictsWith: string[];
   evidence_url?: string | null;
+  rejection_reason?: string | null;
   request_source: 'leave' | 'comp_off';
 }
 
@@ -45,9 +46,9 @@ interface TeamMemberCalendar {
 }
 
 // Fetch pending leave approvals for manager's direct reports (includes comp-off requests)
-export function usePendingLeaveApprovals(managerId: string | undefined) {
+export function usePendingLeaveApprovals(managerId: string | undefined, statusFilter: 'pending' | 'rejected' = 'pending') {
   return useQuery({
-    queryKey: [QUERY_KEYS.pendingApprovals, managerId],
+    queryKey: [QUERY_KEYS.pendingApprovals, managerId, statusFilter],
     queryFn: async () => {
       if (!managerId) return { data: [] };
 
@@ -65,19 +66,19 @@ export function usePendingLeaveApprovals(managerId: string | undefined) {
         return { data: [] };
       }
 
-      // Fetch pending leave requests AND pending comp-off requests from direct reports
+      // Fetch leave requests AND comp-off requests from direct reports based on status filter
       const [leaveResult, compOffResult] = await Promise.all([
         supabase
           .from('leave_requests')
           .select('*')
           .in('employee_id', reportIds)
-          .eq('status', 'pending')
+          .eq('status', statusFilter)
           .order('created_at', { ascending: false }),
         supabase
           .from('comp_off_requests')
           .select('*')
           .in('employee_id', reportIds)
-          .eq('status', 'pending')
+          .eq('status', statusFilter)
           .order('created_at', { ascending: false })
       ]);
 
@@ -109,7 +110,8 @@ export function usePendingLeaveApprovals(managerId: string | undefined) {
           halfDay: undefined,
           coverageScore: 'High',
           conflictsWith: [],
-          evidence_url: null,
+          evidence_url: req.evidence_url,
+          rejection_reason: req.rejection_reason,
           request_source: 'leave' as const,
         };
       });
@@ -140,6 +142,7 @@ export function usePendingLeaveApprovals(managerId: string | undefined) {
           coverageScore: 'High',
           conflictsWith: [],
           evidence_url: req.evidence_url,
+          rejection_reason: null, // comp_off doesn't have rejection_reason column
           request_source: 'comp_off' as const,
         };
       });

@@ -6,7 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { 
   usePendingLeaveApprovals, 
@@ -23,20 +27,37 @@ import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const ITEMS_PER_PAGE = 10;
+
+const LEAVE_TYPE_LABELS: Record<string, string> = {
+  CL: "Casual Leave",
+  ML: "Maternity Leave",
+  PTL: "Paternity Leave",
+  COMP_OFF: "Comp-Off",
+};
+
 export default function MyTeamLeavePage() {
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<{
     search: string;
     type: LeaveType | "";
-    status: string;
-    hasConflict: boolean | undefined;
+    status: 'pending' | 'rejected';
   }>({
     search: "",
     type: "",
-    status: "",
-    hasConflict: undefined
+    status: "pending"
   });
+
+  // Rejection dialog state
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedRequestForReject, setSelectedRequestForReject] = useState<PendingLeaveRequest | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  // View details sheet state
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [selectedRequestForDetails, setSelectedRequestForDetails] = useState<PendingLeaveRequest | null>(null);
   
   const currentMonth = new Date();
   const monthStart = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
@@ -51,8 +72,8 @@ export default function MyTeamLeavePage() {
     getUser();
   }, []);
   
-  // Use Supabase hooks
-  const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveApprovals(currentUserId);
+  // Use Supabase hooks with status filter
+  const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveApprovals(currentUserId, filters.status);
   const { data: teamCalendar, isLoading: calendarLoading } = useTeamCalendarSupabase(currentUserId, monthStart, monthEnd);
   
   const approveRequest = useApproveLeaveRequest();
@@ -61,6 +82,11 @@ export default function MyTeamLeavePage() {
   const rejectCompOffRequest = useRejectCompOffRequest();
   const bulkApprove = useBulkApproveLeaveRequests();
   const { toast } = useToast();
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   // Filter the requests based on filters
   const filteredRequests = pendingRequests?.data?.filter(request => {
@@ -72,6 +98,13 @@ export default function MyTeamLeavePage() {
     }
     return true;
   }) || [];
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleApprove = (request: PendingLeaveRequest) => {
     if (request.request_source === 'comp_off') {
@@ -86,6 +119,15 @@ export default function MyTeamLeavePage() {
       rejectCompOffRequest.mutate({ id: request.id, reason });
     } else {
       rejectRequest.mutate({ id: request.id, reason });
+    }
+  };
+
+  const handleRejectSubmit = () => {
+    if (selectedRequestForReject && rejectionReason.trim()) {
+      handleReject(selectedRequestForReject, rejectionReason.trim());
+      setRejectDialogOpen(false);
+      setSelectedRequestForReject(null);
+      setRejectionReason("");
     }
   };
 
@@ -135,13 +177,8 @@ export default function MyTeamLeavePage() {
     );
   };
 
-  const getCoverageColor = (score: string) => {
-    switch (score) {
-      case 'High': return 'text-green-600';
-      case 'Medium': return 'text-yellow-600';
-      case 'Low': return 'text-red-600';
-      default: return 'text-muted-foreground';
-    }
+  const getLeaveTypeLabel = (type: string) => {
+    return LEAVE_TYPE_LABELS[type] || type;
   };
 
   return (
@@ -156,7 +193,7 @@ export default function MyTeamLeavePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            {selectedRequests.length > 0 && (
+            {selectedRequests.length > 0 && filters.status === 'pending' && (
               <Button 
                 onClick={handleBulkApprove}
                 disabled={bulkApprove.isPending}
@@ -200,24 +237,23 @@ export default function MyTeamLeavePage() {
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="CL">Casual Leave</SelectItem>
-                      <SelectItem value="SL">Sick Leave</SelectItem>
-                      <SelectItem value="PL">Privilege Leave</SelectItem>
+                      <SelectItem value="ML">Maternity Leave</SelectItem>
+                      <SelectItem value="PTL">Paternity Leave</SelectItem>
                       <SelectItem value="COMP_OFF">Comp-Off</SelectItem>
                     </SelectContent>
                   </Select>
                   
-                  <Select value={filters.hasConflict === undefined ? "all" : String(filters.hasConflict)} onValueChange={(value) => setFilters({ ...filters, hasConflict: value === "true" ? true : value === "false" ? false : undefined })}>
+                  <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as 'pending' | 'rejected' })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Conflicts" />
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Requests</SelectItem>
-                      <SelectItem value="true">Has Conflicts</SelectItem>
-                      <SelectItem value="false">No Conflicts</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
                   
-                  <Button variant="outline" onClick={() => setFilters({ search: "", type: "", status: "", hasConflict: undefined })}>
+                  <Button variant="outline" onClick={() => setFilters({ search: "", type: "", status: "pending" })}>
                     <Filter className="h-4 w-4 mr-2" />
                     Clear Filters
                   </Button>
@@ -230,7 +266,7 @@ export default function MyTeamLeavePage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Pending Approvals ({filteredRequests.length})
+                  {filters.status === 'pending' ? 'Pending Approvals' : 'Rejected Requests'} ({filteredRequests.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -242,118 +278,157 @@ export default function MyTeamLeavePage() {
                       </div>
                     ))}
                   </div>
-                ) : filteredRequests.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <input 
-                            type="checkbox" 
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedRequests(filteredRequests.map(r => r.id));
-                              } else {
-                                setSelectedRequests([]);
-                              }
-                            }}
-                            checked={selectedRequests.length === filteredRequests.length && filteredRequests.length > 0}
-                          />
-                        </TableHead>
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Leave Type</TableHead>
-                        <TableHead>Dates</TableHead>
-                        <TableHead>Days</TableHead>
-                        <TableHead>Evidence</TableHead>
-                        <TableHead>Coverage</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredRequests.map((request) => (
-                        <TableRow key={request.id}>
-                          <TableCell>
-                            <input 
-                              type="checkbox" 
-                              checked={selectedRequests.includes(request.id)}
-                              onChange={(e) => handleSelectRequest(request.id, e.target.checked)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{request.employeeName}</p>
-                              <p className="text-sm text-muted-foreground">{request.reason || 'No reason provided'}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {request.type === 'COMP_OFF' ? 'Comp-Off' : request.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <p>{format(new Date(request.startDate), 'MMM dd')} - {format(new Date(request.endDate), 'MMM dd')}</p>
-                              {request.halfDay && <p className="text-muted-foreground">Half Day ({request.halfDay})</p>}
-                            </div>
-                          </TableCell>
-                          <TableCell>{request.totalDays}</TableCell>
-                          <TableCell>
-                            {request.evidence_url ? (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => window.open(request.evidence_url!, '_blank')}
-                                className="gap-1"
-                              >
-                                <FileText className="h-3 w-3" />
-                                <ExternalLink className="h-3 w-3" />
-                              </Button>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-sm ${getCoverageColor(request.coverageScore)}`}>
-                                {request.coverageScore}
-                              </span>
-                              {request.conflictsWith.length > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  {request.conflictsWith.length} conflicts
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(request.status)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="default"
-                                onClick={() => handleApprove(request)}
-                                disabled={approveRequest.isPending || approveCompOffRequest.isPending}
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={() => handleReject(request, "Manager declined")}
-                                disabled={rejectRequest.isPending || rejectCompOffRequest.isPending}
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                ) : paginatedRequests.length > 0 ? (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          {filters.status === 'pending' && (
+                            <TableHead className="w-12">
+                              <input 
+                                type="checkbox" 
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedRequests(paginatedRequests.map(r => r.id));
+                                  } else {
+                                    setSelectedRequests([]);
+                                  }
+                                }}
+                                checked={selectedRequests.length === paginatedRequests.length && paginatedRequests.length > 0}
+                              />
+                            </TableHead>
+                          )}
+                          <TableHead>Employee</TableHead>
+                          <TableHead>Leave Type</TableHead>
+                          <TableHead>Dates</TableHead>
+                          <TableHead>Days</TableHead>
+                          <TableHead>Evidence</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedRequests.map((request) => (
+                          <TableRow key={request.id}>
+                            {filters.status === 'pending' && (
+                              <TableCell>
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedRequests.includes(request.id)}
+                                  onChange={(e) => handleSelectRequest(request.id, e.target.checked)}
+                                />
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{request.employeeName}</p>
+                                <p className="text-sm text-muted-foreground">{request.reason || 'No reason provided'}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {getLeaveTypeLabel(request.type)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                <p>{format(new Date(request.startDate), 'MMM dd')} - {format(new Date(request.endDate), 'MMM dd')}</p>
+                                {request.halfDay && <p className="text-muted-foreground">Half Day ({request.halfDay})</p>}
+                              </div>
+                            </TableCell>
+                            <TableCell>{request.totalDays}</TableCell>
+                            <TableCell>
+                              {request.evidence_url ? (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => window.open(request.evidence_url!, '_blank')}
+                                  className="gap-1"
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  <ExternalLink className="h-3 w-3" />
+                                </Button>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(request.status)}
+                            </TableCell>
+                            <TableCell>
+                              {filters.status === 'pending' ? (
+                                <div className="flex gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="default"
+                                    onClick={() => handleApprove(request)}
+                                    disabled={approveRequest.isPending || approveCompOffRequest.isPending}
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    onClick={() => {
+                                      setSelectedRequestForReject(request);
+                                      setRejectDialogOpen(true);
+                                    }}
+                                    disabled={rejectRequest.isPending || rejectCompOffRequest.isPending}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedRequestForDetails(request);
+                                    setDetailsSheetOpen(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View Details
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                        <p className="text-sm text-muted-foreground">
+                          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRequests.length)} of {filteredRequests.length} requests
+                        </p>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(p => p - 1)}
+                          >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Previous
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(p => p + 1)}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No pending approvals found
+                    No {filters.status} requests found
                   </div>
                 )}
               </CardContent>
@@ -405,7 +480,7 @@ export default function MyTeamLeavePage() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No team members found. Make sure employees have you as their manager.
+                    No team members found
                   </div>
                 )}
               </CardContent>
@@ -421,13 +496,112 @@ export default function MyTeamLeavePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Coverage analysis and team availability insights will be implemented here.
-                </p>
+                <div className="text-center py-8 text-muted-foreground">
+                  Coverage analysis coming soon...
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Rejection Dialog */}
+        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject Leave Request</DialogTitle>
+              <DialogDescription>
+                Please provide a reason for rejecting this request. This will be visible to the employee.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="rejection-reason">Rejection Reason</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Enter rejection reason..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="mt-2"
+                rows={4}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setRejectDialogOpen(false);
+                setRejectionReason("");
+                setSelectedRequestForReject(null);
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleRejectSubmit}
+                disabled={!rejectionReason.trim() || rejectRequest.isPending || rejectCompOffRequest.isPending}
+              >
+                Submit
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Details Sheet */}
+        <Sheet open={detailsSheetOpen} onOpenChange={setDetailsSheetOpen}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Leave Request Details</SheetTitle>
+            </SheetHeader>
+            {selectedRequestForDetails && (
+              <div className="space-y-6 mt-6">
+                <div>
+                  <Label className="text-muted-foreground text-sm">Employee</Label>
+                  <p className="font-medium">{selectedRequestForDetails.employeeName}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-sm">Leave Type</Label>
+                  <p className="font-medium">{getLeaveTypeLabel(selectedRequestForDetails.type)}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-sm">Dates</Label>
+                  <p className="font-medium">
+                    {format(new Date(selectedRequestForDetails.startDate), 'MMM dd, yyyy')} - {format(new Date(selectedRequestForDetails.endDate), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-sm">Total Days</Label>
+                  <p className="font-medium">{selectedRequestForDetails.totalDays}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-sm">Reason</Label>
+                  <p className="font-medium">{selectedRequestForDetails.reason || 'No reason provided'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-sm">Status</Label>
+                  <div className="mt-1">{getStatusBadge(selectedRequestForDetails.status)}</div>
+                </div>
+                {selectedRequestForDetails.status === 'rejected' && selectedRequestForDetails.rejection_reason && (
+                  <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                    <Label className="text-destructive text-sm font-medium">Rejection Reason</Label>
+                    <p className="mt-1 text-destructive">{selectedRequestForDetails.rejection_reason}</p>
+                  </div>
+                )}
+                {selectedRequestForDetails.evidence_url && (
+                  <div>
+                    <Label className="text-muted-foreground text-sm">Evidence</Label>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2 w-full"
+                      onClick={() => window.open(selectedRequestForDetails.evidence_url!, '_blank')}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      View Attachment
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
     </RBACGuard>
   );
