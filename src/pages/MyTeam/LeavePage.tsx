@@ -11,16 +11,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink, Eye, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format } from "date-fns";
 import { 
   usePendingLeaveApprovals, 
-  useTeamCalendarSupabase,
+  useTeamCalendarTable,
   useApproveLeaveRequest,
   useApproveCompOffRequest,
   useRejectLeaveRequest,
   useRejectCompOffRequest,
   useBulkApproveLeaveRequests,
-  PendingLeaveRequest
+  PendingLeaveRequest,
+  CalendarFilterType
 } from "@/hooks/useManagerLeaveSupabase";
 import { LeaveType } from "@/types/leave";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
@@ -59,9 +60,10 @@ export default function MyTeamLeavePage() {
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
   const [selectedRequestForDetails, setSelectedRequestForDetails] = useState<PendingLeaveRequest | null>(null);
   
-  const currentMonth = new Date();
-  const monthStart = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
-  const monthEnd = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
+  // Team calendar table state
+  const [calendarFilter, setCalendarFilter] = useState<CalendarFilterType>('upcoming_week');
+  const [calendarPage, setCalendarPage] = useState(1);
+  const CALENDAR_ITEMS_PER_PAGE = 10;
 
   // Get current user ID
   useEffect(() => {
@@ -74,7 +76,7 @@ export default function MyTeamLeavePage() {
   
   // Use Supabase hooks with status filter
   const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveApprovals(currentUserId, filters.status);
-  const { data: teamCalendar, isLoading: calendarLoading } = useTeamCalendarSupabase(currentUserId, monthStart, monthEnd);
+  const { data: calendarTableData, isLoading: calendarTableLoading } = useTeamCalendarTable(currentUserId, calendarFilter);
   
   const approveRequest = useApproveLeaveRequest();
   const approveCompOffRequest = useApproveCompOffRequest();
@@ -87,6 +89,50 @@ export default function MyTeamLeavePage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
+
+  // Reset calendar page when filter changes
+  useEffect(() => {
+    setCalendarPage(1);
+  }, [calendarFilter]);
+
+  // Calendar table pagination
+  const calendarEntries = calendarTableData?.data || [];
+  const calendarTotalPages = Math.ceil(calendarEntries.length / CALENDAR_ITEMS_PER_PAGE);
+  const paginatedCalendarEntries = calendarEntries.slice(
+    (calendarPage - 1) * CALENDAR_ITEMS_PER_PAGE,
+    calendarPage * CALENDAR_ITEMS_PER_PAGE
+  );
+
+  // Format date range helper
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (startDate === endDate) {
+      return format(start, 'd MMM yyyy');
+    }
+    
+    // Same year
+    if (start.getFullYear() === end.getFullYear()) {
+      return `${format(start, 'd MMM')} - ${format(end, 'd MMM yyyy')}`;
+    }
+    
+    return `${format(start, 'd MMM yyyy')} - ${format(end, 'd MMM yyyy')}`;
+  };
+
+  // Get empty state message based on filter
+  const getCalendarEmptyMessage = () => {
+    switch (calendarFilter) {
+      case 'upcoming_week':
+        return 'No leaves found for the upcoming week';
+      case 'upcoming_month':
+        return 'No leaves found for the upcoming month';
+      case 'long_leave':
+        return 'No long leaves (7+ days) found';
+      default:
+        return 'No leaves found';
+    }
+  };
 
   // Filter the requests based on filters
   const filteredRequests = pendingRequests?.data?.filter(request => {
@@ -438,49 +484,95 @@ export default function MyTeamLeavePage() {
           <TabsContent value="calendar">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Team Calendar - {format(currentMonth, 'MMMM yyyy')}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Team Calendar
+                  </CardTitle>
+                  <Select 
+                    value={calendarFilter} 
+                    onValueChange={(val) => setCalendarFilter(val as CalendarFilterType)}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="upcoming_week">Upcoming Week</SelectItem>
+                      <SelectItem value="upcoming_month">Upcoming Month</SelectItem>
+                      <SelectItem value="long_leave">Long Leave (7+ days)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
-                {calendarLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[...Array(6)].map((_, i) => (
+                {calendarTableLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
                       <div key={i} className="animate-pulse">
-                        <div className="h-24 bg-muted rounded" />
+                        <div className="h-12 bg-muted rounded" />
                       </div>
                     ))}
                   </div>
-                ) : teamCalendar?.data && teamCalendar.data.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {teamCalendar.data.map((member) => (
-                      <Card key={member.employeeId} className="p-4">
-                        <h4 className="font-medium mb-3">{member.employeeName}</h4>
-                        <div className="space-y-2 text-sm">
-                          {member.leaves.map((leave) => (
-                            <div key={leave.id} className="flex justify-between items-center">
-                              <span>{leave.type}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {format(new Date(leave.startDate), 'dd/MM')} - {format(new Date(leave.endDate), 'dd/MM')}
+                ) : paginatedCalendarEntries.length > 0 ? (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee Name</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedCalendarEntries.map((entry) => (
+                          <TableRow key={`${entry.requestSource}-${entry.id}`}>
+                            <TableCell className="font-medium">{entry.employeeName}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType}
                               </Badge>
-                            </div>
-                          ))}
-                          {member.wfhDays.length > 0 && (
-                            <div className="pt-2 border-t">
-                              <p className="text-muted-foreground text-xs">WFH Days: {member.wfhDays.length}</p>
-                            </div>
-                          )}
-                          {member.leaves.length === 0 && member.wfhDays.length === 0 && (
-                            <p className="text-muted-foreground">No leaves this month</p>
-                          )}
+                            </TableCell>
+                            <TableCell>{formatDateRange(entry.startDate, entry.endDate)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+
+                    {/* Pagination */}
+                    {calendarEntries.length > 0 && (
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                        <p className="text-sm text-muted-foreground">
+                          Showing {((calendarPage - 1) * CALENDAR_ITEMS_PER_PAGE) + 1} to {Math.min(calendarPage * CALENDAR_ITEMS_PER_PAGE, calendarEntries.length)} of {calendarEntries.length} entries
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCalendarPage(p => Math.max(1, p - 1))}
+                            disabled={calendarPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          <span className="text-sm text-muted-foreground">
+                            Page {calendarPage} of {calendarTotalPages || 1}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCalendarPage(p => Math.min(calendarTotalPages, p + 1))}
+                            disabled={calendarPage === calendarTotalPages || calendarTotalPages === 0}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </Card>
-                    ))}
-                  </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No team members found
+                    {getCalendarEmptyMessage()}
                   </div>
                 )}
               </CardContent>
