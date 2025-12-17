@@ -20,15 +20,21 @@ import {
 import { 
   CheckCircle, 
   XCircle, 
-  Clock, 
   Search,
   Filter,
-  Calendar,
-  DollarSign,
-  FileText,
-  User
+  Loader2,
+  Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
+
+interface TimesheetEntry {
+  id: string;
+  entry_date: string;
+  task_name: string;
+  hours: number;
+  comment: string | null;
+  is_billable: boolean;
+}
 
 interface ApprovalItem {
   id: string;
@@ -53,6 +59,7 @@ interface ApprovalQueuesProps {
   onReject: (id: string, reason: string, type?: string) => void;
   onBulkApprove: (ids: string[], type?: string) => void;
   onBulkReject: (ids: string[], reason: string, type?: string) => void;
+  onFetchTimesheetEntries?: (timesheetId: string) => Promise<TimesheetEntry[]>;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -63,7 +70,8 @@ export function ApprovalQueues({
   onApprove, 
   onReject, 
   onBulkApprove, 
-  onBulkReject 
+  onBulkReject,
+  onFetchTimesheetEntries
 }: ApprovalQueuesProps) {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [filters, setFilters] = useState({
@@ -77,6 +85,16 @@ export function ApprovalQueues({
   const [selectedRejectId, setSelectedRejectId] = useState<string | null>(null);
   const [selectedRejectType, setSelectedRejectType] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+
+  // Bulk reject dialog state
+  const [bulkRejectDialogOpen, setBulkRejectDialogOpen] = useState(false);
+  const [bulkRejectionReason, setBulkRejectionReason] = useState('');
+
+  // View request dialog state
+  const [viewRequestDialogOpen, setViewRequestDialogOpen] = useState(false);
+  const [selectedTimesheet, setSelectedTimesheet] = useState<ApprovalItem | null>(null);
+  const [timesheetEntries, setTimesheetEntries] = useState<TimesheetEntry[]>([]);
+  const [loadingEntries, setLoadingEntries] = useState(false);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -110,11 +128,53 @@ export function ApprovalQueues({
     setRejectionReason('');
   };
 
+  const handleBulkRejectClick = () => {
+    setBulkRejectionReason('');
+    setBulkRejectDialogOpen(true);
+  };
+
+  const handleBulkRejectSubmit = () => {
+    // Determine the type based on selected items (assuming all selected are same type or 'timesheet')
+    const selectedApprovals = approvals.filter(a => selectedItems.includes(a.id));
+    const type = selectedApprovals.length > 0 ? selectedApprovals[0].type : undefined;
+    
+    onBulkReject(selectedItems, bulkRejectionReason.trim() || 'Bulk rejection by manager', type);
+    setBulkRejectDialogOpen(false);
+    setBulkRejectionReason('');
+    setSelectedItems([]);
+  };
+
+  const handleBulkApproveClick = () => {
+    // Determine the type based on selected items
+    const selectedApprovals = approvals.filter(a => selectedItems.includes(a.id));
+    const type = selectedApprovals.length > 0 ? selectedApprovals[0].type : undefined;
+    
+    onBulkApprove(selectedItems, type);
+    setSelectedItems([]);
+  };
+
+  const handleViewRequest = async (item: ApprovalItem) => {
+    setSelectedTimesheet(item);
+    setViewRequestDialogOpen(true);
+    setTimesheetEntries([]);
+    
+    if (onFetchTimesheetEntries && item.type === 'timesheet') {
+      setLoadingEntries(true);
+      try {
+        const entries = await onFetchTimesheetEntries(item.id);
+        setTimesheetEntries(entries);
+      } catch (error) {
+        console.error('Error fetching timesheet entries:', error);
+      } finally {
+        setLoadingEntries(false);
+      }
+    }
+  };
+
   const filteredApprovals = approvals.filter(item => {
     const matchesSearch = !filters.search || 
       item.employeeName.toLowerCase().includes(filters.search.toLowerCase()) ||
-      item.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-      item.employeeId.toLowerCase().includes(filters.search.toLowerCase());
+      item.title.toLowerCase().includes(filters.search.toLowerCase());
     
     const matchesStatus = filters.status === 'all' || item.status === filters.status;
     
@@ -139,6 +199,19 @@ export function ApprovalQueues({
       case 'rejected': return 'destructive';
       case 'pending': return 'secondary';
       default: return 'secondary';
+    }
+  };
+
+  const formatDateRange = (startDate: string, endDate?: string) => {
+    try {
+      const start = format(new Date(startDate), 'MMM dd');
+      if (endDate) {
+        const end = format(new Date(endDate), 'MMM dd');
+        return `${start} - ${end}`;
+      }
+      return start;
+    } catch {
+      return startDate;
     }
   };
 
@@ -207,7 +280,7 @@ export function ApprovalQueues({
               <div className="flex gap-2">
                 <Button 
                   size="sm"
-                  onClick={() => onBulkApprove(selectedItems)}
+                  onClick={handleBulkApproveClick}
                   className="flex items-center gap-1"
                 >
                   <CheckCircle className="h-4 w-4" />
@@ -216,7 +289,7 @@ export function ApprovalQueues({
                 <Button 
                   size="sm" 
                   variant="destructive"
-                  onClick={() => onBulkReject(selectedItems, 'Bulk rejection')}
+                  onClick={handleBulkRejectClick}
                   className="flex items-center gap-1"
                 >
                   <XCircle className="h-4 w-4" />
@@ -263,30 +336,21 @@ export function ApprovalQueues({
                       />
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{item.employeeName}</div>
-                        <div className="text-sm text-muted-foreground">{item.employeeId}</div>
-                      </div>
+                      <div className="font-medium">{item.employeeName}</div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{item.title}</div>
-                        <div className="text-sm text-muted-foreground line-clamp-2">
-                          {item.description}
-                        </div>
-                        {item.attachments && item.attachments > 0 && (
-                          <div className="text-xs text-blue-600 mt-1">
-                            {item.attachments} attachments
-                          </div>
-                        )}
-                      </div>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-primary hover:text-primary/80 flex items-center gap-1"
+                        onClick={() => handleViewRequest(item)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        View Request
+                      </Button>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{format(new Date(item.requestDate), 'MMM dd')}</div>
-                        <div className="text-muted-foreground">
-                          {format(new Date(item.submittedAt), 'HH:mm')}
-                        </div>
+                        {formatDateRange(item.requestDate, item.additionalInfo?.weekEnd)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -301,6 +365,7 @@ export function ApprovalQueues({
                           variant="default"
                           onClick={() => onApprove(item.id, undefined, item.type)}
                           className="h-8 w-8 p-0"
+                          disabled={item.status === 'rejected'}
                         >
                           <CheckCircle className="h-4 w-4" />
                         </Button>
@@ -309,6 +374,7 @@ export function ApprovalQueues({
                           variant="destructive"
                           onClick={() => handleOpenRejectDialog(item.id, item.type)}
                           className="h-8 w-8 p-0"
+                          disabled={item.status === 'rejected'}
                         >
                           <XCircle className="h-4 w-4" />
                         </Button>
@@ -322,7 +388,7 @@ export function ApprovalQueues({
           
           {filteredApprovals.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              No pending approvals found
+              No approvals found
             </div>
           )}
 
@@ -364,7 +430,7 @@ export function ApprovalQueues({
         </CardContent>
       </Card>
 
-      {/* Rejection Dialog */}
+      {/* Individual Rejection Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -391,6 +457,131 @@ export function ApprovalQueues({
             </Button>
             <Button variant="destructive" onClick={handleRejectSubmit}>
               Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Rejection Dialog */}
+      <Dialog open={bulkRejectDialogOpen} onOpenChange={setBulkRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject {selectedItems.length} Requests</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting these requests.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="bulk-rejection-reason">Rejection Reason</Label>
+              <Textarea
+                id="bulk-rejection-reason"
+                placeholder="Enter the reason for rejection..."
+                value={bulkRejectionReason}
+                onChange={(e) => setBulkRejectionReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkRejectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleBulkRejectSubmit}>
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Request Dialog */}
+      <Dialog open={viewRequestDialogOpen} onOpenChange={setViewRequestDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Timesheet Details - {selectedTimesheet?.employeeName}</DialogTitle>
+            <DialogDescription>
+              Week: {selectedTimesheet ? formatDateRange(selectedTimesheet.requestDate, selectedTimesheet.additionalInfo?.weekEnd) : ''}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Summary Section */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
+              <div>
+                <div className="text-sm text-muted-foreground">Total Hours</div>
+                <div className="text-lg font-semibold">{selectedTimesheet?.additionalInfo?.totalHours || 0}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Billable Hours</div>
+                <div className="text-lg font-semibold">{selectedTimesheet?.additionalInfo?.billableHours || 0}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Status</div>
+                <Badge variant={getStatusBadgeVariant(selectedTimesheet?.status || 'pending')}>
+                  {selectedTimesheet?.status}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Submission Comment */}
+            {selectedTimesheet?.additionalInfo?.submissionComment && (
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <div className="text-sm text-muted-foreground mb-1">Employee Comment</div>
+                <div className="text-sm">{selectedTimesheet.additionalInfo.submissionComment}</div>
+              </div>
+            )}
+
+            {/* Entries Table */}
+            <div>
+              <h4 className="font-medium mb-3">Logged Hours</h4>
+              {loadingEntries ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : timesheetEntries.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Task</TableHead>
+                        <TableHead className="text-right">Hours</TableHead>
+                        <TableHead>Comment</TableHead>
+                        <TableHead>Billable</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {timesheetEntries.map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell className="whitespace-nowrap">
+                            {format(new Date(entry.entry_date), 'MMM dd, yyyy')}
+                          </TableCell>
+                          <TableCell>{entry.task_name || '-'}</TableCell>
+                          <TableCell className="text-right font-medium">{entry.hours}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {entry.comment || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={entry.is_billable ? 'default' : 'secondary'}>
+                              {entry.is_billable ? 'Yes' : 'No'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground border rounded-lg">
+                  No entries found for this timesheet
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewRequestDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

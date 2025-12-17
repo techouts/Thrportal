@@ -145,6 +145,16 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
     }
   }
 
+  const handleFetchTimesheetEntries = async (timesheetId: string) => {
+    try {
+      const result = await myTeamService.getTimesheetEntries(timesheetId)
+      return result.data || []
+    } catch (error) {
+      console.error('Error fetching timesheet entries:', error)
+      return []
+    }
+  }
+
   const renderPerformance = () => {
     // Mock data for cycle timeline
     const mockWindows = [
@@ -278,6 +288,7 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
               onReject={handleReject}
               onBulkApprove={handleBulkApprove}
               onBulkReject={handleBulkReject}
+              onFetchTimesheetEntries={handleFetchTimesheetEntries}
             />
           </TabsContent>
         </Tabs>
@@ -306,6 +317,7 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
               onReject={handleReject}
               onBulkApprove={handleBulkApprove}
               onBulkReject={handleBulkReject}
+              onFetchTimesheetEntries={handleFetchTimesheetEntries}
             />
           </TabsContent>
         </Tabs>
@@ -330,6 +342,7 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
               onReject={handleReject}
               onBulkApprove={handleBulkApprove}
               onBulkReject={handleBulkReject}
+              onFetchTimesheetEntries={handleFetchTimesheetEntries}
             />
           </TabsContent>
         </Tabs>
