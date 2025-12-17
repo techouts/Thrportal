@@ -2423,6 +2423,7 @@ export type Database = {
           created_at: string
           employee_id: string
           end_date: string
+          evidence_url: string | null
           id: string
           leave_type: string
           notify_employee_id: string | null
@@ -2440,6 +2441,7 @@ export type Database = {
           created_at?: string
           employee_id: string
           end_date: string
+          evidence_url?: string | null
           id?: string
           leave_type: string
           notify_employee_id?: string | null
@@ -2457,6 +2459,7 @@ export type Database = {
           created_at?: string
           employee_id?: string
           end_date?: string
+          evidence_url?: string | null
           id?: string
           leave_type?: string
           notify_employee_id?: string | null
