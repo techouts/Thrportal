@@ -11,12 +11,15 @@ import { useAuth } from '@/auth/AuthContext';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePendingRegularizationRequests, useApproveRegularization, useRejectRegularization } from '@/hooks/useAttendanceRegularization';
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 export default function MyTeamAttendancePage() {
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [teamAttendance, setTeamAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvalsPage, setApprovalsPage] = useState(1);
+  const APPROVALS_ITEMS_PER_PAGE = 10;
 
   // Use the hook for regularization requests
   const { data: pendingRegularizations = [], isLoading: regularizationsLoading } = usePendingRegularizationRequests(currentUser?.id);
@@ -73,6 +76,13 @@ export default function MyTeamAttendancePage() {
   };
 
   const stats = calculateTeamStats();
+
+  // Pagination logic for approvals
+  const approvalsTotalPages = Math.ceil(pendingRegularizations.length / APPROVALS_ITEMS_PER_PAGE);
+  const paginatedApprovals = pendingRegularizations.slice(
+    (approvalsPage - 1) * APPROVALS_ITEMS_PER_PAGE,
+    approvalsPage * APPROVALS_ITEMS_PER_PAGE
+  );
 
   if (loading) {
     return (
@@ -212,76 +222,124 @@ export default function MyTeamAttendancePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Pending Regularization Requests
+                Pending Regularization Requests ({pendingRegularizations.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {regularizationsLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2].map(i => (
-                      <Skeleton key={i} className="h-24 w-full" />
-                    ))}
+              {regularizationsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : pendingRegularizations.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee Name</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Document</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedApprovals.map((request) => (
+                          <TableRow key={request.id}>
+                            <TableCell className="font-medium">{request.employee_name}</TableCell>
+                            <TableCell>{format(new Date(request.attendance_date), 'MMM dd, yyyy')}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" title={request.reason}>
+                              {request.reason}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {request.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {request.document_url ? (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => window.open(request.document_url, '_blank')}
+                                  className="h-8 px-2"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => handleApproval(request.id, 'approve')}
+                                  className="h-8 px-2"
+                                  disabled={approveRegularization.isPending || rejectRegularization.isPending}
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleApproval(request.id, 'reject')}
+                                  className="h-8 px-2"
+                                  disabled={approveRegularization.isPending || rejectRegularization.isPending}
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                ) : pendingRegularizations.length > 0 ? (
-                  pendingRegularizations.map((request) => (
-                    <div key={request.id} className="border rounded-xl p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{request.employee_name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {format(new Date(request.attendance_date), 'MMM dd, yyyy')} • Attendance Regularization
-                          </div>
-                        </div>
-                        <Badge variant="outline">
-                          {request.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="text-sm">
-                        <strong>Reason:</strong> {request.reason}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        {request.document_url && (
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            onClick={() => window.open(request.document_url, '_blank')}
-                            className="flex items-center gap-1"
-                          >
-                            <FileText className="w-3 h-3" />
-                            View Document
-                          </Button>
-                        )}
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleApproval(request.id, 'approve')}
-                          className="flex items-center gap-1"
-                          disabled={approveRegularization.isPending || rejectRegularization.isPending}
-                        >
-                          <CheckCircle className="w-3 h-3" />
-                          Approve
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleApproval(request.id, 'reject')}
-                          className="flex items-center gap-1"
-                          disabled={approveRegularization.isPending || rejectRegularization.isPending}
-                        >
-                          <XCircle className="w-3 h-3" />
-                          Reject
-                        </Button>
-                      </div>
+
+                  {approvalsTotalPages > 1 && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {((approvalsPage - 1) * APPROVALS_ITEMS_PER_PAGE) + 1} to {Math.min(approvalsPage * APPROVALS_ITEMS_PER_PAGE, pendingRegularizations.length)} of {pendingRegularizations.length} entries
+                      </p>
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setApprovalsPage(p => Math.max(1, p - 1))}
+                              className={approvalsPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                          {Array.from({ length: approvalsTotalPages }, (_, i) => i + 1).map(page => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setApprovalsPage(page)}
+                                isActive={approvalsPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setApprovalsPage(p => Math.min(approvalsTotalPages, p + 1))}
+                              className={approvalsPage === approvalsTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No pending regularization requests
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No pending regularization requests
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
