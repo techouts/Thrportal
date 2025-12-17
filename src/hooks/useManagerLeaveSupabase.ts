@@ -383,6 +383,153 @@ export function useRejectCompOffRequest() {
   });
 }
 
+// Types for the team calendar table view
+export interface TeamCalendarTableEntry {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  status: string;
+  requestSource: 'leave' | 'comp_off';
+}
+
+export type CalendarFilterType = 'upcoming_week' | 'upcoming_month' | 'long_leave';
+
+// Fetch team calendar data for table view with filters
+export function useTeamCalendarTable(managerId: string | undefined, filterType: CalendarFilterType) {
+  return useQuery({
+    queryKey: ['team-calendar-table', managerId, filterType],
+    queryFn: async () => {
+      if (!managerId) return { data: [] };
+
+      // Get direct reports
+      const { data: directReports, error: reportsError } = await supabase
+        .from('profiles')
+        .select('id, display_name, first_name, last_name')
+        .eq('manager_employee_id', managerId);
+
+      if (reportsError) throw reportsError;
+
+      const reportIds = directReports?.map(r => r.id) || [];
+      
+      if (reportIds.length === 0) {
+        return { data: [] };
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Calculate date ranges based on filter
+      let fromDate: string | null = null;
+      let toDate: string | null = null;
+
+      if (filterType === 'upcoming_week') {
+        fromDate = todayStr;
+        const weekLater = new Date(today);
+        weekLater.setDate(weekLater.getDate() + 7);
+        toDate = weekLater.toISOString().split('T')[0];
+      } else if (filterType === 'upcoming_month') {
+        fromDate = todayStr;
+        const monthLater = new Date(today);
+        monthLater.setDate(monthLater.getDate() + 30);
+        toDate = monthLater.toISOString().split('T')[0];
+      }
+      // For long_leave, we don't filter by date - we filter by total_days > 7
+
+      // Fetch leave requests
+      let leaveQuery = supabase
+        .from('leave_requests')
+        .select('*')
+        .in('employee_id', reportIds)
+        .in('status', ['approved', 'pending']);
+
+      if (fromDate && toDate) {
+        leaveQuery = leaveQuery.gte('start_date', fromDate).lte('start_date', toDate);
+      }
+
+      if (filterType === 'long_leave') {
+        leaveQuery = leaveQuery.gt('total_days', 7);
+      }
+
+      // Fetch comp-off requests
+      let compOffQuery = supabase
+        .from('comp_off_requests')
+        .select('*')
+        .in('employee_id', reportIds)
+        .in('status', ['approved', 'pending']);
+
+      if (fromDate && toDate) {
+        compOffQuery = compOffQuery.gte('start_date', fromDate).lte('start_date', toDate);
+      }
+
+      // For long_leave, filter comp_off by total_days > 7 (though comp_off is usually short)
+      if (filterType === 'long_leave') {
+        compOffQuery = compOffQuery.gt('total_days', 7);
+      }
+
+      const [leaveResult, compOffResult] = await Promise.all([
+        leaveQuery.order('start_date', { ascending: true }),
+        compOffQuery.order('start_date', { ascending: true })
+      ]);
+
+      if (leaveResult.error) throw leaveResult.error;
+      if (compOffResult.error) throw compOffResult.error;
+
+      // Map leave requests
+      const leaveEntries: TeamCalendarTableEntry[] = (leaveResult.data || []).map(req => {
+        const employee = directReports?.find(r => r.id === req.employee_id);
+        const employeeName = employee?.display_name || 
+          `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim() || 
+          'Unknown';
+
+        return {
+          id: req.id,
+          employeeId: req.employee_id,
+          employeeName,
+          leaveType: req.leave_type,
+          startDate: req.start_date,
+          endDate: req.end_date,
+          totalDays: req.total_days,
+          status: req.status,
+          requestSource: 'leave' as const,
+        };
+      });
+
+      // Map comp-off requests
+      const compOffEntries: TeamCalendarTableEntry[] = (compOffResult.data || []).map(req => {
+        const employee = directReports?.find(r => r.id === req.employee_id);
+        const employeeName = employee?.display_name || 
+          `${employee?.first_name || ''} ${employee?.last_name || ''}`.trim() || 
+          'Unknown';
+
+        return {
+          id: req.id,
+          employeeId: req.employee_id,
+          employeeName,
+          leaveType: 'COMP_OFF',
+          startDate: req.start_date,
+          endDate: req.end_date,
+          totalDays: req.total_days || 1,
+          status: req.status,
+          requestSource: 'comp_off' as const,
+        };
+      });
+
+      // Combine and sort by start_date ascending
+      const allEntries = [...leaveEntries, ...compOffEntries].sort(
+        (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      );
+
+      return { data: allEntries };
+    },
+    enabled: !!managerId,
+  });
+}
+
 // Bulk approve leave requests
 export function useBulkApproveLeaveRequests() {
   const queryClient = useQueryClient();
