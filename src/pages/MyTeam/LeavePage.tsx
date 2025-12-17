@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink, Eye, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import { format } from "date-fns";
 import { 
   usePendingLeaveApprovals, 
@@ -67,6 +68,7 @@ export default function MyTeamLeavePage() {
   
   // Coverage analysis table state
   const [coveragePage, setCoveragePage] = useState(1);
+  const [coverageEmployeeFilter, setCoverageEmployeeFilter] = useState<string>('all');
   const CALENDAR_ITEMS_PER_PAGE = 10;
 
   // Get current user ID
@@ -110,8 +112,33 @@ export default function MyTeamLeavePage() {
 
   // Coverage analysis pagination
   const allTeamLeaves = allTeamLeavesData?.data || [];
-  const coverageTotalPages = Math.ceil(allTeamLeaves.length / ITEMS_PER_PAGE);
-  const paginatedCoverageEntries = allTeamLeaves.slice(
+  
+  // Extract unique employees for filter dropdown
+  const uniqueEmployees = useMemo(() => {
+    const employeeMap = new Map<string, { id: string; name: string }>();
+    allTeamLeaves.forEach(entry => {
+      if (!employeeMap.has(entry.employeeId)) {
+        employeeMap.set(entry.employeeId, { 
+          id: entry.employeeId, 
+          name: entry.employeeName 
+        });
+      }
+    });
+    return Array.from(employeeMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name)
+    );
+  }, [allTeamLeaves]);
+  
+  // Filter team leaves based on employee selection
+  const filteredTeamLeaves = useMemo(() => {
+    if (coverageEmployeeFilter === 'all') {
+      return allTeamLeaves;
+    }
+    return allTeamLeaves.filter(entry => entry.employeeId === coverageEmployeeFilter);
+  }, [allTeamLeaves, coverageEmployeeFilter]);
+  
+  const coverageTotalPages = Math.ceil(filteredTeamLeaves.length / ITEMS_PER_PAGE);
+  const paginatedCoverageEntries = filteredTeamLeaves.slice(
     (coveragePage - 1) * ITEMS_PER_PAGE,
     coveragePage * ITEMS_PER_PAGE
   );
@@ -159,6 +186,49 @@ export default function MyTeamLeavePage() {
       default:
         return 'No leaves found';
     }
+  };
+
+  // Export team calendar to Excel
+  const handleExportTeamCalendar = () => {
+    if (calendarEntries.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no calendar entries to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prepare data for Excel
+    const exportData = calendarEntries.map(entry => ({
+      'Employee Name': entry.employeeName,
+      'Type': LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType,
+      'Date': formatDateRange(entry.startDate, entry.endDate),
+    }));
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Team Calendar');
+
+    // Generate filename with filter name and date
+    const filterNames: Record<CalendarFilterType, string> = {
+      upcoming_week: 'Upcoming_Week',
+      upcoming_month: 'Upcoming_Month',
+      long_leave: 'Long_Leave',
+    };
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const fileName = `Team_Calendar_${filterNames[calendarFilter]}_${today}.xlsx`;
+
+    // Download
+    XLSX.writeFile(workbook, fileName);
+
+    toast({
+      title: "Export successful",
+      description: `Downloaded ${fileName}`,
+    });
   };
 
   // Filter the requests based on filters
@@ -516,19 +586,30 @@ export default function MyTeamLeavePage() {
                     <Calendar className="h-5 w-5" />
                     Team Calendar
                   </CardTitle>
-                  <Select 
-                    value={calendarFilter} 
-                    onValueChange={(val) => setCalendarFilter(val as CalendarFilterType)}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select filter" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="upcoming_week">Upcoming Week</SelectItem>
-                      <SelectItem value="upcoming_month">Upcoming Month</SelectItem>
-                      <SelectItem value="long_leave">Long Leave (7+ days)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportTeamCalendar}
+                      disabled={calendarEntries.length === 0}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                    <Select 
+                      value={calendarFilter} 
+                      onValueChange={(val) => setCalendarFilter(val as CalendarFilterType)}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Select filter" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upcoming_week">Upcoming Week</SelectItem>
+                        <SelectItem value="upcoming_month">Upcoming Month</SelectItem>
+                        <SelectItem value="long_leave">Long Leave (7+ days)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -609,10 +690,29 @@ export default function MyTeamLeavePage() {
           <TabsContent value="coverage">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  All Team Leaves ({allTeamLeaves.length})
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    All Team Leaves ({filteredTeamLeaves.length})
+                  </CardTitle>
+                  <Select 
+                    value={coverageEmployeeFilter} 
+                    onValueChange={(val) => {
+                      setCoverageEmployeeFilter(val);
+                      setCoveragePage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Filter by employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Team</SelectItem>
+                      {uniqueEmployees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 {allTeamLeavesLoading ? (
@@ -652,7 +752,7 @@ export default function MyTeamLeavePage() {
                     {coverageTotalPages > 0 && (
                       <div className="flex items-center justify-between mt-4 pt-4 border-t">
                         <p className="text-sm text-muted-foreground">
-                          Showing {((coveragePage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(coveragePage * ITEMS_PER_PAGE, allTeamLeaves.length)} of {allTeamLeaves.length} entries
+                          Showing {((coveragePage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(coveragePage * ITEMS_PER_PAGE, filteredTeamLeaves.length)} of {filteredTeamLeaves.length} entries
                         </p>
                         <div className="flex items-center gap-2">
                           <Button
