@@ -15,7 +15,10 @@ const linkSpocSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email').min(1, 'Email is required'),
   phone: z.string().optional(),
-  linkedin_url: z.string().url('Invalid URL').optional().or(z.literal('')),
+  linkedin_url: z.union([
+    z.string().url('Invalid URL'),
+    z.literal('')
+  ]).optional(),
   spoc_role: z.enum(['finance', 'project', 'sales', 'escalation', 'primary'] as const, {
     required_error: 'Role is required'
   })
