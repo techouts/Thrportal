@@ -327,7 +327,7 @@ export class CrmService {
   ) {
     try {
       // 1️⃣ Create the SPOC record
-      const spocResponse = await CrmApiClient.post<CrmSpoc>("/crm/spocs", spoc);
+      const spocResponse = await CrmApiClient.post<CrmSpoc>("/crm/spocs/create-spoc", spoc);
       const spocData = spocResponse.data;
 
       // 2️⃣ Create the link if client_id or account_id is provided
