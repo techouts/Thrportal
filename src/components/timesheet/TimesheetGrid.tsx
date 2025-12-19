@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Plus, Info, AlertTriangle, Trash2, Leaf, PartyPopper } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -52,6 +52,9 @@ export function TimesheetGrid({
   onDeleteEntry,
   onDeleteRow
 }: TimesheetGridProps) {
+  // Track which cell is being edited: "rowId-dayIndex"
+  const [editingCell, setEditingCell] = useState<string | null>(null)
+  const [inlineHoursInput, setInlineHoursInput] = useState('')
 
   const getWarningsForCell = useCallback((rowId: string, dayIndex?: number) => {
     return warnings.filter(w => 
@@ -79,11 +82,54 @@ export function TimesheetGrid({
     return `${hours}:${minutes.toString().padStart(2, '0')}`
   }
 
+  // Parse time input (accepts "8", "8:00", "8:30", etc.)
+  const parseTimeInput = (input: string): number => {
+    if (!input.trim()) return 0
+    
+    // If it contains a colon, parse as HH:MM
+    if (input.includes(':')) {
+      const [hours, minutes] = input.split(':').map(s => parseInt(s, 10) || 0)
+      return hours + (minutes / 60)
+    }
+    
+    // Otherwise parse as decimal hours
+    const parsed = parseFloat(input)
+    return isNaN(parsed) ? 0 : parsed
+  }
+
   // Get formatted date for header (e.g., "01 DEC")
   const getHeaderDate = (dayIndex: number): string => {
     if (!weekStart) return ''
     const date = addDays(weekStart, dayIndex)
     return format(date, 'dd MMM').toUpperCase()
+  }
+
+  // Handle starting inline edit
+  const handleCellClick = (rowId: string, dayIndex: number, currentHours: number) => {
+    if (readonly) return
+    const cellKey = `${rowId}-${dayIndex}`
+    setEditingCell(cellKey)
+    setInlineHoursInput(currentHours > 0 ? formatDecimalToTime(currentHours) : '')
+  }
+
+  // Handle blur - save hours
+  const handleHoursBlur = (rowId: string, dayIndex: number, currentComment: string) => {
+    const decimalHours = parseTimeInput(inlineHoursInput)
+    onChangeCell(rowId, dayIndex, decimalHours, currentComment)
+    setEditingCell(null)
+    setInlineHoursInput('')
+  }
+
+  // Handle Enter key to save
+  const handleHoursKeyDown = (e: React.KeyboardEvent, rowId: string, dayIndex: number, currentComment: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleHoursBlur(rowId, dayIndex, currentComment)
+    }
+    if (e.key === 'Escape') {
+      setEditingCell(null)
+      setInlineHoursInput('')
+    }
   }
 
   const weekTotalHours = dailyTotals.reduce((sum, h) => sum + h, 0)
@@ -208,12 +254,14 @@ export function TimesheetGrid({
                         </td>
                       ))
                     ) : (
-                      // Regular entries - editable
+                      // Regular entries - editable with inline hours input
                       row.daily.map((dailyEntry, dayIndex) => {
                         const cellWarnings = getWarningsForCell(row.rowId, dayIndex)
                         const hasMissingComment = isMissingComment(row.rowId, dayIndex)
                         const hasHours = dailyEntry.hours > 0
                         const hasComment = dailyEntry.comment?.trim()
+                        const cellKey = `${row.rowId}-${dayIndex}`
+                        const isEditing = editingCell === cellKey
                         
                         return (
                           <td key={dayIndex} className="p-1 text-center">
@@ -222,21 +270,41 @@ export function TimesheetGrid({
                                 <TooltipTrigger asChild>
                                   <div>
                                     <TimeEntryPopover
-                                      value={dailyEntry.hours}
                                       comment={dailyEntry.comment}
-                                      onChange={(value, comment) => onChangeCell(row.rowId, dayIndex, value, comment)}
+                                      onCommentChange={(comment) => onChangeCell(row.rowId, dayIndex, dailyEntry.hours, comment)}
                                       disabled={readonly}
                                     >
                                       <div
                                         className={cn(
-                                          "h-8 flex items-center justify-center text-sm cursor-pointer rounded border-2 border-transparent hover:border-muted transition-colors",
+                                          "h-8 flex items-center justify-center text-sm rounded border-2 border-transparent transition-colors",
                                           cellWarnings.length > 0 && "bg-destructive/10 text-destructive",
                                           hasMissingComment && "border-amber-500 bg-amber-50",
-                                          readonly && "cursor-default hover:border-transparent"
+                                          !readonly && "cursor-pointer hover:border-muted",
+                                          readonly && "cursor-default"
                                         )}
                                         data-testid={`cell-${row.rowId}-${dayIndex}`}
+                                        onClick={(e) => {
+                                          if (!readonly) {
+                                            e.stopPropagation()
+                                            handleCellClick(row.rowId, dayIndex, dailyEntry.hours)
+                                          }
+                                        }}
                                       >
-                                        {hasHours ? formatDecimalToTime(dailyEntry.hours) : '0:00'}
+                                        {isEditing ? (
+                                          <input
+                                            type="text"
+                                            value={inlineHoursInput}
+                                            onChange={(e) => setInlineHoursInput(e.target.value)}
+                                            onBlur={() => handleHoursBlur(row.rowId, dayIndex, dailyEntry.comment || '')}
+                                            onKeyDown={(e) => handleHoursKeyDown(e, row.rowId, dayIndex, dailyEntry.comment || '')}
+                                            placeholder="0:00"
+                                            className="h-full w-full text-center text-sm bg-transparent border-0 outline-none focus:ring-1 focus:ring-primary rounded"
+                                            autoFocus
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        ) : (
+                                          <span>{hasHours ? formatDecimalToTime(dailyEntry.hours) : '0:00'}</span>
+                                        )}
                                       </div>
                                     </TimeEntryPopover>
                                   </div>
