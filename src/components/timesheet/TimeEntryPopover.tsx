@@ -55,7 +55,6 @@ export function TimeEntryPopover({
             onChange={(e) => setEntryComment(e.target.value)}
             className="text-sm"
             rows={3}
-            autoFocus
           />
         </div>
       </PopoverContent>
