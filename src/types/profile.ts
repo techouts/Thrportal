@@ -57,9 +57,6 @@ export interface EmployeeProfile {
   leaves_policy?: string
   attendance_policy?: string
   work_location?: string
-  
-  // Dynamic field (populated from allocations)
-  assigned_client_name?: string
 
   // Related data (populated)
   manager?: {

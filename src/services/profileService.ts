@@ -46,7 +46,7 @@ export interface ProfileRow {
   nationality: string | null
 }
 
-function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, reports?: ProfileRow[], assignedClientName?: string | null): EmployeeProfile {
+function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, reports?: ProfileRow[]): EmployeeProfile {
   return {
     id: row.id,
     employee_code: row.employee_code || 'N/A',
@@ -88,7 +88,6 @@ function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, r
     leaves_policy: row.leaves_policy || undefined,
     attendance_policy: row.attendance_policy || undefined,
     work_location: row.work_location || undefined,
-    assigned_client_name: assignedClientName || undefined,
     business_unit: row.business_unit ? { id: '1', name: row.business_unit } : undefined,
     department: row.department ? { id: '1', name: row.department } : undefined,
     cost_center: row.cost_center ? { id: '1', code: row.cost_center, name: row.cost_center } : undefined,
@@ -111,35 +110,6 @@ function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, r
   }
 }
 
-// Fetch client name from active allocation
-async function getAssignedClientName(userId: string): Promise<string | null> {
-  try {
-    const { data } = await supabase
-      .from('allocations')
-      .select(`
-        project_id,
-        crm_projects!inner (
-          name,
-          client_id,
-          crm_clients!inner (
-            name
-          )
-        )
-      `)
-      .eq('employee_id', userId)
-      .eq('type', 'ACTIVE')
-      .order('start_date', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    
-    // Access nested client name
-    const clientName = (data as any)?.crm_projects?.crm_clients?.name
-    return clientName || null
-  } catch (error) {
-    console.error('Error fetching assigned client:', error)
-    return null
-  }
-}
 
 export async function getCurrentProfile(userId: string): Promise<EmployeeProfile | null> {
   const { data: profile, error } = await supabase
@@ -155,24 +125,21 @@ export async function getCurrentProfile(userId: string): Promise<EmployeeProfile
 
   const row = profile as unknown as ProfileRow
 
-  // Fetch manager, reports, and client data in PARALLEL
-  const [managerResult, reportsResult, assignedClientName] = await Promise.all([
+  // Fetch manager and reports in PARALLEL
+  const [managerResult, reportsResult] = await Promise.all([
     // Fetch manager if exists
     row.manager_employee_id 
       ? supabase.from('profiles').select('*').eq('id', row.manager_employee_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     
     // Fetch direct reports
-    supabase.from('profiles').select('*').eq('manager_employee_id', userId),
-    
-    // Fetch assigned client name
-    getAssignedClientName(userId)
+    supabase.from('profiles').select('*').eq('manager_employee_id', userId)
   ])
 
   const manager = managerResult.data as unknown as ProfileRow | null
   const reports = (reportsResult.data || []) as unknown as ProfileRow[]
 
-  return mapRowToEmployeeProfile(row, manager, reports, assignedClientName)
+  return mapRowToEmployeeProfile(row, manager, reports)
 }
 
 export async function getProfileById(profileId: string): Promise<EmployeeProfile | null> {
@@ -189,24 +156,21 @@ export async function getProfileById(profileId: string): Promise<EmployeeProfile
 
   const row = profile as unknown as ProfileRow
 
-  // Fetch manager, reports, and client data in PARALLEL
-  const [managerResult, reportsResult, assignedClientName] = await Promise.all([
+  // Fetch manager and reports in PARALLEL
+  const [managerResult, reportsResult] = await Promise.all([
     // Fetch manager if exists
     row.manager_employee_id 
       ? supabase.from('profiles').select('*').eq('id', row.manager_employee_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     
     // Fetch direct reports
-    supabase.from('profiles').select('*').eq('manager_employee_id', profileId),
-    
-    // Fetch assigned client name
-    getAssignedClientName(profileId)
+    supabase.from('profiles').select('*').eq('manager_employee_id', profileId)
   ])
 
   const manager = managerResult.data as unknown as ProfileRow | null
   const reports = (reportsResult.data || []) as unknown as ProfileRow[]
 
-  return mapRowToEmployeeProfile(row, manager, reports, assignedClientName)
+  return mapRowToEmployeeProfile(row, manager, reports)
 }
 
 export async function updateProfile(userId: string, data: ProfileUpdateData): Promise<boolean> {
