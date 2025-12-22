@@ -470,16 +470,6 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
       return
     }
     
-    const validation = timesheetService.validateCommentsForSubmit(entries)
-    if (!validation.valid) {
-      setMissingComments(validation.missingComments)
-      toast({
-        title: "Missing comments",
-        description: "Please add comments to all time entries before submitting",
-        variant: "destructive"
-      })
-      return
-    }
     
     try {
       setLoading(true)
