@@ -42,6 +42,8 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
   const [toDate, setToDate] = useState<Date>();
   const [reason, setReason] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [fromOpen, setFromOpen] = useState(false);
+  const [toOpen, setToOpen] = useState(false);
 
   const totalDays = fromDate && toDate 
     ? differenceInDays(toDate, fromDate) + 1 
@@ -52,6 +54,19 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
     setToDate(undefined);
     setReason('');
     setFile(null);
+    setFromOpen(false);
+    setToOpen(false);
+  };
+
+  const handleFromDateSelect = (date: Date | undefined) => {
+    setFromDate(date);
+    setFromOpen(false);
+    setTimeout(() => setToOpen(true), 100);
+  };
+
+  const handleToDateSelect = (date: Date | undefined) => {
+    setToDate(date);
+    setToOpen(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +133,7 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">From *</Label>
-              <Popover>
+              <Popover open={fromOpen} onOpenChange={setFromOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -135,7 +150,7 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
                   <Calendar
                     mode="single"
                     selected={fromDate}
-                    onSelect={setFromDate}
+                    onSelect={handleFromDateSelect}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -150,7 +165,7 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
 
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">To *</Label>
-              <Popover>
+              <Popover open={toOpen} onOpenChange={setToOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -167,7 +182,7 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
                   <Calendar
                     mode="single"
                     selected={toDate}
-                    onSelect={setToDate}
+                    onSelect={handleToDateSelect}
                     disabled={(date) => fromDate ? date < fromDate : false}
                     initialFocus
                     className="pointer-events-auto"

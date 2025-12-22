@@ -539,14 +539,13 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   <div className="space-y-4">
                     <Label className="text-base font-semibold">Family Details</Label>
                     
-                    {['Father', 'Mother', 'Spouse'].map((rel) => {
+                    {/* Father and Mother - always shown */}
+                    {['Father', 'Mother'].map((rel) => {
                       const member = (editData.family_details || []).find(m => m.relationship === rel)
                       return (
                         <Card key={rel} className="p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            {rel === 'Father' && <User className="h-4 w-4" />}
-                            {rel === 'Mother' && <User className="h-4 w-4" />}
-                            {rel === 'Spouse' && <Heart className="h-4 w-4" />}
+                            <User className="h-4 w-4" />
                             <Label className="font-medium">{rel}</Label>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -578,57 +577,194 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                               value={member?.occupation || ''}
                               onChange={(e) => member && updateFamilyMember(member.id, 'occupation', e.target.value)}
                             />
-                            {rel === 'Spouse' && (
-                              <>
-                                <Input
-                                  placeholder="Date of Birth"
-                                  type="date"
-                                  value={member?.date_of_birth || ''}
-                                  onChange={(e) => member && updateFamilyMember(member.id, 'date_of_birth', e.target.value)}
-                                />
-                                <Select
-                                  value={member?.gender || 'Male'}
-                                  onValueChange={(value) => member && updateFamilyMember(member.id, 'gender', value)}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Male">Male</SelectItem>
-                                    <SelectItem value="Female">Female</SelectItem>
-                                    <SelectItem value="Other">Other</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </>
-                            )}
                           </div>
                         </Card>
                       )
                     })}
 
-                    <Card className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Baby className="h-4 w-4" />
-                        <Label className="font-medium">Children</Label>
-                      </div>
-                    {(editData.family_details || []).filter(m => m.relationship === 'Child').map((child) => (
-                        <div key={child.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2 p-2 border rounded">
+                    {/* Spouse/Husband - only shown if marital status is Married */}
+                    {(editData.marital_status === 'Married' || profile?.marital_status === 'Married') && (() => {
+                      const spouseLabel = (editData.gender === 'Female' || profile?.gender === 'Female') ? 'Husband' : 'Spouse';
+                      const member = (editData.family_details || []).find(m => m.relationship === 'Spouse')
+                      return (
+                        <Card className="p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Heart className="h-4 w-4" />
+                            <Label className="font-medium">{spouseLabel}</Label>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <Input
+                              placeholder="Name"
+                              value={member?.name || ''}
+                              onChange={(e) => {
+                                if (member) {
+                                  updateFamilyMember(member.id, 'name', e.target.value)
+                                } else {
+                                  setEditData(prev => ({
+                                    ...prev,
+                                    family_details: [...(prev.family_details || []), {
+                                      id: crypto.randomUUID(),
+                                      relationship: 'Spouse' as any,
+                                      name: e.target.value
+                                    }]
+                                  }))
+                                }
+                              }}
+                            />
+                            <Input
+                              placeholder="Phone"
+                              value={member?.phone || ''}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'phone', e.target.value)}
+                            />
+                            <Input
+                              placeholder="Occupation"
+                              value={member?.occupation || ''}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'occupation', e.target.value)}
+                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'w-full justify-start text-left font-normal',
+                                    !member?.date_of_birth && 'text-muted-foreground'
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {member?.date_of_birth ? format(new Date(member.date_of_birth), 'dd MMM yyyy') : 'Date of Birth'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  captionLayout="dropdown"
+                                  fromYear={1950}
+                                  toYear={new Date().getFullYear()}
+                                  selected={member?.date_of_birth ? new Date(member.date_of_birth) : undefined}
+                                  onSelect={(date) => member && updateFamilyMember(member.id, 'date_of_birth', date?.toISOString().split('T')[0])}
+                                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                  initialFocus
+                                  className="pointer-events-auto"
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <Select
+                              value={member?.gender || 'Male'}
+                              onValueChange={(value) => member && updateFamilyMember(member.id, 'gender', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </Card>
+                      )
+                    })()}
+
+                    {/* Children - only shown if marital status is Married */}
+                    {(editData.marital_status === 'Married' || profile?.marital_status === 'Married') && (
+                      <Card className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Baby className="h-4 w-4" />
+                          <Label className="font-medium">Children</Label>
+                        </div>
+                        {(editData.family_details || []).filter(m => m.relationship === 'Child').map((child) => (
+                          <div key={child.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2 p-2 border rounded">
+                            <Input
+                              placeholder="Name"
+                              value={child.name}
+                              onChange={(e) => updateFamilyMember(child.id, 'name', e.target.value)}
+                              className="flex-1"
+                            />
+                            <div className="flex gap-2">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      'flex-1 sm:w-40 justify-start text-left font-normal',
+                                      !child.date_of_birth && 'text-muted-foreground'
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {child.date_of_birth ? format(new Date(child.date_of_birth), 'dd MMM yyyy') : 'DOB'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    captionLayout="dropdown"
+                                    fromYear={1990}
+                                    toYear={new Date().getFullYear()}
+                                    selected={child.date_of_birth ? new Date(child.date_of_birth) : undefined}
+                                    onSelect={(date) => updateFamilyMember(child.id, 'date_of_birth', date?.toISOString().split('T')[0])}
+                                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                    initialFocus
+                                    className="pointer-events-auto"
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <Select
+                                value={child.gender || 'Male'}
+                                onValueChange={(value) => updateFamilyMember(child.id, 'gender', value)}
+                              >
+                                <SelectTrigger className="w-24 sm:w-28">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Male">Male</SelectItem>
+                                  <SelectItem value="Female">Female</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button variant="ghost" size="sm" onClick={() => handleRemoveFamilyMember(child.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-3">
                           <Input
-                            placeholder="Name"
-                            value={child.name}
-                            onChange={(e) => updateFamilyMember(child.id, 'name', e.target.value)}
+                            placeholder="Child name"
+                            value={newChild.name || ''}
+                            onChange={(e) => setNewChild(prev => ({ ...prev, name: e.target.value }))}
                             className="flex-1"
                           />
                           <div className="flex gap-2">
-                            <Input
-                              type="date"
-                              value={child.date_of_birth || ''}
-                              onChange={(e) => updateFamilyMember(child.id, 'date_of_birth', e.target.value)}
-                              className="flex-1 sm:w-40"
-                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'flex-1 sm:w-40 justify-start text-left font-normal',
+                                    !newChild.date_of_birth && 'text-muted-foreground'
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {newChild.date_of_birth ? format(new Date(newChild.date_of_birth), 'dd MMM yyyy') : 'DOB'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  captionLayout="dropdown"
+                                  fromYear={1990}
+                                  toYear={new Date().getFullYear()}
+                                  selected={newChild.date_of_birth ? new Date(newChild.date_of_birth) : undefined}
+                                  onSelect={(date) => setNewChild(prev => ({ ...prev, date_of_birth: date?.toISOString().split('T')[0] }))}
+                                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                  initialFocus
+                                  className="pointer-events-auto"
+                                />
+                              </PopoverContent>
+                            </Popover>
                             <Select
-                              value={child.gender || 'Male'}
-                              onValueChange={(value) => updateFamilyMember(child.id, 'gender', value)}
+                              value={newChild.gender || 'Male'}
+                              onValueChange={(value) => setNewChild(prev => ({ ...prev, gender: value as any }))}
                             >
                               <SelectTrigger className="w-24 sm:w-28">
                                 <SelectValue />
@@ -638,44 +774,13 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                                 <SelectItem value="Female">Female</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="sm" onClick={() => handleRemoveFamilyMember(child.id)}>
-                              <Trash2 className="h-4 w-4" />
+                            <Button variant="outline" size="icon" onClick={handleAddChild}>
+                              <Plus className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-                      ))}
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-3">
-                        <Input
-                          placeholder="Child name"
-                          value={newChild.name || ''}
-                          onChange={(e) => setNewChild(prev => ({ ...prev, name: e.target.value }))}
-                          className="flex-1"
-                        />
-                        <div className="flex gap-2">
-                          <Input
-                            type="date"
-                            value={newChild.date_of_birth || ''}
-                            onChange={(e) => setNewChild(prev => ({ ...prev, date_of_birth: e.target.value }))}
-                            className="flex-1 sm:w-40"
-                          />
-                          <Select
-                            value={newChild.gender || 'Male'}
-                            onValueChange={(value) => setNewChild(prev => ({ ...prev, gender: value as any }))}
-                          >
-                            <SelectTrigger className="w-24 sm:w-28">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button variant="outline" size="icon" onClick={handleAddChild}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
+                      </Card>
+                    )}
                   </div>
 
                   <div className="flex gap-2">
@@ -747,13 +852,15 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                       })}
                     </div>
 
-                    {(() => {
+                    {/* Spouse/Husband - only shown if marital status is Married */}
+                    {profile.marital_status === 'Married' && (() => {
+                      const spouseLabel = profile.gender === 'Female' ? 'Husband' : 'Spouse';
                       const spouse = (profile.family_details || []).find(m => m.relationship === 'Spouse')
                       return spouse ? (
                         <Card className="p-4">
                           <div className="flex items-center gap-2 mb-2">
                             <Heart className="h-4 w-4" />
-                            <Label className="font-medium">Spouse</Label>
+                            <Label className="font-medium">{spouseLabel}</Label>
                           </div>
                           <div className="space-y-1 text-sm">
                             <p className="font-medium">{spouse.name} {spouse.gender && `(${spouse.gender})`}</p>
@@ -762,29 +869,42 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                             {spouse.date_of_birth && <p className="text-muted-foreground">🎂 {format(new Date(spouse.date_of_birth), "dd MMM yyyy")}</p>}
                           </div>
                         </Card>
-                      ) : null
+                      ) : (
+                        <Card className="p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Heart className="h-4 w-4" />
+                            <Label className="font-medium">{spouseLabel}</Label>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Not provided</p>
+                        </Card>
+                      )
                     })()}
 
-                    {(() => {
+                    {/* Children - only shown if marital status is Married */}
+                    {profile.marital_status === 'Married' && (() => {
                       const children = (profile.family_details || []).filter(m => m.relationship === 'Child')
-                      return children.length > 0 ? (
+                      return (
                         <div>
                           <Label className="flex items-center gap-2 mb-3">
                             <Baby className="h-4 w-4" />
-                            Children ({children.length})
+                            Children {children.length > 0 && `(${children.length})`}
                           </Label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {children.map((child) => (
-                              <Card key={child.id} className="p-3">
-                                <p className="font-medium text-sm">{child.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {child.gender} {child.date_of_birth && `• ${calculateAge(child.date_of_birth)} years`}
-                                </p>
-                              </Card>
-                            ))}
-                          </div>
+                          {children.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {children.map((child) => (
+                                <Card key={child.id} className="p-3">
+                                  <p className="font-medium text-sm">{child.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {child.gender} {child.date_of_birth && `• ${calculateAge(child.date_of_birth)} years`}
+                                  </p>
+                                </Card>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">No children added</p>
+                          )}
                         </div>
-                      ) : null
+                      )
                     })()}
                   </div>
                 </div>
