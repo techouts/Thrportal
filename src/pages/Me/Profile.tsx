@@ -641,26 +641,29 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                                   fromYear={1950}
                                   toYear={new Date().getFullYear()}
                                   selected={member?.date_of_birth ? new Date(member.date_of_birth) : undefined}
-                                  onSelect={(date) => member && updateFamilyMember(member.id, 'date_of_birth', date?.toISOString().split('T')[0])}
+                                  onSelect={(date) => {
+                                    if (date) {
+                                      if (member) {
+                                        updateFamilyMember(member.id, 'date_of_birth', date.toISOString().split('T')[0]);
+                                      } else {
+                                        setEditData(prev => ({
+                                          ...prev,
+                                          family_details: [...(prev.family_details || []), {
+                                            id: crypto.randomUUID(),
+                                            relationship: 'Spouse' as any,
+                                            name: '',
+                                            date_of_birth: date.toISOString().split('T')[0]
+                                          }]
+                                        }));
+                                      }
+                                    }
+                                  }}
                                   disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                                   initialFocus
                                   className="pointer-events-auto"
                                 />
                               </PopoverContent>
                             </Popover>
-                            <Select
-                              value={member?.gender || 'Male'}
-                              onValueChange={(value) => member && updateFamilyMember(member.id, 'gender', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Male">Male</SelectItem>
-                                <SelectItem value="Female">Female</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
                           </div>
                         </Card>
                       )
