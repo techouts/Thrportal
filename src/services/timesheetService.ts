@@ -58,7 +58,7 @@ const mockExportProfiles: ClientExportProfile[] = [
 const mockPolicy: TimesheetPolicy = {
   maxPerDay: 24,
   maxPerWeek: 60,
-  backdateWeeksLimit: 6,
+  backdateWeeksLimit: 60,
   lockAfterApproval: true
 }
 
