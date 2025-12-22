@@ -43,7 +43,7 @@ export function TimeEntryPopover({
       <PopoverTrigger asChild>
         {children}
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3" align="center">
+      <PopoverContent className="w-64 p-3" align="center" onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="space-y-2">
           <Label htmlFor="comment-input" className="text-sm font-medium">
             Comment
