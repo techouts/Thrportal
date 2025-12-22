@@ -824,10 +824,6 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                   <p>{profile.employee_type || 'Not assigned'}</p>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-sm font-medium text-muted-foreground">Client Name</Label>
-                  <p>{profile.assigned_client_name || 'Not assigned'}</p>
-                </div>
-                <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">Shifts</Label>
                   <p>{profile.shifts || 'Not assigned'}</p>
                 </div>
