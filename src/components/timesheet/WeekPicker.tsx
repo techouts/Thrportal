@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { format, startOfWeek, addWeeks, subWeeks, isAfter, subDays } from 'date-fns'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ export function WeekPicker({
   backdateLimit = 6,
   className 
 }: WeekPickerProps) {
+  const [open, setOpen] = useState(false)
   const weekStart = startOfWeek(value, { weekStartsOn: startOnMonday ? 1 : 0 })
   const weekEnd = addWeeks(weekStart, 1)
   const earliestAllowed = subWeeks(new Date(), backdateLimit)
@@ -32,6 +33,7 @@ export function WeekPicker({
     if (date) {
       const newWeekStart = startOfWeek(date, { weekStartsOn: startOnMonday ? 1 : 0 })
       onChange(newWeekStart)
+      setOpen(false)
     }
   }
 
@@ -52,7 +54,7 @@ export function WeekPicker({
         <ChevronLeft className="h-4 w-4" />
       </Button>
       
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
