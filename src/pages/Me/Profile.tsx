@@ -1148,15 +1148,15 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
 
         {/* Team Tab */}
         <TabsContent value="team" className="space-y-4">
-          {profile.manager && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-amber-500" />
-                  Reporting Manager
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-amber-500" />
+                Reporting Manager
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profile.manager ? (
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={profile.manager.photo_url} />
@@ -1170,9 +1170,11 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <p className="text-sm text-muted-foreground">{profile.manager.email}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-muted-foreground">No reporting manager</p>
+              )}
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -1185,20 +1187,17 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
               {profile.reports && profile.reports.length > 0 ? (
                 <div className="space-y-3">
                   {profile.reports.map((report) => (
-                    <div key={report.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                    <div key={report.id} className="flex items-center gap-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={report.photo_url} />
                         <AvatarFallback>
                           {getInitials(report.first_name, report.last_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
+                      <div>
                         <p className="font-medium">{getDisplayName(report.first_name, report.last_name)}</p>
                         <p className="text-sm text-muted-foreground">{report.role_title}</p>
                       </div>
-                      <Button variant="ghost" size="sm">
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
                     </div>
                   ))}
                 </div>
