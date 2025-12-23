@@ -2544,6 +2544,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          action_url: string | null
           body: string
           created_at: string
           id: string
@@ -2554,6 +2555,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action_url?: string | null
           body: string
           created_at?: string
           id?: string
@@ -2564,6 +2566,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action_url?: string | null
           body?: string
           created_at?: string
           id?: string
