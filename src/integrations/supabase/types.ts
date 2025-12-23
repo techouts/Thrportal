@@ -2578,6 +2578,7 @@ export type Database = {
           nationality: string | null
           notice_period: string | null
           offer_letter_url: string | null
+          password_change_required: boolean
           permanent_address: string | null
           personal_email: string | null
           phone: string | null
@@ -2625,6 +2626,7 @@ export type Database = {
           nationality?: string | null
           notice_period?: string | null
           offer_letter_url?: string | null
+          password_change_required?: boolean
           permanent_address?: string | null
           personal_email?: string | null
           phone?: string | null
@@ -2672,6 +2674,7 @@ export type Database = {
           nationality?: string | null
           notice_period?: string | null
           offer_letter_url?: string | null
+          password_change_required?: boolean
           permanent_address?: string | null
           personal_email?: string | null
           phone?: string | null
