@@ -1,7 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { HRSidebar } from "@/components/ui/hr-sidebar"
-import { Button } from "@/components/ui/button"
-import { Bell, Search, User } from "lucide-react"
+import { Search } from "lucide-react"
+import { HeaderNotifications } from "@/components/shared/HeaderNotifications"
+import { ProfileDropdownMenu } from "@/components/shared/ProfileDropdownMenu"
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -38,15 +39,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
 
                 {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-4 w-4" />
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-white rounded-full text-xs flex items-center justify-center font-medium">3</span>
-                </Button>
+                <HeaderNotifications />
 
                 {/* User Menu */}
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-primary-foreground" />
-                </div>
+                <ProfileDropdownMenu />
               </div>
             </div>
           </header>
