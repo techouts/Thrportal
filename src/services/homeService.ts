@@ -14,6 +14,7 @@ import {
   InspirationalQuote,
   ApprovalCounts
 } from '@/types/home'
+import { supabase } from '@/integrations/supabase/client'
 
 class HomeService {
   // Org Section APIs
@@ -237,30 +238,69 @@ END:VCALENDAR`
   }
 
   async getNotifications(unreadOnly: boolean = true): Promise<Notification[]> {
-    // Mock data - replace with actual API call
-    return [
-      {
-        id: 'notif1',
-        type: 'leave_approval',
-        title: 'Leave Request Approved',
-        body: 'Your leave request for Dec 20-27 has been approved',
-        createdAt: '2024-12-02T09:00:00Z',
-        read: false
-      },
-      {
-        id: 'notif2',
-        type: 'recognition',
-        title: 'You received recognition!',
-        body: 'Sarah Johnson recognized you for excellent customer service',
-        createdAt: '2024-12-01T14:30:00Z',
-        read: false
+    try {
+      let query = supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (unreadOnly) {
+        query = query.eq('read', false)
       }
-    ].filter(n => !unreadOnly || !n.read)
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error fetching notifications:', error)
+        return []
+      }
+
+      return (data || []).map(n => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        body: n.body,
+        createdAt: n.created_at,
+        read: n.read
+      }))
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+      return []
+    }
   }
 
   async markNotificationAsRead(notificationId: string): Promise<void> {
-    // Mock API call - replace with actual implementation
-    console.log(`Marking notification ${notificationId} as read`)
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId)
+
+      if (error) {
+        console.error('Error marking notification as read:', error)
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error)
+    }
+  }
+
+  async markAllNotificationsAsRead(): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false)
+
+      if (error) {
+        console.error('Error marking all notifications as read:', error)
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error)
+    }
   }
 
   // Team Section APIs (for managers/dotted leads)

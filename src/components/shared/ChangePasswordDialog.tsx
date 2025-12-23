@@ -7,8 +7,6 @@ import { Eye, EyeOff, Check, X, Lock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/auth/AuthContext"
-
-const { signOut } = useAuth ? useAuth() : { signOut: async () => {} }
 import {
   hasMinLength,
   hasNumber,
@@ -23,7 +21,7 @@ interface ChangePasswordDialogProps {
 }
 
 export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const { toast } = useToast()
   
   const [oldPassword, setOldPassword] = useState("")

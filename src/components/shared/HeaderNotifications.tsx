@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { Bell } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Bell, CheckCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -16,24 +16,39 @@ import type { Notification } from "@/types/home"
 export function HeaderNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [isOpen, setIsOpen] = useState(false)
 
-  useEffect(() => {
-    const loadNotifications = async () => {
-      try {
-        const notificationsData = await homeService.getNotifications(true)
-        setNotifications(notificationsData)
-        setUnreadCount(notificationsData.length)
-      } catch (error) {
-        console.error('Failed to load notifications:', error)
-        setUnreadCount(0)
-      }
+  const loadNotifications = useCallback(async () => {
+    try {
+      const notificationsData = await homeService.getNotifications(false) // Get all notifications
+      setNotifications(notificationsData)
+      setUnreadCount(notificationsData.filter(n => !n.read).length)
+    } catch (error) {
+      console.error('Failed to load notifications:', error)
+      setUnreadCount(0)
     }
-
-    loadNotifications()
   }, [])
 
+  useEffect(() => {
+    loadNotifications()
+  }, [loadNotifications])
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    await homeService.markNotificationAsRead(notificationId)
+    setNotifications(prev => 
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+    )
+    setUnreadCount(prev => Math.max(0, prev - 1))
+  }
+
+  const handleMarkAllAsRead = async () => {
+    await homeService.markAllNotificationsAsRead()
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    setUnreadCount(0)
+  }
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
@@ -44,8 +59,23 @@ export function HeaderNotifications() {
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Notifications</SheetTitle>
-          <SheetDescription>Your recent updates and alerts</SheetDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <SheetTitle>Notifications</SheetTitle>
+              <SheetDescription>Your recent updates and alerts</SheetDescription>
+            </div>
+            {unreadCount > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleMarkAllAsRead}
+                className="text-xs"
+              >
+                <CheckCheck className="h-4 w-4 mr-1" />
+                Mark all read
+              </Button>
+            )}
+          </div>
         </SheetHeader>
         <div className="mt-6 space-y-4">
           {notifications.length === 0 ? (
@@ -55,7 +85,11 @@ export function HeaderNotifications() {
             </div>
           ) : (
             notifications.map((notification) => (
-              <Card key={notification.id} className="p-4">
+              <Card 
+                key={notification.id} 
+                className={`p-4 cursor-pointer transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                onClick={() => !notification.read && handleMarkAsRead(notification.id)}
+              >
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${notification.read ? 'bg-muted' : 'bg-primary'}`} />
