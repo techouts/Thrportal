@@ -1,0 +1,1 @@
+UPDATE public.profiles SET password_change_required = true WHERE email = 'admin@dev.local';
