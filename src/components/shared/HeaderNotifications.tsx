@@ -10,41 +10,67 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { homeService } from "@/services/homeService"
-import type { Notification } from "@/types/home"
+import { getNotificationService, Notification } from "@/services/notifications"
+import { supabase } from "@/integrations/supabase/client"
 
 export function HeaderNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  const notificationService = getNotificationService()
+
+  // Get current user on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
+      }
+    }
+    getUser()
+  }, [])
 
   const loadNotifications = useCallback(async () => {
+    if (!userId) return
+
     try {
-      const notificationsData = await homeService.getNotifications(false) // Get all notifications
-      setNotifications(notificationsData)
-      setUnreadCount(notificationsData.filter(n => !n.read).length)
+      const { data, success } = await notificationService.getAll({ limit: 50 })
+      if (success) {
+        setNotifications(data)
+        setUnreadCount(data.filter(n => !n.read).length)
+      }
     } catch (error) {
       console.error('Failed to load notifications:', error)
       setUnreadCount(0)
     }
-  }, [])
+  }, [userId, notificationService])
 
   useEffect(() => {
-    loadNotifications()
-  }, [loadNotifications])
+    if (userId) {
+      loadNotifications()
+    }
+  }, [userId, loadNotifications])
 
   const handleMarkAsRead = async (notificationId: string) => {
-    await homeService.markNotificationAsRead(notificationId)
-    setNotifications(prev => 
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-    )
-    setUnreadCount(prev => Math.max(0, prev - 1))
+    const { success } = await notificationService.markAsRead(notificationId)
+    if (success) {
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      )
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    }
   }
 
   const handleMarkAllAsRead = async () => {
-    await homeService.markAllNotificationsAsRead()
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-    setUnreadCount(0)
+    if (!userId) return
+    
+    const { success } = await notificationService.markAllAsRead(userId)
+    if (success) {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      setUnreadCount(0)
+    }
   }
 
   return (
@@ -52,9 +78,11 @@ export function HeaderNotifications() {
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full text-xs flex items-center justify-center font-medium">
-            {unreadCount}
-          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full text-xs flex items-center justify-center font-medium">
+              {unreadCount}
+            </span>
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent>
@@ -97,7 +125,7 @@ export function HeaderNotifications() {
                   </div>
                   <p className="text-sm text-muted-foreground">{notification.body}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(notification.createdAt).toLocaleDateString()}
+                    {new Date(notification.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </Card>
