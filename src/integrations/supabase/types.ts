@@ -3530,6 +3530,7 @@ export type Database = {
         | "MANAGER"
         | "EMPLOYEE"
         | "VIEWER"
+        | "OPERATIONS_HR"
       approval_action:
         | "submit"
         | "approve"
@@ -3706,6 +3707,7 @@ export const Constants = {
         "MANAGER",
         "EMPLOYEE",
         "VIEWER",
+        "OPERATIONS_HR",
       ],
       approval_action: [
         "submit",
