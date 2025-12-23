@@ -6,6 +6,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SignIn from "./pages/Auth/SignIn";
 import SignOut from "./pages/Auth/SignOut";
+import ChangePassword from "./pages/Auth/ChangePassword";
 import Forbidden from "./pages/Forbidden";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -60,6 +61,7 @@ function App() {
                 <Route path="/" element={<Navigate to="/Home" replace />} />
                 <Route path="/Auth/SignIn" element={<SignIn />} />
                 <Route path="/Auth/SignOut" element={<SignOut />} />
+                <Route path="/Auth/ChangePassword" element={<ChangePassword />} />
                 <Route path="/403" element={<Forbidden />} />
 
                 {/* Home */}

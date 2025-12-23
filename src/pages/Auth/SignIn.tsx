@@ -25,8 +25,16 @@ export default function SignIn() {
     
     setLoading(true);
     try {
-      await signIn(email.trim(), password); 
-      nav("/Home"); 
+      const user = await signIn(email.trim(), password);
+      
+      // Check if password change is required
+      if (user.passwordChangeRequired) {
+        // Store password temporarily to prevent reuse
+        sessionStorage.setItem("temp_pwd", password);
+        nav("/Auth/ChangePassword");
+      } else {
+        nav("/Home");
+      }
     } catch (error: any) {
       toast.error(error.message || "Invalid credentials");
     } finally {

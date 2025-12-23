@@ -14,7 +14,8 @@ export type User = {
   department?: string;
   employeeId?: string;
   permissions?: string[]; 
-  scopes?: any 
+  scopes?: any;
+  passwordChangeRequired?: boolean;
 };
 
 export type Profile = {
@@ -103,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Helper function to convert profile to user (fetches role from user_roles table)
-  const profileToUser = async (profile: Profile, supabaseUser: SupabaseUser): Promise<User> => {
+  const profileToUser = async (profile: Profile & { password_change_required?: boolean }, supabaseUser: SupabaseUser): Promise<User> => {
     // Fetch role from user_roles table (secure, used by RLS)
     const role = await getUserRole(profile.id);
     console.log('[AUTH] Fetched role from user_roles:', role);
@@ -116,7 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       first_name: profile.first_name,
       last_name: profile.last_name,
       department: profile.department,
-      employeeId: profile.id
+      employeeId: profile.id,
+      passwordChangeRequired: profile.password_change_required ?? false,
     };
   };
 
