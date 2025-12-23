@@ -1,5 +1,6 @@
 import { ApiResponse } from '@/types/attendance';
 import { supabase } from '@/integrations/supabase/client';
+import { getNotificationService } from '@/services/notifications';
 
 // My Team service with real database integration for timesheets
 export class MyTeamService {
@@ -397,6 +398,17 @@ export class MyTeamService {
         const { data: user } = await supabase.auth.getUser();
         const approverId = user?.user?.id;
 
+        // First get the timesheet to find employee_id
+        const { data: timesheet, error: fetchError } = await supabase
+          .from('timesheets')
+          .select('employee_id, week_start')
+          .eq('id', requestId)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching timesheet:', fetchError);
+        }
+
         const { error } = await supabase
           .from('timesheets')
           .update({
@@ -415,6 +427,22 @@ export class MyTeamService {
             success: false,
             timestamp: new Date().toISOString()
           };
+        }
+
+        // Create notification for the employee
+        if (timesheet?.employee_id) {
+          try {
+            const notificationService = getNotificationService();
+            await notificationService.notify({
+              user_id: timesheet.employee_id,
+              title: 'Timesheet Approved',
+              body: `Your timesheet for week ${timesheet.week_start} has been approved${comments ? `: ${comments}` : ''}`,
+              type: 'success',
+              action_url: '/my-info/time'
+            });
+          } catch (notifError) {
+            console.error('Error creating notification:', notifError);
+          }
         }
 
         return {
@@ -452,6 +480,17 @@ export class MyTeamService {
         const { data: user } = await supabase.auth.getUser();
         const approverId = user?.user?.id;
 
+        // First get the timesheet to find employee_id
+        const { data: timesheet, error: fetchError } = await supabase
+          .from('timesheets')
+          .select('employee_id, week_start')
+          .eq('id', requestId)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching timesheet:', fetchError);
+        }
+
         const { error } = await supabase
           .from('timesheets')
           .update({
@@ -470,6 +509,22 @@ export class MyTeamService {
             success: false,
             timestamp: new Date().toISOString()
           };
+        }
+
+        // Create notification for the employee
+        if (timesheet?.employee_id) {
+          try {
+            const notificationService = getNotificationService();
+            await notificationService.notify({
+              user_id: timesheet.employee_id,
+              title: 'Timesheet Rejected',
+              body: `Your timesheet for week ${timesheet.week_start} has been rejected: ${reason}`,
+              type: 'error',
+              action_url: '/my-info/time'
+            });
+          } catch (notifError) {
+            console.error('Error creating notification:', notifError);
+          }
         }
 
         return {
@@ -506,6 +561,16 @@ export class MyTeamService {
         const { data: user } = await supabase.auth.getUser();
         const approverId = user?.user?.id;
 
+        // First get the timesheets to find employee_ids
+        const { data: timesheets, error: fetchError } = await supabase
+          .from('timesheets')
+          .select('id, employee_id, week_start')
+          .in('id', requestIds);
+
+        if (fetchError) {
+          console.error('Error fetching timesheets:', fetchError);
+        }
+
         const { error } = await supabase
           .from('timesheets')
           .update({
@@ -523,6 +588,23 @@ export class MyTeamService {
             success: false,
             timestamp: new Date().toISOString()
           };
+        }
+
+        // Create notifications for all employees
+        if (timesheets && timesheets.length > 0) {
+          try {
+            const notificationService = getNotificationService();
+            const notifications = timesheets.map(ts => ({
+              user_id: ts.employee_id,
+              title: 'Timesheet Approved',
+              body: `Your timesheet for week ${ts.week_start} has been approved`,
+              type: 'success' as const,
+              action_url: '/my-info/time'
+            }));
+            await notificationService.notifyMany(notifications);
+          } catch (notifError) {
+            console.error('Error creating notifications:', notifError);
+          }
         }
       }
 
@@ -549,6 +631,16 @@ export class MyTeamService {
         const { data: user } = await supabase.auth.getUser();
         const approverId = user?.user?.id;
 
+        // First get the timesheets to find employee_ids
+        const { data: timesheets, error: fetchError } = await supabase
+          .from('timesheets')
+          .select('id, employee_id, week_start')
+          .in('id', requestIds);
+
+        if (fetchError) {
+          console.error('Error fetching timesheets:', fetchError);
+        }
+
         const { error } = await supabase
           .from('timesheets')
           .update({
@@ -567,6 +659,23 @@ export class MyTeamService {
             success: false,
             timestamp: new Date().toISOString()
           };
+        }
+
+        // Create notifications for all employees
+        if (timesheets && timesheets.length > 0) {
+          try {
+            const notificationService = getNotificationService();
+            const notifications = timesheets.map(ts => ({
+              user_id: ts.employee_id,
+              title: 'Timesheet Rejected',
+              body: `Your timesheet for week ${ts.week_start} has been rejected: ${reason}`,
+              type: 'error' as const,
+              action_url: '/my-info/time'
+            }));
+            await notificationService.notifyMany(notifications);
+          } catch (notifError) {
+            console.error('Error creating notifications:', notifError);
+          }
         }
       }
 
