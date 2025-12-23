@@ -50,6 +50,34 @@
         "hiring:configure_settings"
       ]
     },
+    "Operations_HR": {
+      "id": "operations_hr",
+      "inherits": ["employee"],
+      "permissions": [
+        "crm:view_clients",
+        "crm:view_accounts",
+        "crm:view_projects",
+        "crm:view_spocs",
+        "crm:manage_interactions",
+        "crm:manage_opportunities",
+        "crm:view_documents",
+        "crm:view_kpis",
+        "hiring:view_dashboard",
+        "hiring:manage_requisitions",
+        "hiring:manage_assignments",
+        "hiring:review_applications",
+        "hiring:manage_pipeline",
+        "hiring:schedule_followup",
+        "hiring:view_candidates",
+        "hiring:manage_jds",
+        "project:view_dashboard",
+        "project:view_clients",
+        "project:view_projects",
+        "project:view_assignments",
+        "project:view_tasks",
+        "project:view_bench"
+      ]
+    },
     "HR": {
       "id": "hr",
       "inherits": ["manager"],
@@ -93,11 +121,12 @@
   },
   "routeGuards": {
     "/Home/*": ["*"],
-    "/Me/*": ["Employee", "Manager", "Recruiter", "HR", "Management", "Admin"],
+    "/Me/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
     "/MyTeam/*": ["Manager", "HR", "Management", "Admin"],
-    "/Hiring/*": ["Manager", "Recruiter", "HR", "Management", "Admin"],
-    "/Project/*": ["Manager", "HR", "Management", "Admin"],
-    "/Org/*": ["Employee", "Manager", "Recruiter", "HR", "Management", "Admin"],
+    "/Hiring/*": ["Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
+    "/Project/*": ["Manager", "Operations_HR", "HR", "Management", "Admin"],
+    "/CRM/*": ["Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
+    "/Org/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
     "/HR/*": ["HR", "Management", "Admin"],
     "/Management/*": ["Management", "Admin"],
     "/Reports/*": ["HR", "Management", "Admin"],

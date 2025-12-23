@@ -166,6 +166,34 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
   DPO_PRIVACY: [
     "portal.announcements.read",
     "privacy.dsr.read","privacy.dsr.fulfill","employees.pii.view","employees.pii.export"
+  ],
+
+  OPERATIONS_HR: [
+    // Employee base permissions
+    "portal.announcements.read",
+    "employees.read","org.structure.read","org.policies.read",
+    "attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.requests.*","leave.balance.read","leave.requests.read",
+    "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
+    "performance.goals.*","performance.feedback_requests.*",
+    "learning.read","recognition.read",
+    "ijp.postings.read","ijp.applications.create",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create",
+    // CRM full access
+    "crm.*","crm.clients.*","crm.accounts.*","crm.projects.*","crm.spocs.*",
+    "crm.interactions.*","crm.opportunities.*","crm.documents.*","crm.kpis.read",
+    // Hiring full access
+    "hiring.*","hiring.dashboard.read","hiring.requisitions.*","hiring.jds.*",
+    "hiring.candidates.*","hiring.applications.*","hiring.pipeline.*","hiring.followup.*",
+    "applications.*","applications.pipeline.read","applications.submissions.*",
+    "jds.*","jds.create","jds.read",
+    "candidates.*","resumes.*","ownership.*","mapping.*",
+    "interviews.schedule.*","bgv.cases.read",
+    // Projects full access
+    "projects.*","projects.dashboard.read","projects.clients.read","projects.projects.read",
+    "projects.assignments.read","projects.tasks.read","projects.bench.read","projects.timesheets.read"
   ]
 };
 
