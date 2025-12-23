@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getNotificationService } from '@/services/notifications';
 
 export interface RegularizationRequest {
   id: string;
@@ -65,10 +66,10 @@ export function useApproveRegularization() {
 
   return useMutation({
     mutationFn: async ({ requestId, approverId }: { requestId: string; approverId: string }) => {
-      // First get the request to find attendance_record_id
+      // First get the request to find attendance_record_id and employee_id
       const { data: request, error: fetchError } = await supabase
         .from('attendance_regularization_requests')
-        .select('attendance_record_id')
+        .select('attendance_record_id, employee_id, attendance_date')
         .eq('id', requestId)
         .single();
 
@@ -99,6 +100,22 @@ export function useApproveRegularization() {
 
         if (recordError) throw recordError;
       }
+
+      // Create notification for the employee
+      if (request?.employee_id) {
+        try {
+          const notificationService = getNotificationService();
+          await notificationService.notify({
+            user_id: request.employee_id,
+            title: 'Attendance Regularization Approved',
+            body: `Your attendance regularization request for ${request.attendance_date} has been approved`,
+            type: 'success',
+            action_url: '/Me/Attendance'
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-regularization-requests'] });
@@ -115,6 +132,15 @@ export function useRejectRegularization() {
 
   return useMutation({
     mutationFn: async ({ requestId, approverId, rejectionReason }: { requestId: string; approverId: string; rejectionReason?: string }) => {
+      // First get the request to find employee_id
+      const { data: request, error: fetchError } = await supabase
+        .from('attendance_regularization_requests')
+        .select('employee_id, attendance_date')
+        .eq('id', requestId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from('attendance_regularization_requests')
         .update({
@@ -126,6 +152,22 @@ export function useRejectRegularization() {
         .eq('id', requestId);
 
       if (error) throw error;
+
+      // Create notification for the employee
+      if (request?.employee_id) {
+        try {
+          const notificationService = getNotificationService();
+          await notificationService.notify({
+            user_id: request.employee_id,
+            title: 'Attendance Regularization Rejected',
+            body: `Your attendance regularization request for ${request.attendance_date} has been rejected: ${rejectionReason || 'Rejected by manager'}`,
+            type: 'error',
+            action_url: '/Me/Attendance'
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-regularization-requests'] });

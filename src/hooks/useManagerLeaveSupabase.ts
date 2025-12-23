@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getNotificationService } from '@/services/notifications';
 
 const QUERY_KEYS = {
   pendingApprovals: 'manager-pending-leave-approvals',
@@ -238,6 +239,23 @@ export function useApproveLeaveRequest() {
         .single();
 
       if (error) throw error;
+
+      // Create notification for the employee
+      if (data?.employee_id) {
+        try {
+          const notificationService = getNotificationService();
+          await notificationService.notify({
+            user_id: data.employee_id,
+            title: 'Leave Request Approved',
+            body: `Your ${data.leave_type} leave request (${data.start_date} to ${data.end_date}) has been approved`,
+            type: 'success',
+            action_url: '/Me/Leave'
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -280,6 +298,23 @@ export function useApproveCompOffRequest() {
         .single();
 
       if (error) throw error;
+
+      // Create notification for the employee
+      if (data?.employee_id) {
+        try {
+          const notificationService = getNotificationService();
+          await notificationService.notify({
+            user_id: data.employee_id,
+            title: 'Comp-Off Request Approved',
+            body: `Your comp-off request (${data.start_date} to ${data.end_date}) has been approved`,
+            type: 'success',
+            action_url: '/Me/Leave'
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -323,6 +358,23 @@ export function useRejectLeaveRequest() {
         .single();
 
       if (error) throw error;
+
+      // Create notification for the employee
+      if (data?.employee_id) {
+        try {
+          const notificationService = getNotificationService();
+          await notificationService.notify({
+            user_id: data.employee_id,
+            title: 'Leave Request Rejected',
+            body: `Your ${data.leave_type} leave request (${data.start_date} to ${data.end_date}) has been rejected: ${reason}`,
+            type: 'error',
+            action_url: '/Me/Leave'
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -364,6 +416,23 @@ export function useRejectCompOffRequest() {
         .single();
 
       if (error) throw error;
+
+      // Create notification for the employee
+      if (data?.employee_id) {
+        try {
+          const notificationService = getNotificationService();
+          await notificationService.notify({
+            user_id: data.employee_id,
+            title: 'Comp-Off Request Rejected',
+            body: `Your comp-off request (${data.start_date} to ${data.end_date}) has been rejected: ${reason}`,
+            type: 'error',
+            action_url: '/Me/Leave'
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
