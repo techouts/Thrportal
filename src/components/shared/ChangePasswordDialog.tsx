@@ -7,6 +7,8 @@ import { Eye, EyeOff, Check, X, Lock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/auth/AuthContext"
+
+const { signOut } = useAuth ? useAuth() : { signOut: async () => {} }
 import {
   hasMinLength,
   hasNumber,
@@ -94,12 +96,19 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
         return
       }
 
+      // Show success toast for 3 seconds
       toast({
-        title: "Password Changed",
-        description: "Your password has been updated successfully."
+        title: "Password Changed Successfully",
+        description: "Please re-login with your new password.",
+        duration: 3000
       })
 
       handleClose()
+      
+      // Wait for toast to be visible, then sign out
+      setTimeout(async () => {
+        await signOut()
+      }, 3000)
     } catch (error) {
       toast({
         title: "Error",
