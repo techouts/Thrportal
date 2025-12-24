@@ -2495,6 +2495,66 @@ export type Database = {
           },
         ]
       }
+      leave_transactions: {
+        Row: {
+          balance: number
+          change: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          employee_id: string
+          id: string
+          leave_type: string
+          reference_id: string | null
+          transaction_date: string
+          transaction_type: string
+          year: number
+        }
+        Insert: {
+          balance: number
+          change: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          employee_id: string
+          id?: string
+          leave_type: string
+          reference_id?: string | null
+          transaction_date: string
+          transaction_type: string
+          year: number
+        }
+        Update: {
+          balance?: number
+          change?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          employee_id?: string
+          id?: string
+          leave_type?: string
+          reference_id?: string | null
+          transaction_date?: string
+          transaction_type?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_transactions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       msas: {
         Row: {
           client_id: string

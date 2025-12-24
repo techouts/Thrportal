@@ -1,1 +1,7 @@
 project_id = "jflphinczkhzabmpwdok"
+
+[functions.get-leave-transactions]
+verify_jwt = false
+
+[functions.process-leave-accruals]
+verify_jwt = false
