@@ -30,6 +30,7 @@ export interface LeaveTransaction {
   change: number;
   balance: number;
   description?: string;
+  transactionType?: 'ACCRUAL' | 'DEDUCTION' | 'CARRY_FORWARD' | 'ADJUSTMENT';
 }
 
 export interface LeavePolicyBalance {

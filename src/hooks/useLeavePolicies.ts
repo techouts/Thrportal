@@ -34,7 +34,7 @@ export function useLeaveTransactions(leaveType: string) {
     queryFn: async (): Promise<LeaveTransaction[]> => {
       if (!user?.id) return [];
 
-      // Map policy code to leave request type
+      // Map policy code to leave type if needed
       const typeMap: Record<string, string> = {
         'CL': 'CL',
         'COMP_OFF': 'COMP_OFF',
@@ -43,39 +43,23 @@ export function useLeaveTransactions(leaveType: string) {
       };
 
       const requestType = typeMap[leaveType] || leaveType;
+      const currentYear = new Date().getFullYear();
 
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select('id, start_date, end_date, total_days, status, created_at')
-        .eq('employee_id', user.id)
-        .eq('leave_type', requestType)
-        .in('status', ['APPROVED', 'PENDING'])
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-
-      // Transform leave requests into transactions
-      let runningBalance = 0;
-      const transactions: LeaveTransaction[] = [];
-
-      // Reverse to calculate running balance from oldest to newest
-      const sortedData = [...(data || [])].reverse();
-      
-      sortedData.forEach((request) => {
-        const change = -(request.total_days || 0);
-        runningBalance += change;
-        
-        transactions.unshift({
-          id: request.id,
-          date: request.start_date,
-          change,
-          balance: runningBalance,
-          description: request.status === 'PENDING' ? 'Pending' : 'Approved',
-        });
+      // Call the edge function to get transactions
+      const { data, error } = await supabase.functions.invoke('get-leave-transactions', {
+        body: { 
+          employeeId: user.id, 
+          leaveType: requestType,
+          year: currentYear
+        }
       });
 
-      return transactions;
+      if (error) {
+        console.error('Error fetching leave transactions:', error);
+        throw error;
+      }
+
+      return data?.transactions || [];
     },
     enabled: !!user?.id,
   });
