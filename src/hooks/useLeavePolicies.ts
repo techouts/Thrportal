@@ -39,6 +39,7 @@ export function useLeaveTransactions(leaveType: string) {
         'CL': 'CL',
         'COMP_OFF': 'COMP_OFF',
         'PL_PATERNITY': 'PL',
+        'ML': 'ML',
         'LOP': 'LOP',
       };
 
