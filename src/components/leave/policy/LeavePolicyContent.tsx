@@ -55,6 +55,11 @@ export function LeavePolicyContent({ policy }: LeavePolicyContentProps) {
                 You are allocated a total of <strong>{policy.annual_quota} days</strong> of leave in a year 
                 beginning {yearStart} till {yearEnd}. This allocation is available upon qualifying event.
               </>
+            ) : policy.code === 'ML' ? (
+              <>
+                You are allocated a total of <strong>{policy.annual_quota} days</strong> of leave in a year 
+                beginning {yearStart} till {yearEnd}. This allocation is available as per the Maternity Benefit Act.
+              </>
             ) : policy.annual_quota > 0 ? (
               <>
                 You are allocated a total of <strong>{policy.annual_quota} days</strong> of leave in a year 

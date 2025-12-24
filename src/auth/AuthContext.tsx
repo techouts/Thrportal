@@ -16,6 +16,7 @@ export type User = {
   permissions?: string[]; 
   scopes?: any;
   passwordChangeRequired?: boolean;
+  gender?: string;
 };
 
 export type Profile = {
@@ -32,6 +33,7 @@ export type Profile = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  gender?: string;
 };
 
 interface AuthContextType {
@@ -119,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       department: profile.department,
       employeeId: profile.id,
       passwordChangeRequired: profile.password_change_required ?? false,
+      gender: profile.gender,
     };
   };
 
