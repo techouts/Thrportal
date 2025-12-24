@@ -2503,6 +2503,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           employee_id: string
+          expiry_date: string | null
           id: string
           leave_type: string
           reference_id: string | null
@@ -2517,6 +2518,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           employee_id: string
+          expiry_date?: string | null
           id?: string
           leave_type: string
           reference_id?: string | null
@@ -2531,6 +2533,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           employee_id?: string
+          expiry_date?: string | null
           id?: string
           leave_type?: string
           reference_id?: string | null
