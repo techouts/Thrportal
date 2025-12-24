@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     // Fetch transactions for the specified employee, leave type, and year
     const { data: transactions, error } = await supabase
       .from('leave_transactions')
-      .select('id, transaction_date, change, balance, description, transaction_type')
+      .select('id, transaction_date, change, balance, description, transaction_type, expiry_date')
       .eq('employee_id', employeeId)
       .eq('leave_type', leaveType)
       .eq('year', targetYear)
@@ -61,6 +61,8 @@ Deno.serve(async (req) => {
       change: Number(tx.change),
       balance: Number(tx.balance),
       description: tx.description || tx.transaction_type,
+      transactionType: tx.transaction_type,
+      expiryDate: tx.expiry_date,
     }));
 
     console.log(`Found ${formattedTransactions.length} transactions`);

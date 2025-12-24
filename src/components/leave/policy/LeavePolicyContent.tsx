@@ -2,6 +2,7 @@ import { LeavePolicy } from '@/types/leavePolicy';
 import { LeaveDonutChart } from '../LeaveDonutChart';
 import { LeaveTransactionTable } from '../LeaveTransactionTable';
 import { useLeaveTransactions } from '@/hooks/useLeavePolicies';
+import { useLeaveBalanceFromTransactions } from '@/hooks/useLeaveBalanceFromTransactions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
@@ -11,8 +12,17 @@ interface LeavePolicyContentProps {
   consumed: number;
 }
 
-export function LeavePolicyContent({ policy, available, consumed }: LeavePolicyContentProps) {
+export function LeavePolicyContent({ policy }: LeavePolicyContentProps) {
   const { data: transactions = [], isLoading } = useLeaveTransactions(policy.code);
+  const { available, consumed, isLoading: balanceLoading } = useLeaveBalanceFromTransactions(policy.code);
+
+  // Determine if this is a comp-off type that needs expiry display
+  const showExpiry = policy.code === 'COMP_OFF';
+
+  // Get current year for quota message
+  const currentYear = new Date().getFullYear();
+  const yearStart = `Jan ${currentYear}`;
+  const yearEnd = `Dec ${currentYear}`;
 
   return (
     <div className="space-y-6">
@@ -24,26 +34,41 @@ export function LeavePolicyContent({ policy, available, consumed }: LeavePolicyC
           <p className="text-muted-foreground">{policy.description}</p>
         </div>
         <div className="flex justify-center pb-8">
-          <LeaveDonutChart available={available} consumed={consumed} />
+          <LeaveDonutChart 
+            available={balanceLoading ? 0 : available} 
+            consumed={balanceLoading ? 0 : consumed} 
+          />
         </div>
       </div>
 
-      {/* Leave Quota */}
-      {policy.annual_quota > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Leave Quota</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              You are allocated <strong>{policy.annual_quota} days</strong> of leave in a year. 
-              {policy.accrual_rate > 0 && (
-                <> This accrues at <strong>{policy.accrual_rate} days</strong> per {policy.accrual_frequency}.</>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Leave Quota - Enhanced display */}
+      <Card className="bg-muted/30 border-muted">
+        <CardContent className="pt-4">
+          <p className="text-sm text-muted-foreground">
+            {policy.code === 'COMP_OFF' ? (
+              <>
+                You are allocated a total of <strong>{available}</strong> days of leave in a year 
+                beginning {yearStart} till {yearEnd}. You can consume this leave in the same year they are accrued/credited.
+              </>
+            ) : policy.code === 'PL_PATERNITY' ? (
+              <>
+                You are allocated a total of <strong>{policy.annual_quota} days</strong> of leave in a year 
+                beginning {yearStart} till {yearEnd}. This allocation is available upon qualifying event.
+              </>
+            ) : policy.annual_quota > 0 ? (
+              <>
+                You are allocated a total of <strong>{policy.annual_quota} days</strong> of leave in a year 
+                beginning {yearStart} till {yearEnd}.
+                {policy.accrual_rate > 0 && (
+                  <> This accrues at <strong>{policy.accrual_rate} days</strong> per {policy.accrual_frequency}.</>
+                )}
+              </>
+            ) : (
+              <>Unpaid leave is available as needed with manager approval.</>
+            )}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Transaction Table */}
       <Card>
@@ -51,7 +76,11 @@ export function LeavePolicyContent({ policy, available, consumed }: LeavePolicyC
           <CardTitle className="text-base">Leave History</CardTitle>
         </CardHeader>
         <CardContent>
-          <LeaveTransactionTable transactions={transactions} isLoading={isLoading} />
+          <LeaveTransactionTable 
+            transactions={transactions} 
+            isLoading={isLoading} 
+            showExpiry={showExpiry}
+          />
         </CardContent>
       </Card>
 
