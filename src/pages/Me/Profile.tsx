@@ -259,6 +259,10 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
     }))
   }, [])
 
+  // Validation helpers for family details
+  const handleLettersOnly = (value: string) => value.replace(/[^A-Za-z\s]/g, '')
+  const handlePhoneOnly = (value: string) => value.replace(/[^0-9]/g, '').slice(0, 10)
+
   const handleAddInterest = useCallback(() => {
     if (!newInterest.trim()) return
     
@@ -464,7 +468,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                             fromYear={1950}
                             toYear={new Date().getFullYear()}
                             selected={editData.date_of_birth ? new Date(editData.date_of_birth) : undefined}
-                            onSelect={(date) => setEditData(prev => ({ ...prev, date_of_birth: date?.toISOString().split('T')[0] }))}
+                            onSelect={(date) => setEditData(prev => ({ ...prev, date_of_birth: date ? format(date, 'yyyy-MM-dd') : undefined }))}
                             disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                             initialFocus
                             className="pointer-events-auto"
@@ -553,15 +557,16 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                               placeholder="Name"
                               value={member?.name || ''}
                               onChange={(e) => {
+                                const validatedValue = handleLettersOnly(e.target.value)
                                 if (member) {
-                                  updateFamilyMember(member.id, 'name', e.target.value)
+                                  updateFamilyMember(member.id, 'name', validatedValue)
                                 } else {
                                   setEditData(prev => ({
                                     ...prev,
                                     family_details: [...(prev.family_details || []), {
                                       id: crypto.randomUUID(),
                                       relationship: rel as any,
-                                      name: e.target.value
+                                      name: validatedValue
                                     }]
                                   }))
                                 }
@@ -570,12 +575,12 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                             <Input
                               placeholder="Phone"
                               value={member?.phone || ''}
-                              onChange={(e) => member && updateFamilyMember(member.id, 'phone', e.target.value)}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'phone', handlePhoneOnly(e.target.value))}
                             />
                             <Input
                               placeholder="Occupation"
                               value={member?.occupation || ''}
-                              onChange={(e) => member && updateFamilyMember(member.id, 'occupation', e.target.value)}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'occupation', handleLettersOnly(e.target.value))}
                             />
                           </div>
                         </Card>
@@ -597,15 +602,16 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                               placeholder="Name"
                               value={member?.name || ''}
                               onChange={(e) => {
+                                const validatedValue = handleLettersOnly(e.target.value)
                                 if (member) {
-                                  updateFamilyMember(member.id, 'name', e.target.value)
+                                  updateFamilyMember(member.id, 'name', validatedValue)
                                 } else {
                                   setEditData(prev => ({
                                     ...prev,
                                     family_details: [...(prev.family_details || []), {
                                       id: crypto.randomUUID(),
                                       relationship: 'Spouse' as any,
-                                      name: e.target.value
+                                      name: validatedValue
                                     }]
                                   }))
                                 }
@@ -614,12 +620,12 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                             <Input
                               placeholder="Phone"
                               value={member?.phone || ''}
-                              onChange={(e) => member && updateFamilyMember(member.id, 'phone', e.target.value)}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'phone', handlePhoneOnly(e.target.value))}
                             />
                             <Input
                               placeholder="Occupation"
                               value={member?.occupation || ''}
-                              onChange={(e) => member && updateFamilyMember(member.id, 'occupation', e.target.value)}
+                              onChange={(e) => member && updateFamilyMember(member.id, 'occupation', handleLettersOnly(e.target.value))}
                             />
                             <Popover>
                               <PopoverTrigger asChild>
@@ -644,7 +650,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                                   onSelect={(date) => {
                                     if (date) {
                                       if (member) {
-                                        updateFamilyMember(member.id, 'date_of_birth', date.toISOString().split('T')[0]);
+                                        updateFamilyMember(member.id, 'date_of_birth', format(date, 'yyyy-MM-dd'));
                                       } else {
                                         setEditData(prev => ({
                                           ...prev,
@@ -652,7 +658,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                                             id: crypto.randomUUID(),
                                             relationship: 'Spouse' as any,
                                             name: '',
-                                            date_of_birth: date.toISOString().split('T')[0]
+                                            date_of_birth: format(date, 'yyyy-MM-dd')
                                           }]
                                         }));
                                       }
@@ -681,7 +687,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                             <Input
                               placeholder="Name"
                               value={child.name}
-                              onChange={(e) => updateFamilyMember(child.id, 'name', e.target.value)}
+                              onChange={(e) => updateFamilyMember(child.id, 'name', handleLettersOnly(e.target.value))}
                               className="flex-1"
                             />
                             <div className="flex gap-2">
@@ -705,7 +711,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                                     fromYear={1990}
                                     toYear={new Date().getFullYear()}
                                     selected={child.date_of_birth ? new Date(child.date_of_birth) : undefined}
-                                    onSelect={(date) => updateFamilyMember(child.id, 'date_of_birth', date?.toISOString().split('T')[0])}
+                                    onSelect={(date) => updateFamilyMember(child.id, 'date_of_birth', date ? format(date, 'yyyy-MM-dd') : undefined)}
                                     disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                                     initialFocus
                                     className="pointer-events-auto"
@@ -734,7 +740,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                           <Input
                             placeholder="Child name"
                             value={newChild.name || ''}
-                            onChange={(e) => setNewChild(prev => ({ ...prev, name: e.target.value }))}
+                            onChange={(e) => setNewChild(prev => ({ ...prev, name: handleLettersOnly(e.target.value) }))}
                             className="flex-1"
                           />
                           <div className="flex gap-2">
@@ -758,7 +764,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                                   fromYear={1990}
                                   toYear={new Date().getFullYear()}
                                   selected={newChild.date_of_birth ? new Date(newChild.date_of_birth) : undefined}
-                                  onSelect={(date) => setNewChild(prev => ({ ...prev, date_of_birth: date?.toISOString().split('T')[0] }))}
+                                  onSelect={(date) => setNewChild(prev => ({ ...prev, date_of_birth: date ? format(date, 'yyyy-MM-dd') : undefined }))}
                                   disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                                   initialFocus
                                   className="pointer-events-auto"
