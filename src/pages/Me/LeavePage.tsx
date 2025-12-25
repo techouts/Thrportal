@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Clock } from "lucide-react";
 import { format } from "date-fns";
 // useLeaveBalances removed - now using real data from transactions
@@ -136,58 +135,9 @@ export default function LeavePage() {
               </div>
             </div>
 
-            {/* Quick Stats - Only Holidays and Recent Requests */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Upcoming Holidays Card */}
+            {/* Upcoming Holidays */}
+            <div>
               <UpcomingHolidayCard />
-
-              {/* Recent Requests */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Recent Requests
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {requestsLoading ? (
-                    <div className="space-y-2">
-                      {[...Array(3)].map((_, i) => (
-                        <div key={i} className="animate-pulse">
-                          <div className="h-3 bg-muted rounded w-3/4 mb-1" />
-                          <div className="h-2 bg-muted rounded w-1/2" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {allRequests?.slice(0, 3)?.map((request) => (
-                        <div key={request.id} className="flex justify-between items-center">
-                          <div>
-                            <p className="text-sm font-medium">{request.leave_type}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(request.start_date), 'MMM dd')} - {format(new Date(request.end_date), 'MMM dd')}
-                            </p>
-                          </div>
-                          <Badge 
-                            variant={
-                              request.status === 'approved' ? 'default' :
-                              request.status === 'rejected' ? 'destructive' :
-                              'secondary'
-                            }
-                            className="text-xs"
-                          >
-                            {request.status}
-                          </Badge>
-                        </div>
-                      ))}
-                      {(!allRequests || allRequests.length === 0) && (
-                        <p className="text-sm text-muted-foreground">No recent requests</p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 
