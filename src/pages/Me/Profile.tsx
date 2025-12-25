@@ -1041,8 +1041,9 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <Input 
                       id="phone" 
                       value={editData.phone || ''} 
-                      onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="+1234567890"
+                      onChange={(e) => setEditData(prev => ({ ...prev, phone: handlePhoneOnly(e.target.value) }))}
+                      placeholder="1234567890"
+                      maxLength={10}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1060,8 +1061,9 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <Input 
                       id="alternate_phone" 
                       value={editData.alternate_phone || ''} 
-                      onChange={(e) => setEditData(prev => ({ ...prev, alternate_phone: e.target.value }))}
-                      placeholder="+1234567890"
+                      onChange={(e) => setEditData(prev => ({ ...prev, alternate_phone: handlePhoneOnly(e.target.value) }))}
+                      placeholder="1234567890"
+                      maxLength={10}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1069,7 +1071,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <Input 
                       id="city" 
                       value={editData.city || ''} 
-                      onChange={(e) => setEditData(prev => ({ ...prev, city: e.target.value }))}
+                      onChange={(e) => setEditData(prev => ({ ...prev, city: handleLettersOnly(e.target.value) }))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1077,7 +1079,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                     <Input 
                       id="country" 
                       value={editData.country || ''} 
-                      onChange={(e) => setEditData(prev => ({ ...prev, country: e.target.value }))}
+                      onChange={(e) => setEditData(prev => ({ ...prev, country: handleLettersOnly(e.target.value) }))}
                     />
                   </div>
                   <div className="space-y-2">
