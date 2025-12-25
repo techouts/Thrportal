@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { useLeaveBalances } from "@/hooks/useLeave";
+// useLeaveBalances removed - now using real data from transactions
 import { useCompOffBalance } from "@/hooks/useCompOffBalance";
 import { 
   useAllMyRequests,
@@ -15,7 +15,7 @@ import {
   useCancelLeaveRequest,
   useCancelCompOffRequest
 } from "@/hooks/useLeaveSupabase";
-import { LeaveBalanceCard } from "@/components/leave/LeaveBalanceCard";
+import { CasualLeaveBalanceCard } from "@/components/leave/CasualLeaveBalanceCard";
 import { CompOffBalanceCard } from "@/components/leave/CompOffBalanceCard";
 import { UpcomingHolidayCard } from "@/components/leave/UpcomingHolidayCard";
 import { RequestLeaveDialog, LeaveRequestData } from "@/components/leave/RequestLeaveDialog";
@@ -35,7 +35,7 @@ export default function LeavePage() {
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
   // Data hooks
-  const { data: balances, isLoading: balancesLoading } = useLeaveBalances(selectedYear);
+  // Leave balances now fetched via CasualLeaveBalanceCard component directly
   const { data: compOffBalance } = useCompOffBalance(user?.id);
   const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(user?.id);
   const { data: profiles } = useProfiles();
@@ -124,36 +124,16 @@ export default function LeavePage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            {/* Leave Balances - Only CL and Comp-Offs */}
+            {/* Leave Balances - CL and Comp-Offs */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Leave Balances</h2>
-              {balancesLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[...Array(2)].map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="space-y-3">
-                          <div className="h-4 bg-muted rounded w-3/4" />
-                          <div className="h-8 bg-muted rounded w-1/2" />
-                          <div className="h-2 bg-muted rounded" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Casual Leave Card */}
-                  {balances?.data
-                    ?.filter((balance) => balance.type === 'CL')
-                    ?.map((balance) => (
-                      <LeaveBalanceCard key={balance.id} balance={balance} />
-                    ))}
-                  
-                  {/* Comp-Off Balance Card */}
-                  <CompOffBalanceCard employeeId={user?.id} />
-                </div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Casual Leave Card - Real data from transactions */}
+                <CasualLeaveBalanceCard />
+                
+                {/* Comp-Off Balance Card */}
+                <CompOffBalanceCard employeeId={user?.id} />
+              </div>
             </div>
 
             {/* Quick Stats - Only Holidays and Recent Requests */}
@@ -242,7 +222,6 @@ export default function LeavePage() {
         <LeavePolicyDialog
           open={showPolicyDialog}
           onOpenChange={setShowPolicyDialog}
-          balances={balances?.data}
         />
       </div>
     </RBACGuard>
