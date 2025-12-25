@@ -54,10 +54,12 @@ export function LeaveDonutChart({ available, consumed, label = 'Days Available' 
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded-full bg-primary" />
           <span className="text-muted-foreground">Available</span>
+          <span className="font-medium text-foreground">{available}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded-full bg-muted" />
           <span className="text-muted-foreground">Consumed</span>
+          <span className="font-medium text-foreground">{consumed}</span>
         </div>
       </div>
     </div>
