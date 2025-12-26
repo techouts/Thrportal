@@ -95,8 +95,21 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
     setCurrentPage(1);
   }, [searchQuery, leaveTypeFilter, statusFilter]);
 
-  // Filter requests
+  // Helper to check if a date string is valid
+  const isValidDate = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+  };
+
+  // Filter requests - also filter out requests with invalid dates
   const filteredRequests = requests.filter((request) => {
+    // Filter out requests with invalid date fields
+    if (!isValidDate(request.start_date) || !isValidDate(request.end_date)) {
+      console.warn('[MyRequestsTable] Skipping request with invalid dates:', request.id);
+      return false;
+    }
+
     const matchesSearch = searchQuery === '' || 
       (request.reason?.toLowerCase().includes(searchQuery.toLowerCase()) ||
        request.requested_by?.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -115,8 +128,28 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
   );
 
   const formatDateRange = (startDate: string, endDate: string, totalDays: number) => {
+    // Defensive check for invalid dates
+    if (!startDate || !endDate) {
+      return (
+        <div>
+          <div className="font-medium text-muted-foreground">Invalid date</div>
+          <div className="text-xs text-muted-foreground">{totalDays || 0} day(s)</div>
+        </div>
+      );
+    }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
+    
+    // Check if dates are valid (not NaN)
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return (
+        <div>
+          <div className="font-medium text-muted-foreground">Invalid date</div>
+          <div className="text-xs text-muted-foreground">{totalDays || 0} day(s)</div>
+        </div>
+      );
+    }
     
     if (startDate === endDate) {
       return (
@@ -169,8 +202,31 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
 
   // Mobile card render
   const renderMobileCard = (request: LeaveRequest) => {
+    // Defensive check for invalid dates
+    if (!request.start_date || !request.end_date) {
+      return (
+        <Card key={request.id} className="overflow-hidden">
+          <CardContent className="p-4">
+            <p className="text-muted-foreground">Invalid request data</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
     const start = new Date(request.start_date);
     const end = new Date(request.end_date);
+    
+    // Check if dates are valid
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return (
+        <Card key={request.id} className="overflow-hidden">
+          <CardContent className="p-4">
+            <p className="text-muted-foreground">Invalid date format</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
     const isSameDay = request.start_date === request.end_date;
     
     return (
