@@ -38,7 +38,7 @@ export function AssignmentProjectSection() {
 
 
   // Fetch clients from database
-  const { data: clients = [] } = useQuery({
+  const { data: clientsData } = useQuery({
     queryKey: ['crm-clients-active'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -50,9 +50,11 @@ export function AssignmentProjectSection() {
       return data || [];
     }
   });
+  // Ensure clients is always an array
+  const clients = Array.isArray(clientsData) ? clientsData : [];
 
   // Fetch accounts filtered by selected client
-  const { data: accounts = [] } = useQuery({
+  const { data: accountsData } = useQuery({
     queryKey: ['crm-accounts', selectedClient],
     queryFn: async () => {
       if (!selectedClient) return [];
@@ -67,9 +69,11 @@ export function AssignmentProjectSection() {
     },
     enabled: !!selectedClient
   });
+  // Ensure accounts is always an array
+  const accounts = Array.isArray(accountsData) ? accountsData : [];
 
   // Fetch projects filtered by selected account
-  const { data: projects = [] } = useQuery({
+  const { data: projectsData } = useQuery({
     queryKey: ['crm-projects', selectedAccount],
     queryFn: async () => {
       if (!selectedAccount) return [];
@@ -83,6 +87,8 @@ export function AssignmentProjectSection() {
     },
     enabled: !!selectedAccount
   });
+  // Ensure projects is always an array
+  const projects = Array.isArray(projectsData) ? projectsData : [];
 
   // Cascading reset handlers
   const handleClientChange = (clientId: string) => {
