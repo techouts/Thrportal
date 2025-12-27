@@ -53,6 +53,10 @@ export function AddResourceDialog({
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   
+  // Date picker popover states
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  
   // Search state
   const [resourceSearch, setResourceSearch] = useState('');
   const [resourceOptions, setResourceOptions] = useState<ResourceOption[]>([]);
@@ -134,6 +138,8 @@ export function AddResourceDialog({
       setAllocationPct('100');
       setStartDate(undefined);
       setEndDate(undefined);
+      setStartDateOpen(false);
+      setEndDateOpen(false);
       setResourceSearch('');
       setResourceOptions([]);
       setSelectedResource(null);
@@ -309,7 +315,7 @@ export function AddResourceDialog({
             {/* Start Date */}
             <div className="space-y-2">
               <Label>Start Date *</Label>
-              <Popover>
+              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -318,15 +324,21 @@ export function AddResourceDialog({
                       !startDate && 'text-muted-foreground'
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'PPP') : 'Pick a date'}
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {startDate ? format(startDate, 'PP') : 'Pick a date'}
+                    </span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={startDate}
-                    onSelect={setStartDate}
+                    onSelect={(date) => {
+                      setStartDate(date);
+                      setStartDateOpen(false);
+                      setEndDateOpen(true);
+                    }}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
@@ -340,7 +352,7 @@ export function AddResourceDialog({
             {/* End Date */}
             <div className="space-y-2">
               <Label>End Date *</Label>
-              <Popover>
+              <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -349,15 +361,20 @@ export function AddResourceDialog({
                       !endDate && 'text-muted-foreground'
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'PPP') : 'Pick a date'}
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {endDate ? format(endDate, 'PP') : 'Pick a date'}
+                    </span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={endDate}
-                    onSelect={setEndDate}
+                    onSelect={(date) => {
+                      setEndDate(date);
+                      setEndDateOpen(false);
+                    }}
                     disabled={(date) => startDate ? date <= startDate : false}
                     initialFocus
                     className="p-3 pointer-events-auto"
