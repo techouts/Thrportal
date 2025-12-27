@@ -51,7 +51,7 @@ export function RecruiterPerformanceTab() {
   const userRole = user?.role || 'RECRUITER'
   const isRecruiter = userRole === 'RECRUITER'
   const isStaffingManager = userRole === 'STAFFING_MANAGER' || userRole === 'HIRING_MANAGER'
-  const isLeadership = ['MANAGEMENT', 'ADMIN', 'HR_MANAGER'].includes(userRole)
+  const isLeadership = ['MANAGEMENT', 'ADMIN', 'HR_MANAGER', 'OPERATIONS_HR'].includes(userRole)
 
   useEffect(() => {
     loadPerformanceData()

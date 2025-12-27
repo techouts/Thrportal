@@ -19,7 +19,8 @@ export const DEV_USER_ID_MAP: Record<string, string> = {
   "fin@dev.local": "ffffffff-ffff-ffff-ffff-ffffffffffff",
   "it@dev.local": "10101010-1010-1010-1010-101010101010",
   "auditor@dev.local": "20202020-2020-2020-2020-202020202020",
-  "dpo@dev.local": "30303030-3030-3030-3030-303030303030"
+  "dpo@dev.local": "30303030-3030-3030-3030-303030303030",
+  "opshr@dev.local": "544b4c1c-c390-4d44-bf39-eb02c00aabf9"
 };
 
 export const DEV_USERS = [
@@ -40,5 +41,6 @@ export const DEV_USERS = [
   { email: "fin@dev.local",          display_name: "Farah Finance",       role: "FINANCE_ANALYST",    password: "DevOnly!2025", mfa_enabled: false },
   { email: "it@dev.local",           display_name: "Inder IT",            role: "IT_HELPDESK",        password: "DevOnly!2025", mfa_enabled: false },
   { email: "auditor@dev.local",      display_name: "Arun Auditor",        role: "AUDITOR_RO",         password: "DevOnly!2025", mfa_enabled: false },
-  { email: "dpo@dev.local",          display_name: "Deepa DPO",           role: "DPO_PRIVACY",        password: "DevOnly!2025", mfa_enabled: false }
+  { email: "dpo@dev.local",          display_name: "Deepa DPO",           role: "DPO_PRIVACY",        password: "DevOnly!2025", mfa_enabled: false },
+  { email: "opshr@dev.local",        display_name: "Ops HR User",         role: "OPERATIONS_HR",      password: "DevOnly!2025", mfa_enabled: false }
 ] as const;

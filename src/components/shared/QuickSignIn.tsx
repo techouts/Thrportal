@@ -47,7 +47,7 @@ export function QuickSignIn() {
 
   // Show users with hiring.settings.* permissions
   const hiringUsers = DEV_USERS.filter(u => 
-    ['ADMIN', 'HIRING_MANAGER', 'HR_MANAGER', 'STAFFING_MANAGER'].includes(u.role)
+    ['ADMIN', 'HIRING_MANAGER', 'HR_MANAGER', 'STAFFING_MANAGER', 'OPERATIONS_HR'].includes(u.role)
   )
 
   return (

@@ -27,8 +27,8 @@ export function InternalApprovalsTab() {
   const userRole = user?.role || '';
   
   // Permission checks
-  const canViewTab = ['ADMIN', 'MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'RECRUITER', 'HIRING_MANAGER'].includes(userRole);
-  const canApprove = ['MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER'].includes(userRole);
+  const canViewTab = ['ADMIN', 'MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'RECRUITER', 'HIRING_MANAGER', 'OPERATIONS_HR'].includes(userRole);
+  const canApprove = ['MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'OPERATIONS_HR'].includes(userRole);
   const canApproveManagement = userRole === 'MANAGEMENT';
   const canApproveHR = userRole === 'HR_MANAGER';
 
