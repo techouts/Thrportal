@@ -184,6 +184,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     // CRM full access
     "crm.*","crm.clients.*","crm.accounts.*","crm.projects.*","crm.spocs.*",
     "crm.interactions.*","crm.opportunities.*","crm.documents.*","crm.kpis.read",
+    "contracts.*",
     // Hiring full access
     "hiring.*","hiring.dashboard.read","hiring.requisitions.*","hiring.jds.*",
     "hiring.candidates.*","hiring.applications.*","hiring.pipeline.*","hiring.followup.*",
