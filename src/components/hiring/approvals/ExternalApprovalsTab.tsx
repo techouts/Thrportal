@@ -26,7 +26,7 @@ export function ExternalApprovalsTab() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
   // Permission checks
-  const canViewTab = ['ADMIN', 'STAFFING_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'RECRUITER', 'HIRING_MANAGER'].includes(userRole);
+  const canViewTab = ['ADMIN', 'STAFFING_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'RECRUITER', 'HIRING_MANAGER', 'OPERATIONS_HR'].includes(userRole);
   const canApproveStaffing = userRole === 'STAFFING_MANAGER';
   const canApproveHR = userRole === 'HR_MANAGER';
 

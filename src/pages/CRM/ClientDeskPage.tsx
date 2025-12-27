@@ -84,7 +84,7 @@ export function ClientDeskPage() {
   const [parentContext, setParentContext] = useState<{ type: string; id: string } | null>(null);
 
   // Permissions - Check if user has CRM access
-  const canWrite = user && ['ADMIN', 'FINANCE_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'STAFFING_MANAGER'].includes(user.role);
+  const canWrite = user && ['ADMIN', 'FINANCE_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'STAFFING_MANAGER', 'OPERATIONS_HR'].includes(user.role);
 
 
   // Breadcrumb computation

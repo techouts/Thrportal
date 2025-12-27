@@ -26,7 +26,7 @@ export function ComplianceSettings({ activeSubTab }: ComplianceSettingsProps) {
   ]
 
   // Check if user has write permissions
-  const canEdit = can('hiring.settings.*') && (user?.role === 'STAFFING_MANAGER' || user?.role === 'HR_MANAGER' || user?.role === 'ADMIN')
+  const canEdit = can('hiring.settings.*') && (user?.role === 'STAFFING_MANAGER' || user?.role === 'HR_MANAGER' || user?.role === 'ADMIN' || user?.role === 'OPERATIONS_HR')
   const isReadOnly = !canEdit
 
   return (
