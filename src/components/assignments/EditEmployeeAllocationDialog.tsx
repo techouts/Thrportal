@@ -48,6 +48,8 @@ export function EditEmployeeAllocationDialog({
   const [type, setType] = useState<string>("ACTIVE");
   const [allocationPct, setAllocationPct] = useState<number>(100);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   // Reset form when allocation changes
@@ -117,7 +119,7 @@ export function EditEmployeeAllocationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Allocation</DialogTitle>
         </DialogHeader>
@@ -163,24 +165,29 @@ export function EditEmployeeAllocationDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Start Date</Label>
-              <Popover>
+              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "justify-start text-left font-normal",
+                      "justify-start text-left font-normal min-w-0 w-full",
                       !startDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Pick a date"}
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {startDate ? format(startDate, "PP") : "Pick a date"}
+                    </span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={startDate}
-                    onSelect={setStartDate}
+                    onSelect={(date) => {
+                      setStartDate(date);
+                      setStartDateOpen(false);
+                    }}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -190,24 +197,29 @@ export function EditEmployeeAllocationDialog({
 
             <div className="grid gap-2">
               <Label>End Date</Label>
-              <Popover>
+              <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "justify-start text-left font-normal",
+                      "justify-start text-left font-normal min-w-0 w-full",
                       !endDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "Pick a date"}
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {endDate ? format(endDate, "PP") : "Pick a date"}
+                    </span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={endDate}
-                    onSelect={setEndDate}
+                    onSelect={(date) => {
+                      setEndDate(date);
+                      setEndDateOpen(false);
+                    }}
                     initialFocus
                     className="pointer-events-auto"
                   />
