@@ -315,6 +315,20 @@ export default function AttendancePage() {
     return 'Ongoing';
   };
 
+  const formatHoursDisplay = (totalHours: number): string => {
+    if (!totalHours || totalHours === 0) return '-';
+    
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+    
+    if (hours === 0) {
+      return `${minutes}m`;
+    } else if (minutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${minutes}m`;
+  };
+
   const formatTimeDisplay = (record: AttendanceRecord) => {
     if (record.status === 'week_off') {
       return 'Full day Weekly-off';
@@ -614,11 +628,13 @@ export default function AttendancePage() {
                           </div>
                           {/* Row 3: Location and Hours */}
                           <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <MapPin className="w-4 h-4" />
-                              <span>{record.location}</span>
-                            </div>
-                            <span className="font-semibold">{record.totalHours.toFixed(1)}h</span>
+                            {record.checkIn && (
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <MapPin className="w-4 h-4" />
+                                <span>{record.location}</span>
+                              </div>
+                            )}
+                            <span className="font-semibold ml-auto">{formatHoursDisplay(record.totalHours)}</span>
                           </div>
                           {/* Row 4: Actions (if needed) */}
                           {showActions && (
@@ -654,12 +670,14 @@ export default function AttendancePage() {
                             <Timer className="w-3 h-3" />
                             {formatTimeDisplay(record)}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {record.location}
-                          </div>
+                          {record.checkIn && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {record.location}
+                            </div>
+                          )}
                           <div className="font-medium text-foreground">
-                            {record.totalHours.toFixed(1)}h
+                            {formatHoursDisplay(record.totalHours)}
                           </div>
                           {showActions && (
                             <AttendanceRowActions
