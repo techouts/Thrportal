@@ -38,6 +38,8 @@ export default function LeavePage() {
   // Leave balances now fetched via CasualLeaveBalanceCard component directly
   const { data: compOffBalance } = useCompOffBalance(user?.id);
   const { available: clBalance } = useLeaveBalanceFromTransactions('CL');
+  const { available: plBalance } = useLeaveBalanceFromTransactions('PL');
+  const { available: mlBalance } = useLeaveBalanceFromTransactions('ML');
   const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(user?.id);
   const { data: profiles } = useProfiles();
 
@@ -166,6 +168,8 @@ export default function LeavePage() {
           onSubmit={handleLeaveSubmit}
           compOffBalance={compOffBalance?.available ?? 0}
           clBalance={clBalance ?? 0}
+          plBalance={plBalance ?? 0}
+          mlBalance={mlBalance ?? 0}
           userGender={user?.gender}
         />
         <RequestCompOffDialog
