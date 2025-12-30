@@ -282,8 +282,14 @@ export default function AttendancePage() {
   };
 
   const isMissingClockOut = (record: AttendanceRecord): boolean => {
-    // Don't show actions for approved leave days, week-offs, or holidays
-    if (record.status === 'on_leave' || record.status === 'week_off' || record.status === 'holiday') return false;
+    // Don't show actions for approved leave days or week-offs
+    if (record.status === 'on_leave' || record.status === 'week_off') return false;
+    
+    // For holidays, only show actions if the employee actually worked (has checkIn)
+    if (record.status === 'holiday') {
+      return record.checkIn !== undefined;
+    }
+    
     if (record.checkOut) return false;
     // Hide actions for any regularization (pending or approved)
     if (regularizationRequests[record.date]) return false;
@@ -314,6 +320,12 @@ export default function AttendancePage() {
       return 'Full day Weekly-off';
     }
     if (record.status === 'holiday') {
+      // If the employee worked on a holiday, show the clock-in/clock-out times
+      if (record.checkIn) {
+        const checkOutDisplay = record.checkOut || 'Ongoing';
+        return `${record.checkIn} - ${checkOutDisplay}`;
+      }
+      // Otherwise show the holiday name
       return record.notes || 'Holiday';
     }
     if (!record.checkIn) {
