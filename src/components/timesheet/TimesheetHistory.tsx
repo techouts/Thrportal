@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { format, parseISO, addDays, subWeeks } from 'date-fns'
 import { Save, Send, Copy, RotateCcw, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,8 @@ import { CommentSummary } from './CommentSummary'
 import { TimesheetActivity } from './TimesheetActivity'
 import { TimesheetService } from '@/services/timesheetService'
 import { useWeeklyAttendance } from '@/hooks/useWeeklyAttendance'
+import { useWeeklyLeaves } from '@/hooks/useWeeklyLeaves'
+import { useWeeklyHolidays } from '@/hooks/useHolidays'
 import { useIsMobile } from '@/hooks/use-mobile'
 import type { 
   Timesheet, 
@@ -65,8 +67,70 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
   const isMobile = useIsMobile()
   
   const { attendanceHours } = useWeeklyAttendance(employeeId, selectedWeek || new Date())
+  
+  // Fetch leaves and holidays for the selected week
+  const { data: weeklyLeaves = [] } = useWeeklyLeaves(employeeId, selectedWeek || new Date())
+  const { data: weeklyHolidays = [] } = useWeeklyHolidays(selectedWeek || new Date())
 
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+  // Generate auto-entries for leaves and holidays
+  const autoEntries = useMemo(() => {
+    if (!selectedWeek) return []
+    
+    const leaveEntriesMap = new Map<string, TimesheetEntry>()
+    
+    // Group leaves by type to create one row per leave type
+    weeklyLeaves.forEach((leave) => {
+      const key = `leave-${leave.leaveType}`
+      if (!leaveEntriesMap.has(key)) {
+        leaveEntriesMap.set(key, {
+          rowId: key,
+          projectId: 'auto-leave',
+          projectName: `Time-off: ${leave.leaveTypeLabel}`,
+          taskId: '',
+          taskName: '',
+          billable: false,
+          isAutoEntry: true,
+          autoEntryType: 'leave',
+          autoEntryLabel: `Time-off: ${leave.leaveTypeLabel}`,
+          daily: Array(7).fill(null).map(() => ({ hours: 0, comment: '' }))
+        })
+      }
+      
+      // Find day index and set hours
+      const leaveDate = new Date(leave.date)
+      const dayIndex = Math.round((leaveDate.getTime() - selectedWeek.getTime()) / (1000 * 60 * 60 * 24))
+      if (dayIndex >= 0 && dayIndex < 7) {
+        const entry = leaveEntriesMap.get(key)!
+        entry.daily[dayIndex] = { hours: leave.hours, comment: '' }
+      }
+    })
+
+    // Create holiday entries
+    const holidayEntries: TimesheetEntry[] = weeklyHolidays.map((holiday) => ({
+      rowId: `holiday-${holiday.date}`,
+      projectId: 'auto-holiday',
+      projectName: `Holiday: ${holiday.name}`,
+      taskId: '',
+      taskName: '',
+      billable: false,
+      isAutoEntry: true,
+      autoEntryType: 'holiday',
+      autoEntryLabel: `Holiday: ${holiday.name}`,
+      daily: Array(7).fill(null).map((_, i) => ({
+        hours: i === holiday.dayIndex ? 8 : 0,
+        comment: ''
+      }))
+    }))
+
+    return [...Array.from(leaveEntriesMap.values()), ...holidayEntries]
+  }, [weeklyLeaves, weeklyHolidays, selectedWeek])
+
+  // Combine auto entries with user entries for display
+  const allRows = useMemo(() => {
+    return [...autoEntries, ...entries]
+  }, [autoEntries, entries])
 
   // Load incomplete weeks on mount
   useEffect(() => {
@@ -170,12 +234,15 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
   }
 
   const calculateTotals = (): TimesheetTotals => {
-    const weekTotal = entries.reduce((sum, entry) => 
+    // Include both auto entries (leave/holiday) and user entries for totals
+    const allEntriesForTotals = [...autoEntries, ...entries]
+    
+    const weekTotal = allEntriesForTotals.reduce((sum, entry) => 
       sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0
     )
     
     const byDay = Array(7).fill(0).map((_, dayIndex) => 
-      entries.reduce((sum, entry) => sum + (entry.daily[dayIndex]?.hours || 0), 0)
+      allEntriesForTotals.reduce((sum, entry) => sum + (entry.daily[dayIndex]?.hours || 0), 0)
     )
     
     const billable = entries
@@ -185,13 +252,18 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
     const nonBillable = entries
       .filter(entry => !entry.billable)
       .reduce((sum, entry) => sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0)
+    
+    // Calculate time off from auto entries
+    const timeOff = autoEntries.reduce((sum, entry) => 
+      sum + entry.daily.reduce((daySum, d) => daySum + d.hours, 0), 0
+    )
 
     return {
       week: weekTotal,
       byDay,
       billable,
       nonBillable,
-      timeOff: 0
+      timeOff
     }
   }
 
@@ -634,23 +706,25 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
               {timesheet.status}
             </Badge>
           )}
-          <div className="text-lg font-semibold">
-            {totals.week.toFixed(1)}h
-          </div>
+          {!isMobile && (
+            <div className="text-lg font-semibold">
+              {totals.week.toFixed(1)}h
+            </div>
+          )}
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {canEdit && (
             <>
               {canCopyLastWeek && (
                 <Button variant="outline" size="sm" onClick={handleCopyLastWeek} disabled={loading}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Last Week
+                  <Copy className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                  {!isMobile && "Copy Last Week"}
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={handleSave} disabled={loading}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
+                <Save className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                {!isMobile && "Save Draft"}
               </Button>
               <Button 
                 size="sm" 
@@ -658,8 +732,8 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
                 disabled={loading}
                 data-testid="submit-btn"
               >
-                <Send className="mr-2 h-4 w-4" />
-                Submit
+                <Send className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+                {!isMobile && "Submit"}
               </Button>
             </>
           )}
@@ -671,8 +745,8 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
               disabled={loading}
               data-testid="recall-btn"
             >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Recall
+              <RotateCcw className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+              {!isMobile && "Recall"}
             </Button>
           )}
         </div>
@@ -685,7 +759,7 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
       {selectedWeek && (
         isMobile ? (
           <TimesheetMobileView
-            rows={entries}
+            rows={allRows}
             onChangeCell={handleCellChange}
             onChangeCategory={handleCategoryChange}
             weekStart={selectedWeek}
@@ -703,7 +777,7 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
           />
         ) : (
           <TimesheetGrid
-            rows={entries}
+            rows={allRows}
             onChangeCell={handleCellChange}
             onChangeCategory={handleCategoryChange}
             onRowAction={handleRowAction}
