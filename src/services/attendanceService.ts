@@ -128,7 +128,10 @@ class AttendanceService {
         }
 
         if (existingRecord) {
-          // Use existing record from database
+          // Check if this date is a holiday
+          const holidayName = holidayDates.get(dateStr);
+          
+          // Use existing record from database, but override status if it's a holiday
           allRecords.push({
             id: existingRecord.id,
             employeeId: existingRecord.employee_id,
@@ -137,10 +140,12 @@ class AttendanceService {
             checkOut: existingRecord.check_out || undefined,
             breakTime: existingRecord.break_time || 0,
             totalHours: Number(existingRecord.total_hours) || 0,
-            status: existingRecord.status as AttendanceRecord['status'],
+            // Override status to 'holiday' if it's a holiday, otherwise use the record's status
+            status: holidayName ? 'holiday' : existingRecord.status as AttendanceRecord['status'],
             location: existingRecord.location as AttendanceRecord['location'],
             coordinates: existingRecord.coordinates as any,
-            notes: existingRecord.notes || undefined,
+            // If it's a holiday, include the holiday name in notes
+            notes: holidayName || existingRecord.notes || undefined,
             approvedBy: existingRecord.approved_by || undefined,
             createdAt: existingRecord.created_at,
             updatedAt: existingRecord.updated_at
