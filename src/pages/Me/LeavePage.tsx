@@ -6,6 +6,7 @@ import { Plus, Clock } from "lucide-react";
 import { format } from "date-fns";
 // useLeaveBalances removed - now using real data from transactions
 import { useCompOffBalance } from "@/hooks/useCompOffBalance";
+import { useLeaveBalanceFromTransactions } from "@/hooks/useLeaveBalanceFromTransactions";
 import { 
   useAllMyRequests,
   useProfiles, 
@@ -36,6 +37,7 @@ export default function LeavePage() {
   // Data hooks
   // Leave balances now fetched via CasualLeaveBalanceCard component directly
   const { data: compOffBalance } = useCompOffBalance(user?.id);
+  const { available: clBalance } = useLeaveBalanceFromTransactions('CL');
   const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(user?.id);
   const { data: profiles } = useProfiles();
 
@@ -163,6 +165,8 @@ export default function LeavePage() {
           onOpenChange={setShowLeaveDialog}
           onSubmit={handleLeaveSubmit}
           compOffBalance={compOffBalance?.available ?? 0}
+          clBalance={clBalance ?? 0}
+          userGender={user?.gender}
         />
         <RequestCompOffDialog
           open={showCompOffDialog}

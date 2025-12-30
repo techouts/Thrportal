@@ -33,6 +33,8 @@ interface RequestLeaveDialogProps {
   onSubmit: (data: LeaveRequestData) => Promise<void>;
   initialDate?: Date;
   compOffBalance?: number;
+  clBalance?: number;
+  userGender?: string | null;
 }
 
 export interface LeaveRequestData {
@@ -50,9 +52,18 @@ const LEAVE_TYPES = [
   { value: 'ML', label: 'Maternity Leave' },
   { value: 'PL_PATERNITY', label: 'Paternity Leave' },
   { value: 'COMP_OFF', label: 'Comp Offs' },
+  { value: 'LOP', label: 'Unpaid Leave' },
 ];
 
-export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, compOffBalance = 0 }: RequestLeaveDialogProps) {
+export function RequestLeaveDialog({ 
+  open, 
+  onOpenChange, 
+  onSubmit, 
+  initialDate, 
+  compOffBalance = 0,
+  clBalance = 0,
+  userGender
+}: RequestLeaveDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(initialDate);
@@ -68,13 +79,29 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
   const [startSession, setStartSession] = useState<'AM' | 'PM'>('AM');
   const [endSession, setEndSession] = useState<'AM' | 'PM'>('PM');
 
-  // Filter out COMP_OFF if user has no available balance
-  const availableLeaveTypes = LEAVE_TYPES.filter(type => {
-    if (type.value === 'COMP_OFF') {
-      return compOffBalance > 0;
-    }
-    return true;
-  });
+  // Filter leave types based on balance and gender
+  const availableLeaveTypes = useMemo(() => {
+    return LEAVE_TYPES.filter(type => {
+      // Hide COMP_OFF if no balance
+      if (type.value === 'COMP_OFF') {
+        return compOffBalance > 0;
+      }
+      // Hide CL if no balance available
+      if (type.value === 'CL') {
+        return clBalance > 0;
+      }
+      // Hide Paternity Leave for non-males
+      if (type.value === 'PL_PATERNITY') {
+        return userGender === 'Male';
+      }
+      // Hide Maternity Leave for non-females
+      if (type.value === 'ML') {
+        return userGender === 'Female';
+      }
+      // LOP is always available (unlimited)
+      return true;
+    });
+  }, [compOffBalance, clBalance, userGender]);
 
   const baseDays = fromDate && toDate 
     ? differenceInDays(toDate, fromDate) + 1 
@@ -146,6 +173,26 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
       toast({
         title: 'Validation Error',
         description: 'End date cannot be before start date',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate CL balance
+    if (leaveType === 'CL' && calculatedDays > clBalance) {
+      toast({
+        title: 'Insufficient Balance',
+        description: `You only have ${clBalance} casual leave day(s) available. Please reduce the number of days.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate COMP_OFF balance
+    if (leaveType === 'COMP_OFF' && calculatedDays > compOffBalance) {
+      toast({
+        title: 'Insufficient Balance',
+        description: `You only have ${compOffBalance} comp-off day(s) available. Please reduce the number of days.`,
         variant: 'destructive',
       });
       return;
@@ -272,11 +319,18 @@ export function RequestLeaveDialog({ open, onOpenChange, onSubmit, initialDate, 
                 <SelectValue placeholder="Select leave type" />
               </SelectTrigger>
               <SelectContent>
-                {availableLeaveTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
+                {availableLeaveTypes.map((type) => {
+                  let balanceInfo = '';
+                  if (type.value === 'CL') balanceInfo = ` (${clBalance} available)`;
+                  if (type.value === 'COMP_OFF') balanceInfo = ` (${compOffBalance} available)`;
+                  if (type.value === 'LOP') balanceInfo = ' (Unlimited)';
+                  
+                  return (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}{balanceInfo}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
