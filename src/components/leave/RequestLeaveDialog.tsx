@@ -34,6 +34,8 @@ interface RequestLeaveDialogProps {
   initialDate?: Date;
   compOffBalance?: number;
   clBalance?: number;
+  plBalance?: number;
+  mlBalance?: number;
   userGender?: string | null;
 }
 
@@ -62,6 +64,8 @@ export function RequestLeaveDialog({
   initialDate, 
   compOffBalance = 0,
   clBalance = 0,
+  plBalance = 0,
+  mlBalance = 0,
   userGender
 }: RequestLeaveDialogProps) {
   const { toast } = useToast();
@@ -79,17 +83,9 @@ export function RequestLeaveDialog({
   const [startSession, setStartSession] = useState<'AM' | 'PM'>('AM');
   const [endSession, setEndSession] = useState<'AM' | 'PM'>('PM');
 
-  // Filter leave types based on balance and gender
+  // Filter leave types based on gender only (balance check is handled by disabling)
   const availableLeaveTypes = useMemo(() => {
     return LEAVE_TYPES.filter(type => {
-      // Hide COMP_OFF if no balance
-      if (type.value === 'COMP_OFF') {
-        return compOffBalance > 0;
-      }
-      // Hide CL if no balance available
-      if (type.value === 'CL') {
-        return clBalance > 0;
-      }
       // Hide Paternity Leave for non-males
       if (type.value === 'PL_PATERNITY') {
         return userGender === 'Male';
@@ -98,10 +94,33 @@ export function RequestLeaveDialog({
       if (type.value === 'ML') {
         return userGender === 'Female';
       }
-      // LOP is always available (unlimited)
       return true;
     });
-  }, [compOffBalance, clBalance, userGender]);
+  }, [userGender]);
+
+  // Helper to get balance for a leave type
+  const getBalanceForLeaveType = (type: string): number | null => {
+    switch (type) {
+      case 'CL': return clBalance;
+      case 'COMP_OFF': return compOffBalance;
+      case 'PL_PATERNITY': return plBalance;
+      case 'ML': return mlBalance;
+      case 'LOP': return null; // Unlimited
+      default: return null;
+    }
+  };
+
+  // Helper to check if leave type should be disabled
+  const isLeaveTypeDisabled = (type: string): boolean => {
+    if (type === 'LOP') return false; // Never disable Unpaid Leave
+    
+    const balance = getBalanceForLeaveType(type);
+    if (balance === null) return false; // Unlimited types
+    if (balance <= 0) return true; // No balance available at all
+    if (calculatedDays <= 0) return false; // No dates selected yet
+    
+    return calculatedDays > balance;
+  };
 
   const baseDays = fromDate && toDate 
     ? differenceInDays(toDate, fromDate) + 1 
@@ -182,7 +201,7 @@ export function RequestLeaveDialog({
     if (leaveType === 'CL' && calculatedDays > clBalance) {
       toast({
         title: 'Insufficient Balance',
-        description: `You only have ${clBalance} casual leave day(s) available. Please reduce the number of days.`,
+        description: `You only have ${clBalance} casual leave day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
         variant: 'destructive',
       });
       return;
@@ -192,7 +211,27 @@ export function RequestLeaveDialog({
     if (leaveType === 'COMP_OFF' && calculatedDays > compOffBalance) {
       toast({
         title: 'Insufficient Balance',
-        description: `You only have ${compOffBalance} comp-off day(s) available. Please reduce the number of days.`,
+        description: `You only have ${compOffBalance} comp-off day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate PL_PATERNITY balance
+    if (leaveType === 'PL_PATERNITY' && calculatedDays > plBalance) {
+      toast({
+        title: 'Insufficient Balance',
+        description: `You only have ${plBalance} paternity leave day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate ML balance
+    if (leaveType === 'ML' && calculatedDays > mlBalance) {
+      toast({
+        title: 'Insufficient Balance',
+        description: `You only have ${mlBalance} maternity leave day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
         variant: 'destructive',
       });
       return;
@@ -237,6 +276,15 @@ export function RequestLeaveDialog({
       setToDate(initialDate);
     }
   }, [open, initialDate]);
+
+  // Reset leave type if current selection becomes invalid after date changes
+  useEffect(() => {
+    if (leaveType && leaveType !== 'LOP' && calculatedDays > 0) {
+      if (isLeaveTypeDisabled(leaveType)) {
+        setLeaveType('');
+      }
+    }
+  }, [calculatedDays]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -320,14 +368,33 @@ export function RequestLeaveDialog({
               </SelectTrigger>
               <SelectContent>
                 {availableLeaveTypes.map((type) => {
+                  const balance = getBalanceForLeaveType(type.value);
+                  const isDisabled = isLeaveTypeDisabled(type.value);
+                  
+                  // Build balance info string
                   let balanceInfo = '';
-                  if (type.value === 'CL') balanceInfo = ` (${clBalance} available)`;
-                  if (type.value === 'COMP_OFF') balanceInfo = ` (${compOffBalance} available)`;
-                  if (type.value === 'LOP') balanceInfo = ' (Unlimited)';
+                  if (type.value === 'LOP') {
+                    balanceInfo = ' (Unlimited)';
+                  } else if (balance !== null) {
+                    balanceInfo = ` (${balance} available)`;
+                  }
+                  
+                  // Build disabled reason
+                  let disabledText = '';
+                  if (isDisabled && balance !== null && balance > 0) {
+                    disabledText = ' - Insufficient';
+                  } else if (isDisabled && balance !== null && balance <= 0) {
+                    disabledText = ' - No balance';
+                  }
                   
                   return (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}{balanceInfo}
+                    <SelectItem 
+                      key={type.value} 
+                      value={type.value}
+                      disabled={isDisabled}
+                      className={isDisabled ? 'opacity-50' : ''}
+                    >
+                      {type.label}{balanceInfo}{disabledText}
                     </SelectItem>
                   );
                 })}
