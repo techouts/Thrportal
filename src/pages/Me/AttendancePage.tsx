@@ -578,7 +578,13 @@ export default function AttendancePage() {
                     
                     return isMobile ? (
                       /* Mobile: Card-based layout */
-                      <Card key={record.id} className={`overflow-hidden ${displayStatus === 'week_off' ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' : ''}`}>
+                      <Card key={record.id} className={`overflow-hidden ${
+                        displayStatus === 'week_off' 
+                          ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
+                          : displayStatus === 'holiday'
+                            ? 'bg-pink-50 dark:bg-pink-950/30 border-pink-200 dark:border-pink-800'
+                            : ''
+                      }`}>
                         <CardContent className="p-4 space-y-3">
                           {/* Row 1: Date and Status */}
                           <div className="flex items-center justify-between">
@@ -615,7 +621,13 @@ export default function AttendancePage() {
                       </Card>
                     ) : (
                       /* Desktop: Horizontal layout */
-                      <div key={record.id} className={`flex items-center justify-between p-3 border rounded-xl ${displayStatus === 'week_off' ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' : ''}`}>
+                      <div key={record.id} className={`flex items-center justify-between p-3 border rounded-xl ${
+                        displayStatus === 'week_off' 
+                          ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800'
+                          : displayStatus === 'holiday'
+                            ? 'bg-pink-50 dark:bg-pink-950/30 border-pink-200 dark:border-pink-800'
+                            : ''
+                      }`}>
                         <div className="flex items-center gap-3">
                           <div className="text-sm font-medium">
                             {format(new Date(record.date), 'MMM dd, yyyy')}
