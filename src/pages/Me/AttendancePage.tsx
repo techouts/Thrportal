@@ -634,7 +634,9 @@ export default function AttendancePage() {
                                 <span>{record.location}</span>
                               </div>
                             )}
-                            <span className="font-semibold ml-auto">{formatHoursDisplay(record.totalHours)}</span>
+                            {record.checkIn && (
+                              <span className="font-semibold ml-auto">{formatHoursDisplay(record.totalHours)}</span>
+                            )}
                           </div>
                           {/* Row 4: Actions (if needed) */}
                           {showActions && (
@@ -676,9 +678,11 @@ export default function AttendancePage() {
                               {record.location}
                             </div>
                           )}
-                          <div className="font-medium text-foreground">
-                            {formatHoursDisplay(record.totalHours)}
-                          </div>
+                          {record.checkIn && (
+                            <div className="font-medium text-foreground">
+                              {formatHoursDisplay(record.totalHours)}
+                            </div>
+                          )}
                           {showActions && (
                             <AttendanceRowActions
                               onRegularize={() => handleRegularize(record)}
