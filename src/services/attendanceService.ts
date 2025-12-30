@@ -51,8 +51,8 @@ class AttendanceService {
       const startDateStr = format(startDate, 'yyyy-MM-dd');
       const endDateStr = format(endDate, 'yyyy-MM-dd');
 
-      // Fetch attendance records, leave requests, and employee profile in parallel
-      const [attendanceResult, leaveResult, profileResult] = await Promise.all([
+      // Fetch attendance records, leave requests, employee profile, and holidays in parallel
+      const [attendanceResult, leaveResult, profileResult, holidaysResult] = await Promise.all([
         supabase
           .from('attendance_records')
           .select('*')
@@ -71,7 +71,12 @@ class AttendanceService {
           .from('profiles')
           .select('employee_type')
           .eq('id', employeeId)
-          .single()
+          .single(),
+        supabase
+          .from('holidays')
+          .select('date, name')
+          .gte('date', startDateStr)
+          .lte('date', endDateStr)
       ]);
 
       if (attendanceResult.error) throw attendanceResult.error;
@@ -86,6 +91,12 @@ class AttendanceService {
         for (let d = new Date(leaveStart); d <= leaveEnd; d.setDate(d.getDate() + 1)) {
           approvedLeaveDates.add(format(d, 'yyyy-MM-dd'));
         }
+      });
+
+      // Build a map of holiday dates
+      const holidayDates = new Map<string, string>();
+      (holidaysResult.data || []).forEach(holiday => {
+        holidayDates.set(holiday.date, holiday.name);
       });
 
       // Create a map of existing records by date
@@ -133,6 +144,22 @@ class AttendanceService {
             approvedBy: existingRecord.approved_by || undefined,
             createdAt: existingRecord.created_at,
             updatedAt: existingRecord.updated_at
+          });
+        } else if (holidayDates.has(dateStr)) {
+          // Add holiday record
+          allRecords.push({
+            id: `holiday-${dateStr}`,
+            employeeId,
+            date: dateStr,
+            checkIn: undefined,
+            checkOut: undefined,
+            breakTime: 0,
+            totalHours: 0,
+            status: 'holiday',
+            location: 'Office',
+            notes: holidayDates.get(dateStr),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           });
         } else if (isWeekOff) {
           // Add week-off record for weekends based on employee type

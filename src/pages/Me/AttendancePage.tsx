@@ -238,6 +238,7 @@ export default function AttendancePage() {
       case 'leave_requested': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100';
       case 'on_leave': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-100';
       case 'week_off': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100';
+      case 'holiday': return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-100';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
   };
@@ -274,12 +275,15 @@ export default function AttendancePage() {
     if (status === 'week_off') {
       return 'W-OFF';
     }
+    if (status === 'holiday') {
+      return 'Holiday';
+    }
     return status.replace('_', ' ');
   };
 
   const isMissingClockOut = (record: AttendanceRecord): boolean => {
-    // Don't show actions for approved leave days or week-offs
-    if (record.status === 'on_leave' || record.status === 'week_off') return false;
+    // Don't show actions for approved leave days, week-offs, or holidays
+    if (record.status === 'on_leave' || record.status === 'week_off' || record.status === 'holiday') return false;
     if (record.checkOut) return false;
     // Hide actions for any regularization (pending or approved)
     if (regularizationRequests[record.date]) return false;
@@ -308,6 +312,9 @@ export default function AttendancePage() {
   const formatTimeDisplay = (record: AttendanceRecord) => {
     if (record.status === 'week_off') {
       return 'Full day Weekly-off';
+    }
+    if (record.status === 'holiday') {
+      return record.notes || 'Holiday';
     }
     if (!record.checkIn) {
       return '— No attendance recorded';

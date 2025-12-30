@@ -6,7 +6,7 @@ export interface AttendanceRecord {
   checkOut?: string;
   breakTime: number; // minutes
   totalHours: number;
-  status: 'present' | 'absent' | 'late' | 'half_day' | 'work_from_home' | 'regularization_pending' | 'leave_requested' | 'on_leave' | 'week_off';
+  status: 'present' | 'absent' | 'late' | 'half_day' | 'work_from_home' | 'regularization_pending' | 'leave_requested' | 'on_leave' | 'week_off' | 'holiday';
   location: 'Office' | 'Remote' | 'Field' | 'WFH';
   coordinates?: {
     lat: number;
