@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 interface AttendanceRowActionsProps {
   onRegularize: () => void;
   onRequestLeave: () => void;
+  isHoliday?: boolean;
 }
 
-export function AttendanceRowActions({ onRegularize, onRequestLeave }: AttendanceRowActionsProps) {
+export function AttendanceRowActions({ onRegularize, onRequestLeave, isHoliday = false }: AttendanceRowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -26,10 +27,12 @@ export function AttendanceRowActions({ onRegularize, onRequestLeave }: Attendanc
           <FileEdit className="mr-2 h-4 w-4" />
           Regularize Attendance
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onRequestLeave} className="cursor-pointer">
-          <Calendar className="mr-2 h-4 w-4" />
-          Request Leave
-        </DropdownMenuItem>
+        {!isHoliday && (
+          <DropdownMenuItem onClick={onRequestLeave} className="cursor-pointer">
+            <Calendar className="mr-2 h-4 w-4" />
+            Request Leave
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

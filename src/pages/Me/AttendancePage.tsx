@@ -614,6 +614,7 @@ export default function AttendancePage() {
                               <AttendanceRowActions
                                 onRegularize={() => handleRegularize(record)}
                                 onRequestLeave={() => handleRequestLeave(record)}
+                                isHoliday={displayStatus === 'holiday'}
                               />
                             </div>
                           )}
@@ -652,6 +653,7 @@ export default function AttendancePage() {
                             <AttendanceRowActions
                               onRegularize={() => handleRegularize(record)}
                               onRequestLeave={() => handleRequestLeave(record)}
+                              isHoliday={displayStatus === 'holiday'}
                             />
                           )}
                         </div>
