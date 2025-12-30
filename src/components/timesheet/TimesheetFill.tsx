@@ -673,7 +673,7 @@ const handleCopyLastWeek = async () => {
       {/* Grid - Conditional render for mobile/desktop */}
       {isMobile ? (
         <TimesheetMobileView
-          rows={entries}
+          rows={allRows}
           onChangeCell={handleCellChange}
           onChangeCategory={handleCategoryChange}
           weekStart={selectedWeek}
