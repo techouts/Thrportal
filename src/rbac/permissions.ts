@@ -46,21 +46,19 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   MANAGER: [
     "portal.announcements.read",
-    "employees.read","employees.update","org.structure.read","org.policies.read",
+    
+    // My Team module - Team management
     "team.management.read","team.leave.read","team.attendance.read","team.timesheets.read","team.expenses.read",
     "team.performance.read","team.recognition.read","team.learning.read","team.profile_changes.read","team.ijp.read",
+    
+    // Me module - Personal permissions
     "attendance.read","attendance.clock_in","attendance.team.read","attendance.approvals.*",
     "leave.requests.*","leave.balance.read","leave.team.calendar.read","leave.approvals.*",
-    "timesheets.read","timesheets.approvals.*","timesheets.projects.read",
+    "timesheets.read","timesheets.approvals.*",
     "finance.payslips.read","finance.tax_declarations.read","finance.investment_planner.read","finance.audit_logs.read",
     "performance.goals.*","performance.feedback_requests.*","performance.reviews.create","performance.meetings.*",
     "ijp.postings.read","ijp.applications.read_team","ijp.applications.approve","ijp.applications.create",
-    "hiring.dashboard.read","hiring.requisitions.read",
-    "applications.pipeline.read","applications.submissions.*",
-    "helpdesk.tickets.read_own","helpdesk.tickets.create",
-    "projects.read","projects.dashboard.read","projects.clients.read","projects.projects.read","projects.assignments.read","projects.tasks.read","projects.bench.read",
-    "crm.projects.read","crm.projects.update","crm.clients.read",
-    "reports.read","analytics.read"
+    "helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
 
   RECRUITER: [
