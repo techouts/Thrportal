@@ -126,7 +126,7 @@
     "/Hiring/*": ["Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
     "/Project/*": ["Manager", "Operations_HR", "HR", "Management", "Admin"],
     "/Projects/*": ["Manager", "Operations_HR", "HR", "Management", "Admin"],
-    "/CRM/*": ["Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
+    "/CRM/*": ["Manager", "Operations_HR", "HR", "Management", "Admin"],
     "/Org/*": ["Manager", "Recruiter", "Operations_HR", "HR", "Management", "Admin"],
     "/HR/*": ["HR", "Management", "Admin"],
     "/Management/*": ["Management", "Admin"],
