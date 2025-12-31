@@ -86,8 +86,9 @@ export const MENU: MenuSection[] = [
       { label: "Demo Overview",   route: "/CRM/Demo" }
     ] 
   },
-  { 
-    label: "Projects", 
+{ 
+    label: "Projects",
+    requiresAny: ["projects.manage", "team.*", "projects.bench.read"],
     items: [ 
       { label: "Assignments", route: "/Projects/Assignments" },
       { label: "Tasks", route: "/Projects/Tasks" },
@@ -96,7 +97,8 @@ export const MENU: MenuSection[] = [
     ] 
   },
   { 
-    label: "Org", 
+    label: "Org",
+    requiresAny: ["org.manage", "employees.directory.read", "team.*"],
     items: [
       { label: "Employee Directory", route: "/Org/EmployeeDirectory" },
       { label: "Org Structure",      route: "/Org/OrgStructure" },

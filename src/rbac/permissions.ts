@@ -33,7 +33,6 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   EMPLOYEE: [
     "portal.announcements.read",
-    "employees.read","org.structure.read","org.policies.read",
     "attendance.read","attendance.clock_in","attendance.logs.read",
     "leave.requests.*","leave.balance.read","leave.requests.read",
     "timesheets.read","timesheets.submit",
@@ -42,9 +41,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "performance.goals.*","performance.feedback_requests.*",
     "learning.read","recognition.read",
     "ijp.postings.read","ijp.applications.create",
-    "helpdesk.tickets.read_own","helpdesk.tickets.create",
-    "projects.read","projects.dashboard.read","projects.tasks.read","projects.assignments.read",
-    "crm.projects.read"
+    "helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
 
   MANAGER: [
