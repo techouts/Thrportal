@@ -21,7 +21,7 @@ interface PolicyHubProps {
 
 export function PolicyHub({ className }: PolicyHubProps) {
   const { user: currentUser } = useAuth();
-  const isHRAdmin = currentUser?.role === 'HR' || currentUser?.role === 'Admin';
+  const isHRAdmin = currentUser?.roles?.some(r => ['HR', 'Admin', 'ADMIN', 'HR_MANAGER'].includes(r)) || false;
 
   return (
     <div className={className}>

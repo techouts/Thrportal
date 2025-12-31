@@ -14,7 +14,8 @@ import { useProfile } from '@/hooks/useProfile';
 
 export function ExternalApprovalsTab() {
   const { profile } = useProfile();
-  const userRole = profile?.role || '';
+  const userRoles = profile?.roles || [];
+  const primaryRole = profile?.primaryRole || '';
 
   const [pendingApprovals, setPendingApprovals] = useState<JDApproval[]>([]);
   const [hrReviewApprovals, setHrReviewApprovals] = useState<JDApproval[]>([]);
@@ -25,10 +26,10 @@ export function ExternalApprovalsTab() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
-  // Permission checks
-  const canViewTab = ['ADMIN', 'STAFFING_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'RECRUITER', 'HIRING_MANAGER', 'OPERATIONS_HR'].includes(userRole);
-  const canApproveStaffing = userRole === 'STAFFING_MANAGER';
-  const canApproveHR = userRole === 'HR_MANAGER';
+  // Permission checks - user can have any of these roles
+  const canViewTab = userRoles.some(r => ['ADMIN', 'STAFFING_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'RECRUITER', 'HIRING_MANAGER', 'OPERATIONS_HR'].includes(r));
+  const canApproveStaffing = userRoles.includes('STAFFING_MANAGER');
+  const canApproveHR = userRoles.includes('HR_MANAGER');
 
   const { toast } = useToast();
 
@@ -70,7 +71,7 @@ export function ExternalApprovalsTab() {
   const handleApprove = async (jd: JDApproval) => {
     const isHRReviewJD = hrReviewApprovals.some(hrJd => hrJd.id === jd.id);
     
-    if (isHRReviewJD && userRole !== 'HR_MANAGER') {
+    if (isHRReviewJD && !userRoles.includes('HR_MANAGER')) {
       toast({
         title: "Permission Denied",
         description: "Only HR Manager can approve external JDs in HR review",
@@ -79,7 +80,7 @@ export function ExternalApprovalsTab() {
       return;
     }
 
-    if (!isHRReviewJD && userRole !== 'STAFFING_MANAGER') {
+    if (!isHRReviewJD && !userRoles.includes('STAFFING_MANAGER')) {
       toast({
         title: "Permission Denied",
         description: "Only Staffing Manager can approve pending external JDs",
@@ -91,7 +92,7 @@ export function ExternalApprovalsTab() {
     setActionLoading(true);
     try {
       const steps = await approvalsService.getApprovalSteps(jd.id);
-      const pendingStep = steps.find(s => s.approver_role === userRole && s.status === 'pending');
+      const pendingStep = steps.find(s => s.approver_role === primaryRole && s.status === 'pending');
       
       if (!pendingStep) {
         toast({
@@ -102,7 +103,7 @@ export function ExternalApprovalsTab() {
         return;
       }
 
-      await approvalsService.approveJD(jd.id, pendingStep.id, comment, profile?.id, userRole);
+      await approvalsService.approveJD(jd.id, pendingStep.id, comment, profile?.id, primaryRole);
       
       toast({
         title: "Success",
@@ -123,7 +124,7 @@ export function ExternalApprovalsTab() {
       // Log detailed error information for debugging
       console.error('Full error details:', {
         jdId: jd.id,
-        userRole,
+        primaryRole,
         error
       });
     } finally {
@@ -136,7 +137,7 @@ export function ExternalApprovalsTab() {
     
     const isHRReviewJD = hrReviewApprovals.some(hrJd => hrJd.id === selectedJD.id);
     
-    if (isHRReviewJD && userRole !== 'HR_MANAGER') {
+    if (isHRReviewJD && !userRoles.includes('HR_MANAGER')) {
       toast({
         title: "Permission Denied",
         description: "Only HR Manager can reject external JDs in HR review",
@@ -145,7 +146,7 @@ export function ExternalApprovalsTab() {
       return;
     }
 
-    if (!isHRReviewJD && userRole !== 'STAFFING_MANAGER') {
+    if (!isHRReviewJD && !userRoles.includes('STAFFING_MANAGER')) {
       toast({
         title: "Permission Denied",
         description: "Only Staffing Manager can reject pending external JDs",
@@ -166,7 +167,7 @@ export function ExternalApprovalsTab() {
     setActionLoading(true);
     try {
       const steps = await approvalsService.getApprovalSteps(selectedJD.id);
-      const pendingStep = steps.find(s => s.approver_role === userRole && s.status === 'pending');
+      const pendingStep = steps.find(s => s.approver_role === primaryRole && s.status === 'pending');
       
       if (!pendingStep) {
         toast({
@@ -177,7 +178,7 @@ export function ExternalApprovalsTab() {
         return;
       }
 
-      await approvalsService.rejectJD(selectedJD.id, pendingStep.id, userRole, comment);
+      await approvalsService.rejectJD(selectedJD.id, pendingStep.id, primaryRole, comment);
       
       toast({
         title: "Success",

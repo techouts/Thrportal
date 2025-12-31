@@ -15,7 +15,7 @@ export function useAudit() {
 
     await auditService.logSettingsChange(
       user.email,
-      user.role,
+      user.primaryRole,
       section,
       setting,
       before,
@@ -34,7 +34,7 @@ export function useAudit() {
 
     await auditService.logChange({
       actor: user.email,
-      actorRole: user.role,
+      actorRole: user.primaryRole,
       action,
       target,
       after: details,

@@ -24,26 +24,27 @@ export function InternalApprovalsTab() {
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
 
-  const userRole = user?.role || '';
+  const userRoles = user?.roles || [];
+  const primaryRole = user?.primaryRole || '';
   
-  // Permission checks
-  const canViewTab = ['ADMIN', 'MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'RECRUITER', 'HIRING_MANAGER', 'OPERATIONS_HR'].includes(userRole);
-  const canApprove = ['MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'OPERATIONS_HR'].includes(userRole);
-  const canApproveManagement = userRole === 'MANAGEMENT';
-  const canApproveHR = userRole === 'HR_MANAGER';
+  // Permission checks - user can have any of these roles
+  const canViewTab = userRoles.some(r => ['ADMIN', 'MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'RECRUITER', 'HIRING_MANAGER', 'OPERATIONS_HR'].includes(r));
+  const canApprove = userRoles.some(r => ['MANAGEMENT', 'STAFFING_MANAGER', 'HR_MANAGER', 'OPERATIONS_HR'].includes(r));
+  const canApproveManagement = userRoles.includes('MANAGEMENT');
+  const canApproveHR = userRoles.includes('HR_MANAGER');
 
   useEffect(() => {
     if (canViewTab) {
       loadApprovals();
     }
-  }, [canViewTab, userRole]);
+  }, [canViewTab, primaryRole]);
 
   const loadApprovals = async () => {
     setIsLoading(true);
     try {
       // Load pending approvals for user's role if they can approve
-      if (canApprove && userRole) {
-        const pending = await approvalsService.getPendingApprovals(userRole);
+      if (canApprove && primaryRole) {
+        const pending = await approvalsService.getPendingApprovals(primaryRole);
         setPendingApprovals(pending);
       }
 
@@ -66,7 +67,7 @@ export function InternalApprovalsTab() {
     const isHRReviewJD = hrReviewApprovals.some(hrJd => hrJd.id === jd.id);
     
     if (!canApprove) return;
-    if (isHRReviewJD && userRole !== 'HR_MANAGER') {
+    if (isHRReviewJD && !userRoles.includes('HR_MANAGER')) {
       toast({
         title: "Permission Denied",
         description: "Only HR Manager can approve JDs in HR review",
@@ -79,7 +80,7 @@ export function InternalApprovalsTab() {
     try {
       const steps = await approvalsService.getApprovalSteps(jd.id);
       const step = steps.find(
-        s => s.approver_role === userRole && s.status === 'pending'
+        s => s.approver_role === primaryRole && s.status === 'pending'
       );
 
       if (!step) {
@@ -91,7 +92,7 @@ export function InternalApprovalsTab() {
         step.id,
         undefined,
         user?.id,
-        userRole
+        primaryRole
       );
 
       toast({
@@ -111,7 +112,7 @@ export function InternalApprovalsTab() {
       // Log detailed error information for debugging
       console.error('Full error details:', {
         jdId: jd.id,
-        userRole,
+        primaryRole,
         error
       });
     } finally {
@@ -126,7 +127,7 @@ export function InternalApprovalsTab() {
     try {
       const steps = await approvalsService.getApprovalSteps(selectedJD.id);
       const step = steps.find(
-        s => s.approver_role === userRole && s.status === 'pending'
+        s => s.approver_role === primaryRole && s.status === 'pending'
       );
 
       if (!step) {
@@ -138,7 +139,7 @@ export function InternalApprovalsTab() {
         step.id,
         rejectReason,
         user?.id,
-        userRole
+        primaryRole
       );
 
       toast({
