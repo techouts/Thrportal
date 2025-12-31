@@ -90,14 +90,58 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   HIRING_MANAGER: [
     "portal.announcements.read",
+    
+    // Me module - Personal permissions
+    "attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.requests.read","leave.requests.create","leave.requests.update","leave.balance.read",
+    "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
+    "performance.goals.read","performance.goals.create","performance.goals.update",
+    "performance.feedback_requests.read","performance.feedback_requests.create",
+    "learning.read","recognition.read",
+    "ijp.postings.read","ijp.applications.create",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create",
+    
+    // My Team module - Team management
+    "team.dashboard.read","team.management.read","team.leave.read","team.attendance.read",
+    "team.timesheets.read","team.expenses.read","team.performance.read","team.recognition.read",
+    "team.learning.read","team.profile_changes.read","team.ijp.read",
+    "leave.approvals.*","timesheets.approvals.*","attendance.approvals.*",
+    "performance.reviews.create","performance.meetings.*",
+    
+    // Hiring module - Full access
+    "hiring.*","applications.*",
     "hiring.read","hiring.dashboard.read","hiring.jds.read","hiring.approvals.read",
     "hiring.candidates.read","hiring.ownership.read","hiring.applications.read","hiring.pipeline.read",
-    "hiring.followup.read","hiring.settings.read",
+    "hiring.followup.read","hiring.settings.read","hiring.settings.*",
     "hiring.requisitions.approve","hiring.requisitions.read",
-    "applications.pipeline.read","applications.submissions.*","offers.create","offers.approve",
-    "bgv.cases.read","hiring.settings.*",
+    "applications.pipeline.read","applications.submissions.*",
+    "offers.create","offers.approve",
+    "bgv.cases.read",
     "candidates.sensitive.read","candidates.create","resumes.create","applications.rank",
-    "ownership.assign","mapping.propose","jds.create","crm.read"
+    "ownership.assign","mapping.propose","jds.create",
+    
+    // HR module - Full access
+    "hr.*",
+    "hr.read","hr.performance.read","hr.leave.read","hr.attendance.read",
+    "hr.recognition.read","hr.expenses.read","hr.learning.read","hr.ijp.read",
+    "hr.helpdesk.read","hr.onboarding.read","hr.reports.read",
+    "employees.*","employees.directory.read",
+    "onboarding.*","offboarding.*",
+    "policy.*","letters.*","bgv.*",
+    
+    // Projects module - Full access
+    "projects.*","projects.manage",
+    "projects.dashboard.read","projects.clients.read","projects.projects.read",
+    "projects.assignments.read","projects.tasks.read","projects.bench.read",
+    "bench.*",
+    
+    // Org module - Read access
+    "org.manage","org.structure.read","org.policies.read",
+    
+    // CRM read access
+    "crm.read","crm.clients.read","crm.projects.read"
   ],
 
   STAFFING_MANAGER: [
