@@ -48,10 +48,10 @@ export function RecruiterPerformanceTab() {
   const [teamData, setTeamData] = useState<TeamPerformance | null>(null)
   const [clientProgress, setClientProgress] = useState<ClientProgress[]>([])
 
-  const userRole = user?.role || 'RECRUITER'
-  const isRecruiter = userRole === 'RECRUITER'
-  const isStaffingManager = userRole === 'STAFFING_MANAGER' || userRole === 'HIRING_MANAGER'
-  const isLeadership = ['MANAGEMENT', 'ADMIN', 'HR_MANAGER', 'OPERATIONS_HR'].includes(userRole)
+  const userRoles = user?.roles || ['RECRUITER']
+  const isRecruiter = userRoles.includes('RECRUITER')
+  const isStaffingManager = userRoles.some(r => ['STAFFING_MANAGER', 'HIRING_MANAGER'].includes(r))
+  const isLeadership = userRoles.some(r => ['MANAGEMENT', 'ADMIN', 'HR_MANAGER', 'OPERATIONS_HR'].includes(r))
 
   useEffect(() => {
     loadPerformanceData()

@@ -42,8 +42,8 @@ import { moduleRegistry } from '@/lib/moduleRegistry'
 export default function HomePage() {
   const { toast } = useToast()
   const { user: currentUser } = useAuth()
-  const userRole = currentUser?.role || 'Employee'
-  const isManager = userRole === 'Manager' || userRole === 'HR' || userRole === 'MANAGER' || userRole === 'HR_MANAGER'
+  const userRoles = currentUser?.roles || ['Employee']
+  const isManager = userRoles.some(r => ['Manager', 'HR', 'MANAGER', 'HR_MANAGER', 'MANAGEMENT'].includes(r))
   
   // State management
   const [lastClockIn, setLastClockIn] = useState<Date | null>(null)

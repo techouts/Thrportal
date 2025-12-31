@@ -35,7 +35,7 @@ export function QuickSignIn() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Badge variant="outline">{user.role}</Badge>
+            <Badge variant="outline">{user.roles.join(', ')}</Badge>
             <p className="text-sm text-muted-foreground">
               You can now access features based on your role permissions.
             </p>
@@ -47,7 +47,7 @@ export function QuickSignIn() {
 
   // Show users with hiring.settings.* permissions
   const hiringUsers = DEV_USERS.filter(u => 
-    ['ADMIN', 'HIRING_MANAGER', 'HR_MANAGER', 'STAFFING_MANAGER', 'OPERATIONS_HR'].includes(u.role)
+    u.roles.some(r => ['ADMIN', 'HIRING_MANAGER', 'HR_MANAGER', 'STAFFING_MANAGER', 'OPERATIONS_HR'].includes(r))
   )
 
   return (
@@ -66,15 +66,15 @@ export function QuickSignIn() {
           <div key={devUser.email} className="flex items-center justify-between p-3 border rounded-lg">
             <div>
               <div className="font-medium">{devUser.display_name}</div>
-              <div className="text-sm text-muted-foreground">{devUser.role}</div>
+              <div className="text-sm text-muted-foreground">{devUser.roles.join(', ')}</div>
               <div className="flex gap-1 mt-1">
-                {(devUser.role === 'HIRING_MANAGER' || devUser.role === 'HR_MANAGER' || devUser.role === 'STAFFING_MANAGER') && (
+                {devUser.roles.some(r => ['HIRING_MANAGER', 'HR_MANAGER', 'STAFFING_MANAGER'].includes(r)) && (
                   <Badge variant="secondary" className="text-xs">
                     <Settings className="h-3 w-3 mr-1" />
                     Settings
                   </Badge>
                 )}
-                {(devUser.role === 'STAFFING_MANAGER' || devUser.role === 'HIRING_MANAGER') && (
+                {devUser.roles.some(r => ['STAFFING_MANAGER', 'HIRING_MANAGER'].includes(r)) && (
                   <Badge variant="secondary" className="text-xs">
                     <Target className="h-3 w-3 mr-1" />
                     Targets

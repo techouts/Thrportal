@@ -8,7 +8,8 @@ export type User = {
   id: string; 
   email: string; 
   display_name: string; 
-  role: string; 
+  roles: string[];          // All assigned roles
+  primaryRole: string;      // First role for display/backwards compatibility
   first_name?: string;
   last_name?: string;
   department?: string;
@@ -61,26 +62,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Helper function to get user role from user_roles table (secure)
-  const getUserRole = async (userId: string): Promise<string> => {
+  // Helper function to get ALL user roles from user_roles table (secure)
+  const getUserRoles = async (userId: string): Promise<string[]> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .order('role') // Get consistent ordering
-        .limit(1)
-        .maybeSingle();
+        .order('role');
       
       if (error) {
-        console.error('[AUTH] Error fetching user role:', error);
-        return 'EMPLOYEE'; // Default role
+        console.error('[AUTH] Error fetching user roles:', error);
+        return ['EMPLOYEE'];
       }
       
-      return data?.role || 'EMPLOYEE';
+      const roles = data?.map(r => r.role) || [];
+      return roles.length > 0 ? roles : ['EMPLOYEE'];
     } catch (error) {
-      console.error('[AUTH] User role fetch error:', error);
-      return 'EMPLOYEE';
+      console.error('[AUTH] User roles fetch error:', error);
+      return ['EMPLOYEE'];
     }
   };
 
@@ -105,17 +105,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Helper function to convert profile to user (fetches role from user_roles table)
+  // Helper function to convert profile to user (fetches roles from user_roles table)
   const profileToUser = async (profile: Profile & { password_change_required?: boolean }, supabaseUser: SupabaseUser): Promise<User> => {
-    // Fetch role from user_roles table (secure, used by RLS)
-    const role = await getUserRole(profile.id);
-    console.log('[AUTH] Fetched role from user_roles:', role);
+    // Fetch ALL roles from user_roles table (secure, used by RLS)
+    const roles = await getUserRoles(profile.id);
+    console.log('[AUTH] Fetched roles from user_roles:', roles);
     
     return {
       id: profile.id,
       email: profile.email,
       display_name: profile.display_name || profile.first_name || profile.email.split('@')[0],
-      role: role, // Use role from user_roles table
+      roles: roles,
+      primaryRole: roles[0],
       first_name: profile.first_name,
       last_name: profile.last_name,
       department: profile.department,
@@ -167,7 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: session.user.id,
                 email: session.user.email || '',
                 display_name: session.user.email?.split('@')[0] || 'User',
-                role: 'EMPLOYEE', // Default role
+                roles: ['EMPLOYEE'],
+                primaryRole: 'EMPLOYEE',
                 employeeId: session.user.id
               });
             }
@@ -207,7 +209,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: userId,
         email: devUser.email, 
         display_name: devUser.display_name, 
-        role: devUser.role,
+        roles: [...devUser.roles],
+        primaryRole: devUser.roles[0],
         employeeId: `EMP-${devUser.email.split('@')[0].toUpperCase()}`
       };
       
@@ -317,21 +320,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
     
-    console.log('[AUTH] Permission check for:', perm, 'User:', user.email, 'Role:', user.role);
+    console.log('[AUTH] Permission check for:', perm, 'User:', user.email, 'Roles:', user.roles);
     
-    // Get permission patterns for the user's role
-    const rolePermissions = roleToPermissionPatterns[user.role];
-    if (!rolePermissions) {
-      console.log('[AUTH] No permissions found for role:', user.role);
+    // Aggregate permissions from ALL roles
+    let allPermissions: string[] = [];
+    for (const role of user.roles) {
+      const rolePerms = roleToPermissionPatterns[role];
+      if (rolePerms) {
+        allPermissions = [...allPermissions, ...rolePerms];
+      }
+    }
+    
+    // Deduplicate permissions
+    allPermissions = [...new Set(allPermissions)];
+    
+    if (allPermissions.length === 0) {
+      console.log('[AUTH] No permissions found for roles:', user.roles);
       return false;
     }
     
-    console.log('[AUTH] Role permissions:', rolePermissions);
+    console.log('[AUTH] Aggregated permissions count:', allPermissions.length);
     
-    // Use explicit permissions if available, otherwise use role permissions
+    // Use explicit permissions if available, otherwise use aggregated role permissions
     const perms = user.permissions && user.permissions.length > 0 ? 
       user.permissions : 
-      rolePermissions;
+      allPermissions;
     
     const hasPermission = matchPermission(perms, perm);
     console.log('[AUTH] Permission result:', hasPermission, 'for:', perm);

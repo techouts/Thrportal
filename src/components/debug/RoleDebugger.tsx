@@ -9,7 +9,13 @@ export function RoleDebugger() {
 
   if (!user) return null;
 
-  const rolePermissions = roleToPermissionPatterns[user.role] || [];
+  // Aggregate permissions from all roles
+  const allRolePermissions: string[] = [];
+  for (const role of user.roles) {
+    const perms = roleToPermissionPatterns[role] || [];
+    allRolePermissions.push(...perms);
+  }
+  const rolePermissions = [...new Set(allRolePermissions)];
 
   // Test common permissions
   const testPermissions = [
@@ -26,14 +32,14 @@ export function RoleDebugger() {
     <div className="fixed bottom-4 right-4 z-50">
       <Card className="w-80">
         <CardHeader>
-          <CardTitle className="text-sm">Role Debug: {user.role}</CardTitle>
+          <CardTitle className="text-sm">Roles: {user.roles.join(', ')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-xs">
           <div>
             <strong>User:</strong> {user.email}
           </div>
           <div>
-            <strong>Role:</strong> {user.role}
+            <strong>Roles:</strong> {user.roles.join(', ')}
           </div>
           <div>
             <strong>Role Permissions ({rolePermissions.length}):</strong>

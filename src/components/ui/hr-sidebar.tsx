@@ -273,7 +273,7 @@ export function HRSidebar() {
               </div>
               <div className="flex-1 text-sm">
                 <div className="font-medium text-sidebar-foreground">{user?.display_name}</div>
-                <div className="text-xs text-sidebar-foreground/70">{user?.role}</div>
+                <div className="text-xs text-sidebar-foreground/70">{user?.primaryRole}</div>
               </div>
               <Button
                 variant="ghost"

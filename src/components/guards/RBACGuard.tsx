@@ -19,10 +19,11 @@ export function RBACGuard({ children, permission, route, fallback = null }: RBAC
     return <>{fallback}</>
   }
 
-  const userRole = currentUser.role
-  const hasAccess = checkAccess(userRole, permission, route)
+  // Check access for ANY of the user's roles
+  const userRoles = currentUser.roles || [currentUser.primaryRole || 'EMPLOYEE'];
+  const hasAccess = userRoles.some(role => checkAccess(role, permission, route));
   
-  console.log('🛡️ RBACGuard - userRole:', userRole, 'hasAccess:', hasAccess)
+  console.log('🛡️ RBACGuard - roles:', userRoles, 'hasAccess:', hasAccess)
   
   return hasAccess ? <>{children}</> : <>{fallback}</>
 }

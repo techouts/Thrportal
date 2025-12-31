@@ -7,7 +7,8 @@ export function useProfile() {
     profile: user ? {
       id: user.id,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
+      primaryRole: user.primaryRole,
       first_name: user.first_name,
       last_name: user.last_name,
       display_name: user.display_name

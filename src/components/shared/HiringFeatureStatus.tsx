@@ -96,7 +96,7 @@ export function HiringFeatureStatus() {
               Limited Access
             </CardTitle>
             <CardDescription className="text-amber-700">
-              Your current role ({user.role}) has limited access to hiring features
+              Your current roles ({user.roles.join(', ')}) have limited access to hiring features
             </CardDescription>
           </CardHeader>
           <CardContent className="text-amber-700">
