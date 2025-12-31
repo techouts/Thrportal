@@ -133,16 +133,52 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   HR_MANAGER: [
     "portal.announcements.read",
+    
+    // HR module - Full access
+    "hr.*",
     "hr.read","hr.performance.read","hr.leave.read","hr.attendance.read",
     "hr.recognition.read","hr.expenses.read","hr.learning.read","hr.ijp.read",
     "hr.helpdesk.read","hr.onboarding.read","hr.reports.read",
-    "employees.*","leave.*","attendance.*",
-    "onboarding.*","offboarding.*","performance.*",
-    "policy.*","letters.*","bgv.*","ijp.*","payroll.runs.read",
-    "hiring.*","applications.*","hiring.settings.*",
-    "finance.audit_logs.read","helpdesk.dashboard.read","helpdesk.tickets.*",
-    "jds.approve.internal","jds.publish","crm.kpis.read",
-    "candidates.*","resumes.*","ownership.*"
+    "employees.*","employees.directory.read",
+    "onboarding.*","offboarding.*",
+    "policy.*","letters.*","bgv.*",
+    "payroll.runs.read",
+    "jds.approve.internal","jds.publish",
+    "candidates.*","resumes.*",
+    
+    // Hiring module - Full access
+    "hiring.*","applications.*",
+    "hiring.read","hiring.dashboard.read","hiring.jds.read","hiring.approvals.read",
+    "hiring.candidates.read","hiring.ownership.read","hiring.applications.read","hiring.pipeline.read",
+    "hiring.followup.read","hiring.settings.read","hiring.settings.*",
+    "hiring.requisitions.approve","hiring.requisitions.read",
+    "applications.pipeline.read","applications.submissions.*",
+    "offers.create","offers.approve",
+    "bgv.cases.read",
+    "candidates.sensitive.read","candidates.create","resumes.create","applications.rank",
+    "ownership.*","ownership.assign","mapping.propose","jds.create",
+    
+    // My Team module - Full access
+    "team.*",
+    "team.management.read","team.leave.read","team.attendance.read","team.timesheets.read","team.expenses.read",
+    "team.performance.read","team.recognition.read","team.learning.read","team.profile_changes.read","team.ijp.read",
+    "leave.approvals.*","timesheets.approvals.*","attendance.approvals.*",
+    "performance.reviews.create","performance.meetings.*",
+    
+    // Org module - Full access
+    "org.manage","org.structure.read","org.policies.read",
+    
+    // Me module - SPECIFIC permissions (avoid matching Finance/IT)
+    "attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.requests.read","leave.requests.create","leave.requests.update","leave.balance.read",
+    "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read","finance.audit_logs.read",
+    "performance.goals.read","performance.goals.create","performance.goals.update","performance.feedback_requests.read","performance.feedback_requests.create",
+    "learning.read",
+    "recognition.read",
+    "ijp.*","ijp.postings.read","ijp.applications.create",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
 
   PAYROLL_SPECIALIST: [
