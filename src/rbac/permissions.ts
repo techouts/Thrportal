@@ -65,7 +65,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   RECRUITER: [
     "portal.announcements.read",
-    // Hiring module - Full access
+    // Hiring module - Full access (keep wildcards)
     "hiring.*","applications.*",
     "hiring.read","hiring.dashboard.read","hiring.jds.read","hiring.candidates.read",
     "hiring.applications.read","hiring.pipeline.read","hiring.followup.read",
@@ -75,16 +75,17 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "jds.create","jds.bulk_import","jds.smart_import",
     "candidates.create","resumes.create","applications.rank",
     "email.campaigns.send","ownership.assign","mapping.propose",
-    // Me module - Full access
-    "attendance.*","attendance.read","attendance.clock_in","attendance.logs.read",
-    "leave.*","leave.requests.*","leave.balance.read","leave.requests.read",
-    "timesheets.*","timesheets.read","timesheets.submit",
-    "expenses.*","expenses.read","expenses.submit",
-    "finance.*","finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
-    "performance.*","performance.goals.*","performance.feedback_requests.*",
-    "learning.*","learning.read","recognition.*","recognition.read",
-    "ijp.*","ijp.postings.read","ijp.applications.create",
-    "helpdesk.*","helpdesk.tickets.read_own","helpdesk.tickets.create"
+    // Me module - SPECIFIC permissions only (NO wildcards to avoid matching other modules)
+    "attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.requests.read","leave.requests.create","leave.requests.update","leave.balance.read",
+    "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
+    "performance.goals.read","performance.goals.create","performance.goals.update","performance.feedback_requests.read","performance.feedback_requests.create",
+    "learning.read",
+    "recognition.read",
+    "ijp.postings.read","ijp.applications.create",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
 
   HIRING_MANAGER: [
