@@ -156,19 +156,21 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "offers.create","offers.approve",
     "bgv.cases.read",
     "candidates.sensitive.read","candidates.create","resumes.create","applications.rank",
-    "ownership.*","ownership.assign","mapping.propose","jds.create",
+    // SPECIFIC ownership permissions (not ownership.*)
+    "ownership.assign","ownership.transfer","ownership.read",
+    "mapping.propose","jds.create",
     
-    // My Team module - Full access
-    "team.*",
-    "team.management.read","team.leave.read","team.attendance.read","team.timesheets.read","team.expenses.read",
-    "team.performance.read","team.recognition.read","team.learning.read","team.profile_changes.read","team.ijp.read",
+    // My Team module - SPECIFIC permissions (not team.*)
+    "team.dashboard.read","team.management.read","team.leave.read","team.attendance.read",
+    "team.timesheets.read","team.expenses.read","team.performance.read","team.recognition.read",
+    "team.learning.read","team.profile_changes.read","team.ijp.read",
     "leave.approvals.*","timesheets.approvals.*","attendance.approvals.*",
     "performance.reviews.create","performance.meetings.*",
     
     // Org module - Full access
     "org.manage","org.structure.read","org.policies.read",
     
-    // Me module - SPECIFIC permissions (avoid matching Finance/IT)
+    // Me module - SPECIFIC permissions
     "attendance.read","attendance.clock_in","attendance.logs.read",
     "leave.requests.read","leave.requests.create","leave.requests.update","leave.balance.read",
     "timesheets.read","timesheets.submit",

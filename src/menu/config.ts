@@ -34,7 +34,7 @@ export const MENU: MenuSection[] = [
   },
   { 
     label: "My Team", 
-    requiresAny: ["team.*", "leave.approvals.*", "timesheets.approvals.*", "performance.reviews.create"],
+    requiresAny: ["team.dashboard.read", "team.management.read", "team.leave.read", "leave.approvals.*", "timesheets.approvals.*", "performance.reviews.create"],
     items: [
       { label: "Dashboard",       route: "/MyTeam/Dashboard" },
       { label: "Leave",           route: "/MyTeam/Leave" },
