@@ -65,15 +65,26 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   RECRUITER: [
     "portal.announcements.read",
+    // Hiring module - Full access
+    "hiring.*","applications.*",
     "hiring.read","hiring.dashboard.read","hiring.jds.read","hiring.candidates.read",
     "hiring.applications.read","hiring.pipeline.read","hiring.followup.read",
-    "hiring.requisitions.read","hiring.requisitions.create",
+    "hiring.requisitions.read","hiring.requisitions.create","hiring.settings.read",
     "applications.submissions.*","applications.pipeline.read",
     "interviews.schedule.*","bgv.cases.create","bgv.cases.read",
     "jds.create","jds.bulk_import","jds.smart_import",
     "candidates.create","resumes.create","applications.rank",
     "email.campaigns.send","ownership.assign","mapping.propose",
-    "crm.interactions.*","crm.opportunities.*","followup.tasks.*"
+    // Me module - Full access
+    "attendance.*","attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.*","leave.requests.*","leave.balance.read","leave.requests.read",
+    "timesheets.*","timesheets.read","timesheets.submit",
+    "expenses.*","expenses.read","expenses.submit",
+    "finance.*","finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
+    "performance.*","performance.goals.*","performance.feedback_requests.*",
+    "learning.*","learning.read","recognition.*","recognition.read",
+    "ijp.*","ijp.postings.read","ijp.applications.create",
+    "helpdesk.*","helpdesk.tickets.read_own","helpdesk.tickets.create"
   ],
 
   HIRING_MANAGER: [
