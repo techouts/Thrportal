@@ -451,27 +451,38 @@ class AttendanceService {
       
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('*')
+        .select(`
+          *,
+          profiles:employee_id (display_name, first_name, last_name)
+        `)
         .eq('date', today);
 
       if (error) throw error;
 
-      const records: AttendanceRecord[] = (data || []).map(record => ({
-        id: record.id,
-        employeeId: record.employee_id,
-        date: record.date,
-        checkIn: record.check_in || undefined,
-        checkOut: record.check_out || undefined,
-        breakTime: record.break_time || 0,
-        totalHours: Number(record.total_hours) || 0,
-        status: record.status as AttendanceRecord['status'],
-        location: record.location as AttendanceRecord['location'],
-        coordinates: record.coordinates as any,
-        notes: record.notes || undefined,
-        approvedBy: record.approved_by || undefined,
-        createdAt: record.created_at,
-        updatedAt: record.updated_at
-      }));
+      const records: AttendanceRecord[] = (data || []).map(record => {
+        const profile = record.profiles as { display_name?: string; first_name?: string; last_name?: string } | null;
+        const employeeName = profile?.display_name || 
+          `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 
+          'Unknown Employee';
+        
+        return {
+          id: record.id,
+          employeeId: record.employee_id,
+          employeeName,
+          date: record.date,
+          checkIn: record.check_in || undefined,
+          checkOut: record.check_out || undefined,
+          breakTime: record.break_time || 0,
+          totalHours: Number(record.total_hours) || 0,
+          status: record.status as AttendanceRecord['status'],
+          location: record.location as AttendanceRecord['location'],
+          coordinates: record.coordinates as any,
+          notes: record.notes || undefined,
+          approvedBy: record.approved_by || undefined,
+          createdAt: record.created_at,
+          updatedAt: record.updated_at
+        };
+      });
 
       return {
         data: records,
