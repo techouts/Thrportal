@@ -208,7 +208,7 @@ export default function MyTeamAttendancePage() {
                           <Users className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="font-medium">Employee {record.employeeId}</div>
+                          <div className="font-medium">{record.employeeName || 'Unknown Employee'}</div>
                           <div className="text-sm text-muted-foreground">{record.location}</div>
                         </div>
                       </div>
