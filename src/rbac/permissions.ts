@@ -166,7 +166,7 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "jds.*","jds.create","jds.read","jds.approve.external",
     "candidates.*","resumes.*","applications.*",
     "applications.pipeline.read","applications.submissions.*","applications.rank",
-    "mapping.approve","ownership.*"
+    "mapping.approve"
   ],
 
   PROJECT_LEAD: [
