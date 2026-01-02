@@ -144,11 +144,29 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   STAFFING_MANAGER: [
     "portal.announcements.read",
+    
+    // Me module - Personal permissions
+    "attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.requests.*","leave.balance.read","leave.requests.read",
+    "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
+    "performance.goals.*","performance.feedback_requests.*",
+    "learning.read","recognition.read",
+    "ijp.postings.read","ijp.applications.create",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create",
+    
+    // My Team module - Team management permissions
+    "team.management.read","team.leave.read","team.attendance.read","team.timesheets.read","team.expenses.read",
+    "team.performance.read","team.recognition.read","team.learning.read","team.profile_changes.read","team.ijp.read",
+    "leave.approvals.*","attendance.approvals.*","timesheets.approvals.*",
+    
+    // Hiring module - Full access
     "hiring.*","hiring.dashboard.read","hiring.requisitions.read","hiring.settings.*",
     "jds.*","jds.create","jds.read","jds.approve.external",
     "candidates.*","resumes.*","applications.*",
     "applications.pipeline.read","applications.submissions.*","applications.rank",
-    "mapping.approve","ownership.*","crm.*"
+    "mapping.approve","ownership.*"
   ],
 
   PROJECT_LEAD: [
