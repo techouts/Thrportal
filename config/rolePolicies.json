@@ -121,16 +121,16 @@
   },
   "routeGuards": {
     "/Home/*": ["*"],
-    "/Me/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "PROJECT_LEAD", "Management", "Admin"],
-    "/MyTeam/*": ["Manager", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "PROJECT_LEAD", "Management", "Admin"],
-    "/Hiring/*": ["Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "Management", "Admin"],
-    "/Project/*": ["Operations_HR", "HR", "HIRING_MANAGER", "Management", "Admin"],
-    "/Projects/*": ["Operations_HR", "HR", "HIRING_MANAGER", "Management", "Admin"],
-    "/CRM/*": ["Operations_HR", "HR", "Management", "Admin"],
+    "/Me/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "PROJECT_LEAD", "DELIVERY_HEAD", "Management", "Admin"],
+    "/MyTeam/*": ["Manager", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "PROJECT_LEAD", "DELIVERY_HEAD", "Management", "Admin"],
+    "/Hiring/*": ["Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
+    "/Project/*": ["Operations_HR", "HR", "HIRING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
+    "/Projects/*": ["Operations_HR", "HR", "HIRING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
+    "/CRM/*": ["Operations_HR", "HR", "DELIVERY_HEAD", "Management", "Admin"],
     "/Org/*": ["Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "Management", "Admin"],
     "/HR/*": ["HR", "HR_Manager", "HIRING_MANAGER", "Management", "Admin"],
-    "/Management/*": ["Management", "Admin"],
-    "/Reports/*": ["HR", "Management", "Admin"],
+    "/Management/*": ["DELIVERY_HEAD", "Management", "Admin"],
+    "/Reports/*": ["HR", "DELIVERY_HEAD", "Management", "Admin"],
     "/Admin/*": ["Admin"]
   }
 }
