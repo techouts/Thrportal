@@ -121,9 +121,9 @@
   },
   "routeGuards": {
     "/Home/*": ["*"],
-    "/Me/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "Management", "Admin"],
-    "/MyTeam/*": ["Manager", "HR", "HR_Manager", "HIRING_MANAGER", "Management", "Admin"],
-    "/Hiring/*": ["Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "Management", "Admin"],
+    "/Me/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "Management", "Admin"],
+    "/MyTeam/*": ["Manager", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "Management", "Admin"],
+    "/Hiring/*": ["Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "Management", "Admin"],
     "/Project/*": ["Operations_HR", "HR", "HIRING_MANAGER", "Management", "Admin"],
     "/Projects/*": ["Operations_HR", "HR", "HIRING_MANAGER", "Management", "Admin"],
     "/CRM/*": ["Operations_HR", "HR", "Management", "Admin"],
