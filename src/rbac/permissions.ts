@@ -171,10 +171,22 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   PROJECT_LEAD: [
     "portal.announcements.read",
-    "projects.*","timesheets.read","timesheets.approvals.*",
-    "bench.requests.create","staffing.requests.create",
-    "crm.projects.*","crm.clients.read","crm.accounts.read",
-    "crm.opportunities.read","crm.spocs.read","crm.interactions.create"
+    
+    // Me module - Personal permissions
+    "attendance.read","attendance.clock_in","attendance.logs.read",
+    "leave.requests.*","leave.balance.read","leave.requests.read",
+    "timesheets.read","timesheets.submit",
+    "expenses.read","expenses.submit",
+    "finance.payslips.read","finance.payslips.download","finance.tax_declarations.read","finance.investment_planner.read",
+    "performance.goals.*","performance.feedback_requests.*",
+    "learning.read","recognition.read",
+    "ijp.postings.read","ijp.applications.create",
+    "helpdesk.tickets.read_own","helpdesk.tickets.create",
+    
+    // My Team module - Team management permissions
+    "team.management.read","team.leave.read","team.attendance.read","team.timesheets.read","team.expenses.read",
+    "team.performance.read","team.recognition.read","team.learning.read","team.profile_changes.read","team.ijp.read",
+    "leave.approvals.*","attendance.approvals.*","timesheets.approvals.*"
   ],
 
   DELIVERY_HEAD: [
