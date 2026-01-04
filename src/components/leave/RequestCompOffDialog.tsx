@@ -151,6 +151,7 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
                     mode="single"
                     selected={fromDate}
                     onSelect={handleFromDateSelect}
+                    disabled={(date) => date > new Date()}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -183,7 +184,13 @@ export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCo
                     mode="single"
                     selected={toDate}
                     onSelect={handleToDateSelect}
-                    disabled={(date) => fromDate ? date < fromDate : false}
+                    defaultMonth={fromDate}
+                    disabled={(date) => {
+                      const today = new Date();
+                      if (date > today) return true;
+                      if (fromDate && date < fromDate) return true;
+                      return false;
+                    }}
                     initialFocus
                     className="pointer-events-auto"
                   />
