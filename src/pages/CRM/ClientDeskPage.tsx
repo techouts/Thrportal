@@ -991,7 +991,7 @@ export function ClientDeskPage() {
 
       {/* CREATE DIALOGS */}
       <Dialog open={showCreateClient} onOpenChange={setShowCreateClient}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Client</DialogTitle>
           </DialogHeader>
