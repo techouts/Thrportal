@@ -123,7 +123,7 @@
     "/Home/*": ["*"],
     "/Me/*": ["Employee", "Manager", "Recruiter", "Operations_HR", "HR", "HR_Manager", "HR_LEAD", "FINANCE_MANAGER", "HIRING_MANAGER", "STAFFING_MANAGER", "PROJECT_LEAD", "DELIVERY_HEAD", "Management", "Admin"],
     "/MyTeam/*": ["Manager", "HR", "HR_Manager", "HR_LEAD", "FINANCE_MANAGER", "HIRING_MANAGER", "STAFFING_MANAGER", "PROJECT_LEAD", "DELIVERY_HEAD", "Management", "Admin"],
-    "/Hiring/*": ["Recruiter", "Operations_HR", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
+    "/Hiring/*": ["Recruiter", "HR", "HR_Manager", "HIRING_MANAGER", "STAFFING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
     "/Project/*": ["Operations_HR", "HR", "HIRING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
     "/Projects/*": ["Operations_HR", "HR", "HIRING_MANAGER", "DELIVERY_HEAD", "Management", "Admin"],
     "/CRM/*": ["Operations_HR", "HR", "DELIVERY_HEAD", "Management", "Admin"],
