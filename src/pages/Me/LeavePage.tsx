@@ -155,6 +155,7 @@ export default function LeavePage() {
                   requests={allRequests || []}
                   isLoading={requestsLoading}
                   onCancel={handleCancelRequest}
+                  userGender={user?.gender}
                 />
               </CardContent>
             </Card>
