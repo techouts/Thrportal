@@ -231,9 +231,38 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
 
   HR_LEAD: [
     "portal.announcements.read",
-    "employees.read","employees.letters.create",
-    "leave.adjustments.update","attendance.adjustments.update",
-    "onboarding.employees.read","offboarding.employees.read"
+    
+    // Me module - Personal permissions
+    "attendance.read", "attendance.clock_in", "attendance.logs.read",
+    "leave.requests.*", "leave.balance.read", "leave.requests.read",
+    "timesheets.read", "timesheets.submit",
+    "expenses.read", "expenses.submit",
+    "finance.payslips.read", "finance.payslips.download", "finance.tax_declarations.read", "finance.investment_planner.read",
+    "performance.goals.*", "performance.feedback_requests.*",
+    "learning.read", "recognition.read",
+    "ijp.postings.read", "ijp.applications.create",
+    "helpdesk.tickets.read_own", "helpdesk.tickets.create",
+    
+    // My Team module - Team management
+    "team.dashboard.read", "team.management.read", "team.leave.read", "team.attendance.read",
+    "team.timesheets.read", "team.expenses.read", "team.performance.read", "team.recognition.read",
+    "team.learning.read", "team.profile_changes.read", "team.ijp.read",
+    "leave.approvals.*", "timesheets.approvals.*", "attendance.approvals.*",
+    "performance.reviews.create", "performance.meetings.*",
+    
+    // Org module - Full access
+    "org.manage", "org.structure.read", "org.policies.read",
+    "employees.directory.read", "employees.read", "employees.letters.create",
+    
+    // HR module - Full access
+    "hr.*",
+    "hr.read", "hr.performance.read", "hr.leave.read", "hr.attendance.read",
+    "hr.recognition.read", "hr.expenses.read", "hr.learning.read", "hr.ijp.read",
+    "hr.helpdesk.read", "hr.onboarding.read", "hr.reports.read",
+    "employees.*",
+    "onboarding.*", "offboarding.*",
+    "policy.*", "letters.*",
+    "leave.adjustments.update", "attendance.adjustments.update"
   ],
 
   HR_MANAGER: [
