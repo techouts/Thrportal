@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { MoreHorizontal, Search, Calendar, Eye, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -59,6 +59,7 @@ interface MyRequestsTableProps {
   requests: LeaveRequest[];
   isLoading?: boolean;
   onCancel?: (id: string, requestSource?: 'leave' | 'comp_off') => void;
+  userGender?: string;
 }
 
 const LEAVE_TYPE_LABELS: Record<string, string> = {
@@ -66,6 +67,7 @@ const LEAVE_TYPE_LABELS: Record<string, string> = {
   ML: 'Maternity Leave',
   PL_PATERNITY: 'Paternity Leave',
   COMP_OFF: 'Comp Offs',
+  LOP: 'Unpaid Leave',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -77,8 +79,23 @@ const STATUS_COLORS: Record<string, string> = {
 
 const ITEMS_PER_PAGE = 10;
 
-export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTableProps) {
+export function MyRequestsTable({ requests, isLoading, onCancel, userGender }: MyRequestsTableProps) {
   const isMobile = useIsMobile();
+  
+  // Filter leave types based on user gender
+  const filteredLeaveTypes = useMemo(() => {
+    return Object.entries(LEAVE_TYPE_LABELS).filter(([value]) => {
+      // Hide Paternity Leave for non-males
+      if (value === 'PL_PATERNITY') {
+        return userGender === 'Male';
+      }
+      // Hide Maternity Leave for non-females
+      if (value === 'ML') {
+        return userGender === 'Female';
+      }
+      return true;
+    });
+  }, [userGender]);
   const [searchQuery, setSearchQuery] = useState('');
   const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -325,7 +342,7 @@ export function MyRequestsTable({ requests, isLoading, onCancel }: MyRequestsTab
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {Object.entries(LEAVE_TYPE_LABELS).map(([value, label]) => (
+              {filteredLeaveTypes.map(([value, label]) => (
                 <SelectItem key={value} value={value}>{label}</SelectItem>
               ))}
             </SelectContent>
