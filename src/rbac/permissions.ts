@@ -400,13 +400,9 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "crm.*","crm.clients.*","crm.accounts.*","crm.projects.*","crm.spocs.*",
     "crm.interactions.*","crm.opportunities.*","crm.documents.*","crm.kpis.read",
     "contracts.*",
-    // Hiring full access
-    "hiring.*","hiring.dashboard.read","hiring.requisitions.*","hiring.jds.*",
-    "hiring.candidates.*","hiring.applications.*","hiring.pipeline.*","hiring.followup.*",
-    "applications.*","applications.pipeline.read","applications.submissions.*",
-    "jds.*","jds.create","jds.read",
-    "candidates.*","resumes.*","ownership.*","mapping.*",
-    "interviews.schedule.*","bgv.cases.read",
+    // Org module
+    "org.structure.read","org.policies.read",
+    "employees.read","employees.directory.read",
     // Projects full access
     "projects.*","projects.dashboard.read","projects.clients.read","projects.projects.read",
     "projects.assignments.read","projects.tasks.read","projects.bench.read","projects.timesheets.read"
