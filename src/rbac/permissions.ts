@@ -331,6 +331,40 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "employees.read","employees.directory.read"
   ],
 
+  FINANCE_MANAGER: [
+    "portal.announcements.read",
+    
+    // Me module - Personal permissions
+    "attendance.read", "attendance.clock_in", "attendance.logs.read",
+    "leave.requests.*", "leave.balance.read", "leave.requests.read",
+    "timesheets.read", "timesheets.submit",
+    "expenses.read", "expenses.submit",
+    "finance.payslips.read", "finance.payslips.download", "finance.tax_declarations.read", "finance.investment_planner.read",
+    "performance.goals.*", "performance.feedback_requests.*",
+    "learning.read", "recognition.read",
+    "ijp.postings.read", "ijp.applications.create",
+    "helpdesk.tickets.read_own", "helpdesk.tickets.create",
+    
+    // My Team module - Team management
+    "team.dashboard.read", "team.management.read", "team.leave.read", "team.attendance.read",
+    "team.timesheets.read", "team.expenses.read", "team.performance.read", "team.recognition.read",
+    "team.learning.read", "team.profile_changes.read", "team.ijp.read",
+    "leave.approvals.*", "timesheets.approvals.*", "attendance.approvals.*",
+    "performance.reviews.create", "performance.meetings.*",
+    
+    // Org module - Full access
+    "org.manage", "org.structure.read", "org.policies.read",
+    "employees.directory.read", "employees.read",
+    
+    // Finance module - Full access
+    "finance.*",
+    "finance.read", "finance.reports.read", "finance.payroll.read",
+    "finance.invoices.*", "finance.jv.export", "finance.audit_logs.read",
+    "payroll.*", "payroll.runs.read", "payroll.runs.create", "payroll.runs.approve",
+    "payroll.bank_file.generate", "payroll.statutory.generate", "finance.payslips.generate",
+    "contracts.*"
+  ],
+
   IT_HELPDESK: [
     "portal.announcements.read",
     "it.read","it.helpdesk.read",
