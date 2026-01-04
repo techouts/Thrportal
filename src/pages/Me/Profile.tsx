@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import AvatarUploadDialog from '@/components/profile/AvatarUploadDialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -64,6 +65,7 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
     date_of_birth: '',
     gender: 'Male'
   })
+  const [showAvatarUpload, setShowAvatarUpload] = useState(false)
 
   useEffect(() => {
     async function fetchProfile() {
@@ -380,7 +382,12 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
                       </AvatarFallback>
                     </Avatar>
                     {isOwnProfile && (
-                      <Button size="sm" variant="outline" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                        onClick={() => setShowAvatarUpload(true)}
+                      >
                         <Camera className="h-4 w-4" />
                       </Button>
                     )}
@@ -1344,6 +1351,20 @@ export default function Profile({ isOwnProfile = true, employeeId }: ProfileProp
           <ProfileDocumentsTab isOwnProfile={isOwnProfile} employeeId={employeeId} />
         </TabsContent>
       </Tabs>
+
+      {/* Avatar Upload Dialog */}
+      {user && (
+        <AvatarUploadDialog
+          open={showAvatarUpload}
+          onOpenChange={setShowAvatarUpload}
+          currentAvatarUrl={profile?.photo_url}
+          userId={user.id}
+          userName={profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'User'}
+          onSuccess={(newUrl) => {
+            setProfile(prev => prev ? { ...prev, photo_url: newUrl } : null)
+          }}
+        />
+      )}
     </div>
   )
 }
