@@ -98,9 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       //   console.error("[AUTH] Error fetching user roles:", error);
       //   return ["EMPLOYEE"];
       // }
-      // const response = await NodeApiClient.get(`/profile/${userId}/roles`);
-      // const roles = response.data?.map((r) => r.role) || [];
-      const roles = ["MANAGER"];
+      const response = await NodeApiClient.get(`/profile/${userId}/roles`);
+      const roles = response.data?.map((r) => r.role) || [];
 
       return roles.length > 0 ? roles : ["EMPLOYEE"];
     } catch (error) {
