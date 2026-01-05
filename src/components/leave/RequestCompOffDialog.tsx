@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { format, differenceInDays } from "date-fns";
-import { CalendarIcon, Upload } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import { format, differenceInDays } from 'date-fns';
+import { CalendarIcon, Upload } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -9,17 +9,17 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface RequestCompOffDialogProps {
   open: boolean;
@@ -32,30 +32,27 @@ export interface CompOffRequestData {
   end_date: Date;
   total_days: number;
   reason: string;
-  evidence_url?: File;
+  evidence_url?: string;
 }
 
-export function RequestCompOffDialog({
-  open,
-  onOpenChange,
-  onSubmit,
-}: RequestCompOffDialogProps) {
+export function RequestCompOffDialog({ open, onOpenChange, onSubmit }: RequestCompOffDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fromDate, setFromDate] = useState<Date>();
   const [toDate, setToDate] = useState<Date>();
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [fromOpen, setFromOpen] = useState(false);
   const [toOpen, setToOpen] = useState(false);
 
-  const totalDays =
-    fromDate && toDate ? differenceInDays(toDate, fromDate) + 1 : 0;
+  const totalDays = fromDate && toDate 
+    ? differenceInDays(toDate, fromDate) + 1 
+    : 0;
 
   const resetForm = () => {
     setFromDate(undefined);
     setToDate(undefined);
-    setReason("");
+    setReason('');
     setFile(null);
     setFromOpen(false);
     setToOpen(false);
@@ -81,18 +78,18 @@ export function RequestCompOffDialog({
   const handleSubmit = async () => {
     if (!fromDate || !toDate) {
       toast({
-        title: "Validation Error",
-        description: "Please select from and to dates for compensatory off",
-        variant: "destructive",
+        title: 'Validation Error',
+        description: 'Please select from and to dates for compensatory off',
+        variant: 'destructive',
       });
       return;
     }
 
     if (toDate < fromDate) {
       toast({
-        title: "Validation Error",
-        description: "End date cannot be before start date",
-        variant: "destructive",
+        title: 'Validation Error',
+        description: 'End date cannot be before start date',
+        variant: 'destructive',
       });
       return;
     }
@@ -104,12 +101,12 @@ export function RequestCompOffDialog({
         end_date: toDate,
         total_days: totalDays,
         reason,
-        evidence_url: file || undefined,
+        evidence_url: file ? file.name : undefined,
       });
       resetForm();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error submitting comp-off request:", error);
+      console.error('Error submitting comp-off request:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -127,8 +124,7 @@ export function RequestCompOffDialog({
         <DialogHeader>
           <DialogTitle>Request Credit for Compensatory Off</DialogTitle>
           <DialogDescription>
-            Request compensatory off for extra hours worked on weekends or
-            holidays.
+            Request compensatory off for extra hours worked on weekends or holidays.
           </DialogDescription>
         </DialogHeader>
 
@@ -142,12 +138,12 @@ export function RequestCompOffDialog({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !fromDate && "text-muted-foreground"
+                      'w-full justify-start text-left font-normal',
+                      !fromDate && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {fromDate ? format(fromDate, "dd MMM yyyy") : "Select date"}
+                    {fromDate ? format(fromDate, 'dd MMM yyyy') : 'Select date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -175,12 +171,12 @@ export function RequestCompOffDialog({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !toDate && "text-muted-foreground"
+                      'w-full justify-start text-left font-normal',
+                      !toDate && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {toDate ? format(toDate, "dd MMM yyyy") : "Select date"}
+                    {toDate ? format(toDate, 'dd MMM yyyy') : 'Select date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -222,10 +218,10 @@ export function RequestCompOffDialog({
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => document.getElementById("file-upload")?.click()}
+                onClick={() => document.getElementById('file-upload')?.click()}
               >
                 <Upload className="mr-2 h-4 w-4" />
-                {file ? file.name : "Upload Files"}
+                {file ? file.name : 'Upload Files'}
               </Button>
               <input
                 id="file-upload"
@@ -246,7 +242,7 @@ export function RequestCompOffDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Confirming..." : "Confirm"}
+            {isSubmitting ? 'Confirming...' : 'Confirm'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,63 +1,58 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { EmployeeProfile, ProfileUpdateData } from "@/types/profile";
-import NodeApiClient from "@/services/nodeApiClient";
+import { supabase } from '@/integrations/supabase/client'
+import type { EmployeeProfile, ProfileUpdateData } from '@/types/profile'
 
 export interface ProfileRow {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  display_name: string | null;
-  role: string;
-  phone: string | null;
-  department: string | null;
-  business_unit: string | null;
-  avatar_url: string | null;
-  employee_code: string | null;
-  role_title: string | null;
-  city: string | null;
-  country: string | null;
-  cost_center: string | null;
-  manager_employee_id: string | null;
-  about: string | null;
-  interests: string[] | null;
-  date_of_joining: string | null;
-  notice_period: string | null;
-  band: string | null;
-  personal_email: string | null;
-  temporary_address: string | null;
-  permanent_address: string | null;
-  alternate_phone: string | null;
-  date_of_birth: string | null;
-  blood_group: string | null;
-  family_details: any | null;
-  created_at: string;
-  updated_at: string;
+  id: string
+  email: string
+  first_name: string | null
+  last_name: string | null
+  display_name: string | null
+  role: string
+  phone: string | null
+  department: string | null
+  business_unit: string | null
+  avatar_url: string | null
+  employee_code: string | null
+  role_title: string | null
+  city: string | null
+  country: string | null
+  cost_center: string | null
+  manager_employee_id: string | null
+  about: string | null
+  interests: string[] | null
+  date_of_joining: string | null
+  notice_period: string | null
+  band: string | null
+  personal_email: string | null
+  temporary_address: string | null
+  permanent_address: string | null
+  alternate_phone: string | null
+  date_of_birth: string | null
+  blood_group: string | null
+  family_details: any | null
+  created_at: string
+  updated_at: string
   // New employment fields
-  employee_type: string | null;
-  shifts: string | null;
-  week_off: string | null;
-  leaves_policy: string | null;
-  attendance_policy: string | null;
-  work_location: string | null;
+  employee_type: string | null
+  shifts: string | null
+  week_off: string | null
+  leaves_policy: string | null
+  attendance_policy: string | null
+  work_location: string | null
   // New personal fields
-  gender: string | null;
-  marital_status: string | null;
-  is_physically_handicapped: boolean | null;
-  nationality: string | null;
+  gender: string | null
+  marital_status: string | null
+  is_physically_handicapped: boolean | null
+  nationality: string | null
 }
 
-function mapRowToEmployeeProfile(
-  row: ProfileRow,
-  manager?: ProfileRow | null,
-  reports?: ProfileRow[]
-): EmployeeProfile {
+function mapRowToEmployeeProfile(row: ProfileRow, manager?: ProfileRow | null, reports?: ProfileRow[]): EmployeeProfile {
   return {
     id: row.id,
-    employee_code: row.employee_code || "N/A",
-    first_name: row.first_name || "",
-    last_name: row.last_name || "",
-    role_title: row.role_title || row.role || "Employee",
+    employee_code: row.employee_code || 'N/A',
+    first_name: row.first_name || '',
+    last_name: row.last_name || '',
+    role_title: row.role_title || row.role || 'Employee',
     email: row.email,
     phone: row.phone || undefined,
     city: row.city || undefined,
@@ -93,132 +88,95 @@ function mapRowToEmployeeProfile(
     leaves_policy: row.leaves_policy || undefined,
     attendance_policy: row.attendance_policy || undefined,
     work_location: row.work_location || undefined,
-    business_unit: row.business_unit
-      ? { id: "1", name: row.business_unit }
-      : undefined,
-    department: row.department ? { id: "1", name: row.department } : undefined,
-    cost_center: row.cost_center
-      ? { id: "1", code: row.cost_center, name: row.cost_center }
-      : undefined,
-    manager: manager
-      ? {
-          id: manager.id,
-          first_name: manager.first_name || "",
-          last_name: manager.last_name || "",
-          role_title: manager.role_title || manager.role || "Manager",
-          email: manager.email,
-          photo_url: manager.avatar_url || undefined,
-        }
-      : undefined,
-    reports:
-      reports?.map((r) => ({
-        id: r.id,
-        first_name: r.first_name || "",
-        last_name: r.last_name || "",
-        role_title: r.role_title || r.role || "Employee",
-        email: r.email,
-        photo_url: r.avatar_url || undefined,
-      })) || [],
-  };
+    business_unit: row.business_unit ? { id: '1', name: row.business_unit } : undefined,
+    department: row.department ? { id: '1', name: row.department } : undefined,
+    cost_center: row.cost_center ? { id: '1', code: row.cost_center, name: row.cost_center } : undefined,
+    manager: manager ? {
+      id: manager.id,
+      first_name: manager.first_name || '',
+      last_name: manager.last_name || '',
+      role_title: manager.role_title || manager.role || 'Manager',
+      email: manager.email,
+      photo_url: manager.avatar_url || undefined
+    } : undefined,
+    reports: reports?.map(r => ({
+      id: r.id,
+      first_name: r.first_name || '',
+      last_name: r.last_name || '',
+      role_title: r.role_title || r.role || 'Employee',
+      email: r.email,
+      photo_url: r.avatar_url || undefined
+    })) || []
+  }
 }
 
-export async function getCurrentProfile(
-  userId: string
-): Promise<EmployeeProfile | null> {
+
+export async function getCurrentProfile(userId: string): Promise<EmployeeProfile | null> {
   const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .maybeSingle();
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle()
 
   if (error || !profile) {
-    console.error("Error fetching profile:", error);
-    return null;
+    console.error('Error fetching profile:', error)
+    return null
   }
 
-  const row = profile as unknown as ProfileRow;
+  const row = profile as unknown as ProfileRow
 
   // Fetch manager and reports in PARALLEL
   const [managerResult, reportsResult] = await Promise.all([
     // Fetch manager if exists
-    row.manager_employee_id
-      ? supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", row.manager_employee_id)
-          .maybeSingle()
+    row.manager_employee_id 
+      ? supabase.from('profiles').select('*').eq('id', row.manager_employee_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
-
+    
     // Fetch direct reports
-    supabase.from("profiles").select("*").eq("manager_employee_id", userId),
-  ]);
+    supabase.from('profiles').select('*').eq('manager_employee_id', userId)
+  ])
 
-  const manager = managerResult.data as unknown as ProfileRow | null;
-  const reports = (reportsResult.data || []) as unknown as ProfileRow[];
+  const manager = managerResult.data as unknown as ProfileRow | null
+  const reports = (reportsResult.data || []) as unknown as ProfileRow[]
 
-  return mapRowToEmployeeProfile(row, manager, reports);
+  return mapRowToEmployeeProfile(row, manager, reports)
 }
 
-export async function getProfileById(
-  profileId: string
-): Promise<EmployeeProfile | null> {
+export async function getProfileById(profileId: string): Promise<EmployeeProfile | null> {
   const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", profileId)
-    .maybeSingle();
+    .from('profiles')
+    .select('*')
+    .eq('id', profileId)
+    .maybeSingle()
 
   if (error || !profile) {
-    console.error("Error fetching profile:", error);
-    return null;
+    console.error('Error fetching profile:', error)
+    return null
   }
 
-  const row = profile as unknown as ProfileRow;
+  const row = profile as unknown as ProfileRow
 
   // Fetch manager and reports in PARALLEL
   const [managerResult, reportsResult] = await Promise.all([
     // Fetch manager if exists
-    row.manager_employee_id
-      ? supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", row.manager_employee_id)
-          .maybeSingle()
+    row.manager_employee_id 
+      ? supabase.from('profiles').select('*').eq('id', row.manager_employee_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
-
+    
     // Fetch direct reports
-    supabase.from("profiles").select("*").eq("manager_employee_id", profileId),
-  ]);
+    supabase.from('profiles').select('*').eq('manager_employee_id', profileId)
+  ])
 
-  const manager = managerResult.data as unknown as ProfileRow | null;
-  const reports = (reportsResult.data || []) as unknown as ProfileRow[];
+  const manager = managerResult.data as unknown as ProfileRow | null
+  const reports = (reportsResult.data || []) as unknown as ProfileRow[]
 
-  return mapRowToEmployeeProfile(row, manager, reports);
+  return mapRowToEmployeeProfile(row, manager, reports)
 }
 
-export const fetchProfileMe = async (
-  userId: string
-): Promise<EmployeeProfile | (null & { role?: string })> => {
-  try {
-    const response = await NodeApiClient.get("/auth/profile", {
-      headers: {
-        userId,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("[AUTH] fetchProfileMe failed", error);
-    return null;
-  }
-};
-
-export async function updateProfile(
-  userId: string,
-  data: ProfileUpdateData
-): Promise<boolean> {
-  try {
-    await NodeApiClient.patch(`/profile/${userId}`, {
-      section: data.section,
+export async function updateProfile(userId: string, data: ProfileUpdateData): Promise<boolean> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
       phone: data.phone,
       city: data.city,
       country: data.country,
@@ -230,46 +188,19 @@ export async function updateProfile(
       alternate_phone: data.alternate_phone,
       date_of_birth: data.date_of_birth || null,
       blood_group: data.blood_group,
-      family_details: data.family_details,
+      family_details: data.family_details as any,
       gender: data.gender,
       marital_status: data.marital_status,
       is_physically_handicapped: data.is_physically_handicapped,
       nationality: data.nationality,
-      updated_at: new Date().toISOString(),
-    });
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
 
-    return true;
-  } catch (error) {
-    console.error("[PROFILE] Update failed", error);
-    return false;
+  if (error) {
+    console.error('Error updating profile:', error)
+    return false
   }
-  // const { error } = await supabase
-  //   .from("profiles")
-  //   .update({
-  //     phone: data.phone,
-  //     city: data.city,
-  //     country: data.country,
-  //     about: data.about,
-  //     interests: data.interests,
-  //     personal_email: data.personal_email,
-  //     temporary_address: data.temporary_address,
-  //     permanent_address: data.permanent_address,
-  //     alternate_phone: data.alternate_phone,
-  //     date_of_birth: data.date_of_birth || null,
-  //     blood_group: data.blood_group,
-  //     family_details: data.family_details as any,
-  //     gender: data.gender,
-  //     marital_status: data.marital_status,
-  //     is_physically_handicapped: data.is_physically_handicapped,
-  //     nationality: data.nationality,
-  //     updated_at: new Date().toISOString(),
-  //   })
-  //   .eq("id", userId);
 
-  // if (error) {
-  //   console.error("Error updating profile:", error);
-  //   return false;
-  // }
-
-  // return true;
+  return true
 }

@@ -7,25 +7,19 @@ import { format } from "date-fns";
 // useLeaveBalances removed - now using real data from transactions
 import { useCompOffBalance } from "@/hooks/useCompOffBalance";
 import { useLeaveBalanceFromTransactions } from "@/hooks/useLeaveBalanceFromTransactions";
-import {
+import { 
   useAllMyRequests,
-  useProfiles,
+  useProfiles, 
   useCreateLeaveRequest,
   useCreateCompOffRequest,
   useCancelLeaveRequest,
-  useCancelCompOffRequest,
+  useCancelCompOffRequest
 } from "@/hooks/useLeaveSupabase";
 import { CasualLeaveBalanceCard } from "@/components/leave/CasualLeaveBalanceCard";
 import { CompOffBalanceCard } from "@/components/leave/CompOffBalanceCard";
 import { UpcomingHolidayCard } from "@/components/leave/UpcomingHolidayCard";
-import {
-  RequestLeaveDialog,
-  LeaveRequestData,
-} from "@/components/leave/RequestLeaveDialog";
-import {
-  RequestCompOffDialog,
-  CompOffRequestData,
-} from "@/components/leave/RequestCompOffDialog";
+import { RequestLeaveDialog, LeaveRequestData } from "@/components/leave/RequestLeaveDialog";
+import { RequestCompOffDialog, CompOffRequestData } from "@/components/leave/RequestCompOffDialog";
 import { LeavePolicyDialog } from "@/components/leave/LeavePolicyDialog";
 import { MyRequestsTable } from "@/components/leave/MyRequestsTable";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
@@ -43,13 +37,11 @@ export default function LeavePage() {
   // Data hooks
   // Leave balances now fetched via CasualLeaveBalanceCard component directly
   const { data: compOffBalance } = useCompOffBalance(user?.id);
-  const { available: clBalance } = useLeaveBalanceFromTransactions("CL");
-  const { available: plBalance } = useLeaveBalanceFromTransactions("PL");
-  const { available: mlBalance } = useLeaveBalanceFromTransactions("ML");
-  const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(
-    user?.id
-  );
-  // const { data: profiles } = useProfiles();
+  const { available: clBalance } = useLeaveBalanceFromTransactions('CL');
+  const { available: plBalance } = useLeaveBalanceFromTransactions('PL');
+  const { available: mlBalance } = useLeaveBalanceFromTransactions('ML');
+  const { data: allRequests, isLoading: requestsLoading } = useAllMyRequests(user?.id);
+  const { data: profiles } = useProfiles();
 
   // Mutations
   const createLeaveRequest = useCreateLeaveRequest();
@@ -58,20 +50,18 @@ export default function LeavePage() {
   const cancelCompOffRequest = useCancelCompOffRequest();
 
   // Get user display name
-  const userName =
-    user?.display_name ||
-    `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
-    user?.email ||
-    "";
+  const userName = user?.display_name || 
+    `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 
+    user?.email || '';
 
   const handleLeaveSubmit = async (data: LeaveRequestData) => {
     if (!user?.id) return;
-
+    
     await createLeaveRequest.mutateAsync({
       employee_id: user.id,
       leave_type: data.leave_type,
-      start_date: format(data.start_date, "yyyy-MM-dd"),
-      end_date: format(data.end_date, "yyyy-MM-dd"),
+      start_date: format(data.start_date, 'yyyy-MM-dd'),
+      end_date: format(data.end_date, 'yyyy-MM-dd'),
       total_days: data.total_days,
       reason: data.reason,
       requested_by: userName,
@@ -80,22 +70,19 @@ export default function LeavePage() {
 
   const handleCompOffSubmit = async (data: CompOffRequestData) => {
     if (!user?.id) return;
-
+    
     await createCompOffRequest.mutateAsync({
       employee_id: user.id,
-      start_date: format(data.start_date, "yyyy-MM-dd"),
-      end_date: format(data.end_date, "yyyy-MM-dd"),
+      start_date: format(data.start_date, 'yyyy-MM-dd'),
+      end_date: format(data.end_date, 'yyyy-MM-dd'),
       total_days: data.total_days,
       reason: data.reason,
-      evidence: data.evidence_url,
+      evidence_url: data.evidence_url,
     });
   };
 
-  const handleCancelRequest = (
-    requestId: string,
-    requestSource?: "leave" | "comp_off"
-  ) => {
-    if (requestSource === "comp_off") {
+  const handleCancelRequest = (requestId: string, requestSource?: 'leave' | 'comp_off') => {
+    if (requestSource === 'comp_off') {
       cancelCompOffRequest.mutate(requestId);
     } else {
       cancelLeaveRequest.mutate(requestId);
@@ -115,24 +102,16 @@ export default function LeavePage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => setShowCompOffDialog(true)}
-                className="flex-1 sm:flex-none"
-              >
+              <Button size="sm" onClick={() => setShowCompOffDialog(true)} className="flex-1 sm:flex-none">
                 <Clock className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Request </span>Comp-Off
               </Button>
-              <Button
-                size="sm"
-                onClick={() => setShowLeaveDialog(true)}
-                className="flex-1 sm:flex-none"
-              >
+              <Button size="sm" onClick={() => setShowLeaveDialog(true)} className="flex-1 sm:flex-none">
                 <Plus className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Request </span>Leave
               </Button>
             </div>
-            <button
+            <button 
               onClick={() => setShowPolicyDialog(true)}
               className="text-sm text-primary hover:underline font-medium text-center sm:text-left"
             >
@@ -154,7 +133,7 @@ export default function LeavePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Casual Leave Card - Real data from transactions */}
                 <CasualLeaveBalanceCard />
-
+                
                 {/* Comp-Off Balance Card */}
                 <CompOffBalanceCard employeeId={user?.id} />
               </div>
@@ -172,7 +151,7 @@ export default function LeavePage() {
                 <CardTitle>My Leave Requests</CardTitle>
               </CardHeader>
               <CardContent>
-                <MyRequestsTable
+                <MyRequestsTable 
                   requests={allRequests || []}
                   isLoading={requestsLoading}
                   onCancel={handleCancelRequest}

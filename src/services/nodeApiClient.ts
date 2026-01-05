@@ -13,7 +13,7 @@ const NodeApiClient: AxiosInstance = axios.create({
 // Request interceptor - adds auth token
 NodeApiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("auth_token");
-  if (token && !config.url?.includes("/auth/login")) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -23,8 +23,7 @@ NodeApiClient.interceptors.request.use((config) => {
 NodeApiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    const isLoginCall = error.config?.url?.includes("/auth/login");
-    if (error.response?.status === 401 && !isLoginCall) {
+    if (error.response?.status === 401) {
       console.warn("[AUTH] Token expired or invalid");
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user_id");
@@ -34,4 +33,5 @@ NodeApiClient.interceptors.response.use(
   }
 );
 
+export { NodeApiClient };
 export default NodeApiClient;

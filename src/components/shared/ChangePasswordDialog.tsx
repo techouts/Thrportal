@@ -1,47 +1,37 @@
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Check, X, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/auth/AuthContext";
+import { useState } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Eye, EyeOff, Check, X, Lock } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/auth/AuthContext"
 import {
   hasMinLength,
   hasNumber,
   hasSpecialChar,
   passwordsMatch,
-  isDefaultPassword,
-} from "@/lib/passwordValidation";
-import NodeApiClient from "@/services/nodeApiClient";
+  isDefaultPassword
+} from "@/lib/passwordValidation"
 
 interface ChangePasswordDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function ChangePasswordDialog({
-  open,
-  onOpenChange,
-}: ChangePasswordDialogProps) {
-  const { user, signOut } = useAuth();
-  const { toast } = useToast();
-
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
+  const { user, signOut } = useAuth()
+  const { toast } = useToast()
+  
+  const [oldPassword, setOldPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const [showOldPassword, setShowOldPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Validation states
   const validations = {
@@ -49,111 +39,95 @@ export function ChangePasswordDialog({
     hasNumber: hasNumber(newPassword),
     hasSpecialChar: hasSpecialChar(newPassword),
     passwordsMatch: passwordsMatch(newPassword, confirmPassword),
-    notSameAsOld:
-      newPassword.length > 0 && !isDefaultPassword(newPassword, oldPassword),
-  };
+    notSameAsOld: newPassword.length > 0 && !isDefaultPassword(newPassword, oldPassword)
+  }
 
-  const allValid =
-    Object.values(validations).every(Boolean) && oldPassword.length > 0;
+  const allValid = Object.values(validations).every(Boolean) && oldPassword.length > 0
 
   const resetForm = () => {
-    setOldPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowOldPassword(false);
-    setShowNewPassword(false);
-    setShowConfirmPassword(false);
-  };
+    setOldPassword("")
+    setNewPassword("")
+    setConfirmPassword("")
+    setShowOldPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+  }
 
   const handleClose = () => {
-    resetForm();
-    onOpenChange(false);
-  };
-  console.log("check");
+    resetForm()
+    onOpenChange(false)
+  }
+
   const handleChangePassword = async () => {
-    if (!allValid || !user?.email) return;
+    if (!allValid || !user?.email) return
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      await NodeApiClient.put("/auth/change-password", {
-        userId: user.id,
-        currentPassword: oldPassword,
-        newPassword: newPassword,
-        confirmPassword: newPassword,
-      });
       // Step 1: Verify old password by attempting sign-in
-      // const { error: signInError } = await supabase.auth.signInWithPassword({
-      //   email: user.email,
-      //   password: oldPassword,
-      // });
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: oldPassword
+      })
 
-      // if (signInError) {
-      //   toast({
-      //     title: "Incorrect Password",
-      //     description: "The old password you entered is incorrect.",
-      //     variant: "destructive",
-      //   });
-      //   setIsLoading(false);
-      //   return;
-      // }
+      if (signInError) {
+        toast({
+          title: "Incorrect Password",
+          description: "The old password you entered is incorrect.",
+          variant: "destructive"
+        })
+        setIsLoading(false)
+        return
+      }
 
       // Step 2: Update to new password
-      // const { error: updateError } = await supabase.auth.updateUser({
-      //   password: newPassword,
-      // });
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      })
 
-      // if (updateError) {
-      //   toast({
-      //     title: "Update Failed",
-      //     description: updateError.message,
-      //     variant: "destructive",
-      //   });
-      //   setIsLoading(false);
-      //   return;
-      // }
+      if (updateError) {
+        toast({
+          title: "Update Failed",
+          description: updateError.message,
+          variant: "destructive"
+        })
+        setIsLoading(false)
+        return
+      }
 
       // Show success toast for 3 seconds
       toast({
         title: "Password Changed Successfully",
         description: "Please re-login with your new password.",
-        duration: 3000,
-      });
+        duration: 3000
+      })
 
-      handleClose();
-
+      handleClose()
+      
       // Wait for toast to be visible, then sign out
       setTimeout(async () => {
-        await signOut();
-      }, 3000);
+        await signOut()
+      }, 3000)
     } catch (error) {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+        variant: "destructive"
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const ValidationItem = ({
-    valid,
-    label,
-  }: {
-    valid: boolean;
-    label: string;
-  }) => (
+  const ValidationItem = ({ valid, label }: { valid: boolean; label: string }) => (
     <div className="flex items-center gap-2 text-sm">
       {valid ? (
         <Check className="h-4 w-4 text-green-500" />
       ) : (
         <X className="h-4 w-4 text-muted-foreground" />
       )}
-      <span className={valid ? "text-green-500" : "text-muted-foreground"}>
-        {label}
-      </span>
+      <span className={valid ? "text-green-500" : "text-muted-foreground"}>{label}</span>
     </div>
-  );
+  )
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -188,11 +162,7 @@ export function ChangePasswordDialog({
                 className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowOldPassword(!showOldPassword)}
               >
-                {showOldPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -216,11 +186,7 @@ export function ChangePasswordDialog({
                 className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowNewPassword(!showNewPassword)}
               >
-                {showNewPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -244,41 +210,20 @@ export function ChangePasswordDialog({
                 className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           </div>
 
           {/* Validation Requirements */}
           <div className="space-y-2 pt-2 border-t">
-            <p className="text-sm font-medium text-foreground">
-              Password Requirements:
-            </p>
+            <p className="text-sm font-medium text-foreground">Password Requirements:</p>
             <div className="grid gap-1">
-              <ValidationItem
-                valid={validations.minLength}
-                label="At least 6 characters"
-              />
-              <ValidationItem
-                valid={validations.hasNumber}
-                label="Contains at least 1 number"
-              />
-              <ValidationItem
-                valid={validations.hasSpecialChar}
-                label="Contains at least 1 special character"
-              />
-              <ValidationItem
-                valid={validations.passwordsMatch}
-                label="Passwords match"
-              />
-              <ValidationItem
-                valid={validations.notSameAsOld}
-                label="Different from current password"
-              />
+              <ValidationItem valid={validations.minLength} label="At least 6 characters" />
+              <ValidationItem valid={validations.hasNumber} label="Contains at least 1 number" />
+              <ValidationItem valid={validations.hasSpecialChar} label="Contains at least 1 special character" />
+              <ValidationItem valid={validations.passwordsMatch} label="Passwords match" />
+              <ValidationItem valid={validations.notSameAsOld} label="Different from current password" />
             </div>
           </div>
         </div>
@@ -287,14 +232,11 @@ export function ChangePasswordDialog({
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleChangePassword}
-            disabled={!allValid || isLoading}
-          >
+          <Button onClick={handleChangePassword} disabled={!allValid || isLoading}>
             {isLoading ? "Updating..." : "Change Password"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

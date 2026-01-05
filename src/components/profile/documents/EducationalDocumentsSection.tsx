@@ -1,84 +1,53 @@
-import { useState, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Plus,
-  Upload,
-  Trash2,
-  FileText,
-  Loader2,
-  GraduationCap,
-} from "lucide-react";
-import type { EducationDetail } from "@/types/employeeDocuments";
-import {
-  updateEducationDetails,
-  uploadEmployeeDocument,
-  deleteEmployeeDocument,
-} from "@/services/employeeDocumentService";
-import { DeleteConfirmationDialog } from "@/components/timesheet/DeleteConfirmationDialog";
+import { useState, useRef } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useToast } from '@/hooks/use-toast'
+import { Plus, Upload, Trash2, FileText, Loader2, GraduationCap } from 'lucide-react'
+import type { EducationDetail } from '@/types/employeeDocuments'
+import { updateEducationDetails, uploadEmployeeDocument, deleteEmployeeDocument } from '@/services/employeeDocumentService'
+import { DeleteConfirmationDialog } from '@/components/timesheet/DeleteConfirmationDialog'
 
 interface EducationalDocumentsSectionProps {
-  data: EducationDetail[];
-  isOwnProfile: boolean;
-  userId: string;
-  onUpdate: () => void;
+  data: EducationDetail[]
+  isOwnProfile: boolean
+  userId: string
+  onUpdate: () => void
 }
 
-export default function EducationalDocumentsSection({
-  data,
-  isOwnProfile,
-  userId,
-  onUpdate,
-}: EducationalDocumentsSectionProps) {
-  const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingEntry, setDeletingEntry] = useState<EducationDetail | null>(
-    null
-  );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
+export default function EducationalDocumentsSection({ data, isOwnProfile, userId, onUpdate }: EducationalDocumentsSectionProps) {
+  const { toast } = useToast()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [uploadingId, setUploadingId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletingEntry, setDeletingEntry] = useState<EducationDetail | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<EducationDetail>>({
-    degree: "",
-    branch: "",
+    degree: '',
+    branch: '',
     from_year: new Date().getFullYear() - 4,
     to_year: new Date().getFullYear(),
     cgpa: undefined,
-    university: "",
-  });
-  const NODE_API_BASE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
+    university: ''
+  })
+
   const handleAddEducation = async () => {
     if (!formData.degree || !formData.branch || !formData.university) {
       toast({
-        title: "Validation Error",
-        description: "Degree, Branch, and University are required.",
-        variant: "destructive",
-      });
-      return;
+        title: 'Validation Error',
+        description: 'Degree, Branch, and University are required.',
+        variant: 'destructive'
+      })
+      return
     }
 
-    setSaving(true);
+    setSaving(true)
     const newEntry: EducationDetail = {
       id: crypto.randomUUID(),
       degree: formData.degree,
@@ -86,85 +55,62 @@ export default function EducationalDocumentsSection({
       from_year: formData.from_year || new Date().getFullYear() - 4,
       to_year: formData.to_year || new Date().getFullYear(),
       cgpa: formData.cgpa,
-      university: formData.university,
-    };
+      university: formData.university
+    }
 
-    const updated = [...data, newEntry];
-    const success = await updateEducationDetails(userId, updated);
+    const updated = [...data, newEntry]
+    const success = await updateEducationDetails(userId, updated)
 
     if (success) {
-      toast({ title: "Success", description: "Education added." });
-      setFormData({
-        degree: "",
-        branch: "",
-        from_year: new Date().getFullYear() - 4,
-        to_year: new Date().getFullYear(),
-        cgpa: undefined,
-        university: "",
-      });
-      setIsDialogOpen(false);
-      onUpdate();
+      toast({ title: 'Success', description: 'Education added.' })
+      setFormData({ degree: '', branch: '', from_year: new Date().getFullYear() - 4, to_year: new Date().getFullYear(), cgpa: undefined, university: '' })
+      setIsDialogOpen(false)
+      onUpdate()
     } else {
-      toast({
-        title: "Error",
-        description: "Failed to save.",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: 'Failed to save.', variant: 'destructive' })
     }
-    setSaving(false);
-  };
+    setSaving(false)
+  }
 
   const handleDelete = async (id: string) => {
-    const entry = data.find((e) => e.id === id);
-    // if (entry?.document_url) {
-    //   await deleteEmployeeDocument(entry.document_url);
-    // }
-    const updated = data.filter((e) => e.id !== id);
-    const success = await updateEducationDetails(
-      userId,
-      updated,
-      undefined,
-      id
-    );
-    if (success) {
-      toast({ title: "Deleted", description: "Education removed." });
-      onUpdate();
+    const entry = data.find(e => e.id === id)
+    if (entry?.document_url) {
+      await deleteEmployeeDocument(entry.document_url)
     }
-  };
+    const updated = data.filter(e => e.id !== id)
+    const success = await updateEducationDetails(userId, updated)
+    if (success) {
+      toast({ title: 'Deleted', description: 'Education removed.' })
+      onUpdate()
+    }
+  }
 
   const handleUploadClick = (id: string) => {
-    setCurrentUploadId(id);
-    fileInputRef.current?.click();
-  };
+    setCurrentUploadId(id)
+    fileInputRef.current?.click()
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentUploadId) return;
+    const file = e.target.files?.[0]
+    if (!file || !currentUploadId) return
 
-    setUploadingId(currentUploadId);
-    // const url = await uploadEmployeeDocument(userId, file, 'education', currentUploadId)
+    setUploadingId(currentUploadId)
+    const url = await uploadEmployeeDocument(userId, file, 'education', currentUploadId)
 
-    // if (url) {
-
-    const updated = data.map((entry) =>
-      entry.id === currentUploadId
-        ? { ...entry, document_uploaded: true }
-        : entry
-    );
-    await updateEducationDetails(userId, updated, file, currentUploadId);
-    toast({
-      title: "Uploaded",
-      description: "Document uploaded successfully.",
-    });
-    onUpdate();
-    // }
-    // else {
-    //   toast({ title: 'Error', description: 'Upload failed.', variant: 'destructive' })
-    // }
-    setUploadingId(null);
-    setCurrentUploadId(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+    if (url) {
+      const updated = data.map(entry =>
+        entry.id === currentUploadId ? { ...entry, document_url: url } : entry
+      )
+      await updateEducationDetails(userId, updated)
+      toast({ title: 'Uploaded', description: 'Document uploaded successfully.' })
+      onUpdate()
+    } else {
+      toast({ title: 'Error', description: 'Upload failed.', variant: 'destructive' })
+    }
+    setUploadingId(null)
+    setCurrentUploadId(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   return (
     <Card>
@@ -190,9 +136,7 @@ export default function EducationalDocumentsSection({
                   <Label>Degree *</Label>
                   <Input
                     value={formData.degree}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, degree: e.target.value }))
-                    }
+                    onChange={(e) => setFormData(p => ({ ...p, degree: e.target.value }))}
                     placeholder="e.g. B.Tech"
                   />
                 </div>
@@ -200,9 +144,7 @@ export default function EducationalDocumentsSection({
                   <Label>Branch *</Label>
                   <Input
                     value={formData.branch}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, branch: e.target.value }))
-                    }
+                    onChange={(e) => setFormData(p => ({ ...p, branch: e.target.value }))}
                     placeholder="e.g. Computer Science"
                   />
                 </div>
@@ -214,15 +156,10 @@ export default function EducationalDocumentsSection({
                       inputMode="numeric"
                       pattern="[0-9]*"
                       maxLength={4}
-                      value={formData.from_year?.toString() || ""}
+                      value={formData.from_year?.toString() || ''}
                       onChange={(e) => {
-                        const value = e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 4);
-                        setFormData((p) => ({
-                          ...p,
-                          from_year: value ? parseInt(value) : undefined,
-                        }));
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                        setFormData(p => ({ ...p, from_year: value ? parseInt(value) : undefined }))
                       }}
                       placeholder="YYYY"
                     />
@@ -234,15 +171,10 @@ export default function EducationalDocumentsSection({
                       inputMode="numeric"
                       pattern="[0-9]*"
                       maxLength={4}
-                      value={formData.to_year?.toString() || ""}
+                      value={formData.to_year?.toString() || ''}
                       onChange={(e) => {
-                        const value = e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 4);
-                        setFormData((p) => ({
-                          ...p,
-                          to_year: value ? parseInt(value) : undefined,
-                        }));
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                        setFormData(p => ({ ...p, to_year: value ? parseInt(value) : undefined }))
                       }}
                       placeholder="YYYY"
                     />
@@ -254,13 +186,8 @@ export default function EducationalDocumentsSection({
                     <Input
                       type="number"
                       step="0.1"
-                      value={formData.cgpa || ""}
-                      onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          cgpa: parseFloat(e.target.value) || undefined,
-                        }))
-                      }
+                      value={formData.cgpa || ''}
+                      onChange={(e) => setFormData(p => ({ ...p, cgpa: parseFloat(e.target.value) || undefined }))}
                       placeholder="e.g. 8.5"
                     />
                   </div>
@@ -268,24 +195,13 @@ export default function EducationalDocumentsSection({
                     <Label>University *</Label>
                     <Input
                       value={formData.university}
-                      onChange={(e) =>
-                        setFormData((p) => ({
-                          ...p,
-                          university: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => setFormData(p => ({ ...p, university: e.target.value }))}
                       placeholder="e.g. JNTU"
                     />
                   </div>
                 </div>
-                <Button
-                  onClick={handleAddEducation}
-                  disabled={saving}
-                  className="w-full"
-                >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : null}
+                <Button onClick={handleAddEducation} disabled={saving} className="w-full">
+                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                   Add Education
                 </Button>
               </div>
@@ -302,9 +218,7 @@ export default function EducationalDocumentsSection({
           onChange={handleFileChange}
         />
         {data.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
-            No education records added yet.
-          </p>
+          <p className="text-muted-foreground text-center py-8">No education records added yet.</p>
         ) : (
           <Table>
             <TableHeader>
@@ -316,9 +230,7 @@ export default function EducationalDocumentsSection({
                 <TableHead>CGPA</TableHead>
                 <TableHead>University</TableHead>
                 <TableHead>Documents</TableHead>
-                {isOwnProfile && (
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                )}
+                {isOwnProfile && <TableHead className="w-[100px]">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -328,19 +240,12 @@ export default function EducationalDocumentsSection({
                   <TableCell>{entry.branch}</TableCell>
                   <TableCell>{entry.from_year}</TableCell>
                   <TableCell>{entry.to_year}</TableCell>
-                  <TableCell>{entry.cgpa || "-"}</TableCell>
+                  <TableCell>{entry.cgpa || '-'}</TableCell>
                   <TableCell>{entry.university}</TableCell>
                   <TableCell>
                     {entry.document_url ? (
-                      <a
-                        href={`${NODE_API_BASE_URL}${entry.document_url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Badge
-                          variant="secondary"
-                          className="gap-1 cursor-pointer"
-                        >
+                      <a href={entry.document_url} target="_blank" rel="noopener noreferrer">
+                        <Badge variant="secondary" className="gap-1 cursor-pointer">
                           <FileText className="h-3 w-3" />
                           View
                         </Badge>
@@ -367,14 +272,10 @@ export default function EducationalDocumentsSection({
                   </TableCell>
                   {isOwnProfile && (
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setDeletingEntry(entry);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        setDeletingEntry(entry)
+                        setDeleteDialogOpen(true)
+                      }}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -390,18 +291,14 @@ export default function EducationalDocumentsSection({
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Delete Education Record"
-        description={`Are you sure you want to delete this education record${
-          deletingEntry?.degree
-            ? ` for "${deletingEntry.degree} - ${deletingEntry.university}"`
-            : ""
-        }?`}
+        description={`Are you sure you want to delete this education record${deletingEntry?.degree ? ` for "${deletingEntry.degree} - ${deletingEntry.university}"` : ''}?`}
         warningMessage="This will also remove any uploaded documents for this entry."
         onConfirm={() => {
-          if (deletingEntry) handleDelete(deletingEntry.id);
-          setDeleteDialogOpen(false);
-          setDeletingEntry(null);
+          if (deletingEntry) handleDelete(deletingEntry.id)
+          setDeleteDialogOpen(false)
+          setDeletingEntry(null)
         }}
       />
     </Card>
-  );
+  )
 }

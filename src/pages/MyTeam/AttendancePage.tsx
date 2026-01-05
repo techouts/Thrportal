@@ -1,96 +1,55 @@
-import { useState, useEffect } from "react";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  BarChart3,
-  Users,
-  Clock,
-  CheckCircle,
-  XCircle,
-  FileText,
-} from "lucide-react";
-import { attendanceService } from "@/services/attendanceService";
-import { AttendanceRecord } from "@/types/attendance";
-import { useAuth } from "@/auth/AuthContext";
-import { format } from "date-fns";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  usePendingRegularizationRequests,
-  useApproveRegularization,
-  useRejectRegularization,
-} from "@/hooks/useAttendanceRegularization";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from 'react';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { BarChart3, Users, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { attendanceService } from '@/services/attendanceService';
+import { AttendanceRecord } from '@/types/attendance';
+import { useAuth } from '@/auth/AuthContext';
+import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+import { usePendingRegularizationRequests, useApproveRegularization, useRejectRegularization } from '@/hooks/useAttendanceRegularization';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 export default function MyTeamAttendancePage() {
-  // const { user: currentUser } = useAuth();
-  const currentUserId = localStorage.getItem("auth_user_id");
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const { user: currentUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [teamAttendance, setTeamAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalsPage, setApprovalsPage] = useState(1);
   const APPROVALS_ITEMS_PER_PAGE = 10;
-
+  
   // Rejection dialog state
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
-    null
-  );
-  const [rejectionReason, setRejectionReason] = useState("");
-  const NODE_API_BASE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Use the hook for regularization requests
-  const {
-    data: pendingRegularizations = [],
-    isLoading: regularizationsLoading,
-  } = usePendingRegularizationRequests(currentUserId);
+  const { data: pendingRegularizations = [], isLoading: regularizationsLoading } = usePendingRegularizationRequests(currentUser?.id);
   const approveRegularization = useApproveRegularization();
   const rejectRegularization = useRejectRegularization();
 
   useEffect(() => {
     loadData();
-  }, [currentUserId]);
+  }, [currentUser]);
 
   const loadData = async () => {
-    if (!currentUserId) return;
+    if (!currentUser) return;
 
     setLoading(true);
     try {
-      const teamResponse = await attendanceService.getTeamAttendance(
-        currentUserId
-      );
+      const teamResponse = await attendanceService.getTeamAttendance(currentUser.id);
 
       if (teamResponse.success) {
         setTeamAttendance(teamResponse.data);
       }
     } catch (error) {
-      console.error("Failed to load team attendance data:", error);
+      console.error('Failed to load team attendance data:', error);
     } finally {
       setLoading(false);
     }
@@ -98,60 +57,51 @@ export default function MyTeamAttendancePage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "present":
-        return "bg-green-100 text-green-800";
-      case "late":
-        return "bg-yellow-100 text-yellow-800";
-      case "absent":
-        return "bg-red-100 text-red-800";
-      case "work_from_home":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case 'present': return 'bg-green-100 text-green-800';
+      case 'late': return 'bg-yellow-100 text-yellow-800';
+      case 'absent': return 'bg-red-100 text-red-800';
+      case 'work_from_home': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const handleApproval = async (requestId: string) => {
-    if (!currentUserId) return;
-    approveRegularization.mutate({ requestId, approverId: currentUserId });
+    if (!currentUser?.id) return;
+    approveRegularization.mutate({ requestId, approverId: currentUser.id });
   };
 
   const handleOpenRejectDialog = (requestId: string) => {
     setSelectedRequestId(requestId);
-    setRejectionReason("");
+    setRejectionReason('');
     setRejectDialogOpen(true);
   };
 
   const handleRejectSubmit = () => {
-    if (!selectedRequestId || !currentUserId) return;
-
+    if (!selectedRequestId || !currentUser?.id) return;
+    
     rejectRegularization.mutate({
       requestId: selectedRequestId,
-      approverId: currentUserId,
-      rejectionReason: rejectionReason.trim() || undefined,
+      approverId: currentUser.id,
+      rejectionReason: rejectionReason.trim() || undefined
     });
-
+    
     setRejectDialogOpen(false);
     setSelectedRequestId(null);
-    setRejectionReason("");
+    setRejectionReason('');
   };
 
   const calculateTeamStats = () => {
-    const present = teamAttendance.filter(
-      (r) => r.status === "present" || r.status === "work_from_home"
-    ).length;
-    const late = teamAttendance.filter((r) => r.status === "late").length;
-    const absent = teamAttendance.filter((r) => r.status === "absent").length;
-
+    const present = teamAttendance.filter(r => r.status === 'present' || r.status === 'work_from_home').length;
+    const late = teamAttendance.filter(r => r.status === 'late').length;
+    const absent = teamAttendance.filter(r => r.status === 'absent').length;
+    
     return { present, late, absent, total: teamAttendance.length };
   };
 
   const stats = calculateTeamStats();
 
   // Pagination logic for approvals
-  const approvalsTotalPages = Math.ceil(
-    pendingRegularizations.length / APPROVALS_ITEMS_PER_PAGE
-  );
+  const approvalsTotalPages = Math.ceil(pendingRegularizations.length / APPROVALS_ITEMS_PER_PAGE);
   const paginatedApprovals = pendingRegularizations.slice(
     (approvalsPage - 1) * APPROVALS_ITEMS_PER_PAGE,
     approvalsPage * APPROVALS_ITEMS_PER_PAGE
@@ -162,7 +112,7 @@ export default function MyTeamAttendancePage() {
       <div className="space-y-6">
         <PageHeader title="Team Attendance" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <Card key={i} className="rounded-2xl">
               <CardHeader>
                 <Skeleton className="h-4 w-24" />
@@ -179,16 +129,12 @@ export default function MyTeamAttendancePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <PageHeader 
         title="Team Attendance"
         description="Monitor and manage your team's attendance"
       />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-6"
-      >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
@@ -196,9 +142,7 @@ export default function MyTeamAttendancePage() {
           </TabsTrigger>
           <TabsTrigger value="approvals" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">
-              Approvals ({pendingRegularizations.length})
-            </span>
+            <span className="hidden sm:inline">Approvals ({pendingRegularizations.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -206,9 +150,7 @@ export default function MyTeamAttendancePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card className="rounded-2xl shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Team
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Team</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.total}</div>
@@ -218,47 +160,32 @@ export default function MyTeamAttendancePage() {
 
             <Card className="rounded-2xl shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Present Today
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Present Today</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {stats.present}
-                </div>
+                <div className="text-2xl font-bold text-green-600">{stats.present}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.total > 0
-                    ? Math.round((stats.present / stats.total) * 100)
-                    : 0}
-                  % attendance
+                  {stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0}% attendance
                 </p>
               </CardContent>
             </Card>
 
             <Card className="rounded-2xl shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Late Arrivals
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Late Arrivals</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {stats.late}
-                </div>
+                <div className="text-2xl font-bold text-yellow-600">{stats.late}</div>
                 <p className="text-xs text-muted-foreground">Today</p>
               </CardContent>
             </Card>
 
             <Card className="rounded-2xl shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Absent
-                </CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Absent</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {stats.absent}
-                </div>
+                <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
                 <p className="text-xs text-muted-foreground">Today</p>
               </CardContent>
             </Card>
@@ -275,32 +202,27 @@ export default function MyTeamAttendancePage() {
               <div className="space-y-3">
                 {teamAttendance.length > 0 ? (
                   teamAttendance.map((record) => (
-                    <div
-                      key={record.id}
-                      className="flex items-center justify-between p-3 border rounded-xl"
-                    >
+                    <div key={record.id} className="flex items-center justify-between p-3 border rounded-xl">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                           <Users className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="font-medium">
-                            {record.employeeName || "Unknown Employee"}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {record.location}
-                          </div>
+                          <div className="font-medium">{record.employeeName || 'Unknown Employee'}</div>
+                          <div className="text-sm text-muted-foreground">{record.location}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-sm">
-                          {record.checkIn && <span>In: {record.checkIn}</span>}
+                          {record.checkIn && (
+                            <span>In: {record.checkIn}</span>
+                          )}
                           {record.checkOut && (
                             <span className="ml-2">Out: {record.checkOut}</span>
                           )}
                         </div>
                         <Badge className={getStatusColor(record.status)}>
-                          {record.status.replace("_", " ")}
+                          {record.status.replace('_', ' ')}
                         </Badge>
                         <div className="text-sm font-medium w-12 text-right">
                           {record.totalHours.toFixed(1)}h
@@ -323,14 +245,13 @@ export default function MyTeamAttendancePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Pending Regularization Requests ({pendingRegularizations.length}
-                )
+                Pending Regularization Requests ({pendingRegularizations.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {regularizationsLoading ? (
                 <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
+                  {[1, 2, 3].map(i => (
                     <Skeleton key={i} className="h-12 w-full" />
                   ))}
                 </div>
@@ -351,19 +272,9 @@ export default function MyTeamAttendancePage() {
                       <TableBody>
                         {paginatedApprovals.map((request) => (
                           <TableRow key={request.id}>
-                            <TableCell className="font-medium">
-                              {request.employee_name}
-                            </TableCell>
-                            <TableCell>
-                              {format(
-                                new Date(request.attendance_date),
-                                "MMM dd, yyyy"
-                              )}
-                            </TableCell>
-                            <TableCell
-                              className="max-w-[200px] truncate"
-                              title={request.reason}
-                            >
+                            <TableCell className="font-medium">{request.employee_name}</TableCell>
+                            <TableCell>{format(new Date(request.attendance_date), 'MMM dd, yyyy')}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" title={request.reason}>
                               {request.reason}
                             </TableCell>
                             <TableCell>
@@ -373,15 +284,10 @@ export default function MyTeamAttendancePage() {
                             </TableCell>
                             <TableCell>
                               {request.document_url ? (
-                                <Button
-                                  size="sm"
+                                <Button 
+                                  size="sm" 
                                   variant="ghost"
-                                  onClick={() =>
-                                    window.open(
-                                      `${NODE_API_BASE_URL}${request.document_url}`,
-                                      "_blank"
-                                    )
-                                  }
+                                  onClick={() => window.open(request.document_url, '_blank')}
                                   className="h-8 px-2"
                                 >
                                   <FileText className="w-4 h-4" />
@@ -392,28 +298,20 @@ export default function MyTeamAttendancePage() {
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  size="sm"
+                                <Button 
+                                  size="sm" 
                                   onClick={() => handleApproval(request.id)}
                                   className="h-8 px-2"
-                                  disabled={
-                                    approveRegularization.isPending ||
-                                    rejectRegularization.isPending
-                                  }
+                                  disabled={approveRegularization.isPending || rejectRegularization.isPending}
                                 >
                                   <CheckCircle className="w-4 h-4" />
                                 </Button>
-                                <Button
-                                  size="sm"
+                                <Button 
+                                  size="sm" 
                                   variant="outline"
-                                  onClick={() =>
-                                    handleOpenRejectDialog(request.id)
-                                  }
+                                  onClick={() => handleOpenRejectDialog(request.id)}
                                   className="h-8 px-2"
-                                  disabled={
-                                    approveRegularization.isPending ||
-                                    rejectRegularization.isPending
-                                  }
+                                  disabled={approveRegularization.isPending || rejectRegularization.isPending}
                                 >
                                   <XCircle className="w-4 h-4" />
                                 </Button>
@@ -428,32 +326,17 @@ export default function MyTeamAttendancePage() {
                   {approvalsTotalPages > 1 && (
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        {(approvalsPage - 1) * APPROVALS_ITEMS_PER_PAGE + 1} to{" "}
-                        {Math.min(
-                          approvalsPage * APPROVALS_ITEMS_PER_PAGE,
-                          pendingRegularizations.length
-                        )}{" "}
-                        of {pendingRegularizations.length} entries
+                        Showing {((approvalsPage - 1) * APPROVALS_ITEMS_PER_PAGE) + 1} to {Math.min(approvalsPage * APPROVALS_ITEMS_PER_PAGE, pendingRegularizations.length)} of {pendingRegularizations.length} entries
                       </p>
                       <Pagination>
                         <PaginationContent>
                           <PaginationItem>
-                            <PaginationPrevious
-                              onClick={() =>
-                                setApprovalsPage((p) => Math.max(1, p - 1))
-                              }
-                              className={
-                                approvalsPage === 1
-                                  ? "pointer-events-none opacity-50"
-                                  : "cursor-pointer"
-                              }
+                            <PaginationPrevious 
+                              onClick={() => setApprovalsPage(p => Math.max(1, p - 1))}
+                              className={approvalsPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                             />
                           </PaginationItem>
-                          {Array.from(
-                            { length: approvalsTotalPages },
-                            (_, i) => i + 1
-                          ).map((page) => (
+                          {Array.from({ length: approvalsTotalPages }, (_, i) => i + 1).map(page => (
                             <PaginationItem key={page}>
                               <PaginationLink
                                 onClick={() => setApprovalsPage(page)}
@@ -465,17 +348,9 @@ export default function MyTeamAttendancePage() {
                             </PaginationItem>
                           ))}
                           <PaginationItem>
-                            <PaginationNext
-                              onClick={() =>
-                                setApprovalsPage((p) =>
-                                  Math.min(approvalsTotalPages, p + 1)
-                                )
-                              }
-                              className={
-                                approvalsPage === approvalsTotalPages
-                                  ? "pointer-events-none opacity-50"
-                                  : "cursor-pointer"
-                              }
+                            <PaginationNext 
+                              onClick={() => setApprovalsPage(p => Math.min(approvalsTotalPages, p + 1))}
+                              className={approvalsPage === approvalsTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                             />
                           </PaginationItem>
                         </PaginationContent>
@@ -515,18 +390,15 @@ export default function MyTeamAttendancePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRejectDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
+            <Button 
+              variant="destructive" 
               onClick={handleRejectSubmit}
               disabled={rejectRegularization.isPending}
             >
-              {rejectRegularization.isPending ? "Submitting..." : "Submit"}
+              {rejectRegularization.isPending ? 'Submitting...' : 'Submit'}
             </Button>
           </DialogFooter>
         </DialogContent>
