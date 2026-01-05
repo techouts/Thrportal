@@ -1,27 +1,27 @@
-# name: Sync main → x2 dev_latest
-#
-# on:
-#   push:
-#     branches:
-#       - main
-#
-# jobs:
-#   sync:
-#     runs-on: ubuntu-latest
-#
-#     steps:
-#       - name: Checkout source
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 0
-#           persist-credentials: false   # IMPORTANT
-#
-#       - name: Push main to x2 dev_latest
-#         env:
-#           THRTOKEN: ${{ secrets.THRTOKEN }}
-#         run: |
-#           git config --global user.email "sync@github-actions.com"
-#           git config --global user.name "x1-to-x2-sync"
-#
-#           git remote add x2 https://x2:${THRTOKEN}@github.com/techouts/Thrportal.git
-#           git push x2 main:dev_latest --force
+name: Sync main → x2 dev_latest
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false # IMPORTANT
+
+      - name: Push main to x2 dev_latest
+        env:
+          THRTOKEN: ${{ secrets.THRTOKEN }}
+        run: |
+          git config --global user.email "sync@github-actions.com"
+          git config --global user.name "x1-to-x2-sync"
+
+          git remote add x2 https://x2:${THRTOKEN}@github.com/techouts/Thrportal.git
+          git push x2 main:dev_latest --force

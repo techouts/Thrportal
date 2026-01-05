@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import NodeApiClient from "@/services/nodeApiClient";
 
 export interface CompOffBalance {
   earned: number;
@@ -9,36 +10,63 @@ export interface CompOffBalance {
 
 export function useCompOffBalance(employeeId: string | undefined) {
   return useQuery({
-    queryKey: ['compOffBalance', employeeId],
+    queryKey: ["compOffBalance", employeeId],
     queryFn: async (): Promise<CompOffBalance> => {
       if (!employeeId) {
         return { earned: 0, consumed: 0, available: 0 };
       }
 
       // Get approved comp-off requests (earned)
-      const { data: earnedData, error: earnedError } = await supabase
-        .from('comp_off_requests')
-        .select('total_days')
-        .eq('employee_id', employeeId)
-        .eq('status', 'approved');
+      // const { data: earnedData, error: earnedError } = await supabase
+      //   .from('comp_off_requests')
+      //   .select('total_days')
+      //   .eq('employee_id', employeeId)
+      //   .eq('status', 'approved');
 
-      if (earnedError) throw earnedError;
+      // if (earnedError) throw earnedError;
+      try {
+        const earnedResponse = await NodeApiClient.get("/leaves/campoff", {
+          params: {
+            employee_id: employeeId,
+            status: "approved",
+          },
+        });
+        const earnedData = earnedResponse.data || [];
 
-      // Get consumed comp-offs from leave requests
-      const { data: consumedData, error: consumedError } = await supabase
-        .from('leave_requests')
-        .select('total_days')
-        .eq('employee_id', employeeId)
-        .eq('leave_type', 'COMP_OFF')
-        .in('status', ['approved', 'pending']);
+        // Get consumed comp-offs from leave requests
+        // const { data: consumedData, error: consumedError } = await supabase
+        //   .from("leave_requests")
+        //   .select("total_days")
+        //   .eq("employee_id", employeeId)
+        //   .eq("leave_type", "COMP_OFF")
+        //   .in("status", ["approved", "pending"]);
 
-      if (consumedError) throw consumedError;
+        // if (consumedError) throw consumedError;
+        const consumedResponse = await NodeApiClient.get("/leaves/all", {
+          params: {
+            employee_id: employeeId,
+            leave_type: "campoff", // ⚠️ backend expects lowercase
+            status: "pending,approved", // ✅ comma-separated
+          },
+        });
+        const consumedData = consumedResponse.data || [];
+        const earned =
+          earnedData?.reduce(
+            (sum, r) => sum + (Number(r.total_days) || 0),
+            0
+          ) || 0;
+        const consumed =
+          consumedData?.reduce(
+            (sum, r) => sum + (Number(r.total_days) || 0),
+            0
+          ) || 0;
+        const available = Math.max(0, earned - consumed);
 
-      const earned = earnedData?.reduce((sum, r) => sum + (Number(r.total_days) || 0), 0) || 0;
-      const consumed = consumedData?.reduce((sum, r) => sum + (Number(r.total_days) || 0), 0) || 0;
-      const available = Math.max(0, earned - consumed);
-
-      return { earned, consumed, available };
+        return { earned, consumed, available };
+      } catch (error) {
+        console.error("[LEAVE] Failed to fetch comp-off balance", error);
+        throw error;
+      }
     },
     enabled: !!employeeId,
   });

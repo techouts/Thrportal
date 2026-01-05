@@ -1,61 +1,76 @@
-import { useRef, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/hooks/use-toast'
-import { Upload, FileText, Loader2, Trash2, File } from 'lucide-react'
-import { uploadEmployeeDocument, updateOfferLetterUrl, deleteEmployeeDocument } from '@/services/employeeDocumentService'
-import { DeleteConfirmationDialog } from '@/components/timesheet/DeleteConfirmationDialog'
+import { useRef, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Upload, FileText, Loader2, Trash2, File } from "lucide-react";
+import {
+  uploadEmployeeDocument,
+  updateOfferLetterUrl,
+  deleteEmployeeDocument,
+} from "@/services/employeeDocumentService";
+import { DeleteConfirmationDialog } from "@/components/timesheet/DeleteConfirmationDialog";
 
 interface OfferLetterSectionProps {
-  url?: string | null
-  isOwnProfile: boolean
-  userId: string
-  onUpdate: () => void
+  url?: string | null;
+  isOwnProfile: boolean;
+  userId: string;
+  onUpdate: () => void;
 }
 
-export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate }: OfferLetterSectionProps) {
-  const { toast } = useToast()
-  const [uploading, setUploading] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export default function OfferLetterSection({
+  url,
+  isOwnProfile,
+  userId,
+  onUpdate,
+}: OfferLetterSectionProps) {
+  const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadClick = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setUploading(true)
-    const uploadedUrl = await uploadEmployeeDocument(userId, file, 'offer-letter')
+    setUploading(true);
+    // const uploadedUrl = await uploadEmployeeDocument(userId, file, 'offer-letter')
 
-    if (uploadedUrl) {
-      const success = await updateOfferLetterUrl(userId, uploadedUrl)
-      if (success) {
-        toast({ title: 'Uploaded', description: 'Offer letter uploaded successfully.' })
-        onUpdate()
-      } else {
-        toast({ title: 'Error', description: 'Failed to save URL.', variant: 'destructive' })
-      }
-    } else {
-      toast({ title: 'Error', description: 'Upload failed.', variant: 'destructive' })
+    // if (uploadedUrl) {
+    const success = await updateOfferLetterUrl(userId, file);
+    if (success) {
+      toast({
+        title: "Uploaded",
+        description: "Offer letter uploaded successfully.",
+      });
+      onUpdate();
     }
-    setUploading(false)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
+    //  else {
+    //   toast({ title: 'Error', description: 'Failed to save URL.', variant: 'destructive' })
+    // }
+    // }
+    // else {
+    //   toast({ title: 'Error', description: 'Upload failed.', variant: 'destructive' })
+    // }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleDelete = async () => {
-    if (!url) return
+    // if (!url) return;
 
-    await deleteEmployeeDocument(url)
-    const success = await updateOfferLetterUrl(userId, null)
+    // await deleteEmployeeDocument(url);
+    const success = await updateOfferLetterUrl(userId, null);
     if (success) {
-      toast({ title: 'Deleted', description: 'Offer letter removed.' })
-      onUpdate()
+      toast({ title: "Deleted", description: "Offer letter removed." });
+      onUpdate();
     }
-  }
+  };
+  const NODE_API_BASE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
 
   return (
     <Card>
@@ -82,18 +97,28 @@ export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate
               </div>
               <div>
                 <p className="font-medium">Offer Letter</p>
-                <p className="text-sm text-muted-foreground">Company offer letter document</p>
+                <p className="text-sm text-muted-foreground">
+                  Company offer letter document
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <a href={url} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`${NODE_API_BASE_URL}${url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Badge variant="secondary" className="gap-1 cursor-pointer">
                   <FileText className="h-3 w-3" />
                   View
                 </Badge>
               </a>
               {isOwnProfile && (
-                <Button variant="ghost" size="icon" onClick={() => setDeleteDialogOpen(true)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               )}
@@ -102,7 +127,9 @@ export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate
         ) : (
           <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No offer letter uploaded yet.</p>
+            <p className="text-muted-foreground mb-4">
+              No offer letter uploaded yet.
+            </p>
             {isOwnProfile && (
               <Button onClick={handleUploadClick} disabled={uploading}>
                 {uploading ? (
@@ -124,10 +151,10 @@ export default function OfferLetterSection({ url, isOwnProfile, userId, onUpdate
         description="Are you sure you want to delete your offer letter?"
         warningMessage="This action cannot be undone."
         onConfirm={() => {
-          handleDelete()
-          setDeleteDialogOpen(false)
+          handleDelete();
+          setDeleteDialogOpen(false);
         }}
       />
     </Card>
-  )
+  );
 }

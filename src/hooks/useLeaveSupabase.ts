@@ -1,12 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import NodeApiClient from "@/services/nodeApiClient";
 
 const QUERY_KEYS = {
-  leaveRequests: 'leave-requests',
-  compOffRequests: 'comp-off-requests',
-  allRequests: 'all-requests',
-  profiles: 'profiles-search',
+  leaveRequests: "leave-requests",
+  compOffRequests: "comp-off-requests",
+  allRequests: "all-requests",
+  profiles: "profiles-search",
 };
 
 // Types
@@ -26,7 +27,7 @@ interface CompOffRequestInsert {
   end_date: string;
   total_days: number;
   reason?: string;
-  evidence_url?: string;
+  evidence_url?: File;
 }
 
 interface CompOffRequestDB {
@@ -37,7 +38,7 @@ interface CompOffRequestDB {
   total_days: number;
   is_half_day: boolean;
   reason?: string;
-  evidence_url?: string;
+  evidence_url?: File;
 }
 
 // Unified request type for display
@@ -54,7 +55,7 @@ export interface UnifiedLeaveRequest {
   approved_at: string | null;
   created_at: string;
   evidence_url?: string | null;
-  request_source: 'leave' | 'comp_off';
+  request_source: "leave" | "comp_off";
 }
 
 // Fetch leave requests for current user
@@ -63,14 +64,19 @@ export function useMyLeaveRequests(employeeId: string | undefined) {
     queryKey: [QUERY_KEYS.leaveRequests, employeeId],
     queryFn: async () => {
       if (!employeeId) return [];
-      
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      // const { data, error } = await supabase
+      //   .from("leave_requests")
+      //   .select("*")
+      //   .eq("employee_id", employeeId)
+      //   .order("created_at", { ascending: false });
+
+      // if (error) throw error;
+      const { data } = await NodeApiClient.get("/leaves/all", {
+        params: {
+          employee_id: employeeId,
+        },
+      });
       return data || [];
     },
     enabled: !!employeeId,
@@ -83,15 +89,20 @@ export function useMyCompOffRequests(employeeId: string | undefined) {
     queryKey: [QUERY_KEYS.compOffRequests, employeeId],
     queryFn: async () => {
       if (!employeeId) return [];
-      
-      const { data, error } = await supabase
-        .from('comp_off_requests')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      // const { data, error } = await supabase
+      //   .from("comp_off_requests")
+      //   .select("*")
+      //   .eq("employee_id", employeeId)
+      //   .order("created_at", { ascending: false });
+
+      // if (error) throw error;
+      const response = await NodeApiClient.get("/leaves/campoff", {
+        params: {
+          employee_id: employeeId,
+        },
+      });
+      return response?.data || [];
     },
     enabled: !!employeeId,
   });
@@ -103,45 +114,59 @@ export function useAllMyRequests(employeeId: string | undefined) {
     queryKey: [QUERY_KEYS.allRequests, employeeId],
     queryFn: async (): Promise<UnifiedLeaveRequest[]> => {
       if (!employeeId) return [];
-      
+
       // Fetch both leave requests and comp-off requests
       const [leaveResult, compOffResult] = await Promise.all([
-        supabase
-          .from('leave_requests')
-          .select('*')
-          .eq('employee_id', employeeId)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('comp_off_requests')
-          .select('*')
-          .eq('employee_id', employeeId)
-          .order('created_at', { ascending: false })
+        // supabase
+        //   .from("leave_requests")
+        //   .select("*")
+        //   .eq("employee_id", employeeId)
+        //   .order("created_at", { ascending: false }),
+        NodeApiClient.get("/leaves/all", {
+          params: {
+            employee_id: employeeId,
+          },
+        }),
+        // supabase
+        //   .from("comp_off_requests")
+        //   .select("*")
+        //   .eq("employee_id", employeeId)
+        //   .order("created_at", { ascending: false }),
+        NodeApiClient.get("/leaves/campoff", {
+          params: {
+            employee_id: employeeId,
+          },
+        }),
       ]);
 
-      if (leaveResult.error) throw leaveResult.error;
-      if (compOffResult.error) throw compOffResult.error;
+      if (leaveResult.data.error) throw leaveResult.data.error;
+      if (compOffResult.data.error) throw compOffResult.data.error;
 
       // Transform leave requests
-      const leaveRequests: UnifiedLeaveRequest[] = (leaveResult.data || []).map(req => ({
-        id: req.id,
-        leave_type: req.leave_type,
-        start_date: req.start_date,
-        end_date: req.end_date,
-        total_days: req.total_days,
-        status: req.status,
-        requested_by: req.requested_by,
-        reason: req.reason,
-        rejection_reason: req.rejection_reason,
-        approved_at: req.approved_at,
-        created_at: req.created_at,
-        evidence_url: null,
-        request_source: 'leave' as const,
-      }));
+      const leaveRequests: UnifiedLeaveRequest[] = (leaveResult.data || []).map(
+        (req) => ({
+          id: req.id,
+          leave_type: req.leave_type,
+          start_date: req.start_date,
+          end_date: req.end_date,
+          total_days: req.total_days,
+          status: req.status,
+          requested_by: req.requested_by,
+          reason: req.reason,
+          rejection_reason: req.rejection_reason,
+          approved_at: req.approved_at,
+          created_at: req.created_at,
+          evidence_url: null,
+          request_source: "leave" as const,
+        })
+      );
 
       // Transform comp-off requests
-      const compOffRequests: UnifiedLeaveRequest[] = (compOffResult.data || []).map(req => ({
+      const compOffRequests: UnifiedLeaveRequest[] = (
+        compOffResult.data || []
+      ).map((req) => ({
         id: req.id,
-        leave_type: 'COMP_OFF',
+        leave_type: "COMP_OFF",
         start_date: req.start_date,
         end_date: req.end_date,
         total_days: req.total_days || 1,
@@ -152,12 +177,13 @@ export function useAllMyRequests(employeeId: string | undefined) {
         approved_at: req.approved_at,
         created_at: req.created_at,
         evidence_url: req.evidence_url,
-        request_source: 'comp_off' as const,
+        request_source: "comp_off" as const,
       }));
 
       // Combine and sort by created_at descending
       const allRequests = [...leaveRequests, ...compOffRequests].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
       return allRequests;
@@ -167,20 +193,20 @@ export function useAllMyRequests(employeeId: string | undefined) {
 }
 
 // Fetch profiles for employee search
-export function useProfiles() {
-  return useQuery({
-    queryKey: [QUERY_KEYS.profiles],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, first_name, last_name')
-        .order('display_name', { ascending: true });
+// export function useProfiles() {
+//   return useQuery({
+//     queryKey: [QUERY_KEYS.profiles],
+//     queryFn: async () => {
+//       const { data, error } = await supabase
+//         .from("profiles")
+//         .select("id, display_name, first_name, last_name")
+//         .order("display_name", { ascending: true });
 
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
+//       if (error) throw error;
+//       return data || [];
+//     },
+//   });
+// }
 
 // Create leave request mutation
 export function useCreateLeaveRequest() {
@@ -189,28 +215,29 @@ export function useCreateLeaveRequest() {
 
   return useMutation({
     mutationFn: async (request: LeaveRequestInsert) => {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .insert(request)
-        .select()
-        .single();
+      // const { data, error } = await supabase
+      //   .from('leave_requests')
+      //   .insert(request)
+      //   .select()
+      //   .single();
 
-      if (error) throw error;
+      // if (error) throw error;
+      const { data } = await NodeApiClient.post("/leaves/create", request);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.leaveRequests] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.allRequests] });
       toast({
-        title: 'Success',
-        description: 'Leave request submitted successfully',
+        title: "Success",
+        description: "Leave request submitted successfully",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to submit leave request',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to submit leave request",
+        variant: "destructive",
       });
     },
   });
@@ -222,41 +249,72 @@ export function useCreateCompOffRequest() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (request: CompOffRequestInsert) => {
-      // Map to DB schema (includes legacy fields for compatibility)
-      const dbRequest: CompOffRequestDB = {
-        employee_id: request.employee_id,
-        comp_off_date: request.start_date, // Use start_date as comp_off_date for legacy compatibility
-        start_date: request.start_date,
-        end_date: request.end_date,
-        total_days: request.total_days,
-        is_half_day: false,
-        reason: request.reason,
-        evidence_url: request.evidence_url,
-      };
-      
-      const { data, error } = await supabase
-        .from('comp_off_requests')
-        .insert(dbRequest as any)
-        .select()
-        .single();
+    mutationFn: async (request: CompOffRequestInsert & { evidence?: File }) => {
+      const formData = new FormData();
 
-      if (error) throw error;
+      // EXACTLY matches curl --form 'data="..."'
+      formData.append(
+        "data",
+        JSON.stringify({
+          employee_id: request.employee_id,
+          comp_off_date: request.start_date, // legacy compatibility
+          start_date: request.start_date,
+          end_date: request.end_date,
+          total_days: request.total_days,
+          is_half_day: false,
+          reason: request.reason,
+        })
+      );
+
+      // File is OPTIONAL
+      if (request.evidence) {
+        formData.append("evidence", request.evidence);
+      }
+      // Map to DB schema (includes legacy fields for compatibility)
+      // const dbRequest: CompOffRequestDB = {
+      //   employee_id: request.employee_id,
+      //   comp_off_date: request.start_date, // Use start_date as comp_off_date for legacy compatibility
+      //   start_date: request.start_date,
+      //   end_date: request.end_date,
+      //   total_days: request.total_days,
+      //   is_half_day: false,
+      //   reason: request.reason,
+      //   evidence_url: request.evidence_url,
+      // };
+
+      // const { data, error } = await supabase
+      //   .from("comp_off_requests")
+      //   .insert(dbRequest as any)
+      //   .select()
+      //   .single();
+
+      // if (error) throw error;
+      const { data } = await NodeApiClient.post(
+        "/leaves/createCampOff",
+        formData,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": undefined,
+          },
+        }
+      );
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.compOffRequests] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.allRequests] });
       toast({
-        title: 'Success',
-        description: 'Comp-off request submitted successfully',
+        title: "Success",
+        description: "Comp-off request submitted successfully",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to submit comp-off request',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to submit comp-off request",
+        variant: "destructive",
       });
     },
   });
@@ -269,29 +327,35 @@ export function useCancelLeaveRequest() {
 
   return useMutation({
     mutationFn: async (requestId: string) => {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .update({ status: 'cancelled' })
-        .eq('id', requestId)
-        .select()
-        .single();
+      // const { data, error } = await supabase
+      //   .from("leave_requests")
+      //   .update({ status: "cancelled" })
+      //   .eq("id", requestId)
+      //   .select()
+      //   .single();
 
-      if (error) throw error;
-      return data;
+      // if (error) throw error;
+      const response = await NodeApiClient.patch(
+        `/leaves/${requestId}/cancelled`,
+        {
+          status: "cancelled",
+        }
+      );
+      return response?.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.leaveRequests] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.allRequests] });
       toast({
-        title: 'Success',
-        description: 'Leave request cancelled',
+        title: "Success",
+        description: "Leave request cancelled",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to cancel leave request',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to cancel leave request",
+        variant: "destructive",
       });
     },
   });
@@ -304,29 +368,35 @@ export function useCancelCompOffRequest() {
 
   return useMutation({
     mutationFn: async (requestId: string) => {
-      const { data, error } = await supabase
-        .from('comp_off_requests')
-        .update({ status: 'cancelled' })
-        .eq('id', requestId)
-        .select()
-        .single();
+      const response = await NodeApiClient.patch(
+        `/leaves/campoff/${requestId}/cancelled`,
+        {
+          status: "cancelled",
+        }
+      );
+      // const { data, error } = await supabase
+      //   .from("comp_off_requests")
+      //   .update({ status: "cancelled" })
+      //   .eq("id", requestId)
+      //   .select()
+      //   .single();
 
-      if (error) throw error;
-      return data;
+      // if (error) throw error;
+      return response?.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.compOffRequests] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.allRequests] });
       toast({
-        title: 'Success',
-        description: 'Comp-off request cancelled',
+        title: "Success",
+        description: "Comp-off request cancelled",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to cancel comp-off request',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to cancel comp-off request",
+        variant: "destructive",
       });
     },
   });

@@ -1,33 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import NodeApiClient from "@/services/nodeApiClient";
 
 interface AllocationData {
   id: string;
@@ -54,11 +55,11 @@ export function EditAllocationDialog({
 }: EditAllocationDialogProps) {
   const { toast } = useToast();
   const [allocationPct, setAllocationPct] = useState<number>(0);
-  const [type, setType] = useState<'ACTIVE' | 'SHADOW'>('ACTIVE');
+  const [type, setType] = useState<"ACTIVE" | "SHADOW">("ACTIVE");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Date picker popover states
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -66,7 +67,7 @@ export function EditAllocationDialog({
   useEffect(() => {
     if (allocation) {
       setAllocationPct(allocation.allocationPct);
-      setType(allocation.type as 'ACTIVE' | 'SHADOW');
+      setType(allocation.type as "ACTIVE" | "SHADOW");
       setStartDate(new Date(allocation.startDate));
       setEndDate(allocation.endDate ? new Date(allocation.endDate) : undefined);
     }
@@ -77,39 +78,45 @@ export function EditAllocationDialog({
 
     if (endDate && endDate <= startDate) {
       toast({
-        title: 'Validation Error',
-        description: 'End date must be after start date',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "End date must be after start date",
+        variant: "destructive",
       });
       return;
     }
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('allocations')
-        .update({ 
-          allocation_pct: allocationPct,
-          type: type,
-          start_date: format(startDate, 'yyyy-MM-dd'),
-          end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null
-        })
-        .eq('id', allocation.id);
+      // const { error } = await supabase
+      //   .from("allocations")
+      //   .update({
+      //     allocation_pct: allocationPct,
+      //     type: type,
+      //     start_date: format(startDate, "yyyy-MM-dd"),
+      //     end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
+      //   })
+      //   .eq("id", allocation.id);
 
-      if (error) throw error;
+      // if (error) throw error;
+      await NodeApiClient.patch(`/allocations/${allocation.id}`, {
+        type,
+        allocation_pct: allocationPct,
+        start_date: format(startDate, "yyyy-MM-dd"),
+        end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
+      });
 
       toast({
-        title: 'Success',
-        description: 'Allocation updated successfully',
+        title: "Success",
+        description: "Allocation updated successfully",
       });
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating allocation:', error);
+      console.error("Error updating allocation:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update allocation',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update allocation",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -129,7 +136,11 @@ export function EditAllocationDialog({
           {/* Read-only fields */}
           <div className="space-y-2">
             <Label className="text-muted-foreground">Employee Name</Label>
-            <Input value={allocation.employeeName} disabled className="bg-muted" />
+            <Input
+              value={allocation.employeeName}
+              disabled
+              className="bg-muted"
+            />
           </div>
 
           <div className="space-y-2">
@@ -139,7 +150,10 @@ export function EditAllocationDialog({
 
           <div className="space-y-2">
             <Label>Type</Label>
-            <Select value={type} onValueChange={(value: 'ACTIVE' | 'SHADOW') => setType(value)}>
+            <Select
+              value={type}
+              onValueChange={(value: "ACTIVE" | "SHADOW") => setType(value)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -164,7 +178,7 @@ export function EditAllocationDialog({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                     <span className="truncate">
-                      {startDate ? format(startDate, 'PP') : 'Pick a date'}
+                      {startDate ? format(startDate, "PP") : "Pick a date"}
                     </span>
                   </Button>
                 </PopoverTrigger>
@@ -195,7 +209,7 @@ export function EditAllocationDialog({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                     <span className="truncate">
-                      {endDate ? format(endDate, 'PP') : 'Ongoing'}
+                      {endDate ? format(endDate, "PP") : "Ongoing"}
                     </span>
                   </Button>
                 </PopoverTrigger>
@@ -207,7 +221,7 @@ export function EditAllocationDialog({
                       setEndDate(date);
                       setEndDateOpen(false);
                     }}
-                    disabled={(date) => startDate ? date <= startDate : false}
+                    disabled={(date) => (startDate ? date <= startDate : false)}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
@@ -240,7 +254,7 @@ export function EditAllocationDialog({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>
