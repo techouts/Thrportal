@@ -8,6 +8,7 @@ export interface WorkExperience {
   to_date: string | null; // null if current
   location: string;
   document_url?: string;
+  section?: string;
 }
 
 export interface EducationDetail {

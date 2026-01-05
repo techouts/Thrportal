@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { EmployeeAllocation } from "@/services/allocationService";
+import NodeApiClient from "@/services/nodeApiClient";
 
 interface EditEmployeeAllocationDialogProps {
   open: boolean;
@@ -57,7 +58,9 @@ export function EditEmployeeAllocationDialog({
     if (allocation) {
       setType(allocation.type || "ACTIVE");
       setAllocationPct(allocation.allocationPct);
-      setStartDate(allocation.startDate ? new Date(allocation.startDate) : undefined);
+      setStartDate(
+        allocation.startDate ? new Date(allocation.startDate) : undefined
+      );
       setEndDate(allocation.endDate ? new Date(allocation.endDate) : undefined);
     }
   }, [allocation]);
@@ -83,18 +86,24 @@ export function EditEmployeeAllocationDialog({
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("allocations")
-        .update({
-          type,
-          allocation_pct: allocationPct,
-          start_date: format(startDate, "yyyy-MM-dd"),
-          end_date: format(endDate, "yyyy-MM-dd"),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", allocation.id);
+      // const { error } = await supabase
+      //   .from("allocations")
+      //   .update({
+      //     type,
+      //     allocation_pct: allocationPct,
+      //     start_date: format(startDate, "yyyy-MM-dd"),
+      //     end_date: format(endDate, "yyyy-MM-dd"),
+      //     updated_at: new Date().toISOString(),
+      //   })
+      //   .eq("id", allocation.id);
 
-      if (error) throw error;
+      // if (error) throw error;
+      await NodeApiClient.patch(`/allocations/${allocation.id}`, {
+        type,
+        allocation_pct: allocationPct,
+        start_date: format(startDate, "yyyy-MM-dd"),
+        end_date: endDate ? format(endDate, "yyyy-MM-dd") : null,
+      });
 
       toast({
         title: "Success",

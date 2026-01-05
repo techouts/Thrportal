@@ -14,6 +14,7 @@ import {
   passwordsMatch,
   isDefaultPassword,
 } from "@/lib/passwordValidation";
+import NodeApiClient from "@/services/nodeApiClient";
 
 export default function ChangePassword() {
   const nav = useNavigate();
@@ -52,6 +53,7 @@ export default function ChangePassword() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    const userId = localStorage.getItem("auth_user_id");
 
     if (!allValid) {
       toast.error("Please meet all password requirements");
@@ -61,24 +63,30 @@ export default function ChangePassword() {
     setLoading(true);
     try {
       // Update password via Supabase Auth
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
+      // const { error: updateError } = await supabase.auth.updateUser({
+      //   password: newPassword,
+      // });
+
+      // if (updateError) throw updateError;
+      await NodeApiClient.put("/auth/change-password", {
+        userId: userId,
+        // currentPassword: oldPassword,
+        newPassword: newPassword,
+        confirmPassword: newPassword,
       });
 
-      if (updateError) throw updateError;
-
       // Update the password_change_required flag to false
-      if (user?.id) {
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ password_change_required: false })
-          .eq("id", user.id);
+      // if (user?.id) {
+      //   const { error: profileError } = await supabase
+      //     .from("profiles")
+      //     .update({ password_change_required: false })
+      //     .eq("id", user.id);
 
-        if (profileError) {
-          console.error("[CHANGE_PASSWORD] Error updating profile flag:", profileError);
-          // Don't throw - password was changed successfully
-        }
-      }
+      //   if (profileError) {
+      //     console.error("[CHANGE_PASSWORD] Error updating profile flag:", profileError);
+      //     // Don't throw - password was changed successfully
+      //   }
+      // }
 
       // Clear the temporary password
       sessionStorage.removeItem("temp_pwd");
@@ -86,7 +94,9 @@ export default function ChangePassword() {
       // Sign out user so they can log in with new password
       await signOut();
 
-      toast.success("Password changed successfully! Please sign in with your new password.");
+      toast.success(
+        "Password changed successfully! Please sign in with your new password."
+      );
       nav("/Auth/SignIn");
     } catch (error: any) {
       console.error("[CHANGE_PASSWORD] Error:", error);
@@ -135,11 +145,7 @@ export default function ChangePassword() {
           {/* Email display (read-only) */}
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input
-              value={user?.email || ""}
-              disabled
-              className="bg-muted/50"
-            />
+            <Input value={user?.email || ""} disabled className="bg-muted/50" />
           </div>
 
           {/* New Password */}

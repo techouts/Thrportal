@@ -4,17 +4,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, CheckCircle, XCircle, Clock, Users, Search, Filter, FileText, ExternalLink, Eye, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Users,
+  Search,
+  Filter,
+  FileText,
+  ExternalLink,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
-import { 
-  usePendingLeaveApprovals, 
+import {
+  usePendingLeaveApprovals,
   useTeamCalendarTable,
   useAllTeamLeaves,
   useApproveLeaveRequest,
@@ -23,7 +62,7 @@ import {
   useRejectCompOffRequest,
   useBulkApproveLeaveRequests,
   PendingLeaveRequest,
-  CalendarFilterType
+  CalendarFilterType,
 } from "@/hooks/useManagerLeaveSupabase";
 import { LeaveType } from "@/types/leave";
 import { RBACGuard } from "@/features/performance/components/guards/RBACGuard";
@@ -31,6 +70,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const ITEMS_PER_PAGE = 10;
+const NODE_API_BASE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
 
 const LEAVE_TYPE_LABELS: Record<string, string> = {
   CL: "Casual Leave",
@@ -40,51 +80,62 @@ const LEAVE_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function MyTeamLeavePage() {
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  // const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<{
     search: string;
     type: LeaveType | "";
-    status: 'pending' | 'rejected';
+    status: "pending" | "rejected";
   }>({
     search: "",
     type: "",
-    status: "pending"
+    status: "pending",
   });
 
   // Rejection dialog state
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [selectedRequestForReject, setSelectedRequestForReject] = useState<PendingLeaveRequest | null>(null);
+  const [selectedRequestForReject, setSelectedRequestForReject] =
+    useState<PendingLeaveRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
   // View details sheet state
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
-  const [selectedRequestForDetails, setSelectedRequestForDetails] = useState<PendingLeaveRequest | null>(null);
-  
+  const [selectedRequestForDetails, setSelectedRequestForDetails] =
+    useState<PendingLeaveRequest | null>(null);
+
   // Team calendar table state
-  const [calendarFilter, setCalendarFilter] = useState<CalendarFilterType>('upcoming_week');
+  const [calendarFilter, setCalendarFilter] =
+    useState<CalendarFilterType>("upcoming_week");
   const [calendarPage, setCalendarPage] = useState(1);
-  
+
   // Coverage analysis table state
   const [coveragePage, setCoveragePage] = useState(1);
-  const [coverageEmployeeFilter, setCoverageEmployeeFilter] = useState<string>('all');
+  const [coverageEmployeeFilter, setCoverageEmployeeFilter] =
+    useState<string>("all");
   const CALENDAR_ITEMS_PER_PAGE = 10;
 
   // Get current user ID
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id);
-    };
-    getUser();
-  }, []);
-  
+  // useEffect(() => {
+  //   const getUser = async () => {
+  //     const {
+  //       data: { user },
+  //     } = await supabase.auth.getUser();
+  //     setCurrentUserId(user?.id);
+  //   };
+  //   getUser();
+  // }, []);
+  // console.log("cehck", currentUserId);
   // Use Supabase hooks with status filter
-  const { data: pendingRequests, isLoading: pendingLoading } = usePendingLeaveApprovals(currentUserId, filters.status);
-  const { data: allTeamLeavesData, isLoading: allTeamLeavesLoading } = useAllTeamLeaves(currentUserId);
-  const { data: calendarTableData, isLoading: calendarTableLoading } = useTeamCalendarTable(currentUserId, calendarFilter);
-  
+  const currentUserId = localStorage.getItem("auth_user_id");
+
+  const { data: pendingRequests, isLoading: pendingLoading } =
+    usePendingLeaveApprovals(currentUserId, filters.status);
+  const { data: allTeamLeavesData, isLoading: allTeamLeavesLoading } =
+    useAllTeamLeaves(currentUserId);
+  const { data: calendarTableData, isLoading: calendarTableLoading } =
+    useTeamCalendarTable(currentUserId, calendarFilter);
+
   const approveRequest = useApproveLeaveRequest();
   const approveCompOffRequest = useApproveCompOffRequest();
   const rejectRequest = useRejectLeaveRequest();
@@ -104,7 +155,9 @@ export default function MyTeamLeavePage() {
 
   // Calendar table pagination
   const calendarEntries = calendarTableData?.data || [];
-  const calendarTotalPages = Math.ceil(calendarEntries.length / CALENDAR_ITEMS_PER_PAGE);
+  const calendarTotalPages = Math.ceil(
+    calendarEntries.length / CALENDAR_ITEMS_PER_PAGE
+  );
   const paginatedCalendarEntries = calendarEntries.slice(
     (calendarPage - 1) * CALENDAR_ITEMS_PER_PAGE,
     calendarPage * CALENDAR_ITEMS_PER_PAGE
@@ -112,32 +165,36 @@ export default function MyTeamLeavePage() {
 
   // Coverage analysis pagination
   const allTeamLeaves = allTeamLeavesData?.data || [];
-  
+
   // Extract unique employees for filter dropdown
   const uniqueEmployees = useMemo(() => {
     const employeeMap = new Map<string, { id: string; name: string }>();
-    allTeamLeaves.forEach(entry => {
+    allTeamLeaves.forEach((entry) => {
       if (!employeeMap.has(entry.employeeId)) {
-        employeeMap.set(entry.employeeId, { 
-          id: entry.employeeId, 
-          name: entry.employeeName 
+        employeeMap.set(entry.employeeId, {
+          id: entry.employeeId,
+          name: entry.employeeName,
         });
       }
     });
-    return Array.from(employeeMap.values()).sort((a, b) => 
+    return Array.from(employeeMap.values()).sort((a, b) =>
       a.name.localeCompare(b.name)
     );
   }, [allTeamLeaves]);
-  
+
   // Filter team leaves based on employee selection
   const filteredTeamLeaves = useMemo(() => {
-    if (coverageEmployeeFilter === 'all') {
+    if (coverageEmployeeFilter === "all") {
       return allTeamLeaves;
     }
-    return allTeamLeaves.filter(entry => entry.employeeId === coverageEmployeeFilter);
+    return allTeamLeaves.filter(
+      (entry) => entry.employeeId === coverageEmployeeFilter
+    );
   }, [allTeamLeaves, coverageEmployeeFilter]);
-  
-  const coverageTotalPages = Math.ceil(filteredTeamLeaves.length / ITEMS_PER_PAGE);
+
+  const coverageTotalPages = Math.ceil(
+    filteredTeamLeaves.length / ITEMS_PER_PAGE
+  );
   const paginatedCoverageEntries = filteredTeamLeaves.slice(
     (coveragePage - 1) * ITEMS_PER_PAGE,
     coveragePage * ITEMS_PER_PAGE
@@ -146,11 +203,19 @@ export default function MyTeamLeavePage() {
   // Get status badge for coverage table
   const getCoverageStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Approved</Badge>;
-      case 'pending':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pending</Badge>;
-      case 'rejected':
+      case "approved":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Approved
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+            Pending
+          </Badge>
+        );
+      case "rejected":
         return <Badge variant="destructive">Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
@@ -161,30 +226,30 @@ export default function MyTeamLeavePage() {
   const formatDateRange = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     if (startDate === endDate) {
-      return format(start, 'd MMM yyyy');
+      return format(start, "d MMM yyyy");
     }
-    
+
     // Same year
     if (start.getFullYear() === end.getFullYear()) {
-      return `${format(start, 'd MMM')} - ${format(end, 'd MMM yyyy')}`;
+      return `${format(start, "d MMM")} - ${format(end, "d MMM yyyy")}`;
     }
-    
-    return `${format(start, 'd MMM yyyy')} - ${format(end, 'd MMM yyyy')}`;
+
+    return `${format(start, "d MMM yyyy")} - ${format(end, "d MMM yyyy")}`;
   };
 
   // Get empty state message based on filter
   const getCalendarEmptyMessage = () => {
     switch (calendarFilter) {
-      case 'upcoming_week':
-        return 'No leaves found for the upcoming week';
-      case 'upcoming_month':
-        return 'No leaves found for the upcoming month';
-      case 'long_leave':
-        return 'No long leaves (7+ days) found';
+      case "upcoming_week":
+        return "No leaves found for the upcoming week";
+      case "upcoming_month":
+        return "No leaves found for the upcoming month";
+      case "long_leave":
+        return "No long leaves (7+ days) found";
       default:
-        return 'No leaves found';
+        return "No leaves found";
     }
   };
 
@@ -200,26 +265,26 @@ export default function MyTeamLeavePage() {
     }
 
     // Prepare data for Excel
-    const exportData = calendarEntries.map(entry => ({
-      'Employee Name': entry.employeeName,
-      'Type': LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType,
-      'Date': formatDateRange(entry.startDate, entry.endDate),
+    const exportData = calendarEntries.map((entry) => ({
+      "Employee Name": entry.employeeName,
+      Type: LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType,
+      Date: formatDateRange(entry.startDate, entry.endDate),
     }));
 
     // Create worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);
-    
+
     // Create workbook
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Team Calendar');
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Team Calendar");
 
     // Generate filename with filter name and date
     const filterNames: Record<CalendarFilterType, string> = {
-      upcoming_week: 'Upcoming_Week',
-      upcoming_month: 'Upcoming_Month',
-      long_leave: 'Long_Leave',
+      upcoming_week: "Upcoming_Week",
+      upcoming_month: "Upcoming_Month",
+      long_leave: "Long_Leave",
     };
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = format(new Date(), "yyyy-MM-dd");
     const fileName = `Team_Calendar_${filterNames[calendarFilter]}_${today}.xlsx`;
 
     // Download
@@ -232,15 +297,21 @@ export default function MyTeamLeavePage() {
   };
 
   // Filter the requests based on filters
-  const filteredRequests = pendingRequests?.data?.filter(request => {
-    if (filters.search && !request.employeeName.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
-    }
-    if (filters.type && request.type !== filters.type) {
-      return false;
-    }
-    return true;
-  }) || [];
+  const filteredRequests =
+    pendingRequests?.data?.filter((request) => {
+      if (
+        filters.search &&
+        !request.employeeName
+          .toLowerCase()
+          .includes(filters.search.toLowerCase())
+      ) {
+        return false;
+      }
+      if (filters.type && request.type !== filters.type) {
+        return false;
+      }
+      return true;
+    }) || [];
 
   // Pagination
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
@@ -250,7 +321,7 @@ export default function MyTeamLeavePage() {
   );
 
   const handleApprove = (request: PendingLeaveRequest) => {
-    if (request.request_source === 'comp_off') {
+    if (request.request_source === "comp_off") {
       approveCompOffRequest.mutate({ id: request.id });
     } else {
       approveRequest.mutate({ id: request.id });
@@ -258,7 +329,7 @@ export default function MyTeamLeavePage() {
   };
 
   const handleReject = (request: PendingLeaveRequest, reason: string) => {
-    if (request.request_source === 'comp_off') {
+    if (request.request_source === "comp_off") {
       rejectCompOffRequest.mutate({ id: request.id, reason });
     } else {
       rejectRequest.mutate({ id: request.id, reason });
@@ -279,20 +350,20 @@ export default function MyTeamLeavePage() {
       toast({
         title: "No Selection",
         description: "Please select requests to approve",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-    
+
     // Build request sources map
-    const requestSources: Record<string, 'leave' | 'comp_off'> = {};
-    selectedRequests.forEach(id => {
-      const request = filteredRequests.find(r => r.id === id);
+    const requestSources: Record<string, "leave" | "comp_off"> = {};
+    selectedRequests.forEach((id) => {
+      const request = filteredRequests.find((r) => r.id === id);
       if (request) {
         requestSources[id] = request.request_source;
       }
     });
-    
+
     bulkApprove.mutate({ ids: selectedRequests, requestSources });
     setSelectedRequests([]);
   };
@@ -301,21 +372,24 @@ export default function MyTeamLeavePage() {
     if (checked) {
       setSelectedRequests([...selectedRequests, id]);
     } else {
-      setSelectedRequests(selectedRequests.filter(reqId => reqId !== id));
+      setSelectedRequests(selectedRequests.filter((reqId) => reqId !== id));
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'pending': 'default',
-      'pending_L1': 'default',
-      'pending_L2': 'secondary',
-      'approved': 'secondary',
-      'rejected': 'destructive'
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
+      pending: "default",
+      pending_L1: "default",
+      pending_L2: "secondary",
+      approved: "secondary",
+      rejected: "destructive",
     };
     return (
-      <Badge variant={variants[status] || 'secondary'}>
-        {status.replace('_', ' ')}
+      <Badge variant={variants[status] || "secondary"}>
+        {status.replace("_", " ")}
       </Badge>
     );
   };
@@ -336,8 +410,8 @@ export default function MyTeamLeavePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            {selectedRequests.length > 0 && filters.status === 'pending' && (
-              <Button 
+            {selectedRequests.length > 0 && filters.status === "pending" && (
+              <Button
                 onClick={handleBulkApprove}
                 disabled={bulkApprove.isPending}
               >
@@ -368,12 +442,22 @@ export default function MyTeamLeavePage() {
                     <Input
                       placeholder="Search employee..."
                       value={filters.search}
-                      onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                      onChange={(e) =>
+                        setFilters({ ...filters, search: e.target.value })
+                      }
                       className="pl-9"
                     />
                   </div>
-                  
-                  <Select value={filters.type || "all"} onValueChange={(value) => setFilters({ ...filters, type: value === "all" ? "" : value as LeaveType })}>
+
+                  <Select
+                    value={filters.type || "all"}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        type: value === "all" ? "" : (value as LeaveType),
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Leave Type" />
                     </SelectTrigger>
@@ -385,8 +469,16 @@ export default function MyTeamLeavePage() {
                       <SelectItem value="COMP_OFF">Comp-Off</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value as 'pending' | 'rejected' })}>
+
+                  <Select
+                    value={filters.status}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        status: value as "pending" | "rejected",
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -395,8 +487,13 @@ export default function MyTeamLeavePage() {
                       <SelectItem value="rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  <Button variant="outline" onClick={() => setFilters({ search: "", type: "", status: "pending" })}>
+
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setFilters({ search: "", type: "", status: "pending" })
+                    }
+                  >
                     <Filter className="h-4 w-4 mr-2" />
                     Clear Filters
                   </Button>
@@ -409,7 +506,10 @@ export default function MyTeamLeavePage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  {filters.status === 'pending' ? 'Pending Approvals' : 'Rejected Requests'} ({filteredRequests.length})
+                  {filters.status === "pending"
+                    ? "Pending Approvals"
+                    : "Rejected Requests"}{" "}
+                  ({filteredRequests.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -426,18 +526,24 @@ export default function MyTeamLeavePage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          {filters.status === 'pending' && (
+                          {filters.status === "pending" && (
                             <TableHead className="w-12">
-                              <input 
-                                type="checkbox" 
+                              <input
+                                type="checkbox"
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setSelectedRequests(paginatedRequests.map(r => r.id));
+                                    setSelectedRequests(
+                                      paginatedRequests.map((r) => r.id)
+                                    );
                                   } else {
                                     setSelectedRequests([]);
                                   }
                                 }}
-                                checked={selectedRequests.length === paginatedRequests.length && paginatedRequests.length > 0}
+                                checked={
+                                  selectedRequests.length ===
+                                    paginatedRequests.length &&
+                                  paginatedRequests.length > 0
+                                }
                               />
                             </TableHead>
                           )}
@@ -453,19 +559,30 @@ export default function MyTeamLeavePage() {
                       <TableBody>
                         {paginatedRequests.map((request) => (
                           <TableRow key={request.id}>
-                            {filters.status === 'pending' && (
+                            {filters.status === "pending" && (
                               <TableCell>
-                                <input 
-                                  type="checkbox" 
-                                  checked={selectedRequests.includes(request.id)}
-                                  onChange={(e) => handleSelectRequest(request.id, e.target.checked)}
+                                <input
+                                  type="checkbox"
+                                  checked={selectedRequests.includes(
+                                    request.id
+                                  )}
+                                  onChange={(e) =>
+                                    handleSelectRequest(
+                                      request.id,
+                                      e.target.checked
+                                    )
+                                  }
                                 />
                               </TableCell>
                             )}
                             <TableCell>
                               <div>
-                                <p className="font-medium">{request.employeeName}</p>
-                                <p className="text-sm text-muted-foreground">{request.reason || 'No reason provided'}</p>
+                                <p className="font-medium">
+                                  {request.employeeName}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {request.reason || "No reason provided"}
+                                </p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -475,55 +592,79 @@ export default function MyTeamLeavePage() {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                <p>{format(new Date(request.startDate), 'MMM dd')} - {format(new Date(request.endDate), 'MMM dd')}</p>
-                                {request.halfDay && <p className="text-muted-foreground">Half Day ({request.halfDay})</p>}
+                                <p>
+                                  {format(
+                                    new Date(request.startDate),
+                                    "MMM dd"
+                                  )}{" "}
+                                  -{" "}
+                                  {format(new Date(request.endDate), "MMM dd")}
+                                </p>
+                                {request.halfDay && (
+                                  <p className="text-muted-foreground">
+                                    Half Day ({request.halfDay})
+                                  </p>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>{request.totalDays}</TableCell>
                             <TableCell>
                               {request.evidence_url ? (
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
-                                  onClick={() => window.open(request.evidence_url!, '_blank')}
+                                  onClick={() =>
+                                    window.open(
+                                      `${NODE_API_BASE_URL}${request.evidence_url}`,
+                                      "_blank"
+                                    )
+                                  }
                                   className="gap-1"
                                 >
                                   <FileText className="h-3 w-3" />
                                   <ExternalLink className="h-3 w-3" />
                                 </Button>
                               ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
+                                <span className="text-muted-foreground text-sm">
+                                  -
+                                </span>
                               )}
                             </TableCell>
                             <TableCell>
                               {getStatusBadge(request.status)}
                             </TableCell>
                             <TableCell>
-                              {filters.status === 'pending' ? (
+                              {filters.status === "pending" ? (
                                 <div className="flex gap-2">
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     variant="default"
                                     onClick={() => handleApprove(request)}
-                                    disabled={approveRequest.isPending || approveCompOffRequest.isPending}
+                                    disabled={
+                                      approveRequest.isPending ||
+                                      approveCompOffRequest.isPending
+                                    }
                                   >
                                     <CheckCircle className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     variant="destructive"
                                     onClick={() => {
                                       setSelectedRequestForReject(request);
                                       setRejectDialogOpen(true);
                                     }}
-                                    disabled={rejectRequest.isPending || rejectCompOffRequest.isPending}
+                                    disabled={
+                                      rejectRequest.isPending ||
+                                      rejectCompOffRequest.isPending
+                                    }
                                   >
                                     <XCircle className="h-4 w-4" />
                                   </Button>
                                 </div>
                               ) : (
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   variant="outline"
                                   onClick={() => {
                                     setSelectedRequestForDetails(request);
@@ -544,23 +685,28 @@ export default function MyTeamLeavePage() {
                     {filteredRequests.length > 0 && (
                       <div className="flex items-center justify-between mt-4 pt-4 border-t">
                         <p className="text-sm text-muted-foreground">
-                          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRequests.length)} of {filteredRequests.length} requests
+                          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                          {Math.min(
+                            currentPage * ITEMS_PER_PAGE,
+                            filteredRequests.length
+                          )}{" "}
+                          of {filteredRequests.length} requests
                         </p>
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             disabled={currentPage === 1}
-                            onClick={() => setCurrentPage(p => p - 1)}
+                            onClick={() => setCurrentPage((p) => p - 1)}
                           >
                             <ChevronLeft className="h-4 w-4 mr-1" />
                             Previous
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             disabled={currentPage === totalPages}
-                            onClick={() => setCurrentPage(p => p + 1)}
+                            onClick={() => setCurrentPage((p) => p + 1)}
                           >
                             Next
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -596,17 +742,25 @@ export default function MyTeamLeavePage() {
                       <Download className="h-4 w-4 mr-2" />
                       Export
                     </Button>
-                    <Select 
-                      value={calendarFilter} 
-                      onValueChange={(val) => setCalendarFilter(val as CalendarFilterType)}
+                    <Select
+                      value={calendarFilter}
+                      onValueChange={(val) =>
+                        setCalendarFilter(val as CalendarFilterType)
+                      }
                     >
                       <SelectTrigger className="w-[200px]">
                         <SelectValue placeholder="Select filter" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="upcoming_week">Upcoming Week</SelectItem>
-                        <SelectItem value="upcoming_month">Upcoming Month</SelectItem>
-                        <SelectItem value="long_leave">Long Leave (7+ days)</SelectItem>
+                        <SelectItem value="upcoming_week">
+                          Upcoming Week
+                        </SelectItem>
+                        <SelectItem value="upcoming_month">
+                          Upcoming Month
+                        </SelectItem>
+                        <SelectItem value="long_leave">
+                          Long Leave (7+ days)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -634,13 +788,18 @@ export default function MyTeamLeavePage() {
                       <TableBody>
                         {paginatedCalendarEntries.map((entry) => (
                           <TableRow key={`${entry.requestSource}-${entry.id}`}>
-                            <TableCell className="font-medium">{entry.employeeName}</TableCell>
+                            <TableCell className="font-medium">
+                              {entry.employeeName}
+                            </TableCell>
                             <TableCell>
                               <Badge variant="outline">
-                                {LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType}
+                                {LEAVE_TYPE_LABELS[entry.leaveType] ||
+                                  entry.leaveType}
                               </Badge>
                             </TableCell>
-                            <TableCell>{formatDateRange(entry.startDate, entry.endDate)}</TableCell>
+                            <TableCell>
+                              {formatDateRange(entry.startDate, entry.endDate)}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -650,13 +809,21 @@ export default function MyTeamLeavePage() {
                     {calendarEntries.length > 0 && (
                       <div className="flex items-center justify-between mt-4 pt-4 border-t">
                         <p className="text-sm text-muted-foreground">
-                          Showing {((calendarPage - 1) * CALENDAR_ITEMS_PER_PAGE) + 1} to {Math.min(calendarPage * CALENDAR_ITEMS_PER_PAGE, calendarEntries.length)} of {calendarEntries.length} entries
+                          Showing{" "}
+                          {(calendarPage - 1) * CALENDAR_ITEMS_PER_PAGE + 1} to{" "}
+                          {Math.min(
+                            calendarPage * CALENDAR_ITEMS_PER_PAGE,
+                            calendarEntries.length
+                          )}{" "}
+                          of {calendarEntries.length} entries
                         </p>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCalendarPage(p => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setCalendarPage((p) => Math.max(1, p - 1))
+                            }
                             disabled={calendarPage === 1}
                           >
                             <ChevronLeft className="h-4 w-4" />
@@ -668,8 +835,15 @@ export default function MyTeamLeavePage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCalendarPage(p => Math.min(calendarTotalPages, p + 1))}
-                            disabled={calendarPage === calendarTotalPages || calendarTotalPages === 0}
+                            onClick={() =>
+                              setCalendarPage((p) =>
+                                Math.min(calendarTotalPages, p + 1)
+                              )
+                            }
+                            disabled={
+                              calendarPage === calendarTotalPages ||
+                              calendarTotalPages === 0
+                            }
                           >
                             Next
                             <ChevronRight className="h-4 w-4" />
@@ -695,8 +869,8 @@ export default function MyTeamLeavePage() {
                     <Users className="h-5 w-5" />
                     All Team Leaves ({filteredTeamLeaves.length})
                   </CardTitle>
-                  <Select 
-                    value={coverageEmployeeFilter} 
+                  <Select
+                    value={coverageEmployeeFilter}
                     onValueChange={(val) => {
                       setCoverageEmployeeFilter(val);
                       setCoveragePage(1);
@@ -707,8 +881,10 @@ export default function MyTeamLeavePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Team</SelectItem>
-                      {uniqueEmployees.map(emp => (
-                        <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                      {uniqueEmployees.map((emp) => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -737,28 +913,44 @@ export default function MyTeamLeavePage() {
                       <TableBody>
                         {paginatedCoverageEntries.map((entry) => (
                           <TableRow key={`${entry.requestSource}-${entry.id}`}>
-                            <TableCell className="font-medium">{entry.employeeName}</TableCell>
-                            <TableCell>{formatDateRange(entry.startDate, entry.endDate)}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{LEAVE_TYPE_LABELS[entry.leaveType] || entry.leaveType}</Badge>
+                            <TableCell className="font-medium">
+                              {entry.employeeName}
                             </TableCell>
-                            <TableCell>{getCoverageStatusBadge(entry.status)}</TableCell>
+                            <TableCell>
+                              {formatDateRange(entry.startDate, entry.endDate)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {LEAVE_TYPE_LABELS[entry.leaveType] ||
+                                  entry.leaveType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {getCoverageStatusBadge(entry.status)}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                    
+
                     {/* Pagination */}
                     {coverageTotalPages > 0 && (
                       <div className="flex items-center justify-between mt-4 pt-4 border-t">
                         <p className="text-sm text-muted-foreground">
-                          Showing {((coveragePage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(coveragePage * ITEMS_PER_PAGE, filteredTeamLeaves.length)} of {filteredTeamLeaves.length} entries
+                          Showing {(coveragePage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                          {Math.min(
+                            coveragePage * ITEMS_PER_PAGE,
+                            filteredTeamLeaves.length
+                          )}{" "}
+                          of {filteredTeamLeaves.length} entries
                         </p>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCoveragePage(p => Math.max(1, p - 1))}
+                            onClick={() =>
+                              setCoveragePage((p) => Math.max(1, p - 1))
+                            }
                             disabled={coveragePage === 1}
                           >
                             <ChevronLeft className="h-4 w-4" />
@@ -770,8 +962,15 @@ export default function MyTeamLeavePage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCoveragePage(p => Math.min(coverageTotalPages, p + 1))}
-                            disabled={coveragePage === coverageTotalPages || coverageTotalPages === 0}
+                            onClick={() =>
+                              setCoveragePage((p) =>
+                                Math.min(coverageTotalPages, p + 1)
+                              )
+                            }
+                            disabled={
+                              coveragePage === coverageTotalPages ||
+                              coverageTotalPages === 0
+                            }
                           >
                             Next
                             <ChevronRight className="h-4 w-4" />
@@ -796,7 +995,8 @@ export default function MyTeamLeavePage() {
             <DialogHeader>
               <DialogTitle>Reject Leave Request</DialogTitle>
               <DialogDescription>
-                Please provide a reason for rejecting this request. This will be visible to the employee.
+                Please provide a reason for rejecting this request. This will be
+                visible to the employee.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
@@ -811,17 +1011,24 @@ export default function MyTeamLeavePage() {
               />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setRejectDialogOpen(false);
-                setRejectionReason("");
-                setSelectedRequestForReject(null);
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectDialogOpen(false);
+                  setRejectionReason("");
+                  setSelectedRequestForReject(null);
+                }}
+              >
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleRejectSubmit}
-                disabled={!rejectionReason.trim() || rejectRequest.isPending || rejectCompOffRequest.isPending}
+                disabled={
+                  !rejectionReason.trim() ||
+                  rejectRequest.isPending ||
+                  rejectCompOffRequest.isPending
+                }
               >
                 Submit
               </Button>
@@ -838,45 +1045,85 @@ export default function MyTeamLeavePage() {
             {selectedRequestForDetails && (
               <div className="space-y-6 mt-6">
                 <div>
-                  <Label className="text-muted-foreground text-sm">Employee</Label>
-                  <p className="font-medium">{selectedRequestForDetails.employeeName}</p>
+                  <Label className="text-muted-foreground text-sm">
+                    Employee
+                  </Label>
+                  <p className="font-medium">
+                    {selectedRequestForDetails.employeeName}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Leave Type</Label>
-                  <p className="font-medium">{getLeaveTypeLabel(selectedRequestForDetails.type)}</p>
+                  <Label className="text-muted-foreground text-sm">
+                    Leave Type
+                  </Label>
+                  <p className="font-medium">
+                    {getLeaveTypeLabel(selectedRequestForDetails.type)}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Dates</Label>
                   <p className="font-medium">
-                    {format(new Date(selectedRequestForDetails.startDate), 'MMM dd, yyyy')} - {format(new Date(selectedRequestForDetails.endDate), 'MMM dd, yyyy')}
+                    {format(
+                      new Date(selectedRequestForDetails.startDate),
+                      "MMM dd, yyyy"
+                    )}{" "}
+                    -{" "}
+                    {format(
+                      new Date(selectedRequestForDetails.endDate),
+                      "MMM dd, yyyy"
+                    )}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Total Days</Label>
-                  <p className="font-medium">{selectedRequestForDetails.totalDays}</p>
+                  <Label className="text-muted-foreground text-sm">
+                    Total Days
+                  </Label>
+                  <p className="font-medium">
+                    {selectedRequestForDetails.totalDays}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Reason</Label>
-                  <p className="font-medium">{selectedRequestForDetails.reason || 'No reason provided'}</p>
+                  <Label className="text-muted-foreground text-sm">
+                    Reason
+                  </Label>
+                  <p className="font-medium">
+                    {selectedRequestForDetails.reason || "No reason provided"}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedRequestForDetails.status)}</div>
-                </div>
-                {selectedRequestForDetails.status === 'rejected' && selectedRequestForDetails.rejection_reason && (
-                  <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                    <Label className="text-destructive text-sm font-medium">Rejection Reason</Label>
-                    <p className="mt-1 text-destructive">{selectedRequestForDetails.rejection_reason}</p>
+                  <Label className="text-muted-foreground text-sm">
+                    Status
+                  </Label>
+                  <div className="mt-1">
+                    {getStatusBadge(selectedRequestForDetails.status)}
                   </div>
-                )}
+                </div>
+                {selectedRequestForDetails.status === "rejected" &&
+                  selectedRequestForDetails.rejection_reason && (
+                    <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                      <Label className="text-destructive text-sm font-medium">
+                        Rejection Reason
+                      </Label>
+                      <p className="mt-1 text-destructive">
+                        {selectedRequestForDetails.rejection_reason}
+                      </p>
+                    </div>
+                  )}
                 {selectedRequestForDetails.evidence_url && (
                   <div>
-                    <Label className="text-muted-foreground text-sm">Evidence</Label>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Label className="text-muted-foreground text-sm">
+                      Evidence
+                    </Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="mt-2 w-full"
-                      onClick={() => window.open(selectedRequestForDetails.evidence_url!, '_blank')}
+                      onClick={() =>
+                        window.open(
+                          selectedRequestForDetails.evidence_url!,
+                          "_blank"
+                        )
+                      }
                     >
                       <FileText className="h-4 w-4 mr-2" />
                       View Attachment

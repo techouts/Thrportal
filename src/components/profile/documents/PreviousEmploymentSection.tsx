@@ -1,122 +1,193 @@
-import { useState, useRef } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { MonthYearPicker } from '@/components/ui/month-year-picker'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useToast } from '@/hooks/use-toast'
-import { Plus, Upload, Trash2, FileText, Loader2, Briefcase } from 'lucide-react'
-import type { WorkExperience } from '@/types/employeeDocuments'
-import { updateWorkExperience, uploadEmployeeDocument, deleteEmployeeDocument } from '@/services/employeeDocumentService'
-import { DeleteConfirmationDialog } from '@/components/timesheet/DeleteConfirmationDialog'
+import { useState, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { MonthYearPicker } from "@/components/ui/month-year-picker";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Plus,
+  Upload,
+  Trash2,
+  FileText,
+  Loader2,
+  Briefcase,
+} from "lucide-react";
+import type { WorkExperience } from "@/types/employeeDocuments";
+import {
+  updateWorkExperience,
+  uploadEmployeeDocument,
+  deleteEmployeeDocument,
+} from "@/services/employeeDocumentService";
+import { DeleteConfirmationDialog } from "@/components/timesheet/DeleteConfirmationDialog";
 
 interface PreviousEmploymentSectionProps {
-  data: WorkExperience[]
-  isOwnProfile: boolean
-  userId: string
-  onUpdate: () => void
+  data: WorkExperience[];
+  isOwnProfile: boolean;
+  userId: string;
+  onUpdate: () => void;
 }
 
-export default function PreviousEmploymentSection({ data, isOwnProfile, userId, onUpdate }: PreviousEmploymentSectionProps) {
-  const { toast } = useToast()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [uploadingId, setUploadingId] = useState<string | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deletingEntry, setDeletingEntry] = useState<WorkExperience | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null)
+export default function PreviousEmploymentSection({
+  data,
+  isOwnProfile,
+  userId,
+  onUpdate,
+}: PreviousEmploymentSectionProps) {
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingEntry, setDeletingEntry] = useState<WorkExperience | null>(
+    null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<WorkExperience>>({
-    company: '',
-    job_title: '',
-    from_date: '',
-    to_date: '',
-    location: ''
-  })
-
+    company: "",
+    job_title: "",
+    from_date: "",
+    to_date: "",
+    location: "",
+  });
+  const NODE_API_BASE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
   const handleAddExperience = async () => {
     if (!formData.company || !formData.job_title || !formData.from_date) {
       toast({
-        title: 'Validation Error',
-        description: 'Company, Job Title, and From date are required.',
-        variant: 'destructive'
-      })
-      return
+        title: "Validation Error",
+        description: "Company, Job Title, and From date are required.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     const newEntry: WorkExperience = {
       id: crypto.randomUUID(),
+      section: "work-experience",
       company: formData.company,
       job_title: formData.job_title,
       from_date: formData.from_date,
       to_date: formData.to_date || null,
-      location: formData.location || ''
-    }
+      location: formData.location || "",
+    };
 
-    const updated = [...data, newEntry]
-    const success = await updateWorkExperience(userId, updated)
+    const updated = [...data, newEntry];
+    const success = await updateWorkExperience(userId, updated);
 
     if (success) {
-      toast({ title: 'Success', description: 'Work experience added.' })
-      setFormData({ company: '', job_title: '', from_date: '', to_date: '', location: '' })
-      setIsDialogOpen(false)
-      onUpdate()
+      toast({ title: "Success", description: "Work experience added." });
+      setFormData({
+        company: "",
+        job_title: "",
+        from_date: "",
+        to_date: "",
+        location: "",
+      });
+      setIsDialogOpen(false);
+      onUpdate();
     } else {
-      toast({ title: 'Error', description: 'Failed to save.', variant: 'destructive' })
+      toast({
+        title: "Error",
+        description: "Failed to save.",
+        variant: "destructive",
+      });
     }
-    setSaving(false)
-  }
+    setSaving(false);
+  };
 
   const handleDelete = async (id: string) => {
-    const entry = data.find(e => e.id === id)
-    if (entry?.document_url) {
-      await deleteEmployeeDocument(entry.document_url)
-    }
-    const updated = data.filter(e => e.id !== id)
-    const success = await updateWorkExperience(userId, updated)
+    const entry = data.find((e) => e.id === id);
+    // if (entry?.document_url) {
+    //   await deleteEmployeeDocument(entry.document_url);
+    // }
+    const updated = data.filter((e) => e.id !== id);
+    const success = await updateWorkExperience(userId, updated, undefined, id);
     if (success) {
-      toast({ title: 'Deleted', description: 'Experience removed.' })
-      onUpdate()
+      toast({ title: "Deleted", description: "Experience removed." });
+      onUpdate();
     }
-  }
+  };
 
   const handleUploadClick = (id: string) => {
-    setCurrentUploadId(id)
-    fileInputRef.current?.click()
-  }
-
+    setCurrentUploadId(id);
+    fileInputRef.current?.click();
+  };
+  console.log("Current Upload ID:", currentUploadId);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !currentUploadId) return
+    const file = e.target.files?.[0];
+    if (!file || !currentUploadId) return;
 
-    setUploadingId(currentUploadId)
-    const url = await uploadEmployeeDocument(userId, file, 'work-experience', currentUploadId)
+    setUploadingId(currentUploadId);
+    // const url = await uploadEmployeeDocument(
+    //   userId,
+    //   file,
+    //   "work-experience",
+    //   currentUploadId
+    // );
 
-    if (url) {
-      const updated = data.map(entry =>
-        entry.id === currentUploadId ? { ...entry, document_url: url } : entry
-      )
-      await updateWorkExperience(userId, updated)
-      toast({ title: 'Uploaded', description: 'Document uploaded successfully.' })
-      onUpdate()
-    } else {
-      toast({ title: 'Error', description: 'Upload failed.', variant: 'destructive' })
-    }
-    setUploadingId(null)
-    setCurrentUploadId(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
+    // if (url) {
+
+    const updated = data.map((entry) =>
+      entry.id === currentUploadId
+        ? { ...entry, document_uploaded: true }
+        : entry
+    );
+    await updateWorkExperience(userId, updated, file, currentUploadId);
+    toast({
+      title: "Uploaded",
+      description: "Document uploaded successfully.",
+    });
+    onUpdate();
+    // }
+    // else {
+    //   toast({
+    //     title: "Error",
+    //     description: "Upload failed.",
+    //     variant: "destructive",
+    //   });
+    // }
+    setUploadingId(null);
+    setCurrentUploadId(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-'
-    const [year, month] = dateStr.split('-')
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    return `${monthNames[parseInt(month) - 1]} ${year}`
-  }
+    if (!dateStr) return "-";
+    const [year, month] = dateStr.split("-");
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${monthNames[parseInt(month) - 1]} ${year}`;
+  };
 
   return (
     <Card>
@@ -142,7 +213,9 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                   <Label>Company Name *</Label>
                   <Input
                     value={formData.company}
-                    onChange={(e) => setFormData(p => ({ ...p, company: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, company: e.target.value }))
+                    }
                     placeholder="e.g. Google"
                   />
                 </div>
@@ -150,7 +223,9 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                   <Label>Job Title *</Label>
                   <Input
                     value={formData.job_title}
-                    onChange={(e) => setFormData(p => ({ ...p, job_title: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, job_title: e.target.value }))
+                    }
                     placeholder="e.g. Senior Developer"
                   />
                 </div>
@@ -159,7 +234,9 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                     <Label>From *</Label>
                     <MonthYearPicker
                       value={formData.from_date}
-                      onChange={(value) => setFormData(p => ({ ...p, from_date: value }))}
+                      onChange={(value) =>
+                        setFormData((p) => ({ ...p, from_date: value }))
+                      }
                       fromYear={1980}
                       toYear={new Date().getFullYear()}
                       placeholder="Select start"
@@ -168,8 +245,10 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                   <div className="space-y-2">
                     <Label>To</Label>
                     <MonthYearPicker
-                      value={formData.to_date || ''}
-                      onChange={(value) => setFormData(p => ({ ...p, to_date: value }))}
+                      value={formData.to_date || ""}
+                      onChange={(value) =>
+                        setFormData((p) => ({ ...p, to_date: value }))
+                      }
                       fromYear={1980}
                       toYear={new Date().getFullYear() + 5}
                       placeholder="Select end"
@@ -180,12 +259,20 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                   <Label>Location</Label>
                   <Input
                     value={formData.location}
-                    onChange={(e) => setFormData(p => ({ ...p, location: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((p) => ({ ...p, location: e.target.value }))
+                    }
                     placeholder="e.g. Hyderabad"
                   />
                 </div>
-                <Button onClick={handleAddExperience} disabled={saving} className="w-full">
-                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                <Button
+                  onClick={handleAddExperience}
+                  disabled={saving}
+                  className="w-full"
+                >
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : null}
                   Add Experience
                 </Button>
               </div>
@@ -202,7 +289,9 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
           onChange={handleFileChange}
         />
         {data.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">No work experience added yet.</p>
+          <p className="text-muted-foreground text-center py-8">
+            No work experience added yet.
+          </p>
         ) : (
           <Table>
             <TableHeader>
@@ -213,7 +302,9 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                 <TableHead>To</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Documents</TableHead>
-                {isOwnProfile && <TableHead className="w-[100px]">Actions</TableHead>}
+                {isOwnProfile && (
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -222,12 +313,21 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                   <TableCell className="font-medium">{entry.company}</TableCell>
                   <TableCell>{entry.job_title}</TableCell>
                   <TableCell>{formatDate(entry.from_date)}</TableCell>
-                  <TableCell>{entry.to_date ? formatDate(entry.to_date) : 'Present'}</TableCell>
-                  <TableCell>{entry.location || '-'}</TableCell>
+                  <TableCell>
+                    {entry.to_date ? formatDate(entry.to_date) : "Present"}
+                  </TableCell>
+                  <TableCell>{entry.location || "-"}</TableCell>
                   <TableCell>
                     {entry.document_url ? (
-                      <a href={entry.document_url} target="_blank" rel="noopener noreferrer">
-                        <Badge variant="secondary" className="gap-1 cursor-pointer">
+                      <a
+                        href={`${NODE_API_BASE_URL}${entry.document_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Badge
+                          variant="secondary"
+                          className="gap-1 cursor-pointer"
+                        >
                           <FileText className="h-3 w-3" />
                           View
                         </Badge>
@@ -254,10 +354,14 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
                   </TableCell>
                   {isOwnProfile && (
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => {
-                        setDeletingEntry(entry)
-                        setDeleteDialogOpen(true)
-                      }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setDeletingEntry(entry);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -273,14 +377,16 @@ export default function PreviousEmploymentSection({ data, isOwnProfile, userId, 
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Delete Work Experience"
-        description={`Are you sure you want to delete this work experience entry${deletingEntry?.company ? ` at "${deletingEntry.company}"` : ''}?`}
+        description={`Are you sure you want to delete this work experience entry${
+          deletingEntry?.company ? ` at "${deletingEntry.company}"` : ""
+        }?`}
         warningMessage="This will also remove any uploaded documents for this entry."
         onConfirm={() => {
-          if (deletingEntry) handleDelete(deletingEntry.id)
-          setDeleteDialogOpen(false)
-          setDeletingEntry(null)
+          if (deletingEntry) handleDelete(deletingEntry.id);
+          setDeleteDialogOpen(false);
+          setDeletingEntry(null);
         }}
       />
     </Card>
-  )
+  );
 }
