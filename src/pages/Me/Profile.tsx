@@ -101,6 +101,7 @@ export default function Profile({
   });
   const userId = localStorage.getItem("auth_user_id");
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
+  const NODE_API_BASE_URL = import.meta.env.VITE_API_BASE_NODE_URL;
 
   useEffect(() => {
     async function fetchProfile() {
@@ -457,7 +458,7 @@ export default function Profile({
                   <div className="relative">
                     <Avatar className="h-24 w-24">
                       <AvatarImage
-                        src={profile.photo_url}
+                        src={`${NODE_API_BASE_URL}${profile.avatar_url}`}
                         alt={getDisplayName(
                           profile.first_name,
                           profile.last_name
@@ -1971,7 +1972,7 @@ export default function Profile({
         <AvatarUploadDialog
           open={showAvatarUpload}
           onOpenChange={setShowAvatarUpload}
-          currentAvatarUrl={profile?.photo_url}
+          currentAvatarUrl={profile?.avatar_url}
           userId={user.id}
           userName={
             profile
@@ -1980,7 +1981,7 @@ export default function Profile({
           }
           onSuccess={(newUrl) => {
             setProfile((prev) =>
-              prev ? { ...prev, photo_url: newUrl } : null
+              prev ? { ...prev, avatar_url: newUrl } : null
             );
           }}
         />

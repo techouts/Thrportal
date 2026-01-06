@@ -49,7 +49,7 @@ export interface EmployeeProfile {
   marital_status?: string;
   is_physically_handicapped?: boolean;
   nationality?: string;
-
+  avatar_url?: string;
   // New employment fields
   employee_type?: string;
   shifts?: string;
