@@ -111,19 +111,20 @@ export function CreateClientForm({
       setLoading(true);
 
       // Get user ID from auth context (works with dev mode)
-      const storedDevUser = localStorage.getItem("dev_user");
-      let userId: string;
+      // const storedDevUser = localStorage.getItem("dev_user");
+      // let userId: string;
 
-      if (storedDevUser) {
-        const devUser = JSON.parse(storedDevUser);
-        userId = devUser.id;
-      } else {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("Authentication required");
-        userId = user.id;
-      }
+      // if (storedDevUser) {
+      //   const devUser = JSON.parse(storedDevUser);
+      //   userId = devUser.id;
+      // } else {
+      //   const {
+      //     data: { user },
+      //   } = await supabase.auth.getUser();
+      //   if (!user) throw new Error("Authentication required");
+      //   userId = user.id;
+      // }
+      const userId = localStorage.getItem("auth_user_id");
 
       if (mode === "create") {
         await CrmService.createClient(

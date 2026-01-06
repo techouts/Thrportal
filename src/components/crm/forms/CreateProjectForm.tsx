@@ -1,33 +1,50 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
-import { CrmService } from '@/services/crmService';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import type { CrmAccount, CrmSpoc } from '@/types/crm';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { cn } from "@/lib/utils";
+import { CrmService } from "@/services/crmService";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import type { CrmAccount, CrmSpoc } from "@/types/crm";
 
 const projectSchema = z.object({
-  name: z.string().min(1, 'Project name is required'),
+  name: z.string().min(1, "Project name is required"),
   account_id: z.string().optional(),
   start_date: z.date().optional(),
   end_date: z.date().optional(),
   ft_target: z.number().min(0).default(0),
   contract_target: z.number().min(0).default(0),
   skills: z.string().optional(),
-  priority: z.enum(['Low', 'Medium', 'High', 'Critical']).default('Medium'),
-  status: z.enum(['Planned', 'In-flight', 'Closed']).default('Planned'),
-  primary_spoc_id: z.string().optional()
+  priority: z.enum(["Low", "Medium", "High", "Critical"]).default("Medium"),
+  status: z.enum(["Planned", "In-flight", "Closed"]).default("Planned"),
+  primary_spoc_id: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -40,75 +57,85 @@ interface CreateProjectFormProps {
   onCancel: () => void;
 }
 
-export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCancel }: CreateProjectFormProps) {
+export function CreateProjectForm({
+  clientId,
+  accounts,
+  spocs,
+  onSuccess,
+  onCancel,
+}: CreateProjectFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      name: '',
-      account_id: '',
+      name: "",
+      account_id: "",
       ft_target: 0,
       contract_target: 0,
-      skills: '',
-      priority: 'Medium',
-      status: 'Planned',
-      primary_spoc_id: ''
-    }
+      skills: "",
+      priority: "Medium",
+      status: "Planned",
+      primary_spoc_id: "",
+    },
   });
 
   const onSubmit = async (data: ProjectFormData) => {
     try {
       setLoading(true);
-      
+
       // Get user ID from auth context (works with dev mode)
-      const storedDevUser = localStorage.getItem("dev_user");
-      let userId: string;
-      
-      if (storedDevUser) {
-        const devUser = JSON.parse(storedDevUser);
-        userId = devUser.id;
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Authentication required');
-        userId = user.id;
-      }
-      
+      // const storedDevUser = localStorage.getItem("dev_user");
+      // let userId: string;
+
+      // if (storedDevUser) {
+      //   const devUser = JSON.parse(storedDevUser);
+      //   userId = devUser.id;
+      // } else {
+      //   const { data: { user } } = await supabase.auth.getUser();
+      //   if (!user) throw new Error('Authentication required');
+      //   userId = user.id;
+      // }
+      const userId = localStorage.getItem("auth_user_id");
+
       await CrmService.createProject({
         name: data.name,
         client_id: clientId,
         account_id: data.account_id || undefined,
-        primary_spoc_id: data.primary_spoc_id === 'none' ? undefined : data.primary_spoc_id,
-        start_date: data.start_date?.toISOString().split('T')[0],
-        end_date: data.end_date?.toISOString().split('T')[0],
+        primary_spoc_id:
+          data.primary_spoc_id === "none" ? undefined : data.primary_spoc_id,
+        start_date: data.start_date?.toISOString().split("T")[0],
+        end_date: data.end_date?.toISOString().split("T")[0],
         ft_target: data.ft_target || 0,
         contract_target: data.contract_target || 0,
-        priority: data.priority || 'Medium',
-        status: data.status || 'Planned',
-        skills: data.skills ? data.skills.split(',').map(s => s.trim()) : undefined,
-        created_by: userId
+        priority: data.priority || "Medium",
+        status: data.status || "Planned",
+        skills: data.skills
+          ? data.skills.split(",").map((s) => s.trim())
+          : undefined,
+        created_by: userId,
       });
-      
+
       toast({
-        title: 'Success',
-        description: 'Project created successfully.'
+        title: "Success",
+        description: "Project created successfully.",
       });
-      
+
       onSuccess();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to create project. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const priorities = ['Low', 'Medium', 'High', 'Critical'];
-  const statuses = ['Planned', 'In-flight', 'Closed'];
+  const priorities = ["Low", "Medium", "High", "Critical"];
+  const statuses = ["Planned", "In-flight", "Closed"];
 
   return (
     <Form {...form}>
@@ -134,7 +161,10 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select account" />
@@ -142,7 +172,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">No specific account</SelectItem>
-                    {accounts.map(account => (
+                    {accounts.map((account) => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
                       </SelectItem>
@@ -160,7 +190,10 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Primary SPOC</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select primary SPOC" />
@@ -168,7 +201,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">No primary SPOC</SelectItem>
-                    {spocs.map(spoc => (
+                    {spocs.map((spoc) => (
                       <SelectItem key={spoc.id} value={spoc.id}>
                         {spoc.name} {spoc.role && `- ${spoc.role}`}
                       </SelectItem>
@@ -271,9 +304,9 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
               <FormItem>
                 <FormLabel>Full-Time Target</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    {...field}
+                    type="number"
                     min="0"
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
@@ -290,9 +323,9 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
               <FormItem>
                 <FormLabel>Contract Target</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
+                  <Input
+                    {...field}
+                    type="number"
                     min="0"
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
@@ -310,15 +343,20 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {priorities.map(priority => (
-                      <SelectItem key={priority} value={priority}>{priority}</SelectItem>
+                    {priorities.map((priority) => (
+                      <SelectItem key={priority} value={priority}>
+                        {priority}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -333,15 +371,20 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {statuses.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    {statuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -358,8 +401,8 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
             <FormItem>
               <FormLabel>Skills/Roles (comma-separated)</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field} 
+                <Textarea
+                  {...field}
                   placeholder="e.g. React Developer, UI/UX Designer, Product Manager"
                   rows={2}
                 />
@@ -374,7 +417,7 @@ export function CreateProjectForm({ clientId, accounts, spocs, onSuccess, onCanc
             Cancel
           </Button>
           <Button type="submit" disabled={loading || !form.formState.isValid}>
-            {loading ? 'Creating...' : 'Create Project'}
+            {loading ? "Creating..." : "Create Project"}
           </Button>
         </div>
       </form>
