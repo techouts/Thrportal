@@ -312,9 +312,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       });
-      const { access_token, user: apiUser } = response.data;
+      const { access_token, user: apiUser, message } = response.data;
       if (!access_token || !apiUser) {
-        throw new Error("Invalid login response");
+        throw new Error(message || "Invalid login response");
       }
 
       // Persist token (used by interceptors / APIs)
