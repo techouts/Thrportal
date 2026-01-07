@@ -1,14 +1,25 @@
 export const ROLES = [
-  "EMPLOYEE","MANAGER","MANAGEMENT","ADMIN",
-  "RECRUITER","HIRING_MANAGER",
-  "PROJECT_LEAD","DELIVERY_HEAD",
-  "HR_LEAD","HR_MANAGER",
-  "PAYROLL_SPECIALIST","FINANCE_ANALYST",
-  "IT_HELPDESK","AUDITOR_RO","DPO_PRIVACY","VIEWER",
-  "OPERATIONS_HR"
+  "EMPLOYEE",
+  "MANAGER",
+  "MANAGEMENT",
+  "ADMIN",
+  "RECRUITER",
+  "HIRING_MANAGER",
+  "PROJECT_LEAD",
+  "DELIVERY_HEAD",
+  "HR_LEAD",
+  "HR_MANAGER",
+  "PAYROLL_SPECIALIST",
+  "FINANCE_ANALYST",
+  "IT_HELPDESK",
+  "AUDITOR_RO",
+  "DPO_PRIVACY",
+  "VIEWER",
+  "OPERATIONS_HR",
+  "INTERN",
 ] as const;
 
-export type Role = typeof ROLES[number];
+export type Role = (typeof ROLES)[number];
 
 export const ROLE_ALIASES: Record<string, Role> = {
   Manager: "MANAGER",
@@ -18,9 +29,12 @@ export const ROLE_ALIASES: Record<string, Role> = {
   FINANCE_ADMIN: "FINANCE_ANALYST",
   IT_ADMIN: "IT_HELPDESK",
   HIRING_ADMIN: "HIRING_MANAGER",
-  Operations_HR: "OPERATIONS_HR"
+  Operations_HR: "OPERATIONS_HR",
+  Intern: "INTERN",
 };
 
 export const FEATURE_FLAGS = [
-  "admin_portal","wfh_rules","hiring_ai_matcher"
+  "admin_portal",
+  "wfh_rules",
+  "hiring_ai_matcher",
 ] as const;

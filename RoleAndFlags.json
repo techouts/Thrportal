@@ -8,7 +8,8 @@
     "IT",
     "FACILITIES",
     "RECRUITER",
-    "OPERATIONS_HR"
+    "OPERATIONS_HR",
+    "INTERN"
   ],
   "feature_flags": []
 }

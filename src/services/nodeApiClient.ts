@@ -28,7 +28,7 @@ NodeApiClient.interceptors.response.use(
       console.warn("[AUTH] Token expired or invalid");
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user_id");
-      window.location.href = "/login";
+      window.location.href = "/Auth/SignIn";
     }
     return Promise.reject(error);
   }
