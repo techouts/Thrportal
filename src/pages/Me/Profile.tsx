@@ -487,10 +487,8 @@ export default function Profile({
                       {profile.role_title}
                     </p>
                     <div className="flex items-center gap-2">
-                      {profile.department?.name && (
-                        <Badge variant="secondary">
-                          {profile.department.name}
-                        </Badge>
+                      {profile.department && (
+                        <Badge variant="secondary">{profile.department}</Badge>
                       )}
                       {(profile.city || profile.country) && (
                         <Badge variant="outline">
@@ -1408,7 +1406,7 @@ export default function Profile({
                   <Label className="text-sm font-medium text-muted-foreground">
                     Department
                   </Label>
-                  <p>{profile.department?.name || "Not assigned"}</p>
+                  <p>{profile.department || "Not assigned"}</p>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">
@@ -1444,11 +1442,7 @@ export default function Profile({
                   <Label className="text-sm font-medium text-muted-foreground">
                     Cost Center
                   </Label>
-                  <p>
-                    {profile.cost_center?.code ||
-                      profile.cost_center?.name ||
-                      "Not assigned"}
-                  </p>
+                  <p>{profile.cost_center || "Not assigned"}</p>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-sm font-medium text-muted-foreground">
@@ -1472,7 +1466,7 @@ export default function Profile({
                   <Label className="text-sm font-medium text-muted-foreground">
                     Business Unit
                   </Label>
-                  <p>{profile.business_unit?.name || "Not assigned"}</p>
+                  <p>{profile.business_unit || "Not assigned"}</p>
                 </div>
               </div>
 
@@ -1926,13 +1920,13 @@ export default function Profile({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Direct Reports ({profile.reports?.length || 0})
+                Direct Reports ({profile.direct_reports?.length || 0})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {profile.reports && profile.reports.length > 0 ? (
+              {profile.direct_reports && profile.direct_reports.length > 0 ? (
                 <div className="space-y-3">
-                  {profile.reports.map((report) => (
+                  {profile.direct_reports.map((report) => (
                     <div key={report.id} className="flex items-center gap-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={report.photo_url} />

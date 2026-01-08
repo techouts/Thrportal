@@ -83,9 +83,9 @@ export interface EmployeeProfile {
     email: string;
     photo_url?: string;
   }>;
-  business_unit?: BusinessUnit;
-  department?: Department;
-  cost_center?: CostCenter;
+  business_unit?: string;
+  department?: string;
+  cost_center?: string;
 }
 
 export interface ProfileUpdateData {
