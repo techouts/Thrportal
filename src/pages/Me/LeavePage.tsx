@@ -193,6 +193,14 @@ export default function LeavePage() {
           plBalance={plBalance ?? 0}
           mlBalance={mlBalance ?? 0}
           userGender={user?.gender}
+          existingRequests={
+            allRequests?.map((r) => ({
+              id: r.id,
+              start_date: r.start_date,
+              end_date: r.end_date,
+              status: r.status,
+            })) ?? []
+          }
         />
         <RequestCompOffDialog
           open={showCompOffDialog}

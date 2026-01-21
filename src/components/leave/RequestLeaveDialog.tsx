@@ -1,32 +1,38 @@
-import { useState, useEffect, useMemo } from 'react';
-import { format, differenceInDays } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect, useMemo } from "react";
+import { format, differenceInDays, parseISO, startOfDay } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
+interface ExistingRequest {
+  id: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
 interface RequestLeaveDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +43,7 @@ interface RequestLeaveDialogProps {
   plBalance?: number;
   mlBalance?: number;
   userGender?: string | null;
+  existingRequests?: ExistingRequest[];
 }
 
 export interface LeaveRequestData {
@@ -45,54 +52,55 @@ export interface LeaveRequestData {
   end_date: Date;
   total_days: number;
   reason: string;
-  start_session?: 'AM' | 'PM';
-  end_session?: 'AM' | 'PM';
+  start_session?: "AM" | "PM";
+  end_session?: "AM" | "PM";
 }
 
 const LEAVE_TYPES = [
-  { value: 'CL', label: 'Casual Leave' },
-  { value: 'ML', label: 'Maternity Leave' },
-  { value: 'PL_PATERNITY', label: 'Paternity Leave' },
-  { value: 'COMP_OFF', label: 'Comp Offs' },
-  { value: 'LOP', label: 'Unpaid Leave' },
+  { value: "CL", label: "Casual Leave" },
+  { value: "ML", label: "Maternity Leave" },
+  { value: "PL_PATERNITY", label: "Paternity Leave" },
+  { value: "COMP_OFF", label: "Comp Offs" },
+  { value: "LOP", label: "Unpaid Leave" },
 ];
 
-export function RequestLeaveDialog({ 
-  open, 
-  onOpenChange, 
-  onSubmit, 
-  initialDate, 
+export function RequestLeaveDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  initialDate,
   compOffBalance = 0,
   clBalance = 0,
   plBalance = 0,
   mlBalance = 0,
-  userGender
+  userGender,
+  existingRequests = [],
 }: RequestLeaveDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(initialDate);
   const [toDate, setToDate] = useState<Date | undefined>(initialDate);
-  const [leaveType, setLeaveType] = useState<string>('');
-  const [reason, setReason] = useState('');
+  const [leaveType, setLeaveType] = useState<string>("");
+  const [reason, setReason] = useState("");
   const [fromOpen, setFromOpen] = useState(false);
   const [toOpen, setToOpen] = useState(false);
 
   // Day mode and session states
-  const [dayMode, setDayMode] = useState<'full' | 'custom'>('full');
-  const [singleDaySession, setSingleDaySession] = useState<'AM' | 'PM'>('AM');
-  const [startSession, setStartSession] = useState<'AM' | 'PM'>('AM');
-  const [endSession, setEndSession] = useState<'AM' | 'PM'>('PM');
+  const [dayMode, setDayMode] = useState<"full" | "custom">("full");
+  const [singleDaySession, setSingleDaySession] = useState<"AM" | "PM">("AM");
+  const [startSession, setStartSession] = useState<"AM" | "PM">("AM");
+  const [endSession, setEndSession] = useState<"AM" | "PM">("PM");
 
   // Filter leave types based on gender only (balance check is handled by disabling)
   const availableLeaveTypes = useMemo(() => {
-    return LEAVE_TYPES.filter(type => {
+    return LEAVE_TYPES.filter((type) => {
       // Hide Paternity Leave for non-males
-      if (type.value === 'PL_PATERNITY') {
-        return userGender === 'Male';
+      if (type.value === "PL_PATERNITY") {
+        return userGender === "Male";
       }
       // Hide Maternity Leave for non-females
-      if (type.value === 'ML') {
-        return userGender === 'Female';
+      if (type.value === "ML") {
+        return userGender === "Female";
       }
       return true;
     });
@@ -101,66 +109,79 @@ export function RequestLeaveDialog({
   // Helper to get balance for a leave type
   const getBalanceForLeaveType = (type: string): number | null => {
     switch (type) {
-      case 'CL': return clBalance;
-      case 'COMP_OFF': return compOffBalance;
-      case 'PL_PATERNITY': return plBalance;
-      case 'ML': return mlBalance;
-      case 'LOP': return null; // Unlimited
-      default: return null;
+      case "CL":
+        return clBalance;
+      case "COMP_OFF":
+        return compOffBalance;
+      case "PL_PATERNITY":
+        return plBalance;
+      case "ML":
+        return mlBalance;
+      case "LOP":
+        return null; // Unlimited
+      default:
+        return null;
     }
   };
 
   // Helper to check if leave type should be disabled
   const isLeaveTypeDisabled = (type: string): boolean => {
-    if (type === 'LOP') return false; // Never disable Unpaid Leave
-    
+    if (type === "LOP") return false; // Never disable Unpaid Leave
+
     const balance = getBalanceForLeaveType(type);
     if (balance === null) return false; // Unlimited types
     if (balance <= 0) return true; // No balance available at all
     if (calculatedDays <= 0) return false; // No dates selected yet
-    
+
     return calculatedDays > balance;
   };
 
-  const baseDays = fromDate && toDate 
-    ? differenceInDays(toDate, fromDate) + 1 
-    : 0;
+  const baseDays =
+    fromDate && toDate ? differenceInDays(toDate, fromDate) + 1 : 0;
 
   const isSingleDay = baseDays === 1;
 
   // Calculate total days based on day mode and session selections
   const calculatedDays = useMemo(() => {
     if (!fromDate || !toDate || baseDays <= 0) return 0;
-    
-    if (dayMode === 'full') {
+
+    if (dayMode === "full") {
       return baseDays;
     }
-    
+
     // Custom mode
     if (isSingleDay) {
       return 0.5;
     }
-    
+
     // Multi-day custom calculation
     let adjustment = 0;
-    if (startSession === 'PM') adjustment += 0.5; // Start from second half = -0.5
-    if (endSession === 'AM') adjustment += 0.5;   // End at first half = -0.5
-    
+    if (startSession === "PM") adjustment += 0.5; // Start from second half = -0.5
+    if (endSession === "AM") adjustment += 0.5; // End at first half = -0.5
+
     return baseDays - adjustment;
-  }, [fromDate, toDate, baseDays, dayMode, isSingleDay, startSession, endSession]);
+  }, [
+    fromDate,
+    toDate,
+    baseDays,
+    dayMode,
+    isSingleDay,
+    startSession,
+    endSession,
+  ]);
 
   const resetSelections = () => {
-    setLeaveType('');
-    setDayMode('full');
-    setSingleDaySession('AM');
-    setStartSession('AM');
-    setEndSession('PM');
+    setLeaveType("");
+    setDayMode("full");
+    setSingleDaySession("AM");
+    setStartSession("AM");
+    setEndSession("PM");
   };
 
   const resetForm = () => {
     setFromDate(undefined);
     setToDate(undefined);
-    setReason('');
+    setReason("");
     resetSelections();
   };
 
@@ -178,61 +199,95 @@ export function RequestLeaveDialog({
     setToOpen(false);
   };
 
+  // Check for date conflicts with existing requests
+  const checkDateConflict = (from: Date, to: Date) => {
+    const activeStatuses = ["pending", "pending_L1", "pending_L2", "approved"];
+
+    // Normalize selected dates to start of day (local timezone)
+    const fromDay = startOfDay(from);
+    const toDay = startOfDay(to);
+
+    return existingRequests.find((request) => {
+      if (!activeStatuses.includes(request.status)) return false;
+
+      const existingStart = startOfDay(parseISO(request.start_date));
+      const existingEnd = startOfDay(parseISO(request.end_date));
+
+      // Check for overlap: from <= existingEnd AND to >= existingStart
+      return fromDay <= existingEnd && toDay >= existingStart;
+    });
+  };
+
   const handleSubmit = async () => {
     if (!fromDate || !toDate || !leaveType) {
       toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for date conflicts with existing requests
+    const conflictingRequest = checkDateConflict(fromDate, toDate);
+    if (conflictingRequest) {
+      const statusLabel = conflictingRequest.status.replace(/_/g, " ");
+      toast({
+        title: "Date Conflict",
+        description: `You already have a ${statusLabel} leave request from ${format(
+          parseISO(conflictingRequest.start_date),
+          "dd MMM yyyy"
+        )} to ${format(parseISO(conflictingRequest.end_date), "dd MMM yyyy")}`,
+        variant: "destructive",
       });
       return;
     }
 
     if (toDate < fromDate) {
       toast({
-        title: 'Validation Error',
-        description: 'End date cannot be before start date',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "End date cannot be before start date",
+        variant: "destructive",
       });
       return;
     }
 
     // Validate CL balance
-    if (leaveType === 'CL' && calculatedDays > clBalance) {
+    if (leaveType === "CL" && calculatedDays > clBalance) {
       toast({
-        title: 'Insufficient Balance',
+        title: "Insufficient Balance",
         description: `You only have ${clBalance} casual leave day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
-        variant: 'destructive',
+        variant: "destructive",
       });
       return;
     }
 
     // Validate COMP_OFF balance
-    if (leaveType === 'COMP_OFF' && calculatedDays > compOffBalance) {
+    if (leaveType === "COMP_OFF" && calculatedDays > compOffBalance) {
       toast({
-        title: 'Insufficient Balance',
+        title: "Insufficient Balance",
         description: `You only have ${compOffBalance} comp-off day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
-        variant: 'destructive',
+        variant: "destructive",
       });
       return;
     }
 
     // Validate PL_PATERNITY balance
-    if (leaveType === 'PL_PATERNITY' && calculatedDays > plBalance) {
+    if (leaveType === "PL_PATERNITY" && calculatedDays > plBalance) {
       toast({
-        title: 'Insufficient Balance',
+        title: "Insufficient Balance",
         description: `You only have ${plBalance} paternity leave day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
-        variant: 'destructive',
+        variant: "destructive",
       });
       return;
     }
 
     // Validate ML balance
-    if (leaveType === 'ML' && calculatedDays > mlBalance) {
+    if (leaveType === "ML" && calculatedDays > mlBalance) {
       toast({
-        title: 'Insufficient Balance',
+        title: "Insufficient Balance",
         description: `You only have ${mlBalance} maternity leave day(s) available. Please reduce the number of days or choose Unpaid Leave.`,
-        variant: 'destructive',
+        variant: "destructive",
       });
       return;
     }
@@ -248,7 +303,7 @@ export function RequestLeaveDialog({
       };
 
       // Include session data if custom mode
-      if (dayMode === 'custom') {
+      if (dayMode === "custom") {
         if (isSingleDay) {
           submitData.start_session = singleDaySession;
           submitData.end_session = singleDaySession;
@@ -262,7 +317,7 @@ export function RequestLeaveDialog({
       resetForm();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error submitting leave request:', error);
+      console.error("Error submitting leave request:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -279,9 +334,9 @@ export function RequestLeaveDialog({
 
   // Reset leave type if current selection becomes invalid after date changes
   useEffect(() => {
-    if (leaveType && leaveType !== 'LOP' && calculatedDays > 0) {
+    if (leaveType && leaveType !== "LOP" && calculatedDays > 0) {
       if (isLeaveTypeDisabled(leaveType)) {
-        setLeaveType('');
+        setLeaveType("");
       }
     }
   }, [calculatedDays]);
@@ -303,12 +358,12 @@ export function RequestLeaveDialog({
                   <Button
                     variant="outline"
                     className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !fromDate && 'text-muted-foreground'
+                      "w-full justify-start text-left font-normal",
+                      !fromDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {fromDate ? format(fromDate, 'dd MMM yyyy') : 'Select date'}
+                    {fromDate ? format(fromDate, "dd MMM yyyy") : "Select date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -326,7 +381,7 @@ export function RequestLeaveDialog({
             <div className="flex flex-col items-center justify-center px-4 py-2 bg-muted rounded-md min-w-[60px]">
               <span className="text-2xl font-bold">{calculatedDays}</span>
               <span className="text-xs text-muted-foreground">
-                {calculatedDays === 1 ? 'Day' : 'Days'}
+                {calculatedDays === 1 ? "Day" : "Days"}
               </span>
             </div>
 
@@ -337,12 +392,12 @@ export function RequestLeaveDialog({
                   <Button
                     variant="outline"
                     className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !toDate && 'text-muted-foreground'
+                      "w-full justify-start text-left font-normal",
+                      !toDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {toDate ? format(toDate, 'dd MMM yyyy') : 'Select date'}
+                    {toDate ? format(toDate, "dd MMM yyyy") : "Select date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -350,7 +405,7 @@ export function RequestLeaveDialog({
                     mode="single"
                     selected={toDate}
                     onSelect={handleToDateSelect}
-                    disabled={(date) => fromDate ? date < fromDate : false}
+                    disabled={(date) => (fromDate ? date < fromDate : false)}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -370,31 +425,33 @@ export function RequestLeaveDialog({
                 {availableLeaveTypes.map((type) => {
                   const balance = getBalanceForLeaveType(type.value);
                   const isDisabled = isLeaveTypeDisabled(type.value);
-                  
+
                   // Build balance info string
-                  let balanceInfo = '';
-                  if (type.value === 'LOP') {
-                    balanceInfo = ' (Unlimited)';
+                  let balanceInfo = "";
+                  if (type.value === "LOP") {
+                    balanceInfo = " (Unlimited)";
                   } else if (balance !== null) {
                     balanceInfo = ` (${balance} available)`;
                   }
-                  
+
                   // Build disabled reason
-                  let disabledText = '';
+                  let disabledText = "";
                   if (isDisabled && balance !== null && balance > 0) {
-                    disabledText = ' - Insufficient';
+                    disabledText = " - Insufficient";
                   } else if (isDisabled && balance !== null && balance <= 0) {
-                    disabledText = ' - No balance';
+                    disabledText = " - No balance";
                   }
-                  
+
                   return (
-                    <SelectItem 
-                      key={type.value} 
+                    <SelectItem
+                      key={type.value}
                       value={type.value}
                       disabled={isDisabled}
-                      className={isDisabled ? 'opacity-50' : ''}
+                      className={isDisabled ? "opacity-50" : ""}
                     >
-                      {type.label}{balanceInfo}{disabledText}
+                      {type.label}
+                      {balanceInfo}
+                      {disabledText}
                     </SelectItem>
                   );
                 })}
@@ -409,18 +466,18 @@ export function RequestLeaveDialog({
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant={dayMode === 'full' ? 'default' : 'outline'}
+                  variant={dayMode === "full" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setDayMode('full')}
+                  onClick={() => setDayMode("full")}
                   className="flex-1"
                 >
-                  {isSingleDay ? 'Full day' : 'Full days'}
+                  {isSingleDay ? "Full day" : "Full days"}
                 </Button>
                 <Button
                   type="button"
-                  variant={dayMode === 'custom' ? 'default' : 'outline'}
+                  variant={dayMode === "custom" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setDayMode('custom')}
+                  onClick={() => setDayMode("custom")}
                   className="flex-1"
                 >
                   Custom
@@ -428,13 +485,15 @@ export function RequestLeaveDialog({
               </div>
 
               {/* Custom Options */}
-              {dayMode === 'custom' && (
+              {dayMode === "custom" && (
                 <>
                   {isSingleDay ? (
                     // Single day: One dropdown
-                    <Select 
-                      value={singleDaySession} 
-                      onValueChange={(v) => setSingleDaySession(v as 'AM' | 'PM')}
+                    <Select
+                      value={singleDaySession}
+                      onValueChange={(v) =>
+                        setSingleDaySession(v as "AM" | "PM")
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -449,11 +508,13 @@ export function RequestLeaveDialog({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground min-w-[100px]">
-                          From {format(fromDate, 'dd MMM')}
+                          From {format(fromDate, "dd MMM")}
                         </span>
-                        <Select 
-                          value={startSession} 
-                          onValueChange={(v) => setStartSession(v as 'AM' | 'PM')}
+                        <Select
+                          value={startSession}
+                          onValueChange={(v) =>
+                            setStartSession(v as "AM" | "PM")
+                          }
                         >
                           <SelectTrigger className="flex-1">
                             <SelectValue />
@@ -466,11 +527,11 @@ export function RequestLeaveDialog({
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground min-w-[100px]">
-                          To {format(toDate, 'dd MMM')}
+                          To {format(toDate, "dd MMM")}
                         </span>
-                        <Select 
-                          value={endSession} 
-                          onValueChange={(v) => setEndSession(v as 'AM' | 'PM')}
+                        <Select
+                          value={endSession}
+                          onValueChange={(v) => setEndSession(v as "AM" | "PM")}
                         >
                           <SelectTrigger className="flex-1">
                             <SelectValue />
@@ -505,7 +566,7 @@ export function RequestLeaveDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Requesting...' : 'Request'}
+            {isSubmitting ? "Requesting..." : "Request"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -75,7 +75,10 @@ export default function AttendancePage() {
   const [leaveRequestDates, setLeaveRequestDates] = useState<Set<string>>(
     new Set()
   );
-
+  // All existing leave requests for conflict validation
+  const [existingLeaveRequests, setExistingLeaveRequests] = useState<
+    Array<{ id: string; start_date: string; end_date: string; status: string }>
+  >([]);
   // Generate previous 6 months for filter
   const previousMonths = Array.from({ length: 6 }, (_, i) => {
     const date = subMonths(new Date(), i);
@@ -190,7 +193,7 @@ export default function AttendancePage() {
       });
 
       const data = response.data;
-
+      setExistingLeaveRequests(data);
       // Build a set of dates that have pending leave requests
       const leaveDates = new Set<string>();
       data?.forEach((req) => {
@@ -884,6 +887,7 @@ export default function AttendancePage() {
         onSubmit={handleLeaveSubmit}
         initialDate={selectedRecord ? new Date(selectedRecord.date) : undefined}
         compOffBalance={compOffBalance?.available ?? 0}
+        existingRequests={existingLeaveRequests}
       />
     </div>
   );
