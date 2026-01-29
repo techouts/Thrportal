@@ -10,6 +10,7 @@ import type {
   ProjectAssignment,
   ProjectTask,
   ClientExportProfile,
+  TimesheetReportRow,
   ExportPreview,
   ExportRun,
   TimesheetTotals,
@@ -855,5 +856,155 @@ export class TimesheetService {
     }
 
     return incompleteWeeks;
+  }
+  // Get timesheet report data for a project within a date range
+  async getProjectTimesheetReport(
+    projectId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TimesheetReportRow[]> {
+    // Fetch timesheet entries for the project within the date range
+    // const { data: entriesData, error: entriesError } = await supabase
+    //   .from("timesheet_entries")
+    //   .select(
+    //     `
+    //     entry_date,
+    //     task_name,
+    //     hours,
+    //     comment,
+    //     is_billable,
+    //     timesheet_id,
+    //     project_id
+    //   `
+    //   )
+    //   .eq("project_id", projectId)
+    //   .gte("entry_date", startDate)
+    //   .lte("entry_date", endDate)
+    //   .order("entry_date");
+    const { data: entriesData } = await NodeApiClient.get(
+      "/timesheets-v2/entries/by-project",
+      {
+        params: {
+          project_id: projectId,
+          from: startDate, // e.g. "2025-12-10"
+          to: endDate, // e.g. "2026-01-31"
+        },
+      }
+    );
+
+    // if (entriesError) {
+    //   console.error("Error fetching timesheet entries:", entriesError);
+    //   throw entriesError;
+    // }
+
+    if (!entriesData || entriesData.length === 0) {
+      return [];
+    }
+
+    // Get unique timesheet IDs to fetch timesheet details
+    const timesheetIds = [...new Set(entriesData.map((e) => e.timesheet_id))];
+
+    // Fetch timesheets with employee info
+    // const { data: timesheetsData, error: timesheetsError } = await supabase
+    //   .from("timesheets")
+    //   .select(
+    //     `
+    //     id,
+    //     status,
+    //     employee_id
+    //   `
+    //   )
+    //   .in("id", timesheetIds)
+    //   .in("status", ["SAVED", "SUBMITTED", "APPROVED"]);
+    const { data: timesheetsData } = await NodeApiClient.get(
+      "/timesheets-v2/timesheets/status-check",
+      {
+        params: {
+          id: timesheetIds.join(","), // <-- matches curl
+          status: ["SAVED", "SUBMITTED", "APPROVED"].join(","),
+        },
+      }
+    );
+
+    // if (timesheetsError) {
+    //   console.error("Error fetching timesheets:", timesheetsError);
+    //   throw timesheetsError;
+    // }
+
+    // Get employee IDs to fetch profile info
+    const employeeIds = [
+      ...new Set((timesheetsData || []).map((t) => t.employee_id)),
+    ];
+
+    // Fetch profiles
+    // const { data: profilesData, error: profilesError } = await supabase
+    //   .from("profiles")
+    //   .select("id, display_name, first_name, last_name, employee_code")
+    //   .in("id", employeeIds);
+    const { data: profilesData } = await NodeApiClient.get("/auth/by-ids", {
+      params: {
+        ids: employeeIds.join(","), // <-- same as curl
+      },
+    });
+
+    // if (profilesError) {
+    //   console.error("Error fetching profiles:", profilesError);
+    //   throw profilesError;
+    // }
+
+    // Fetch project name
+    // const { data: projectData } = await supabase
+    //   .from("crm_projects")
+    //   .select("name")
+    //   .eq("id", projectId)
+    //   .single();
+    const { data: projectData } = await NodeApiClient.get("/crm/projects", {
+      params: {
+        projectId: projectId,
+      },
+    });
+
+    const projectName = projectData?.name || "Unknown Project";
+
+    // Create lookup maps
+    const timesheetMap = new Map((timesheetsData || []).map((t) => [t.id, t]));
+    const profileMap = new Map((profilesData || []).map((p) => [p.id, p]));
+
+    // Build report rows
+    const reportRows: TimesheetReportRow[] = [];
+
+    for (const entry of entriesData) {
+      const timesheet = timesheetMap.get(entry.timesheet_id);
+      if (!timesheet) continue; // Skip entries without valid timesheet (e.g., DRAFT status)
+
+      const profile = profileMap.get(timesheet?.employee_id);
+      if (!profile) continue;
+
+      const employeeName =
+        profile.display_name ||
+        `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+        "Unknown";
+
+      reportRows.push({
+        employeeName,
+        employeeCode: profile.employee_code,
+        date: entry.entry_date,
+        projectName,
+        taskName: entry.task_name || "",
+        hours: Number(entry.hours) || 0,
+        comment: entry.comment,
+        isBillable: entry.is_billable ?? true,
+        status: timesheet.status,
+      });
+    }
+
+    // Sort by date, then by employee name
+    reportRows.sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.employeeName.localeCompare(b.employeeName);
+    });
+
+    return reportRows;
   }
 }

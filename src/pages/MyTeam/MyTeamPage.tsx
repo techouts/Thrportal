@@ -20,6 +20,7 @@ import { ExpensesDashboard } from "@/components/myteam/ExpensesDashboard";
 import { TimesheetDashboard } from "@/components/myteam/TimesheetDashboard";
 import { ProfileChangesDashboard } from "@/components/myteam/ProfileChangesDashboard";
 import { ApprovalQueues } from "@/components/myteam/ApprovalQueues";
+import { TimesheetReports } from "@/components/myteam/TimesheetReports";
 import {
   Target,
   FileText,
@@ -336,9 +337,10 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
     if (defaultTab === "Timesheet") {
       return (
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="approvals">Approvals</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
           <TabsContent value="dashboard">
             <TimesheetDashboard metrics={metrics} loading={loading} />
@@ -353,6 +355,9 @@ export default function MyTeamPage({ defaultTab }: MyTeamPageProps) {
               onBulkReject={handleBulkReject}
               onFetchTimesheetEntries={handleFetchTimesheetEntries}
             />
+          </TabsContent>
+          <TabsContent value="reports">
+            <TimesheetReports />
           </TabsContent>
         </Tabs>
       );

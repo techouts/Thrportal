@@ -188,17 +188,17 @@ export function HRSidebar() {
     >
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+          {/* <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Heart className="h-4 w-4 text-primary-foreground" />
-          </div>
+          </div> */}
           {!collapsed && (
             <div>
               <h2 className="text-lg font-semibold text-sidebar-foreground">
                 T-HR
               </h2>
-              <p className="text-xs text-sidebar-foreground/70">
+              {/* <p className="text-xs text-sidebar-foreground/70">
                 Management Suite
-              </p>
+              </p> */}
             </div>
           )}
         </div>
