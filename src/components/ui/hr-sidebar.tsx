@@ -194,7 +194,7 @@ export function HRSidebar() {
           {!collapsed && (
             <div>
               <h2 className="text-lg font-semibold text-sidebar-foreground">
-                T-HR
+                NEXA
               </h2>
               {/* <p className="text-xs text-sidebar-foreground/70">
                 Management Suite

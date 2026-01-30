@@ -1,11 +1,11 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { HRSidebar } from "@/components/ui/hr-sidebar"
-import { Search } from "lucide-react"
-import { HeaderNotifications } from "@/components/shared/HeaderNotifications"
-import { ProfileDropdownMenu } from "@/components/shared/ProfileDropdownMenu"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { HRSidebar } from "@/components/ui/hr-sidebar";
+import { Search } from "lucide-react";
+import { HeaderNotifications } from "@/components/shared/HeaderNotifications";
+import { ProfileDropdownMenu } from "@/components/shared/ProfileDropdownMenu";
 
 interface MainLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -13,7 +13,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
         <HRSidebar />
-        
+
         <div className="flex-1 flex flex-col">
           {/* Header */}
           <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,7 +23,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <div className="hidden lg:flex items-center gap-2">
                   <SidebarTrigger />
                   <div className="h-6 w-px bg-border" />
-                  <h1 className="text-lg font-semibold text-foreground">HR Management System</h1>
+                  {/* <h1 className="text-lg font-semibold text-foreground">HR Management System</h1> */}
                 </div>
               </div>
 
@@ -56,5 +56,5 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
       </div>
     </SidebarProvider>
-  )
+  );
 }

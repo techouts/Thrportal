@@ -46,7 +46,7 @@ export default function SignIn() {
     <div className="min-h-screen grid place-items-center p-6 bg-gradient-to-br from-background via-muted/30 to-background">
       <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border p-8 space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">HRMS Portal</h1>
+          <h1 className="text-3xl font-bold text-foreground">NEXA Platform</h1>
           <p className="text-muted-foreground">Sign in to your account</p>
         </div>
 
