@@ -144,7 +144,7 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
       const status = await timesheetService.getTimesheetStatus(employeeId, lastWeek)
       
       // Only allow copy if last week is SAVED, SUBMITTED, or APPROVED
-      setCanCopyLastWeek(status !== null && ['SAVED', 'SUBMITTED', 'APPROVED'].includes(status))
+      setCanCopyLastWeek(status !== null && ['Saved', 'Submitted', 'Approved'].includes(status))
     } catch (error) {
       console.error('Error checking last week status:', error)
       setCanCopyLastWeek(false)
@@ -533,7 +533,7 @@ const handleCopyLastWeek = async () => {
       const lastTimesheet = await timesheetService.getTimesheet(employeeId, lastWeek)
       
       // Only copy if last week was SAVED or SUBMITTED
-      if (!['SAVED', 'SUBMITTED', 'APPROVED'].includes(lastTimesheet.status)) {
+      if (!['Saved', 'Submitted', 'Approved'].includes(lastTimesheet.status)) {
         toast({
           title: "No data to copy",
           description: "Last week's timesheet was not saved or submitted",

@@ -792,7 +792,7 @@ export class TimesheetService {
         },
       });
 
-      return response.data.status || null;
+      return response.data[0].status || null;
     } catch (err: any) {
       console.error("Error fetching timesheet status:", err);
       return null;
