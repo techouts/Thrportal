@@ -110,7 +110,7 @@ export function AddTimeEntryPopover({
                   >
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{project.name}</div>
-                      <div className="text-xs text-muted-foreground">{project.code}</div>
+                      {/* <div className="text-xs text-muted-foreground">{project.code}</div> */}
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   </button>
@@ -166,7 +166,7 @@ export function AddTimeEntryPopover({
                     >
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{task.name}</div>
-                        <div className="text-xs text-muted-foreground">{task.code}</div>
+                        {/* <div className="text-xs text-muted-foreground">{task.code}</div> */}
                       </div>
                     </button>
                   ))

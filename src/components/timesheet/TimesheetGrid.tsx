@@ -210,22 +210,23 @@ export function TimesheetGrid({
                               {row.projectName} ▸ {row.taskName}
                             </div>
                             {!row.billable && (
-                              <Select
-                                value={row.nonBillableCategoryId || ''}
-                                onValueChange={(value) => onChangeCategory(row.rowId, value)}
-                                disabled={readonly}
-                              >
-                                <SelectTrigger className="h-7 text-xs">
-                                  <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {categories.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.id}>
-                                      {cat.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <></>
+                              // <Select
+                              //   value={row.nonBillableCategoryId || ''}
+                              //   onValueChange={(value) => onChangeCategory(row.rowId, value)}
+                              //   disabled={readonly}
+                              // >
+                              //   <SelectTrigger className="h-7 text-xs">
+                              //     <SelectValue placeholder="Select category" />
+                              //   </SelectTrigger>
+                              //   <SelectContent>
+                              //     {categories.map(cat => (
+                              //       <SelectItem key={cat.id} value={cat.id}>
+                              //         {cat.name}
+                              //       </SelectItem>
+                              //     ))}
+                              //   </SelectContent>
+                              // </Select>
                             )}
                             {getWarningsForCell(row.rowId).length > 0 && (
                               <Badge variant="destructive" className="text-xs">
