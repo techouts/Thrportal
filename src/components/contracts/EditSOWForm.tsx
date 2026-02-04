@@ -194,6 +194,9 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
+                captionLayout="dropdown"
+                fromYear={1990}
+                toYear={new Date().getFullYear() + 10}
                 selected={formData.valid_from}
                 onSelect={(date) =>
                   setFormData({ ...formData, valid_from: date })
@@ -227,6 +230,9 @@ export function EditSOWForm({ sow, onSuccess, onCancel }: EditSOWFormProps) {
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
+                captionLayout="dropdown"
+                fromYear={1990}
+                toYear={new Date().getFullYear() + 10}
                 selected={formData.valid_to}
                 onSelect={(date) =>
                   setFormData({ ...formData, valid_to: date })

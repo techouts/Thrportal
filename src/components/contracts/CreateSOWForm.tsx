@@ -259,6 +259,9 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
+                      captionLayout="dropdown"
+                      fromYear={1990}
+                      toYear={new Date().getFullYear() + 10}
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
@@ -299,6 +302,9 @@ export function CreateSOWForm({ onSuccess, onCancel }: CreateSOWFormProps) {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
+                      captionLayout="dropdown"
+                      fromYear={1990}
+                      toYear={new Date().getFullYear() + 10}
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
