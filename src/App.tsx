@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SignIn from "./pages/Auth/SignIn";
 import SignOut from "./pages/Auth/SignOut";
 import ChangePassword from "./pages/Auth/ChangePassword";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Forbidden from "./pages/Forbidden";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -67,6 +68,7 @@ function App() {
                   path="/Auth/ChangePassword"
                   element={<ChangePassword />}
                 />
+                <Route path="/Auth/ForgotPassword" element={<ForgotPassword />} />
                 <Route path="/403" element={<Forbidden />} />
 
                 {/* Home */}

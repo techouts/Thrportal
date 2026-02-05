@@ -103,6 +103,15 @@ export default function SignIn() {
               </span>
             )}
           </Button>
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => nav("/Auth/ForgotPassword")}
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot Password?
+            </button>
+          </div>
         </form>
       </div>
     </div>
