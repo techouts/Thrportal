@@ -10,14 +10,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CrmService } from '@/services/crmService';
 import { supabase } from '@/integrations/supabase/client';
+import { MSA, SOW } from '@/types/contracts';
 
 const poSchema = z.object({
   po_number: z.string().min(1, 'PO number is required'),
   client_id: z.string().min(1, 'Client is required'),
+  contract_type: z.enum(['msa', 'sow']).optional(),
+  msa_id: z.string().optional(),
+  sow_id: z.string().optional(),
   valid_from: z.date({ required_error: 'Valid from date is required' }),
   valid_to: z.date({ required_error: 'Valid to date is required' }),
   total_amount: z.number().min(0.01, 'Total amount must be greater than 0'),
@@ -42,19 +48,28 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [clients, setClients] = useState<any[]>([]);
+  const [msas, setMsas] = useState<MSA[]>([]);
+  const [sows, setSows] = useState<SOW[]>([]);
 
   const form = useForm<POFormData>({
     resolver: zodResolver(poSchema),
     defaultValues: {
       po_number: '',
       client_id: '',
+      contract_type: undefined,
+      msa_id: '',
+      sow_id: '',
       currency: 'INR',
       status: 'Draft'
     }
   });
 
+  const contractType = form.watch('contract_type');
+
   useEffect(() => {
     loadClients();
+    loadMSAs();
+    loadSOWs();
   }, []);
 
   const loadClients = async () => {
@@ -65,6 +80,35 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
       console.error('Failed to load clients', error);
     }
   };
+
+  const loadMSAs = async () => {
+    try {
+      const data = await CrmService.getMSAs();
+      setMsas(data);
+    } catch (error) {
+      console.error('Failed to load MSAs', error);
+    }
+  };
+
+  const loadSOWs = async () => {
+    try {
+      const data = await CrmService.getSOWs();
+      setSows(data);
+    } catch (error) {
+      console.error('Failed to load SOWs', error);
+    }
+  };
+
+  const handleContractTypeChange = (value: 'msa' | 'sow') => {
+    form.setValue('contract_type', value);
+    // Clear the other selection when switching
+    if (value === 'msa') {
+      form.setValue('sow_id', '');
+    } else {
+      form.setValue('msa_id', '');
+    }
+  };
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,6 +170,8 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
       await CrmService.createPO({
         poNumber: data.po_number,
         clientId: data.client_id,
+        msaId: data.contract_type === 'msa' ? data.msa_id : undefined,
+        sowId: data.contract_type === 'sow' ? data.sow_id : undefined,
         validFrom: format(data.valid_from, 'yyyy-MM-dd'),
         validTo: format(data.valid_to, 'yyyy-MM-dd'),
         totalAmount: data.total_amount,
@@ -194,6 +240,86 @@ export function CreatePOForm({ onSuccess, onCancel }: CreatePOFormProps) {
             </FormItem>
           )}
         />
+
+         {/* MSA/SOW Radio Buttons */}
+        <FormField
+          control={form.control}
+          name="contract_type"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Link to Contract</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  value={field.value || ''}
+                  onValueChange={(value) => handleContractTypeChange(value as 'msa' | 'sow')}
+                  className="flex items-center space-x-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="msa" id="msa" />
+                    <Label htmlFor="msa" className="cursor-pointer">MSA</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="sow" id="sow" />
+                    <Label htmlFor="sow" className="cursor-pointer">SOW</Label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* MSA Dropdown - shown when MSA radio is selected */}
+        {contractType === 'msa' && (
+          <FormField
+            control={form.control}
+            name="msa_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select MSA</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select MSA" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {msas.map(msa => (
+                      <SelectItem key={msa.id} value={msa.id}>{msa.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* SOW Dropdown - shown when SOW radio is selected */}
+        {contractType === 'sow' && (
+          <FormField
+            control={form.control}
+            name="sow_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select SOW</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select SOW" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {sows.map(sow => (
+                      <SelectItem key={sow.id} value={sow.id}>{sow.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormField

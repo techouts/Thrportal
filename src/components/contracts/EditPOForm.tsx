@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format, parse } from "date-fns";
 import { CalendarIcon, X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { CrmService } from "@/services/crmService";
 import { supabase } from "@/integrations/supabase/client";
+import { MSA, SOW } from "@/types/contracts";
 
 interface EditPOFormProps {
   po: any;
@@ -33,6 +34,8 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [msas, setMsas] = useState<MSA[]>([]);
+  const [sows, setSows] = useState<SOW[]>([]);
 
   const [formData, setFormData] = useState({
     po_number: po.po_number || "",
@@ -48,6 +51,29 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
     status: po.status || "Active",
     doc_link: po.doc_link || "",
   });
+
+  useEffect(() => {
+    loadMSAs();
+    loadSOWs();
+  }, []);
+
+  const loadMSAs = async () => {
+    try {
+      const data = await CrmService.getMSAs();
+      setMsas(data);
+    } catch (error) {
+      console.error('Failed to load MSAs', error);
+    }
+  };
+
+  const loadSOWs = async () => {
+    try {
+      const data = await CrmService.getSOWs();
+      setSows(data);
+    } catch (error) {
+      console.error('Failed to load SOWs', error);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -138,6 +164,8 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
         currency: formData.currency,
         status: formData.status,
         doc_link: selectedFile,
+        msaId: po.msa_id || undefined,
+        sowId: po.sow_id || undefined,
       };
 
       await CrmService.updatePO(po.id, updatePayload);
@@ -172,6 +200,27 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
           required
         />
       </div>
+      
+      {/* Display linked contract (read-only) */}
+      {(po.msa_id || po.sow_id) && (
+        <div className="space-y-2">
+          <Label>Linked Contract</Label>
+          <div className="p-3 bg-muted rounded-md">
+            {po.msa_id && (
+              <p className="text-sm">
+                <span className="font-medium">MSA:</span>{" "}
+                {msas.find(m => m.id === po.msa_id)?.title || "Loading..."}
+              </p>
+            )}
+            {po.sow_id && (
+              <p className="text-sm">
+                <span className="font-medium">SOW:</span>{" "}
+                {sows.find(s => s.id === po.sow_id)?.title || "Loading..."}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col space-y-2">
