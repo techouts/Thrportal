@@ -464,17 +464,17 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "hiring.reports.*",
 
     // Projects module - Full access
-    "projects.*",
-    "projects.manage",
+    "projects.read",
+    "projects.assignments.read",
+    "projects.tasks.read",
     "projects.bench.read",
-    "bench.*",
-    "staffing.*",
+    "projects.reports.read",
 
     // CRM module - Full access
-    "crm.*",
-    "crm.reports.export",
-    "crm.analytics.read",
-    "contracts.*",
+    "crm.read","crm.clients.read","crm.accounts.read","crm.projects.read",
+    "crm.opportunities.read","crm.interactions.read","crm.dashboard.read",
+    "crm.reports.read","crm.analytics.read",
+    "contracts.read","contracts.msa.read","contracts.sow.read","contracts.po.read",
 
     // Management module - Full access
     "ownership.*",

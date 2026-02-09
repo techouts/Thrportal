@@ -113,17 +113,17 @@ export const MENU: MenuSection[] = [
   // },
   {
     label: "CRM",
-    requiresAny: ["crm.*"],
+    requiresAny: ["crm.*", "crm.read", "crm.dashboard.read"],
     items: [
       // { label: "Dashboard", route: "/CRM/Home" },
-      { label: "Client Desk", route: "/CRM/ClientDesk" },
+      { label: "Client Desk", route: "/CRM/ClientDesk", requiresAny: ["crm.read", "crm.dashboard.read", "crm.*"]},
       {
         label: "Contracts",
         route: "/CRM/Contracts",
-        requiresAny: ["contracts.*", "crm.*"],
+        requiresAny: ["contracts.*","contracts.read", "crm.*"],
       },
-      { label: "Opportunities", route: "/CRM/Opportunities" },
-      { label: "Interactions", route: "/CRM/Interactions" },
+      { label: "Opportunities", route: "/CRM/Opportunities" , requiresAny: ["crm.read", "crm.opportunities.read", "crm.*"]},
+      { label: "Interactions", route: "/CRM/Interactions", requiresAny: ["crm.read", "crm.interactions.read", "crm.*"]},
       // { label: "Reports", route: "/CRM/Reports" },
       // { label: "Integrations", route: "/CRM/Integrations" },
       // { label: "Demo Overview", route: "/CRM/Demo" },
@@ -131,16 +131,16 @@ export const MENU: MenuSection[] = [
   },
   {
     label: "Projects",
-    requiresAny: ["projects.manage", "team.*", "projects.bench.read"],
+    requiresAny: ["projects.manage", "projects.read", "projects.assignments.read","team.*", "projects.bench.read"],
     items: [
-      { label: "Assignments", route: "/Projects/Assignments" },
-      { label: "Tasks", route: "/Projects/Tasks" },
+      { label: "Assignments", route: "/Projects/Assignments", requiresAny: ["projects.read", "projects.assignments.read", "projects.*"] },
+      { label: "Tasks", route: "/Projects/Tasks" , requiresAny: ["projects.read", "projects.assignments.read", "projects.*"]},
       {
         label: "Bench",
         route: "/Projects/Bench",
         requiresAny: ["bench.*", "projects.bench.read"],
       },
-      // { label: "Reports", route: "/Projects/Reports" },
+      // { label: "Reports", route: "/Projects/Reports",requiresAny: ["projects.read", "projects.assignments.read", "projects.*"]},
     ],
   },
   // {

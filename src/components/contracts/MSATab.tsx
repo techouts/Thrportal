@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/pagination';
 import { Plus, Search, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useVisible } from '@/hooks/useVisible';
 import { CrmService } from '@/services/crmService';
 import { CreateMSAForm } from './CreateMSAForm';
 import { EditMSAForm } from './EditMSAForm';
@@ -23,6 +24,14 @@ import type { MSA } from '@/types/contracts';
 
 export function MSATab() {
   const { toast } = useToast();
+  // Permission check for contract management actions
+  const canManageContracts = useVisible([
+    'contracts.manage',
+    'contracts.msa.create',
+    'contracts.msa.update',
+    'contracts.*',
+    'crm.*'
+  ]);
   const [msas, setMsas] = useState<MSA[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,12 +128,19 @@ export function MSATab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold">Master Service Agreements</h2>
-          <p className="text-muted-foreground">Manage framework agreements with clients</p>
+          <p className="text-muted-foreground">
+            Manage framework agreements with clients
+          </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create MSA
-        </Button>
+        {canManageContracts && (
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create MSA
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -148,8 +164,10 @@ export function MSATab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Clients</SelectItem>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -178,111 +196,146 @@ export function MSATab() {
           {loading ? (
             <div className="text-center py-8">Loading...</div>
           ) : msas.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No MSAs found</div>
+            <div className="text-center py-8 text-muted-foreground">
+              No MSAs found
+            </div>
           ) : (
             <>
               <div className="space-y-4">
                 {paginatedMSAs.map((msa) => (
-                <div key={msa.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className="font-medium truncate">{msa.title}</h3>
-                      {getStatusBadge(msa.status)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>Valid: {msa.valid_from} - {msa.valid_to}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {msa.doc_link && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={msa.doc_link} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingMSA(msa)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setMsaToDelete(msa)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {msas.length > 0 && (
-              <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Rows per page:</span>
-                  <Select
-                    value={itemsPerPage.toString()}
-                    onValueChange={(value) => {
-                      setItemsPerPage(Number(value));
-                      setCurrentPage(1);
-                    }}
+                  <div
+                    key={msa.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3"
                   >
-                    <SelectTrigger className="w-[70px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground">
-                    Showing {startIndex + 1}-{Math.min(endIndex, msas.length)} of {msas.length}
-                  </span>
-                </div>
-                
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page} className="hidden sm:inline-flex">
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    
-                    <span className="sm:hidden text-sm px-2">
-                      {currentPage} / {totalPages}
-                    </span>
-                    
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-medium truncate">{msa.title}</h3>
+                        {getStatusBadge(msa.status)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        <p>
+                          Valid: {msa.valid_from} - {msa.valid_to}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {msa.doc_link && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a
+                            href={msa.doc_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      {canManageContracts && (<>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingMSA(msa)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMsaToDelete(msa)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      </>)}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
+
+              {msas.length > 0 && (
+                <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      Rows per page:
+                    </span>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-[70px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">
+                      Showing {startIndex + 1}-{Math.min(endIndex, msas.length)}{" "}
+                      of {msas.length}
+                    </span>
+                  </div>
+
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <PaginationItem
+                            key={page}
+                            className="hidden sm:inline-flex"
+                          >
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ),
+                      )}
+
+                      <span className="sm:hidden text-sm px-2">
+                        {currentPage} / {totalPages}
+                      </span>
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1),
+                            )
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -292,7 +345,7 @@ export function MSATab() {
           <DialogHeader>
             <DialogTitle>Create MSA</DialogTitle>
           </DialogHeader>
-          <CreateMSAForm 
+          <CreateMSAForm
             clients={clients}
             onSuccess={() => {
               // Close dialog immediately for instant feedback
@@ -305,13 +358,16 @@ export function MSATab() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!editingMSA} onOpenChange={(open) => !open && setEditingMSA(null)}>
+      <Dialog
+        open={!!editingMSA}
+        onOpenChange={(open) => !open && setEditingMSA(null)}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit MSA</DialogTitle>
           </DialogHeader>
           {editingMSA && (
-            <EditMSAForm 
+            <EditMSAForm
               msa={editingMSA}
               onSuccess={() => {
                 setEditingMSA(null);

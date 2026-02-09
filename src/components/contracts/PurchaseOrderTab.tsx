@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/pagination';
 import { DeleteConfirmDialog } from '@/components/crm/dialogs/DeleteConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
+import { useVisible } from '@/hooks/useVisible';
 import { CrmService } from '@/services/crmService';
 import { CreatePOForm } from './CreatePOForm';
 import { EditPOForm } from './EditPOForm';
@@ -23,6 +24,14 @@ import type { PurchaseOrder } from '@/types/contracts';
 
 export function PurchaseOrderTab() {
   const { toast } = useToast();
+  // Permission check for contract management actions
+  const canManageContracts = useVisible([
+    'contracts.manage',
+    'contracts.po.create',
+    'contracts.po.update',
+    'contracts.*',
+    'crm.*'
+  ]);
   const [pos, setPos] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,10 +133,12 @@ export function PurchaseOrderTab() {
               <CardTitle className="text-2xl">Purchase Orders</CardTitle>
               <p className="text-muted-foreground text-sm mt-1">Track client purchase orders and budget utilization</p>
             </div>
+            {canManageContracts &&(
             <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
               <Plus className="h-4 w-4" />
               Create PO
             </Button>
+            )}
           </div>
         </CardHeader>
       </Card>
@@ -208,6 +219,8 @@ export function PurchaseOrderTab() {
                           </a>
                         </Button>
                       )}
+                      {canManageContracts && (
+                        <>
                       <Button
                         variant="outline"
                         size="sm"
@@ -222,6 +235,8 @@ export function PurchaseOrderTab() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                       </>
+                      )}
                     </div>
                   </div>
                 </div>

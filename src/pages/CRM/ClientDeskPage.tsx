@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import type { CrmClient, CrmAccount, CrmProject, CrmSpoc } from '@/types/crm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useVisible } from '@/hooks/useVisible';
 
 
 interface HierarchyNode {
@@ -83,8 +84,9 @@ export function ClientDeskPage() {
   const [showLinkSpoc, setShowLinkSpoc] = useState(false);
   const [parentContext, setParentContext] = useState<{ type: string; id: string } | null>(null);
 
-  // Permissions - Check if user has CRM access
-  const canWrite = user && user.roles?.some(r => ['ADMIN', 'FINANCE_MANAGER', 'HR_MANAGER', 'MANAGEMENT', 'STAFFING_MANAGER', 'OPERATIONS_HR'].includes(r));
+  // Permissions - Check if user has CRM access using permission-based approach
+  const canRead = useVisible(['crm.read', 'crm.clients.read', 'crm.*']);
+  const canWrite = useVisible(['crm.manage', 'crm.clients.create', 'crm.clients.update', 'crm.*']);
 
   // Breadcrumb computation
   const getBreadcrumbs = () => {
@@ -521,15 +523,15 @@ export function ClientDeskPage() {
     );
   }
 
-  // Show access message for users without CRM permissions
-  if (!user || !canWrite) {
+  // Show access message for users without CRM readpermissions
+  if (!user || !canRead) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center max-w-md">
           <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">CRM Access Required</h2>
           <p className="text-muted-foreground mb-4">
-            You need CRM access permissions to view client data. Please sign in with an account that has Admin, Finance Manager, HR Manager, Management, or Staffing Manager role.
+            You need CRM access permissions to view client data. Please sign in with an account that has the appropriate CRM permissions.
           </p>
           {!user && (
             <Button onClick={() => navigate('/auth')} className="mt-4">
@@ -593,6 +595,7 @@ export function ClientDeskPage() {
             </Select>
 
             {/* New Dropdown - Only shows New Client */}
+            {canWrite && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size={isMobile ? "sm" : "default"}>
@@ -607,6 +610,7 @@ export function ClientDeskPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
@@ -762,10 +766,12 @@ export function ClientDeskPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">People</CardTitle>
+                        {canWrite && (
                         <Button size="sm" onClick={() => setShowLinkSpoc(true)}>
                           <Plus className="h-4 w-4 mr-1" />
                           Link SPOC
                         </Button>
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -792,9 +798,11 @@ export function ClientDeskPage() {
                         <div className="text-center py-8">
                           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <p className="text-muted-foreground">No SPOCs linked</p>
+                          {canWrite && (
                           <Button size="sm" className="mt-2" onClick={() => setShowLinkSpoc(true)}>
                             Link First SPOC
                           </Button>
+                          )}
                         </div>
                       )}
                     </CardContent>
@@ -808,7 +816,7 @@ export function ClientDeskPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {selectedNode.type === 'client' && (
+                          {selectedNode.type === 'client' && canWrite && (
                             <>
                               <Button 
                                 variant="outline" 
@@ -834,7 +842,7 @@ export function ClientDeskPage() {
                               </Button>
                             </>
                           )}
-                          {selectedNode.type === 'account' && (
+                          {selectedNode.type === 'account' && canWrite && (
                             <Button 
                               variant="outline" 
                               className="h-16 flex-col gap-2"
@@ -858,6 +866,7 @@ export function ClientDeskPage() {
                     entity={selectedNode.data}
                     entityType={selectedNode.type}
                     onSave={loadData}
+                    readOnly={!canWrite}
                   />
                 </TabsContent>
 
@@ -866,10 +875,12 @@ export function ClientDeskPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle>SPOCs</CardTitle>
+                        {canWrite && (
                         <Button onClick={() => setShowLinkSpoc(true)}>
                           <Plus className="h-4 w-4 mr-2" />
                           Link SPOC
                         </Button>
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -911,10 +922,12 @@ export function ClientDeskPage() {
                           <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                           <h3 className="text-lg font-medium mb-2">No SPOCs linked</h3>
                           <p className="text-muted-foreground mb-4">Link contacts to manage communication</p>
+                          {canWrite && (
                           <Button onClick={() => setShowLinkSpoc(true)}>
                             <Plus className="h-4 w-4 mr-2" />
                             Link First SPOC
                           </Button>
+                          )}
                         </div>
                       )}
                     </CardContent>
@@ -929,10 +942,12 @@ export function ClientDeskPage() {
                 <Building className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                 <h2 className="text-2xl font-semibold mb-2">Welcome to Client Desk</h2>
                 <p className="text-muted-foreground mb-6">Select a client, account, or project to get started</p>
+                {canWrite && (
                 <Button onClick={() => setShowCreateClient(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Your First Client
                 </Button>
+                )}
               </div>
             </div>
           )}

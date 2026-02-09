@@ -667,7 +667,7 @@ function App() {
                 <Route
                   path="/CRM/Contracts"
                   element={
-                    <ProtectedRoute required={["contracts.*"]}>
+                    <ProtectedRoute required={["contracts.*","contracts.read"]}>
                       <MainLayout>
                         <CRMContractsPage />
                       </MainLayout>

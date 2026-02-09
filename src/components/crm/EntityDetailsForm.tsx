@@ -19,12 +19,14 @@ interface EntityDetailsFormProps {
   entity: CrmClient | CrmAccount | CrmProject;
   entityType: "client" | "account" | "project";
   onSave: () => void;
+  readOnly?: boolean;
 }
 
 export function EntityDetailsForm({
   entity,
   entityType,
   onSave,
+  readOnly = false,
 }: EntityDetailsFormProps) {
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
@@ -85,6 +87,7 @@ export function EntityDetailsForm({
               value={formData.name || ""}
               onChange={(e) => handleChange("name", e.target.value)}
               className="mt-1"
+              disabled = {readOnly}
             />
           </div>
 
@@ -94,6 +97,7 @@ export function EntityDetailsForm({
               <Select
                 value={formData.status || "Active"}
                 onValueChange={(value) => handleChange("status", value)}
+                disabled = {readOnly}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
@@ -116,6 +120,7 @@ export function EntityDetailsForm({
                 <Select
                   value={formData.status || "Planned"}
                   onValueChange={(value) => handleChange("status", value)}
+                  disabled = {readOnly}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -133,6 +138,7 @@ export function EntityDetailsForm({
                 <Select
                   value={formData.priority || "Medium"}
                   onValueChange={(value) => handleChange("priority", value)}
+                  disabled = {readOnly}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -156,6 +162,7 @@ export function EntityDetailsForm({
                   value={formData.industry || ""}
                   onChange={(e) => handleChange("industry", e.target.value)}
                   className="mt-1"
+                  disabled = {readOnly}
                 />
               </div>
               <div>
@@ -164,6 +171,8 @@ export function EntityDetailsForm({
                   value={formData.region || ""}
                   onChange={(e) => handleChange("region", e.target.value)}
                   className="mt-1"
+              disabled = {readOnly}
+
                 />
               </div>
               <div>
@@ -172,6 +181,8 @@ export function EntityDetailsForm({
                   value={formData.domain || ""}
                   onChange={(e) => handleChange("domain", e.target.value)}
                   className="mt-1"
+              disabled = {readOnly}
+
                 />
               </div>
               <div>
@@ -180,6 +191,8 @@ export function EntityDetailsForm({
                   value={formData.gst_vat || ""}
                   onChange={(e) => handleChange("gst_vat", e.target.value)}
                   className="mt-1"
+              disabled = {readOnly}
+
                 />
               </div>
               <div>
@@ -190,6 +203,8 @@ export function EntityDetailsForm({
                     handleChange("contract_type", e.target.value)
                   }
                   className="mt-1"
+              disabled = {readOnly}
+
                 />
               </div>
               {formData.files?.length > 0 && (
@@ -227,6 +242,8 @@ export function EntityDetailsForm({
                   value={formData.type || ""}
                   onChange={(e) => handleChange("type", e.target.value)}
                   className="mt-1"
+              disabled = {readOnly}
+
                 />
               </div>
               <div>
@@ -235,14 +252,17 @@ export function EntityDetailsForm({
                   value={formData.sla_override || ""}
                   onChange={(e) => handleChange("sla_override", e.target.value)}
                   className="mt-1"
+              disabled = {readOnly}
+
                 />
               </div>
             </>
           )}
-
+         {!readOnly && (
           <Button onClick={handleSave} disabled={loading || !formData.name}>
             {loading ? "Saving..." : "Save Changes"}
           </Button>
+          )}
         </div>
       </CardContent>
     </Card>

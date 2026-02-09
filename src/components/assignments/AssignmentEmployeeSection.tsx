@@ -10,13 +10,20 @@ import { useToast } from '@/hooks/use-toast';
 import { allocationService, EmployeeDetails, EmployeeAllocation, ResourceOption } from '@/services/allocationService';
 import { AddProjectDialog } from '@/components/assignments/AddProjectDialog';
 import { EditEmployeeAllocationDialog } from '@/components/assignments/EditEmployeeAllocationDialog';
-
+import { useVisible } from '@/hooks/useVisible';
 interface AssignmentEmployeeSectionProps {
   preSelectedEmployeeId?: string | null;
 }
 
 export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentEmployeeSectionProps) {
   const { toast } = useToast();
+  // Permission check for managing allocations (add/edit)
+  const canManageAllocations = useVisible([
+    'projects.manage', 
+    'projects.allocations.create', 
+    'projects.allocations.update',
+    'projects.*'
+  ]);
   
   // Search state
   const [employeeSearch, setEmployeeSearch] = useState('');
@@ -225,12 +232,14 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
                       )}
                     </div>
                   </div>
-                  <div className="sm:ml-auto">
-                    <Button onClick={handleAddProject} className="flex items-center gap-2 w-full sm:w-auto">
-                      <Plus className="h-4 w-4" />
-                      Add Project
-                    </Button>
-                  </div>
+                  {canManageAllocations && (
+                    <div className="sm:ml-auto">
+                      <Button onClick={handleAddProject} className="flex items-center gap-2 w-full sm:w-auto">
+                        <Plus className="h-4 w-4" />
+                        Add Project
+                      </Button>
+                    </div>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -288,15 +297,17 @@ export function AssignmentEmployeeSection({ preSelectedEmployeeId }: AssignmentE
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditAllocation(allocation)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
+                       {canManageAllocations && (
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEditAllocation(allocation)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

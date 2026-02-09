@@ -20,9 +20,18 @@ import { CrmService } from '@/services/crmService';
 import { CreateSOWForm } from './CreateSOWForm';
 import { EditSOWForm } from './EditSOWForm';
 import type { SOW } from '@/types/contracts';
+import { useVisible } from '@/hooks/useVisible';
 
 export function SOWTab() {
   const { toast } = useToast();
+  // Permission check for contract management actions
+  const canManageContracts = useVisible([
+    'contracts.manage',
+    'contracts.sow.create',
+    'contracts.sow.update',
+    'contracts.*',
+    'crm.*'
+  ]);
   const [sows, setSows] = useState<SOW[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,10 +133,12 @@ export function SOWTab() {
               <CardTitle className="text-2xl">Statements of Work</CardTitle>
               <p className="text-muted-foreground text-sm mt-1">Manage project-specific work agreements</p>
             </div>
+            {canManageContracts && (
             <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
               <Plus className="h-4 w-4" />
               Create SOW
             </Button>
+            )}
           </div>
         </CardHeader>
       </Card>
@@ -200,6 +211,8 @@ export function SOWTab() {
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {canManageContracts && (
+                        <>
                       <Button
                         variant="outline"
                         size="sm"
@@ -214,6 +227,8 @@ export function SOWTab() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                      </>
+                      )}
                     </div>
                   </div>
                 </div>

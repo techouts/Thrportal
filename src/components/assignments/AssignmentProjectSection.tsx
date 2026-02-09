@@ -14,6 +14,7 @@ import { AddResourceDialog } from "@/components/assignments/AddResourceDialog";
 import { EditAllocationDialog } from "@/components/assignments/EditAllocationDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import NodeApiClient from "@/services/nodeApiClient";
+import { useVisible } from '@/hooks/useVisible';
 
 interface ProjectAllocation {
   id: string;
@@ -28,6 +29,13 @@ interface ProjectAllocation {
 
 export function AssignmentProjectSection() {
   const { toast } = useToast();
+  // Permission check for managing allocations (add/edit)
+  const canManageAllocations = useVisible([
+    'projects.manage', 
+    'projects.allocations.create', 
+    'projects.allocations.update',
+    'projects.*'
+  ]);
   const [selectedClient, setSelectedClient] = useState<string>("");
   const [selectedAccount, setSelectedAccount] = useState<string>("");
   const [selectedProject, setSelectedProject] = useState<string>("");
@@ -330,14 +338,12 @@ export function AssignmentProjectSection() {
                     <Badge variant="secondary">
                       {allocations.length} resources
                     </Badge>
-                    <Button
-                      onClick={handleAddResource}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Resource
-                    </Button>
+                   {canManageAllocations && (
+                      <Button onClick={handleAddResource} size="sm" className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add Resource
+                      </Button>
+                    )}
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -348,10 +354,12 @@ export function AssignmentProjectSection() {
                     <p className="text-muted-foreground mb-4">
                       No allocations found for this project
                     </p>
-                    <Button onClick={handleAddResource}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Resource
-                    </Button>
+                   {canManageAllocations && (
+                      <Button onClick={handleAddResource}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add First Resource
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -411,15 +419,17 @@ export function AssignmentProjectSection() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditClick(allocation)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
+                       {canManageAllocations && (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditClick(allocation)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
