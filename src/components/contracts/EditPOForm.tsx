@@ -383,6 +383,14 @@ export function EditPOForm({ po, onSuccess, onCancel }: EditPOFormProps) {
                   Current Document: {file.file_name}
                 </span>
                 <a
+                  href={`https://hrportal.coventic.com:7783${file.file_view_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  View
+                </a>
+                <a
                   href={`https://hrportal.coventic.com:7783${file.file_download_url}`}
                   target="_blank"
                   rel="noopener noreferrer"
