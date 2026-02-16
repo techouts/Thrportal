@@ -181,7 +181,8 @@ export function TimesheetFill({ employeeId }: TimesheetFillProps) {
 
   const loadProjects = async () => {
     try {
-      const data = await timesheetService.getAssignedProjects(employeeId)
+      const weekStartStr = format(selectedWeek, 'yyyy-MM-dd')
+      const data = await timesheetService.getAssignedProjects(employeeId,weekStartStr)
       setProjects(data)
     } catch (error) {
       console.error('Failed to load projects:', error)

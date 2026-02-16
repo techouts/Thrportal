@@ -143,6 +143,7 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
   useEffect(() => {
     if (selectedWeek) {
       loadTimesheet()
+      loadProjects()
       checkCanCopyLastWeek()
     }
   }, [selectedWeek, employeeId])
@@ -202,7 +203,8 @@ export function TimesheetHistory({ employeeId }: TimesheetHistoryProps) {
 
   const loadProjects = async () => {
     try {
-      const data = await timesheetService.getAssignedProjects(employeeId)
+      const weekStartStr = selectedWeek ? format(selectedWeek, 'yyyy-MM-dd') : undefined
+      const data = await timesheetService.getAssignedProjects(employeeId,weekStartStr)
       setProjects(data)
     } catch (error) {
       console.error('Failed to load projects:', error)

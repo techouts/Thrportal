@@ -474,9 +474,13 @@ export class TimesheetService {
     return mockNonBillableCategories;
   }
 
-  async getAssignedProjects(employeeId: string): Promise<ProjectAssignment[]> {
+  async getAssignedProjects(employeeId: string, weekStart?: string): Promise<ProjectAssignment[]> {
     try {
-      const today = format(new Date(), "yyyy-MM-dd");
+      // const today = format(new Date(), "yyyy-MM-dd");
+      const filterStart = weekStart || format(new Date(), 'yyyy-MM-dd')
+      const filterEnd = weekStart 
+        ? format(addDays(parseISO(weekStart), 6), 'yyyy-MM-dd')
+        : filterStart
 
       // Get project IDs from both allocations and contract_assignments
       const [allocationsResult, contractsResult] = await Promise.all([
@@ -491,8 +495,8 @@ export class TimesheetService {
           params: {
             employee_id: employeeId,
             types: "ACTIVE,SHADOW",
-            end_date_gte: today,
-            start_date: today,
+            end_date_gte: filterEnd,
+            start_date: filterStart,
           },
         }),
 
@@ -506,7 +510,7 @@ export class TimesheetService {
         NodeApiClient.get("/tasks/contract/assignments", {
           params: {
             employee_id: employeeId,
-            start_date: today, // backend applies lte(start_date) + end_date null/gte
+            start_date: filterStart, // backend applies lte(start_date) + end_date null/gte
           },
         }),
       ]);
@@ -548,7 +552,7 @@ export class TimesheetService {
         {
           params: {
             projectId: projectIds.join(","), // IN (...)
-            status: "Planned,Active,In-flight",
+            // status: "Planned,Active,In-flight",
           },
         }
       );
