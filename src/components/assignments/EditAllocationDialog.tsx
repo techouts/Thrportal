@@ -185,6 +185,9 @@ export function EditAllocationDialog({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
+                    captionLayout="dropdown"
+                    fromYear={2000}
+                    toYear={new Date().getFullYear() + 10}
                     selected={startDate}
                     onSelect={(date) => {
                       setStartDate(date);
@@ -216,6 +219,9 @@ export function EditAllocationDialog({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
+                    captionLayout="dropdown"
+                    fromYear={2000}
+                    toYear={new Date().getFullYear() + 10}
                     selected={endDate}
                     onSelect={(date) => {
                       setEndDate(date);
