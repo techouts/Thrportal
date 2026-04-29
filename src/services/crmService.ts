@@ -126,13 +126,22 @@ export class CrmService {
     };
   }
 
-  static async createClient(
-    client: Omit<CrmClient, "id" | "created_at" | "updated_at">
-  ) {
+  static async createClient(client, selectedFile?: File) {
+    const formData = new FormData();
+    // const selectedFile = client.sla_reference_url;
+    formData.append("data", JSON.stringify(client));
+    if (selectedFile) formData.append("files", selectedFile);
+    // formData.append("data", JSON.stringify(client)); // JSON payload as string
     try {
       const response = await CrmApiClient.post<CrmClient>(
         "/crm/clients/createClient",
-        client
+        formData,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": undefined,
+          },
+        }
       );
       return response.data as CrmClient;
     } catch (error) {
@@ -637,7 +646,12 @@ export class CrmService {
   }
 
   // Interactions
-  static async getInteractions(filters?: { page?: number; limit?: number }) {
+  static async getInteractions(filters?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
+  }) {
     try {
       // const mappedFilters: Record<string, string> = {};
 
@@ -1038,7 +1052,7 @@ export class CrmService {
   ): Promise<MSA> {
     // Create FormData to match curl
     const formData = new FormData();
-    if (selectedFile) formData.append("file", selectedFile);
+    if (selectedFile) formData.append("files", selectedFile);
     formData.append("data", JSON.stringify(msa)); // JSON payload as string
 
     try {
@@ -1069,7 +1083,7 @@ export class CrmService {
     // Create FormData to match curl
     const formData = new FormData();
     const selectedFile = updates.doc_link;
-    if (selectedFile) formData.append("file", selectedFile);
+    if (selectedFile) formData.append("files", selectedFile);
     formData.append("data", JSON.stringify(updates)); // JSON payload as string
     try {
       const response = await CrmApiClient.put(
@@ -1146,7 +1160,7 @@ export class CrmService {
   ): Promise<SOW> {
     // Create FormData to match curl
     const formData = new FormData();
-    if (selectedFile) formData.append("file", selectedFile);
+    if (selectedFile) formData.append("files", selectedFile);
     formData.append("data", JSON.stringify(sow)); // JSON payload as string
 
     try {
@@ -1177,7 +1191,7 @@ export class CrmService {
     // Create FormData to match curl
     const formData = new FormData();
     const selectedFile = updates.doc_link;
-    if (selectedFile) formData.append("file", selectedFile);
+    if (selectedFile) formData.append("files", selectedFile);
     formData.append("data", JSON.stringify(updates)); // JSON payload as string
     try {
       const response = await CrmApiClient.put(
@@ -1254,7 +1268,7 @@ export class CrmService {
   ): Promise<PurchaseOrder> {
     // Create FormData to match curl
     const formData = new FormData();
-    if (selectedFile) formData.append("file", selectedFile);
+    if (selectedFile) formData.append("files", selectedFile);
     formData.append("data", JSON.stringify(po)); // JSON payload as string
 
     try {
@@ -1287,7 +1301,7 @@ export class CrmService {
   ): Promise<PurchaseOrder> {
     const formData = new FormData();
     const selectedFile = updates.doc_link;
-    if (selectedFile) formData.append("file", selectedFile);
+    if (selectedFile) formData.append("files", selectedFile);
     formData.append("data", JSON.stringify(updates)); // JSON payload as string
     try {
       const response = await CrmApiClient.put(

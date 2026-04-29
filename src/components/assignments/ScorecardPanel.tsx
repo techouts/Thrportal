@@ -101,22 +101,10 @@ export function ScorecardPanel({ type, data }: ScorecardPanelProps) {
               </div>
               <span className="text-sm">{data.actualHours}/{data.plannedHours}h</span>
             </div>
-            <Progress value={(data.actualHours / data.plannedHours) * 100} className="w-full h-2" />
+            <Progress value={(data.actualHours / data.plannedHours) * 100 || 0} className="w-full h-2" />
             <span className="text-xs text-muted-foreground">
-              {((data.actualHours / data.plannedHours) * 100).toFixed(1)}% completion
+              {data.plannedHours > 0 ? ((data.actualHours / data.plannedHours) * 100).toFixed(1) : 0}% completion
             </span>
-          </div>
-
-          {/* Average Utilization */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Avg Utilization</span>
-              </div>
-              <span className="font-semibold">{data.avgUtilization.toFixed(1)}%</span>
-            </div>
-            <Progress value={data.avgUtilization} className="w-full h-2" />
           </div>
         </CardContent>
       </Card>

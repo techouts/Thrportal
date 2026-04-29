@@ -9,10 +9,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Search, Plus, Filter, MoreVertical } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useAuth } from '@/auth/AuthContext'
+import { InviteEmployeeModal } from './InviteEmployeeModal'
+
+const INVITE_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER'])
 
 export const EmployeeList = () => {
   const { employees, filteredEmployees, loading, error, filters, actions } = useEmployees()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const { user } = useAuth()
+  const canInvite = !!user && INVITE_ROLES.has(user.role)
 
   const handleSearch = (value: string) => {
     actions.updateFilters({ search: value })
@@ -86,11 +93,20 @@ export const EmployeeList = () => {
             Manage your team members and their information
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Employee
-        </Button>
+        {canInvite && (
+          <Button onClick={() => setInviteOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Employee
+          </Button>
+        )}
       </div>
+
+      <InviteEmployeeModal
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        onInvited={() => actions.loadEmployees?.()}
+      />
+
 
       {/* Filters */}
       <Card>

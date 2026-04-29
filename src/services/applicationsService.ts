@@ -392,6 +392,97 @@ export class ApplicationsService {
     }))
   }
 
+  // Search candidates for application creation
+  static async searchCandidatesForApplication(filters: {
+    candidateId?: string
+    name?: string
+    poolTag?: string
+    skills?: string[]
+  }): Promise<Array<{ id: string; name: string; email: string; pool_tag: string; skills: string[] }>> {
+    let query = supabase
+      .from('candidates')
+      .select('id, name, first_name, last_name, email, pool_tag, skills')
+
+    if (filters.candidateId) {
+      query = query.ilike('id', `%${filters.candidateId}%`)
+    }
+    if (filters.name) {
+      query = query.or(`name.ilike.%${filters.name}%,first_name.ilike.%${filters.name}%,last_name.ilike.%${filters.name}%`)
+    }
+    if (filters.poolTag) {
+      query = query.eq('pool_tag', filters.poolTag)
+    }
+    if (filters.skills && filters.skills.length > 0) {
+      // ANY match - overlaps checks if arrays have any common element
+      query = query.overlaps('skills', filters.skills)
+    }
+
+    const { data, error } = await query.limit(50)
+    if (error) throw error
+
+    return (data || []).map(c => ({
+      id: c.id,
+      name: c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Unnamed',
+      email: c.email,
+      pool_tag: c.pool_tag || 'General',
+      skills: c.skills || []
+    }))
+  }
+
+  // Search JDs for application creation
+  static async searchJDsForApplication(filters: {
+    jdId?: string
+    jobTitle?: string
+    clientName?: string
+    accountName?: string
+    projectName?: string
+  }): Promise<Array<{ id: string; job_title: string; client_name: string; account_name: string; project_name: string }>> {
+    let query = supabase
+      .from('jd_approvals')
+      .select('id, job_title, client_name, account_name, project_name')
+      .eq('status', 'Active')
+      .eq('approval_status', 'approved')
+
+    if (filters.jdId) {
+      query = query.ilike('id', `%${filters.jdId}%`)
+    }
+    if (filters.jobTitle) {
+      query = query.ilike('job_title', `%${filters.jobTitle}%`)
+    }
+    if (filters.clientName) {
+      query = query.ilike('client_name', `%${filters.clientName}%`)
+    }
+    if (filters.accountName) {
+      query = query.ilike('account_name', `%${filters.accountName}%`)
+    }
+    if (filters.projectName) {
+      query = query.ilike('project_name', `%${filters.projectName}%`)
+    }
+
+    const { data, error } = await query.limit(50)
+    if (error) throw error
+
+    return (data || []).map(jd => ({
+      id: jd.id,
+      job_title: jd.job_title || 'Untitled',
+      client_name: jd.client_name || '',
+      account_name: jd.account_name || '',
+      project_name: jd.project_name || ''
+    }))
+  }
+
+  // Get distinct pool tags for dropdown
+  static async getDistinctPoolTags(): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('pool_tag')
+
+    if (error) throw error
+
+    const uniqueTags = [...new Set((data || []).map(c => c.pool_tag).filter(Boolean))]
+    return uniqueTags.sort()
+  }
+
   static async getAllCandidates(): Promise<Array<{ id: string; name: string; email: string; status: string; skills: string[] }>> {
     const { data, error } = await supabase
       .from('candidates')

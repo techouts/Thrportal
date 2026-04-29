@@ -116,21 +116,25 @@ export function PurchaseOrderTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Purchase Orders</h2>
-          <p className="text-muted-foreground">Track client purchase orders and budget utilization</p>
-        </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create PO
-        </Button>
-      </div>
+<div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl">Purchase Orders</CardTitle>
+              <p className="text-muted-foreground text-sm mt-1">Track client purchase orders and budget utilization</p>
+            </div>
+            <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto flex items-center justify-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create PO
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -142,28 +146,30 @@ export function PurchaseOrderTab() {
                 />
               </div>
             </div>
-            <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Client" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-                {clients.map(client => (
-                  <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="expired">Expired</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Select value={selectedClient} onValueChange={setSelectedClient}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Client" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full sm:w-[150px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -181,20 +187,20 @@ export function PurchaseOrderTab() {
             <div className="space-y-4">
               {paginatedPOs.map((po) => (
                 <div key={po.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium">{po.po_number}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-medium truncate">{po.po_number}</h3>
                         {getStatusBadge(po.status)}
                       </div>
-                      <div className="text-sm text-muted-foreground mb-3">
+                      <div className="text-sm text-muted-foreground">
                         <p>Valid: {po.valid_from} - {po.valid_to}</p>
                         <p>Total: {po.total_amount} {po.currency}</p>
                         <p>Remaining: {po.remaining_amount} {po.currency}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {po.doc_link && (
                         <Button variant="outline" size="sm" asChild>
                           <a href={po.doc_link} target="_blank" rel="noopener noreferrer">
@@ -224,8 +230,8 @@ export function PurchaseOrderTab() {
           )}
 
           {pos.length > 0 && (
-            <div className="mt-6 flex items-center justify-between border-t pt-4">
-              <div className="flex items-center gap-2">
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t pt-4">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">Rows per page:</span>
                 <Select
                   value={itemsPerPage.toString()}
@@ -259,7 +265,7 @@ export function PurchaseOrderTab() {
                   </PaginationItem>
                   
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
+                    <PaginationItem key={page} className="hidden sm:inline-flex">
                       <PaginationLink
                         onClick={() => setCurrentPage(page)}
                         isActive={currentPage === page}
@@ -269,6 +275,10 @@ export function PurchaseOrderTab() {
                       </PaginationLink>
                     </PaginationItem>
                   ))}
+                  
+                  <span className="sm:hidden text-sm px-2">
+                    {currentPage} / {totalPages}
+                  </span>
                   
                   <PaginationItem>
                     <PaginationNext

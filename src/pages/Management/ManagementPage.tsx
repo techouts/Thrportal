@@ -1,9 +1,10 @@
 import { PageHeader } from '@/components/shared/PageHeader'
-import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { moduleRegistry } from '@/lib/moduleRegistry'
 import { PrimaryFollowUpQueue } from '@/components/hiring/ownership/tabs/PrimaryFollowUpQueue'
 import { EscalationsTab } from '@/components/hiring/ownership/tabs/EscalationsTab'
+import { ManagementDashboard } from '@/features/management/ManagementDashboard'
+import { ManagementViewData } from '@/features/management/ManagementViewData'
 
 interface ManagementPageProps {
   defaultTab: string
@@ -31,18 +32,17 @@ export default function ManagementPage({ defaultTab }: ManagementPageProps) {
       <Tabs defaultValue={defaultTab.toLowerCase()} className="space-y-6">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="viewdata">View Data</TabsTrigger>
           <TabsTrigger value="primaryqueues">Primary Queues</TabsTrigger>
           <TabsTrigger value="escalations">Escalations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-muted-foreground">
-                Management dashboard overview will be displayed here.
-              </p>
-            </CardContent>
-          </Card>
+          <ManagementDashboard />
+        </TabsContent>
+
+        <TabsContent value="viewdata">
+          <ManagementViewData />
         </TabsContent>
 
         <TabsContent value="primaryqueues">

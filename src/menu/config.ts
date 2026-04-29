@@ -69,7 +69,6 @@ export const MENU: MenuSection[] = [
       { label: "Applications",    route: "/Hiring/Applications" },
       { label: "Pipeline",        route: "/Hiring/Pipeline" },
       { label: "Scheduling",      route: "/Hiring/Scheduling" },
-      { label: "FollowUp",        route: "/Hiring/FollowUp" },
       { label: "Settings",        route: "/Hiring/Settings" }
     ] 
   },
@@ -90,11 +89,9 @@ export const MENU: MenuSection[] = [
   { 
     label: "Projects", 
     items: [ 
-      { label: "Project Board", route: "/Projects/Board" },
       { label: "Assignments", route: "/Projects/Assignments" },
       { label: "Tasks", route: "/Projects/Tasks" },
       { label: "Bench", route: "/Projects/Bench", requiresAny: ["bench.*", "projects.bench.read"] },
-      { label: "Client Desk", route: "/CRM/ClientDesk" },
       { label: "Reports", route: "/Projects/Reports" }
     ] 
   },

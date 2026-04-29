@@ -1,0 +1,25 @@
+-- Fix RLS UPDATE policy to include WITH CHECK clause
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
+CREATE POLICY "Users can update their own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+-- Populate all 18 profiles with correct data
+UPDATE profiles SET role_title = 'System Administrator', date_of_joining = '2019-01-15', band = 'A1', manager_employee_id = NULL, notice_period = '3 months' WHERE email = 'admin@demo.com';
+UPDATE profiles SET role_title = 'Staffing Manager', date_of_joining = '2020-03-10', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'hrlead@demo.com'), notice_period = '2 months' WHERE email = 'sara.staffingmgr@demo.com';
+UPDATE profiles SET role_title = 'Hiring Manager', date_of_joining = '2021-06-20', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'sara.staffingmgr@demo.com'), notice_period = '2 months' WHERE email = 'hiring.manager@demo.com';
+UPDATE profiles SET role_title = 'Recruiter', date_of_joining = '2022-02-14', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'hr.manager@demo.com'), notice_period = '1 month' WHERE email = 'recruiter@demo.com';
+UPDATE profiles SET role_title = 'Management Lead', date_of_joining = '2020-07-01', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '3 months' WHERE email = 'management@demo.com';
+UPDATE profiles SET role_title = 'Employee', date_of_joining = '2023-01-10', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'projectlead@demo.com'), notice_period = '1 month' WHERE email = 'employee@demo.com';
+UPDATE profiles SET role_title = 'Manager', date_of_joining = '2021-11-05', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '2 months' WHERE email = 'manager@demo.com';
+UPDATE profiles SET role_title = 'IT Support Specialist', date_of_joining = '2022-09-12', band = 'B3', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '1 month' WHERE email = 'it@demo.com';
+UPDATE profiles SET role_title = 'Marketing Specialist', date_of_joining = '2023-04-18', band = 'B3', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '1 month' WHERE email = 'marketing@demo.com';
+UPDATE profiles SET role_title = 'Project Lead', date_of_joining = '2020-08-25', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'delivery.head@demo.com'), notice_period = '2 months' WHERE email = 'projectlead@demo.com';
+UPDATE profiles SET role_title = 'IT Administrator', date_of_joining = '2019-12-03', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '2 months' WHERE email = 'itadmin@demo.com';
+UPDATE profiles SET role_title = 'Delivery Head', date_of_joining = '2019-05-20', band = 'A2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '3 months' WHERE email = 'delivery.head@demo.com';
+UPDATE profiles SET role_title = 'HR Lead', date_of_joining = '2019-08-15', band = 'A2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '3 months' WHERE email = 'hrlead@demo.com';
+UPDATE profiles SET role_title = 'HR Manager', date_of_joining = '2020-10-12', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'hrlead@demo.com'), notice_period = '2 months' WHERE email = 'hr.manager@demo.com';
+UPDATE profiles SET role_title = 'Finance Manager', date_of_joining = '2019-11-08', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '2 months' WHERE email = 'finance.manager@demo.com';
+UPDATE profiles SET role_title = 'Payroll Specialist', date_of_joining = '2021-03-22', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'finance.manager@demo.com'), notice_period = '1 month' WHERE email = 'payroll@demo.com';
+UPDATE profiles SET role_title = 'Finance Analyst', date_of_joining = '2022-07-14', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'finance.manager@demo.com'), notice_period = '1 month' WHERE email = 'finance@demo.com';
+UPDATE profiles SET role_title = 'Compliance Auditor', date_of_joining = '2020-02-28', band = 'B2', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '2 months' WHERE email = 'auditor@demo.com';
+UPDATE profiles SET role_title = 'Data Protection Officer', date_of_joining = '2021-01-11', band = 'B1', manager_employee_id = (SELECT id FROM profiles WHERE email = 'admin@demo.com'), notice_period = '2 months' WHERE email = 'dpo@demo.com';

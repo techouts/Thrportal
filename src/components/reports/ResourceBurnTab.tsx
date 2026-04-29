@@ -56,14 +56,14 @@ export function ResourceBurnTab() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Controls */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
               <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
                   <SelectValue placeholder="All Employees" />
                 </SelectTrigger>
                 <SelectContent>
@@ -73,7 +73,7 @@ export function ResourceBurnTab() {
                 </SelectContent>
               </Select>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
@@ -84,7 +84,7 @@ export function ResourceBurnTab() {
                 </SelectContent>
               </Select>
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-full sm:w-[140px] md:w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -94,7 +94,7 @@ export function ResourceBurnTab() {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2 w-full sm:w-auto">
               <Download className="h-4 w-4" />
               Export
             </Button>
@@ -103,7 +103,7 @@ export function ResourceBurnTab() {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <KPICard
           title="Avg Burn Hours/Week"
           value={`${kpiData.avgBurnHoursPerWeek}h`}
@@ -153,7 +153,7 @@ export function ResourceBurnTab() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Burn by Employee */}
         <Card>
           <CardHeader>
@@ -214,7 +214,7 @@ export function ResourceBurnTab() {
         <CardContent>
           <div className="space-y-4">
             {overallocatedEmployees.map((employee) => (
-              <div key={employee.name} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={employee.name} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
@@ -225,24 +225,26 @@ export function ResourceBurnTab() {
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Allocation</div>
-                  <Badge variant="destructive">{employee.allocation}%</Badge>
-                </div>
+                <div className="flex flex-wrap gap-4 md:gap-6 items-center">
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Allocation</div>
+                    <Badge variant="destructive">{employee.allocation}%</Badge>
+                  </div>
 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Projects</div>
-                  <div className="text-lg">{employee.projects}</div>
-                </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Projects</div>
+                    <div className="text-lg">{employee.projects}</div>
+                  </div>
 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Last Update</div>
-                  <div className="text-sm">{employee.lastUpdate}</div>
-                </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Last Update</div>
+                    <div className="text-sm">{employee.lastUpdate}</div>
+                  </div>
 
-                <Button size="sm" variant="outline">
-                  Rebalance
-                </Button>
+                  <Button size="sm" variant="outline">
+                    Rebalance
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -257,7 +259,7 @@ export function ResourceBurnTab() {
         <CardContent>
           <div className="space-y-4">
             {underutilizedEmployees.map((employee) => (
-              <div key={employee.name} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={employee.name} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
@@ -268,28 +270,30 @@ export function ResourceBurnTab() {
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="text-sm font-medium">Utilization</div>
-                  <Badge variant="secondary">{employee.utilization}%</Badge>
-                </div>
-
-                <div className="text-center">
-                  <div className="text-sm font-medium">Bench Days</div>
-                  <div className="text-lg">{employee.benchDays}</div>
-                </div>
-
-                <div className="flex-1 max-w-[200px]">
-                  <div className="text-sm font-medium mb-2">Skill Gaps</div>
-                  <div className="flex gap-1 flex-wrap">
-                    {employee.skillGaps.map((skill) => (
-                      <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
-                    ))}
+                <div className="flex flex-wrap gap-4 md:gap-6 items-center">
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Utilization</div>
+                    <Badge variant="secondary">{employee.utilization}%</Badge>
                   </div>
-                </div>
 
-                <Button size="sm" variant="outline">
-                  Upskill
-                </Button>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">Bench Days</div>
+                    <div className="text-lg">{employee.benchDays}</div>
+                  </div>
+
+                  <div className="flex-1 max-w-[200px]">
+                    <div className="text-sm font-medium mb-2">Skill Gaps</div>
+                    <div className="flex gap-1 flex-wrap">
+                      {employee.skillGaps.map((skill) => (
+                        <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button size="sm" variant="outline">
+                    Upskill
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

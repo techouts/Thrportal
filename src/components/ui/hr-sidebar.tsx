@@ -99,11 +99,17 @@ const getIconForRoute = (routeName: string) => {
 }
 
 export function HRSidebar() {
-  const { state } = useSidebar()
+  const { state, setOpenMobile, isMobile } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
   const collapsed = state === "collapsed"
   const { user, signOut } = useAuth()
+  
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
   const visibility = useMenuVisibility()
   
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
@@ -167,6 +173,7 @@ export function HRSidebar() {
                       <SidebarMenuButton asChild>
                         <NavLink
                           to={section.route}
+                          onClick={handleNavClick}
                           className={cn(
                             "flex h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent",
                             isActive && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
@@ -234,6 +241,7 @@ export function HRSidebar() {
                               <SidebarMenuButton asChild>
                                 <NavLink
                                   to={item.route}
+                                  onClick={handleNavClick}
                                   className={cn(
                                     "flex h-9 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-sidebar-accent",
                                     isActive && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"

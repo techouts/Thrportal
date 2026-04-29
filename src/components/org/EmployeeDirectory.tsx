@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Grid, List, MapPin, Building, Users, RotateCcw } from 'lucide-react';
+import { Search, Filter, Grid, List, MapPin, Building, Users, RotateCcw, UserPlus } from 'lucide-react';
 import Fuse from 'fuse.js';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,10 @@ import { Toggle } from '@/components/ui/toggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { mockEmployees, mockSearchFilters } from '@/mocks/orgData';
 import type { EmployeeCard } from '@/types/org';
+import { useAuth } from '@/auth/AuthContext';
+import { InviteEmployeeModal } from '@/components/employees/InviteEmployeeModal';
+
+const INVITE_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'HR_MANAGER']);
 
 interface EmployeeDirectoryProps {
   className?: string;
@@ -19,6 +23,9 @@ interface EmployeeDirectoryProps {
 
 export function EmployeeDirectory({ className }: EmployeeDirectoryProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canInvite = !!user && INVITE_ROLES.has(user.role);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedManager, setSelectedManager] = useState<string>('all');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
@@ -109,7 +116,16 @@ export function EmployeeDirectory({ className }: EmployeeDirectoryProps) {
     <div className={className}>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-4">Employee Directory</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold">Employee Directory</h1>
+          {canInvite && (
+            <Button onClick={() => setInviteOpen(true)}>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Invite Employee
+            </Button>
+          )}
+        </div>
+        <InviteEmployeeModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
         
         {/* Search and Filters */}
         <div className="flex flex-col lg:flex-row gap-4 mb-4">

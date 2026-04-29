@@ -35,6 +35,27 @@ export interface EmployeeProfile {
   photo_url?: string
   created_at: string
   updated_at: string
+  date_of_joining?: string
+  notice_period?: string
+  band?: string
+  personal_email?: string
+  temporary_address?: string
+  permanent_address?: string
+  alternate_phone?: string
+  date_of_birth?: string
+  blood_group?: string
+  family_details?: FamilyMember[]
+
+  // New employment fields
+  employee_type?: string
+  shifts?: string
+  week_off?: string
+  leaves_policy?: string
+  attendance_policy?: string
+  work_location?: string
+  
+  // Dynamic field (populated from allocations)
+  assigned_client_name?: string
 
   // Related data (populated)
   manager?: {
@@ -64,6 +85,13 @@ export interface ProfileUpdateData {
   country?: string
   about?: string
   interests?: string[]
+  personal_email?: string
+  temporary_address?: string
+  permanent_address?: string
+  alternate_phone?: string
+  date_of_birth?: string
+  blood_group?: string
+  family_details?: FamilyMember[]
 }
 
 export interface ProfileCorrectionRequest {
@@ -73,11 +101,81 @@ export interface ProfileCorrectionRequest {
   reason: string
 }
 
+// Family Member interface
+export interface FamilyMember {
+  id: string
+  relationship: 'Father' | 'Mother' | 'Spouse' | 'Child'
+  name: string
+  phone?: string
+  occupation?: string
+  date_of_birth?: string
+  gender?: 'Male' | 'Female' | 'Other'
+}
+
+// Blood group options
+export const BLOOD_GROUP_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const
+export type BloodGroup = typeof BLOOD_GROUP_OPTIONS[number]
+
+// Employment field options
+export const DEPARTMENT_OPTIONS = [
+  'IT-BA',
+  'IT-DevOps',
+  'IT-UI Development',
+  'IT-Java'
+] as const
+
+export const EMPLOYEE_TYPE_OPTIONS = [
+  'FTE',      // Full-Time Employee
+  'FTDE',     // Full-Time Deputy Employee
+  'Intern'
+] as const
+
+export const SHIFTS_OPTIONS = [
+  'Regular',
+  'US Shift',
+  'Day Light Saving'
+] as const
+
+export const WEEK_OFF_OPTIONS = [
+  'Sat-Sun Off',
+  'Sun Off'
+] as const
+
+export const LEAVES_POLICY_OPTIONS = [
+  'Standard',
+  'Client Support',
+  'Interns'
+] as const
+
+export const ATTENDANCE_POLICY_OPTIONS = [
+  'Work from Office',
+  'Client Support'
+] as const
+
+export const COST_CENTER_OPTIONS = [
+  'Cost Center',
+  'India Engineering',
+  'India Finance',
+  'India HR',
+  'India Sales',
+  'India Others',
+  'US Recruitment',
+  'India Recruitment',
+  'US Engineering',
+  'India IT & System Admin',
+  'India Staffing'
+] as const
+
+export const WORK_LOCATION_OPTIONS = [
+  'Hyderabad',
+  'Bangalore'
+] as const
+
 // Validation schemas
 export const VALIDATION_RULES = {
   phone: {
-    pattern: /^\+[1-9]\d{1,14}$/, // E.164 format
-    message: 'Phone must be in E.164 format (e.g., +1234567890)'
+    pattern: /^(\+)?[1-9]\d{1,14}$/, // E.164 format (+ optional)
+    message: 'Phone must be valid (e.g., +1234567890 or 1234567890)'
   },
   city: {
     maxLength: 80,
@@ -94,5 +192,9 @@ export const VALIDATION_RULES = {
   interest: {
     maxLength: 40,
     message: 'Each interest must be 40 characters or less'
+  },
+  familyMemberName: {
+    maxLength: 100,
+    message: 'Family member name must be 100 characters or less'
   }
 }

@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
-import { format, parse } from 'date-fns';
-import { CalendarIcon, Upload, X, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { CrmService } from '@/services/crmService';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { format, parse } from "date-fns";
+import { CalendarIcon, Upload, X, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { CrmService } from "@/services/crmService";
+import { cn } from "@/lib/utils";
 
 interface EditMSAFormProps {
   msa: any;
@@ -24,12 +34,16 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
-    title: msa.title || '',
-    client_id: msa.client_id || '',
-    valid_from: msa.valid_from ? parse(msa.valid_from, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
-    valid_to: msa.valid_to ? parse(msa.valid_to, 'yyyy-MM-dd', new Date()) : undefined as Date | undefined,
-    status: msa.status || 'Active',
-    doc_link: msa.doc_link || '',
+    title: msa.title || "",
+    client_id: msa.client_id || "",
+    valid_from: msa.valid_from
+      ? parse(msa.valid_from, "yyyy-MM-dd", new Date())
+      : (undefined as Date | undefined),
+    valid_to: msa.valid_to
+      ? parse(msa.valid_to, "yyyy-MM-dd", new Date())
+      : (undefined as Date | undefined),
+    status: msa.status || "Active",
+    doc_link: msa.doc_link || "",
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,50 +52,50 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast({
-          title: 'Error',
-          description: 'File size must be less than 10MB',
-          variant: 'destructive'
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
         });
         return;
       }
-      
+
       // Validate file type
       const allowedTypes = [
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/png',
-        'image/jpeg'
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/png",
+        "image/jpeg",
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         toast({
-          title: 'Error',
-          description: 'Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG',
-          variant: 'destructive'
+          title: "Error",
+          description: "Invalid file type. Allowed: PDF, DOCX, XLSX, PNG, JPG",
+          variant: "destructive",
         });
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
 
   const uploadDocument = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `msas/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('contracts')
+      .from("contracts")
       .upload(filePath, file);
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('contracts')
-      .getPublicUrl(filePath);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("contracts").getPublicUrl(filePath);
 
     return publicUrl;
   };
@@ -92,30 +106,38 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
 
     try {
       // let doc_link = formData.doc_link; // Keep existing doc_link by default
-      
+
       // // Upload new document if one is selected
       // if (selectedFile) {
       //   setUploading(true);
       //   doc_link = await uploadDocument(selectedFile);
       //   setUploading(false);
       // }
-      
+
       // Prepare update payload
       const updatePayload: any = {
         title: formData.title,
-        valid_from: formData.valid_from ? format(formData.valid_from, 'yyyy-MM-dd') : '',
-        valid_to: formData.valid_to ? format(formData.valid_to, 'yyyy-MM-dd') : '',
-        status: formData.status as 'Draft' | 'Active' | 'Expired' | 'Terminated',
+        valid_from: formData.valid_from
+          ? format(formData.valid_from, "yyyy-MM-dd")
+          : "",
+        valid_to: formData.valid_to
+          ? format(formData.valid_to, "yyyy-MM-dd")
+          : "",
+        status: formData.status as
+          | "Draft"
+          | "Active"
+          | "Expired"
+          | "Terminated",
         doc_link: selectedFile,
       };
-      
+
       // if (selectedFile) {
       //   updatePayload.doc_link = selectedFile;
       // }
-      
+
       // Call CrmService.updateMSA
       await CrmService.updateMSA(msa.id, updatePayload);
-      
+
       toast({
         title: "Success",
         description: "MSA updated successfully",
@@ -157,7 +179,11 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
                   !formData.valid_from && "text-muted-foreground"
                 )}
               >
-                {formData.valid_from ? format(formData.valid_from, "PPP") : <span>Pick a date</span>}
+                {formData.valid_from ? (
+                  format(formData.valid_from, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -165,7 +191,9 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
               <Calendar
                 mode="single"
                 selected={formData.valid_from}
-                onSelect={(date) => setFormData({ ...formData, valid_from: date })}
+                onSelect={(date) =>
+                  setFormData({ ...formData, valid_from: date })
+                }
                 initialFocus
                 className="pointer-events-auto"
               />
@@ -183,7 +211,11 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
                   !formData.valid_to && "text-muted-foreground"
                 )}
               >
-                {formData.valid_to ? format(formData.valid_to, "PPP") : <span>Pick a date</span>}
+                {formData.valid_to ? (
+                  format(formData.valid_to, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -191,10 +223,14 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
               <Calendar
                 mode="single"
                 selected={formData.valid_to}
-                onSelect={(date) => setFormData({ ...formData, valid_to: date })}
+                onSelect={(date) =>
+                  setFormData({ ...formData, valid_to: date })
+                }
                 initialFocus
                 disabled={(date) => {
-                  return formData.valid_from ? date < formData.valid_from : false;
+                  return formData.valid_from
+                    ? date < formData.valid_from
+                    : false;
                 }}
                 className="pointer-events-auto"
               />
@@ -205,7 +241,10 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
 
       <div>
         <Label htmlFor="status">Status</Label>
-        <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+        <Select
+          value={formData.status}
+          onValueChange={(value) => setFormData({ ...formData, status: value })}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -220,22 +259,33 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
 
       <div>
         <Label htmlFor="doc_link">Add New Document</Label>
-        
+
         {/* Show existing document link if it exists */}
-        {msa.doc_link && !selectedFile && (
-          <div className="mb-2 p-2 bg-muted rounded flex items-center gap-2">
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            <a 
-              href={msa.doc_link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline truncate flex-1"
-            >
-              Current Document
-            </a>
+        {msa.files?.length > 0 && !selectedFile && (
+          <div className="space-y-2 mb-2">
+            {msa.files.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center gap-2 p-2 bg-muted rounded"
+              >
+                <span className="text-sm flex-1">
+                  Current Document: {file.file_name}
+                </span>
+
+                <a
+                  href={`https://hrportal.coventic.com:7783${file.file_download_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Download
+                </a>
+              </div>
+            ))}
           </div>
         )}
-        
+
         {/* File upload section */}
         <div className="space-y-2">
           {!selectedFile ? (
@@ -250,7 +300,9 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
             </div>
           ) : (
             <div className="flex items-center gap-2 p-2 border rounded">
-              <span className="flex-1 text-sm truncate">{selectedFile.name}</span>
+              <span className="flex-1 text-sm truncate">
+                {selectedFile.name}
+              </span>
               <Button
                 type="button"
                 variant="ghost"
@@ -262,10 +314,9 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            {selectedFile 
-              ? 'New document will be uploaded (existing document will be kept)'
-              : 'Accepted: PDF, DOCX, XLSX, PNG, JPG (max 10MB) - Optional'
-            }
+            {selectedFile
+              ? "New document will be uploaded (existing document will be kept)"
+              : "Accepted: PDF, DOCX, XLSX, PNG, JPG (max 10MB) - Optional"}
           </p>
         </div>
       </div>
@@ -275,7 +326,11 @@ export function EditMSAForm({ msa, onSuccess, onCancel }: EditMSAFormProps) {
           Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? (uploading ? 'Uploading...' : 'Saving...') : 'Save Changes'}
+          {loading
+            ? uploading
+              ? "Uploading..."
+              : "Saving..."
+            : "Save Changes"}
         </Button>
       </div>
     </form>

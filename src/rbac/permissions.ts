@@ -1,6 +1,8 @@
 export type Permission = string; // e.g., "attendance.read", "payroll.export"
 
 export const roleToPermissionPatterns: Record<string, string[]> = {
+  SUPER_ADMIN: ["*"],
+
   ADMIN: [
     "*",
     "admin.read","admin.tenant.read","admin.access.read",

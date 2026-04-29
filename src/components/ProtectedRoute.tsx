@@ -7,8 +7,17 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ required = [], children }: ProtectedRouteProps) {
-  const { user, can } = useAuth();
-  
+  const { user, can, isLoading } = useAuth();
+
+  // Wait for async restore-from-storage before deciding where to send the user
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/Auth/SignIn" replace />;
   
   // If no permissions required, allow access
