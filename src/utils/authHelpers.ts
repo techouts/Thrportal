@@ -10,6 +10,11 @@ export const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'dev';
 export const isDevAuthMode = () => AUTH_MODE === 'dev';
 export const isSupabaseAuthMode = () => AUTH_MODE === 'supabase';
 
+
+// Base URL for the NestJS backend when AUTH_MODE === 'backend'
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'https://hrportal.coventic.com:7783/api';
+
 /**
  * Get current user ID - works in both dev and supabase modes
  */

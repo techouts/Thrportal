@@ -892,6 +892,8 @@ export const roleToPermissionPatterns: Record<string, string[]> = {
     "projects.tasks.read",
     "projects.bench.read",
     "projects.timesheets.read",
+    // management full access
+    "management.*",
   ],
 };
 
