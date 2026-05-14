@@ -483,49 +483,49 @@ export class TimesheetService {
         : filterStart
 
       // Get project IDs from both allocations and contract_assignments
-      const [allocationsResult, contractsResult] = await Promise.all([
-        // supabase
-        //   .from("allocations")
-        //   .select("project_id")
-        //   .eq("employee_id", employeeId)
-        //   .in("type", ["ACTIVE", "SHADOW"])
-        //   .lte("start_date", today)
-        //   .or(`end_date.is.null,end_date.gte.${today}`),
-        NodeApiClient.get("/allocations/projects/by-employee", {
-          params: {
-            employee_id: employeeId,
-            types: "ACTIVE,SHADOW",
-            end_date_gte: filterEnd,
-            start_date: filterStart,
-          },
-        }),
+      // const [allocationsResult, contractsResult] = await Promise.all([
+      //   // supabase
+      //   //   .from("allocations")
+      //   //   .select("project_id")
+      //   //   .eq("employee_id", employeeId)
+      //   //   .in("type", ["ACTIVE", "SHADOW"])
+      //   //   .lte("start_date", today)
+      //   //   .or(`end_date.is.null,end_date.gte.${today}`),
+      //   NodeApiClient.get("/allocations/projects/by-employee", {
+      //     params: {
+      //       employee_id: employeeId,
+      //       types: "ACTIVE,SHADOW",
+      //       end_date_gte: filterEnd,
+      //       start_date: filterStart,
+      //     },
+      //   }),
 
-        //   supabase
-        //     .from("contract_assignments")
-        //     .select("project_id")
-        //     .eq("employee_id", employeeId)
-        //     .lte("start_date", today)
-        //     .or(`end_date.is.null,end_date.gte.${today}`),
-        // ]);
-        NodeApiClient.get("/tasks/contract/assignments", {
-          params: {
-            employee_id: employeeId,
-            start_date: filterStart, // backend applies lte(start_date) + end_date null/gte
-          },
-        }),
-      ]);
+      //   //   supabase
+      //   //     .from("contract_assignments")
+      //   //     .select("project_id")
+      //   //     .eq("employee_id", employeeId)
+      //   //     .lte("start_date", today)
+      //   //     .or(`end_date.is.null,end_date.gte.${today}`),
+      //   // ]);
+      //   NodeApiClient.get("/tasks/contract/assignments", {
+      //     params: {
+      //       employee_id: employeeId,
+      //       start_date: filterStart, // backend applies lte(start_date) + end_date null/gte
+      //     },
+      //   }),
+      // ]);
 
-      const projectIds = [
-        ...new Set([
-          ...(allocationsResult.data || []).map((a) => a.project_id),
-          ...(contractsResult.data || []).map((c) => c.project_id),
-        ]),
-      ].filter(Boolean) as string[];
+      // const projectIds = [
+      //   ...new Set([
+      //     ...(allocationsResult.data || []).map((a) => a.project_id),
+      //     ...(contractsResult.data || []).map((c) => c.project_id),
+      //   ]),
+      // ].filter(Boolean) as string[];
 
-      if (projectIds.length === 0) {
-        console.log("No project allocations found for employee:", employeeId);
-        return [];
-      }
+      // if (projectIds.length === 0) {
+      //   console.log("No project allocations found for employee:", employeeId);
+      //   return [];
+      // }
 
       // Fetch project details for allocated projects
       // const { data, error } = await supabase
@@ -547,14 +547,18 @@ export class TimesheetService {
       //   console.error("Error fetching projects:", error);
       //   return [];
       // }
-      const { data } = await NodeApiClient.get(
-        "/employeeAllocations/projects",
-        {
-          params: {
-            projectId: projectIds.join(","), // IN (...)
-            // status: "Planned,Active,In-flight",
-          },
-        }
+      // const { data } = await NodeApiClient.get(
+      //   "/employeeAllocations/projects",
+      //   {
+      //     params: {
+      //       projectId: projectIds.join(","), // IN (...)
+      //       // status: "Planned,Active,In-flight",
+      //     },
+      //   }
+      // );
+
+       const { data } = await NodeApiClient.get(
+        "crm/projects/projects-list"
       );
 
       return (data || []).map((project) => ({
