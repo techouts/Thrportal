@@ -628,7 +628,7 @@ const handleCopyLastWeek = async () => {
             </div>
           )}
         </div>
-        
+
         <div className="flex gap-2 flex-wrap">
           {canEdit && (
             <>
@@ -642,9 +642,9 @@ const handleCopyLastWeek = async () => {
                 <Save className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
                 {!isMobile && "Save Draft"}
               </Button>
-              <Button 
-                size="sm" 
-                onClick={handleSubmit} 
+              <Button
+                size="sm"
+                onClick={handleSubmit}
                 disabled={loading}
                 data-testid="submit-btn"
               >
@@ -653,10 +653,11 @@ const handleCopyLastWeek = async () => {
               </Button>
             </>
           )}
-          {timesheet?.status === 'SUBMITTED' && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+          {(timesheet?.status === "SUBMITTED" ||
+            timesheet?.status === "APPROVED") && (
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleRecall}
               disabled={loading}
               data-testid="recall-btn"
@@ -724,7 +725,7 @@ const handleCopyLastWeek = async () => {
           entries={entries} 
           weekStart={selectedWeek}
         />
-        <TimesheetActivity 
+        <TimesheetActivity
           timesheet={timesheet}
           entries={entries}
           weekStart={selectedWeek}
